@@ -16,20 +16,11 @@ import {
   FormError,
 } from '../../components/forms';
 
-<<<<<<< Updated upstream
-interface CategoryOption {
-  id: string;
-  name: string;
-}
-
-const PERIODS = ['monthly', 'yearly', 'weekly'];
-=======
 const PERIODS = [
   { label: 'Weekly', value: 'weekly', icon: 'calendar' },
   { label: 'Monthly', value: 'monthly', icon: 'calendar' },
   { label: 'Yearly', value: 'yearly', icon: 'calendar' },
 ];
->>>>>>> Stashed changes
 
 export function CreateBudgetScreen() {
   const { colors } = useTheme();
@@ -40,10 +31,10 @@ export function CreateBudgetScreen() {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [period, setPeriod] = useState('monthly');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
+  const [category, setCategory] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState('');
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,16 +46,8 @@ export function CreateBudgetScreen() {
   async function loadCategories() {
     try {
       const res = await api.get<any>('/categories');
-<<<<<<< Updated upstream
-      const list = Array.isArray(res) ? res : res?.data || [];
-      setCategories(list.map((c: any) => ({ id: c.id, name: c.name })));
-    } catch (_e) {
-      /* ignore */
-    }
-=======
       setCategories(res?.map((c: any) => c.name) || res || []);
     } catch {}
->>>>>>> Stashed changes
   }
 
   async function handleSave() {
@@ -78,7 +61,7 @@ export function CreateBudgetScreen() {
         name: name.trim(),
         amount: Number(amount),
         period,
-        categoryId: selectedCategory?.id || undefined,
+        category: category || undefined,
         startDate,
         endDate: endDate || undefined,
       });
@@ -92,13 +75,6 @@ export function CreateBudgetScreen() {
   }
 
   return (
-<<<<<<< Updated upstream
-    <PremiumFormScreen
-      title="Create budget"
-      subtitle="Set a polished spending guardrail with period, category, and start/end dates."
-      icon="piechart"
-      accent={[colors.accent.primary, colors.accent.primary]}
-=======
     <FormScreen
       title="Create Budget"
       subtitle="Set a polished spending guardrail"
@@ -112,7 +88,6 @@ export function CreateBudgetScreen() {
           onPress={handleSave}
         />
       }
->>>>>>> Stashed changes
     >
       <FormError message={error} />
 
@@ -147,25 +122,6 @@ export function CreateBudgetScreen() {
             onSelect={(v) => setCategory(category === v ? '' : v)}
             size="sm"
           />
-<<<<<<< Updated upstream
-        ))}
-      </View>
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Category</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {categories.map((cat) => (
-          <PremiumChip
-            key={cat.id}
-            label={cat.name}
-            selected={selectedCategory?.id === cat.id}
-            onPress={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
-          />
-        ))}
-      </View>
-      <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
-      <DatePickerField label="End Date" value={endDate} onChange={setEndDate} optional />
-      <PremiumActionButton title="Create budget" onPress={handleSave} loading={saving} icon="plus" />
-    </PremiumFormScreen>
-=======
         )}
         <FormField
           label="Custom Category"
@@ -181,6 +137,5 @@ export function CreateBudgetScreen() {
         <FormDatePicker label="End Date" value={endDate} onChange={setEndDate} optional />
       </FormSection>
     </FormScreen>
->>>>>>> Stashed changes
   );
 }

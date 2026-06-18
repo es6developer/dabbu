@@ -13,7 +13,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -32,17 +31,17 @@ type GoalConfig = {
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'Safety', color: '#FF6B6B' },
-  vacation: { icon: 'enviroment', color: '#00B894' },
-  education: { icon: 'book', color: '#4F6EF7' },
+  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
+  vacation: { icon: 'airplane', color: '#00B894' },
+  education: { icon: 'school', color: '#4F6EF7' },
   home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car', color: '#14B8A6' },
+  car: { icon: 'car-sport', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
-  retirement: { icon: 'cloud', color: '#247BA0' },
-  savings: { icon: 'wallet', color: '#7C3AED' },
-  investment: { icon: 'arrowup', color: '#10B981' },
-  baby: { icon: 'smile-circle', color: '#FF69B4' },
-  custom: { icon: 'star', color: '#14B8A6' },
+  retirement: { icon: 'umbrella', color: '#247BA0' },
+  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
+  investment: { icon: 'trending-up', color: '#10B981' },
+  baby: { icon: 'happy', color: '#FF69B4' },
+  custom: { icon: 'trophy', color: '#14B8A6' },
 };
 
 const SUGGESTED_GOALS = [
@@ -283,7 +282,7 @@ function MilestoneDot({
                 position: 'absolute',
                 width: 28,
                 height: 28,
-    borderRadius: borderRadius.xl,
+                borderRadius: 14,
                 backgroundColor: color + '30',
                 transform: [
                   {
@@ -324,6 +323,7 @@ function MilestoneDot({
         style={{
           fontSize: 9,
           fontWeight: '700',
+          fontFamily: 'Inter-Bold',
           color: reached ? color : colors.text.tertiary,
         }}
       >
@@ -355,7 +355,7 @@ function GoalCard({
   const estDate = prediction?.predictedCompletionDate
     ? `Forecast: ${new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
     : getEstimatedCompletion(saved, target, monthly, item.deadline || item.targetDate);
-  const paceColor = prediction?.currentPace === 'ahead' ? colors.status.success : prediction?.currentPace === 'ontrack' ? colors.status.warning : prediction?.currentPace === 'behind' ? colors.status.error : prediction?.currentPace === 'critical' ? colors.status.error : colors.text.tertiary;
+  const paceColor = prediction?.currentPace === 'ahead' ? '#10B981' : prediction?.currentPace === 'ontrack' ? '#F59E0B' : prediction?.currentPace === 'behind' ? '#EF4444' : prediction?.currentPace === 'critical' ? '#DC2626' : colors.text.tertiary;
 
   const entryAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -405,7 +405,7 @@ function GoalCard({
 
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
-                    <View style={[s.cardIcon, { borderRadius: borderRadius.xl }]}>
+            <View style={[s.cardIcon, { borderRadius: 12 }]}>
               <AntDesign name={config.icon as any} size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
@@ -502,7 +502,7 @@ function GoalCard({
             )}
             {prediction && (
               <View style={s.footerBadge}>
-                <AntDesign  name="heart" size={11} color={paceColor} />
+                <AntDesign  name="hearto" size={11} color={paceColor} />
                 <Text style={[typography.footnote, { color: paceColor, fontWeight: '700' }]}>
                   {prediction.currentPace}
                 </Text>
@@ -539,7 +539,7 @@ function GoalCard({
 
         {flashMilestone !== null && (
           <View style={[StyleSheet.absoluteFill, s.celebrationFlash]}>
-            <AntDesign  name="checkcircle" size={56} color={config.color} />
+            <AntDesign  name="checkcircleo" size={56} color={config.color} />
             <Text style={[typography.h4, { color: '#FFF', marginTop: 4 }]}>
               {flashMilestone}% Reached!
             </Text>
@@ -566,7 +566,7 @@ function OverallProgressHeader({
     <View
       style={[
         s.overallCard,
-        { backgroundColor: colors.accent.primary, borderWidth: 0 },
+        { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default },
       ]}
     >
       <View style={s.overallInner}>
@@ -705,7 +705,7 @@ function GoalsEmptyState({
   return (
     <View style={s.emptyWrap}>
       <EmptyState
-        icon="flag"
+        icon="trophy"
         title="Set your first goal"
         message="Goals turn your dreams into a plan. Save for a vacation, build an emergency fund, or buy your dream home \u2014 Dabbu helps you track every step."
         actionLabel="Create Goal"
@@ -758,321 +758,6 @@ function GoalsEmptyState({
   );
 }
 
-<<<<<<< Updated upstream
-function CreateGoalModal({
-  visible,
-  onClose,
-  onCreated,
-  prefill,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onCreated: () => void;
-  prefill: { name: string; type: string; target: number } | null;
-}) {
-  const { colors, typography } = useTheme();
-  const { accessToken } = useAuth();
-  const { showToast } = useToast();
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const [name, setName] = useState('');
-  const [targetStr, setTargetStr] = useState('');
-  const [type, setType] = useState('custom');
-  const [deadline, setDeadline] = useState('');
-  const [monthly, setMonthly] = useState('');
-  const [notes, setNotes] = useState('');
-  const [creating, setCreating] = useState(false);
-
-  useEffect(() => {
-    if (visible) {
-      if (prefill) {
-        setName(prefill.name);
-        setTargetStr(String(prefill.target));
-        setType(prefill.type);
-      }
-      Animated.spring(slideAnim, {
-        toValue: 1,
-        friction: 9,
-        tension: 50,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      slideAnim.setValue(0);
-      setName('');
-      setTargetStr('');
-      setType('custom');
-      setDeadline('');
-      setMonthly('');
-      setNotes('');
-    }
-  }, [visible, prefill]);
-
-  const handleCreate = async () => {
-    if (!name.trim()) {
-      Alert.alert('Required', 'Please enter a goal name');
-      return;
-    }
-    const targetNum = parseFloat(targetStr);
-    if (!targetNum || targetNum <= 0) {
-      Alert.alert('Required', 'Target amount must be greater than 0');
-      return;
-    }
-    setCreating(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const payload: any = {
-        name: name.trim(),
-        targetAmount: targetNum,
-        type,
-      };
-      if (deadline.trim()) {
-        payload.deadline = deadline.trim();
-      }
-      if (monthly.trim()) {
-        payload.monthlyContribution = parseFloat(monthly);
-      }
-      if (notes.trim()) {
-        payload.notes = notes.trim();
-      }
-      await api.post('/goals', payload);
-      showToast('Goal created');
-      onClose();
-      onCreated();
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create goal');
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const goalTypes = Object.entries(GOAL_CONFIGS).map(([k, v]) => ({ key: k, ...v }));
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
-      >
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <Animated.View
-              style={[
-                s.modalContent,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  transform: [
-                    {
-                      translateY: slideAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [500, 0],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 24 }}
-              >
-                <View style={s.modalHandle}>
-                  <View style={[s.handleBar, { backgroundColor: colors.border.default }]} />
-                </View>
-
-                <Text style={[typography.h2, { color: colors.text.primary, marginBottom: 20 }]}>
-                  Create Goal
-                </Text>
-
-                <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Goal Name</Text>
-                <TextInput
-                  style={[
-                    s.textInput,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                      borderRadius: 10,
-                    },
-                  ]}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="e.g. My Dream Home"
-                  placeholderTextColor={colors.text.tertiary}
-                />
-
-                <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>
-                  Category
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: spacing.lg, paddingVertical: 2 }}
-                >
-                  {goalTypes.map((gt) => (
-                    <TouchableOpacity
-                      key={gt.key}
-                      style={[
-                        s.typeChip,
-                        {
-                          backgroundColor: type === gt.key ? gt.color + '20' : colors.bg.tertiary,
-                          borderColor: type === gt.key ? gt.color : colors.border.subtle,
-                        },
-                      ]}
-                      onPress={() => setType(gt.key)}
-                      activeOpacity={0.7}
-                    >
-                      <AntDesign
-                         name={gt.icon as any}
-                        size={16}
-                        color={type === gt.key ? gt.color : colors.text.secondary}
-                      />
-                      <Text
-                        style={[
-                          typography.footnote,
-                          {
-                            color: type === gt.key ? gt.color : colors.text.secondary,
-                            fontWeight: '600',
-                            textTransform: 'capitalize',
-                          },
-                        ]}
-                      >
-                        {gt.key}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>
-                  Target Amount
-                </Text>
-                <View
-                  style={[
-                    s.amountRow,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      borderColor: colors.border.subtle,
-                      borderRadius: 10,
-                    },
-                  ]}
-                >
-                  <Text style={[typography.h3, { color: colors.text.secondary }]}>₹</Text>
-                  <TextInput
-                    style={[s.amountInput, { color: colors.text.primary }]}
-                    value={targetStr}
-                    onChangeText={setTargetStr}
-                    placeholder="5,00,000"
-                    placeholderTextColor={colors.text.tertiary}
-                    keyboardType="number-pad"
-                  />
-                </View>
-
-                <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Deadline</Text>
-                    <TextInput
-                      style={[
-                        s.textInput,
-                        {
-                          backgroundColor: colors.bg.tertiary,
-                          color: colors.text.primary,
-                          borderColor: colors.border.subtle,
-                          borderRadius: 10,
-                        },
-                      ]}
-                      value={deadline}
-                      onChangeText={setDeadline}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor={colors.text.tertiary}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Monthly</Text>
-                    <TextInput
-                      style={[
-                        s.textInput,
-                        {
-                          backgroundColor: colors.bg.tertiary,
-                          color: colors.text.primary,
-                          borderColor: colors.border.subtle,
-                          borderRadius: 10,
-                        },
-                      ]}
-                      value={monthly}
-                      onChangeText={setMonthly}
-                      placeholder="₹/mo"
-                      placeholderTextColor={colors.text.tertiary}
-                      keyboardType="number-pad"
-                    />
-                  </View>
-                </View>
-
-                <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>
-                  Notes
-                </Text>
-                <TextInput
-                  style={[
-                    s.textInput,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                      borderRadius: 10,
-                      height: 72,
-                      textAlignVertical: 'top',
-                    },
-                  ]}
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder="Why this goal matters..."
-                  placeholderTextColor={colors.text.tertiary}
-                  multiline
-                />
-
-                <View style={{ gap: 10, marginTop: 24 }}>
-                  <TouchableOpacity
-                    style={[
-                      s.primaryBtn,
-                      { backgroundColor: colors.accent.primary, borderRadius: 12 },
-                    ]}
-                    onPress={handleCreate}
-                    disabled={creating}
-                    activeOpacity={0.8}
-                  >
-                    {creating ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <>
-                        <AntDesign  name="star" size={18} color="#FFF" />
-                        <Text style={[typography.button, { color: '#FFF' }]}>Create Goal</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      s.secondaryBtn,
-                      { backgroundColor: colors.bg.tertiary, borderRadius: 12 },
-                    ]}
-                    onPress={onClose}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[typography.button, { color: colors.text.secondary }]}>
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </Animated.View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
-=======
->>>>>>> Stashed changes
 export function GoalsListScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
@@ -1090,7 +775,6 @@ export function GoalsListScreen() {
 
   const loadGoals = useCallback(async () => {
     try {
-      if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>('/goals');
       const goalList = Array.isArray(res) ? res : [];
       setGoals(goalList);
@@ -1174,11 +858,11 @@ export function GoalsListScreen() {
               tintColor={colors.accent.primary}
             />
           }
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingBottom: insets.bottom + 100,
-          paddingHorizontal: 16,
-        }}
+          contentContainerStyle={
+            goals.length === 0
+              ? { flexGrow: 1, paddingBottom: insets.bottom + 100 }
+              : { paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }
+          }
           ListHeaderComponent={
             <Animated.View>
               <PageHeader
@@ -1205,16 +889,16 @@ export function GoalsListScreen() {
                 <View style={{ marginTop: 8, marginBottom: 4 }}>
                   <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                       <AntDesign  name="swap" size={16} color={colors.accent.primary} />
+                      <AntDesign  name="swap" size={16} color="#7C3AED" />
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
                     </View>
                     {rebalanceData.slice(0, 3).map((s: any) => (
                       <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
-                        <View style={{ width: 24, height: 24, borderRadius: borderRadius.sm, backgroundColor: (s.goalColor || colors.accent.primary) + '20', alignItems: 'center', justifyContent: 'center' }}>
-                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || colors.accent.primary} />
+                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || '#7C3AED') + '20', alignItems: 'center', justifyContent: 'center' }}>
+                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
                         </View>
                         <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? colors.status.success : colors.status.error }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>
                           {s.action === 'increase' ? '+' : '-'}₹{s.diff.toLocaleString('en-IN')}
                         </Text>
                       </View>
@@ -1262,27 +946,27 @@ export function GoalsListScreen() {
 
 const s = StyleSheet.create({
   card: {
-    marginBottom: spacing.lg,
-    borderRadius: borderRadius['3xl'],
-    padding: spacing.lg,
+    marginBottom: 12,
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 12,
   },
   cardLeftCol: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: spacing.lg,
+    gap: 10,
   },
   cardIcon: {
     width: 44,
@@ -1292,34 +976,34 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   rebalCard: {
-    padding: spacing.md,
-    borderRadius: borderRadius.xl,
+    padding: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderLeftWidth: 3,
     borderLeftColor: '#7C3AED',
   },
   progressTrack: {
     height: 5,
-    borderRadius: borderRadius.full,
+    borderRadius: 999,
     overflow: 'hidden',
-    marginTop: spacing.md,
+    marginTop: 12,
   },
   progressFill: {
     height: '100%',
-    borderRadius: borderRadius.full,
+    borderRadius: 999,
   },
   milestoneRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.xs,
-    marginTop: spacing.md,
+    paddingHorizontal: 4,
+    marginTop: 12,
   },
   cardFooter: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: spacing.md,
-    marginTop: spacing.md,
-    gap: spacing.md,
+    paddingTop: 12,
+    marginTop: 12,
+    gap: 12,
   },
   footerRow: {
     flexDirection: 'row',
@@ -1330,7 +1014,7 @@ const s = StyleSheet.create({
   footerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
     marginBottom: 2,
   },
   taglineRow: {
@@ -1338,59 +1022,59 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.lg,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     marginTop: 10,
   },
   celebrationFlash: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: borderRadius['3xl'],
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 20,
   },
   overallCard: {
-    marginBottom: spacing.lg,
-    borderRadius: borderRadius['3xl'],
+    marginBottom: 16,
+    borderRadius: 20,
     padding: 18,
   },
   overallInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: 16,
   },
   overallTrackBar: {
     height: 6,
-    borderRadius: borderRadius.full,
+    borderRadius: 999,
     overflow: 'hidden',
   },
   overallTrackFill: {
     height: '100%',
-    borderRadius: borderRadius.full,
+    borderRadius: 999,
   },
   goalBadge: {
-    marginTop: spacing.sm,
+    marginTop: 8,
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: borderRadius.full,
+    borderRadius: 999,
   },
   addBtn: {
     width: 38,
     height: 38,
-    borderRadius: borderRadius.xl,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyWrap: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 16,
   },
   suggestionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 12,
     padding: 14,
-    borderRadius: borderRadius['2xl'],
+    borderRadius: 16,
     borderWidth: 1,
   },
   suggestionIcon: {
@@ -1399,75 +1083,4 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-<<<<<<< Updated upstream
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: borderRadius['4xl'],
-    borderTopRightRadius: borderRadius['4xl'],
-    padding: spacing.xl,
-    paddingBottom: spacing['4xl'],
-    maxHeight: '85%',
-  },
-  modalHandle: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  handleBar: {
-    width: 36,
-    height: spacing.xs,
-    borderRadius: 2,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  textInput: {
-    fontSize: 15,
-    paddingHorizontal: 14,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    gap: spacing.sm,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '700',
-    paddingVertical: spacing.xs,
-  },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderRadius: borderRadius.full,
-  },
-  primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: 15,
-  },
-  secondaryBtn: {
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-=======
->>>>>>> Stashed changes
 });

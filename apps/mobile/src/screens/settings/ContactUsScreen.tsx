@@ -2,13 +2,12 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 
 const CONTACT_OPTIONS = [
   { icon: 'mail' as const, label: 'Email Us', value: 'support@dabbu.app', action: 'mailto:support@dabbu.app' },
-  { icon: 'phone' as const, label: 'Call Us', value: '1800-123-4567', action: 'tel:18001234567' },
-  { icon: 'earth' as const, label: 'Website', value: 'www.dabbu.app', action: 'https://dabbu.app' },
-  { icon: 'twitter' as const, label: 'Twitter', value: '@dabbu_app', action: 'https://twitter.com/dabbu_app' },
+  { icon: 'call' as const, label: 'Call Us', value: '1800-123-4567', action: 'tel:18001234567' },
+  { icon: 'globe' as const, label: 'Website', value: 'www.dabbu.app', action: 'https://dabbu.app' },
+  { icon: 'logo-twitter' as const, label: 'Twitter', value: '@dabbu_app', action: 'https://twitter.com/dabbu_app' },
 ];
 
 export function ContactUsScreen() {
@@ -38,11 +37,7 @@ export function ContactUsScreen() {
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.value, { color: colors.text.tertiary }]}>{opt.value}</Text>
           </View>
-<<<<<<< Updated upstream
-          <AntDesign name="folder1" size={18} color={colors.text.tertiary} />
-=======
           <Ionicons  name="open" size={18} color={colors.text.tertiary} />
->>>>>>> Stashed changes
         </TouchableOpacity>
       ))}
 
@@ -58,17 +53,17 @@ export function ContactUsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing['2xl'], paddingBottom: 120 },
-  hero: { alignItems: 'center', marginBottom: spacing['3xl'] },
-  heroIcon: { width: spacing['8xl'], height: spacing['8xl'], borderRadius: borderRadius['4xl'], alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
+  content: { padding: 24, paddingBottom: 120 },
+  hero: { alignItems: 'center', marginBottom: 32 },
+  heroIcon: { width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
   subtitle: { fontSize: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: spacing.lg },
-  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: 14, marginBottom: spacing.lg, borderWidth: 1 },
-  iconWrap: { width: 44, height: 44, borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 16 },
+  card: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 14, marginBottom: 8, borderWidth: 1 },
+  iconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   info: { flex: 1 },
   label: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   value: { fontSize: 13 },
-  responseCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: 14, marginTop: spacing['2xl'], borderWidth: 1 },
+  responseCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 14, marginTop: 24, borderWidth: 1 },
   responseText: { flex: 1, fontSize: 13, lineHeight: 18 },
 });

@@ -88,13 +88,6 @@ export function CreateTaskScreen() {
   });
 
   return (
-<<<<<<< Updated upstream
-    <PremiumFormScreen
-      title="New task"
-      subtitle="Assign ownership, set priority, and keep family work moving without clutter."
-      icon="checkcircle"
-      accent={[colors.accent.primary, colors.accent.primary]}
-=======
     <FormScreen
       title="New Task"
       subtitle="Assign ownership, set priority, and keep family work moving"
@@ -103,7 +96,6 @@ export function CreateTaskScreen() {
       footer={
         <FormFooter title="Create Task" icon="add" loading={saving} onPress={handleSave} />
       }
->>>>>>> Stashed changes
     >
       <FormError message={error} />
 
@@ -151,34 +143,6 @@ export function CreateTaskScreen() {
             onSelect={(v) => setAssignedTo(assignedTo === v ? '' : v)}
             size="sm"
           />
-<<<<<<< Updated upstream
-        ))}
-      </View>
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Assign To</Text>
-      {familyMembers.length > 0 ? (
-        <View style={premiumFormStyles.rowWrap}>
-          {familyMembers.map((m: any) => {
-            const memberId = m.userId || m.id;
-            return (
-              <PremiumChip
-                key={memberId}
-                label={m.firstName || m.name || m.user?.firstName || 'Member'}
-                icon="user"
-                selected={assignedTo === memberId}
-                onPress={() => setAssignedTo(assignedTo === memberId ? '' : memberId)}
-              />
-            );
-          })}
-        </View>
-      ) : (
-        <Text style={[local.empty, { color: colors.text.tertiary }]}>
-          No family members found. Join a family first.
-        </Text>
-      )}
-      <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
-      <PremiumActionButton title="Create task" onPress={handleSave} loading={saving} icon="plus" />
-    </PremiumFormScreen>
-=======
         ) : (
           <Text style={{ fontSize: 14, fontStyle: 'italic', color: colors.text.tertiary }}>
             No family members found. Join a family first.
@@ -187,6 +151,5 @@ export function CreateTaskScreen() {
         <FormDatePicker label="Due Date" value={dueDate} onChange={setDueDate} optional />
       </FormSection>
     </FormScreen>
->>>>>>> Stashed changes
   );
 }

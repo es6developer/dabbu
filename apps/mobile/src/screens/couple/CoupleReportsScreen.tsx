@@ -8,13 +8,11 @@ import {
   RefreshControl,
   Dimensions,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
@@ -48,24 +46,6 @@ export function CoupleReportsScreen() {
   const [period, setPeriod] = useState<Period>('This Month');
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
-  const [exporting, setExporting] = useState(false);
-
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const { downloadAndShareFile } = await import('../../utils/exportFile');
-      await downloadAndShareFile(
-        '/reports/export',
-        { type: 'custom', format: 'pdf', groupId: data?.groupId },
-        'couple-report',
-        'pdf',
-      );
-    } catch (e: any) {
-      Alert.alert('Export Failed', e.message || 'Could not export report');
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const periodQuery =
     period === 'This Month' ? 'month' : period === 'This Quarter' ? 'quarter' : 'year';
@@ -176,11 +156,7 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
-<<<<<<< Updated upstream
-          <AntDesign name="barchart" size={48} color={colors.accent.primary} />
-=======
           <Ionicons name="bar-chart-outline" size={48} color={colors.accent.primary} />
->>>>>>> Stashed changes
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
           </Text>
@@ -238,7 +214,7 @@ export function CoupleReportsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: spacing.lg }}
+            contentContainerStyle={{ gap: 10 }}
             style={{ marginHorizontal: -20, paddingHorizontal: 20 }}
           >
             {summaryCards.map((card, i) => (
@@ -420,16 +396,13 @@ export function CoupleReportsScreen() {
             activeOpacity={0.7}
             style={[
               styles.exportBtn,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.default, opacity: exporting ? 0.6 : 1 },
+              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
-            disabled={exporting}
-            onPress={handleExport}
+            onPress={() =>
+              Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')
+            }
           >
-            {exporting ? (
-              <ActivityIndicator size="small" color={colors.accent.primary} />
-            ) : (
-              <AntDesign name="download" size={20} color={colors.accent.primary} />
-            )}
+            <AntDesign  name="download" size={20} color={colors.accent.primary} />
             <Text style={styles.exportText}>Export Report</Text>
             <AntDesign  name="right" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
@@ -449,9 +422,9 @@ const styles = StyleSheet.create({
     padding: 4,
     borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 2,
+    shadowRadius: 6,
     elevation: 1,
   },
   periodTab: {
@@ -470,9 +443,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 2,
+    shadowRadius: 6,
     elevation: 1,
   },
   summaryIcon: {
@@ -489,9 +462,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowRadius: 8,
     elevation: 1,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
@@ -528,9 +501,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowRadius: 8,
     elevation: 1,
   },
   budgetTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

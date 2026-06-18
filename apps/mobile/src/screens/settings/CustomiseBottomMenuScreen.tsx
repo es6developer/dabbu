@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, {
@@ -10,7 +10,6 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { usePreferences, TabConfig } from '../../store/PreferencesContext';
 import { useToast } from '../../store/ToastContext';
@@ -18,11 +17,11 @@ import { useToast } from '../../store/ToastContext';
 const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
-  Dashboard: { label: 'Dashboard', icon: 'home-outline', desc: 'Home screen with overview' },
-  Spaces: { label: 'Spaces', icon: 'globe-outline', desc: 'Split expenses & shared accounts' },
-  QuickAction: { label: 'Quick Action', icon: 'add-circle-outline', desc: 'Center FAB with quick actions' },
-  Goals: { label: 'Goal', icon: 'trophy-outline', desc: 'Track savings & goals' },
-  Settings: { label: 'Profile', icon: 'person-outline', desc: 'Profile, preferences & more' },
+  Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
+  Expense: { label: 'Expenses', icon: 'receipt', desc: 'Transactions & accounts' },
+  QuickAction: { label: 'Quick Action', icon: 'add-circle', desc: 'Center FAB with quick actions' },
+  Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
+  Settings: { label: 'Settings', icon: 'settings', desc: 'Profile, preferences & more' },
 };
 
 export function CustomiseBottomMenuScreen() {
@@ -97,7 +96,7 @@ export function CustomiseBottomMenuScreen() {
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<TabConfig>) => {
-    const meta = TAB_META[item.id] || { label: item.id, icon: 'help-circle-outline', desc: '' };
+    const meta = TAB_META[item.id] || { label: item.id, icon: 'help', desc: '' };
     const idx = getIndex() ?? 0;
     const isSettings = item.id === 'Settings';
     const isQa = item.id === 'QuickAction';
@@ -115,19 +114,14 @@ export function CustomiseBottomMenuScreen() {
             },
           ]}
         >
-<<<<<<< Updated upstream
-          <Ionicons
-            name={isSettings ? 'lock-closed-outline' : isQa ? 'bulb-outline' : 'menu-outline'}
-=======
           <AntDesign
             name={(isSettings ? 'lock-closed' : isQa ? 'flash' : 'menu') as any}
->>>>>>> Stashed changes
             size={20}
-            color={colors.text.tertiary}
+            color={isSettings ? colors.text.tertiary : colors.text.tertiary}
             style={{ marginRight: 12 }}
           />
           <View style={[styles.tabIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
+            <AntDesign name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.tabLabel, { color: colors.text.primary }]}>
@@ -140,8 +134,8 @@ export function CustomiseBottomMenuScreen() {
             onPress={() => !isSettings && toggleVisibility(idx)}
             style={styles.eyeBtn}
           >
-            <Ionicons
-              name={item.visible ? 'eye-outline' : 'eye-off-outline'}
+            <AntDesign
+              name={item.visible ? 'eye' : 'eyeo'}
               size={20}
               color={
                 isSettings
@@ -171,7 +165,7 @@ export function CustomiseBottomMenuScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text.primary }]}>Customise Bottom Menu</Text>
         <View style={{ width: 40 }} />
@@ -189,7 +183,7 @@ export function CustomiseBottomMenuScreen() {
         }}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 20, gap: spacing.lg }}
+        contentContainerStyle={{ padding: 20, gap: 10 }}
       />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
@@ -213,7 +207,6 @@ function migrateConfig(config: TabConfig[]): TabConfig[] {
   const oldKeyMap: Record<string, string> = {
     Accounts: 'Expense',
     Shared: 'Spaces',
-    Expense: 'Goals',
   };
   return config.map((t) => ({
     ...t,
@@ -224,9 +217,9 @@ function migrateConfig(config: TabConfig[]): TabConfig[] {
 function getDefaultTabs(): TabConfig[] {
   return [
     { id: 'Dashboard', visible: true, order: 0, locked: false },
-    { id: 'Spaces', visible: true, order: 1, locked: false },
+    { id: 'Expense', visible: true, order: 1, locked: false },
     { id: 'QuickAction', visible: true, order: 2, locked: false },
-    { id: 'Goals', visible: true, order: 3, locked: false },
+    { id: 'Spaces', visible: true, order: 3, locked: false },
     { id: 'Settings', visible: true, order: 4, locked: true },
   ];
 }

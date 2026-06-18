@@ -1,11 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
-<<<<<<< Updated upstream
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-=======
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
->>>>>>> Stashed changes
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -110,7 +105,6 @@ export function MonthlyAiReviewScreen() {
   const { accessToken } = useAuth();
   const [data, setData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -246,11 +240,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={14}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-<<<<<<< Updated upstream
-                      <AntDesign name="star" size={20} color={AI_COLORS.warning} />
-=======
                       <Ionicons  name="trophy" size={20} color={AI_COLORS.warning} />
->>>>>>> Stashed changes
                       <Text style={{ fontSize: 13, color: AI_COLORS.text, flex: 1 }}>{a}</Text>
                     </View>
                   </AiCard>
@@ -490,19 +480,9 @@ export function MonthlyAiReviewScreen() {
           style={{ paddingHorizontal: 16, marginTop: 24 }}
         >
           <TouchableOpacity
-            style={[s.shareBtn, { opacity: exporting ? 0.6 : 1 }]}
-            disabled={exporting}
+            style={s.shareBtn}
             onPress={async () => {
-              setExporting(true);
               try {
-<<<<<<< Updated upstream
-                const { downloadAndShareFile } = await import('../../utils/exportFile');
-                await downloadAndShareFile('/ai/export', {}, 'dabbu-ai-review', 'pdf');
-              } catch (e: any) {
-                Alert.alert('Export Failed', e.message || 'Could not export');
-              } finally {
-                setExporting(false);
-=======
                 const text = [
                   `Monthly Review — ${data.period}`,
                   '',
@@ -516,15 +496,10 @@ export function MonthlyAiReviewScreen() {
                 await Share.share({ message: text, title: `Monthly Review — ${data.period}` });
               } catch {
                 Alert.alert('Error', 'Could not share');
->>>>>>> Stashed changes
               }
             }}
           >
-            {exporting ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <AntDesign name="download" size={18} color="#FFF" />
-            )}
+            <AntDesign  name="download" size={18} color="#FFF" />
             <Text style={s.shareBtnText}>Share as PDF</Text>
           </TouchableOpacity>
         </ReAnimated.View>

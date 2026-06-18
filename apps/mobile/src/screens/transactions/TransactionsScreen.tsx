@@ -146,11 +146,7 @@ export function TransactionsScreen() {
       >
         <View style={[styles.txIcon, { backgroundColor: isIncome ? '#00B89418' : '#FF6B6B18' }]}>
           <AntDesign
-<<<<<<< Updated upstream
-            name={(isIncome ? 'arrowdown' : 'arrowup') as any}
-=======
             name={(isIncome ? 'arrow-down' : 'arrow-up') as any}
->>>>>>> Stashed changes
             size={16}
             color={isIncome ? '#00B894' : '#FF6B6B'}
           />
@@ -269,7 +265,7 @@ export function TransactionsScreen() {
           {activeFilter === 'All' && (
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('Expense', { screen: 'AddExpense' })}
+              onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
             >
               <AntDesign  name="plus" size={18} color="#FFF" />
               <Text style={styles.addBtnText}>Add Transaction</Text>

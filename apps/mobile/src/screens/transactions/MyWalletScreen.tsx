@@ -26,6 +26,8 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const RED = '#EF4444';
+const GREEN = '#22C55E';
 
 const fmt = (n: number) => {
   const prefix = n < 0 ? '-₹' : '₹';
@@ -83,19 +85,6 @@ export function MyWalletScreen() {
     if (accessToken) setAccessToken(accessToken);
     if (refresh) setRefreshing(true); else setLoading(true);
     try {
-<<<<<<< Updated upstream
-      const [txRes, statsRes] = await Promise.all([
-        api.get<any>('/transactions', ctrl.signal),
-        api.get<any>('/transactions/stats', ctrl.signal),
-      ]);
-      if (ctrl.signal.aborted) return;
-      const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
-      setTransactions(txData.filter((t: any) => !t.expenseGroupId));
-      if (statsRes?.summary) setSummary({ totalIncome: Number(statsRes.summary.totalIncome) || 0, totalExpense: Number(statsRes.summary.totalExpense) || 0 });
-    } catch {}
-    finally { if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); } }
-  }, [accessToken]);
-=======
       if (accessToken) {
         setAccessToken(accessToken);
       }
@@ -107,14 +96,13 @@ export function MyWalletScreen() {
         .filter((d: any) => !d.success)
         .map((d: any) => `  ${d.deviceName || d.platform}: ${d.error}`);
       const msg = res?.message || 'Request sent.';
-      Alert.alert('Test Push', detailLines.length > 0 ? `${msg}\n\nErrors:\n${detailLines.join('\n')}` : msg,);
+      Alert.alert('Test Push', detailLines.length > 0 ? `${msg}\n\nErrors:\n${detailLines.join('\n')}` : msg);
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to send test push');
     } finally {
-      setSendingTest(false);
+      if (refresh) setRefreshing(false); else setLoading(false);
     }
-  }
->>>>>>> Stashed changes
+  }, [accessToken]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
@@ -275,19 +263,14 @@ export function MyWalletScreen() {
         renderItem={({ item }: any) => {
           const isExpense = item.type === 'expense';
           return (
-<<<<<<< Updated upstream
-            <TouchableOpacity style={[st.txCard]} onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })} activeOpacity={0.7}>
-              <View style={[st.txIcon, { backgroundColor: isExpense ? `${colors.status.error}12` : `${colors.status.success}12` }]}>
-                <AntDesign name={(isExpense ? 'arrowup' : 'arrowdown') as any} size={14} color={isExpense ? colors.status.error : colors.status.success} />
-=======
             <TouchableOpacity
-              style={[s.txCard, { backgroundColor: colors.bg.tertiary }]}
+              style={[st.txCard, { backgroundColor: colors.bg.tertiary }]}
               onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
               activeOpacity={0.7}
             >
-              <View style={s.txLeft}>
+              <View style={st.txLeft}>
                 <View
-                  style={[s.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
+                  style={[st.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
                 >
                   <AntDesign
                     name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
@@ -295,19 +278,14 @@ export function MyWalletScreen() {
                     color={isExpense ? RED : GREEN}
                   />
                 </View>
-                <View style={s.txInfo}>
-                  <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
+                <View style={st.txInfo}>
+                  <Text style={[st.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
                     {item.description || 'No description'}
                   </Text>
-                  <Text style={[s.txCat, { color: colors.text.tertiary }]}>
+                  <Text style={[st.txCat, { color: colors.text.tertiary }]}>
                     {item.category?.name || item.category || 'Uncategorized'}
                   </Text>
                 </View>
->>>>>>> Stashed changes
-              </View>
-              <View style={st.txInfo}>
-                <Text style={[st.txDesc, { color: colors.text.primary }]} numberOfLines={1}>{item.description || 'No description'}</Text>
-                <Text style={[st.txCat, { color: colors.text.tertiary }]}>{safeCat(item) || 'Uncategorized'}</Text>
               </View>
               <Text style={[st.txAmount, { color: isExpense ? colors.status.error : colors.status.success }]}>
                 {isExpense ? '-' : '+'}₹{Math.abs(Number(item.amount)).toLocaleString('en-IN')}

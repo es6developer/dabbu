@@ -5,7 +5,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
@@ -121,7 +120,7 @@ export function GroupWalletScreen() {
           <FlatList
             data={wallets}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ padding: 16, gap: spacing.lg }}
+            contentContainerStyle={{ padding: 16, gap: 12 }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
                 <AntDesign  name="wallet" size={48} color={colors.text.tertiary} />
@@ -142,11 +141,7 @@ export function GroupWalletScreen() {
                 <View style={styles.walletHeader}>
                   <View style={styles.walletIcon}>
                     <AntDesign
-<<<<<<< Updated upstream
-                      name={(item.isLocked ? 'lock' : 'wallet') as any}
-=======
                       name={(item.isLocked ? 'lock-closed' : 'wallet') as any}
->>>>>>> Stashed changes
                       size={24}
                       color={colors.accent.primary}
                     />
@@ -161,11 +156,7 @@ export function GroupWalletScreen() {
                   </View>
                   <TouchableOpacity onPress={() => toggleLock(item.id)} style={styles.lockBtn}>
                     <AntDesign
-<<<<<<< Updated upstream
-                      name={(item.isLocked ? 'lock' : 'lock') as any}
-=======
                       name={(item.isLocked ? 'lock-closed' : 'lock-open') as any}
->>>>>>> Stashed changes
                       size={18}
                       color={item.isLocked ? colors.status.error : colors.text.tertiary}
                     />

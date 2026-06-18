@@ -143,19 +143,27 @@ export function AnalyticsScreen() {
   const handleExport = async (type: 'pdf' | 'excel') => {
     setExporting(type);
     try {
-      const { downloadAndShareFile } = await import('../../utils/exportFile');
       const range = getDateRange();
-      const reportType =
-        reportTab === 'expense' ? 'Expense' : reportTab === 'income' ? 'Income' : 'Savings';
-      await downloadAndShareFile(
-        `/analytics/export/${type}`,
-        { ...range, reportType },
-        `dabbu-${reportType.toLowerCase()}-report`,
-        type,
-      );
+      const res = await fetch(`${API_URL}/analytics/export/${type}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          ...range,
+          reportType:
+            reportTab === 'expense' ? 'Expense' : reportTab === 'income' ? 'Income' : 'Savings',
+        }),
+      });
+      if (!res.ok) {
+        throw new Error('Export failed');
+      }
+      const blob = await res.blob();
+      // On mobile, we'd use expo-file-system + expo-sharing
+      // For now, show success
     } catch (e: any) {
-      const { Alert } = require('react-native');
-      Alert.alert('Export Failed', e.message || 'Could not export report');
+      console.warn('Export error:', e.message);
     } finally {
       setExporting(null);
     }
@@ -281,8 +289,8 @@ export function AnalyticsScreen() {
             {/* Summary cards */}
             <View style={styles.summaryRow}>
               {[
-                { label: 'Income', value: mi, color: colors.status.success, icon: 'linechart' },
-                { label: 'Expenses', value: me, color: colors.status.error, icon: 'arrowdown' },
+                { label: 'Income', value: mi, color: colors.status.success, icon: 'trending-up' },
+                { label: 'Expenses', value: me, color: colors.status.error, icon: 'trending-down' },
               ].map((item, i) => (
                 <View
                   key={i}
@@ -299,23 +307,13 @@ export function AnalyticsScreen() {
                   </Text>
                   <View style={styles.trendRow}>
                     <AntDesign
-<<<<<<< Updated upstream
-                      name={(
-                        i === 0
-=======
                       name={(i === 0
->>>>>>> Stashed changes
                           ? incomeTrend >= 0
                             ? 'arrow-up'
                             : 'arrow-down'
                           : expenseTrend <= 0
                             ? 'arrow-down'
-<<<<<<< Updated upstream
-                            : 'arrow-up'
-                      ) as any}
-=======
                             : 'arrow-up') as any}
->>>>>>> Stashed changes
                       size={12}
                       color={
                         i === 0
@@ -361,7 +359,7 @@ export function AnalyticsScreen() {
                   label: 'Savings Rate',
                   value: `${Math.round(savingsRate)}%`,
                   color: colors.accent.primary,
-                  icon: 'piechart',
+                  icon: 'pie-chart',
                 },
               ].map((item, i) => (
                 <View
@@ -499,11 +497,7 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
-<<<<<<< Updated upstream
-                <AntDesign name="barchart" size={48} color={colors.text.tertiary} />
-=======
                 <Ionicons name="bar-chart-outline" size={48} color={colors.text.tertiary} />
->>>>>>> Stashed changes
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>

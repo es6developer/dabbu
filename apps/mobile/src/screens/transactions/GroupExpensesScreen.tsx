@@ -23,6 +23,7 @@ import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '../../components/ui/Avatar';
 import { spacing } from '../../theme/design';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const fmt = (n: number) => {
   const abs = Math.abs(n);
@@ -247,6 +248,21 @@ export function GroupExpensesScreen() {
     return u.paid - userTotals.equalShare;
   }, [userTotals, currentUser]);
 
+  const stats = useMemo(() => {
+    const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    const totalExpense = transactions.filter((t: any) => t.type !== 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    return { totalIncome, totalExpense, remaining: totalIncome - totalExpense };
+  }, [transactions]);
+
+  const categoryBreakdown = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const tx of transactions) {
+      const cat = tx.category?.name || 'Uncategorized';
+      map[cat] = (map[cat] || 0) + Number(tx.amount || 0);
+    }
+    return Object.entries(map).map(([name, amount]) => ({ name, amount }));
+  }, [transactions]);
+
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
@@ -296,23 +312,16 @@ export function GroupExpensesScreen() {
               </TouchableOpacity>
             </View>
 
-<<<<<<< Updated upstream
-            {/* Balance Card */}
-            <View style={[s.balanceCard, { backgroundColor: colors.card.balance }]}>
-              <Text style={[s.balanceLabel, { color: colors.text.tertiary }]}>Your Balance</Text>
-              <Text style={[s.balanceAmount, { color: currentBalance >= 0 ? colors.status.success : colors.status.error }]}>
-                {currentBalance >= 0 ? '+' : ''}{fmt(Math.abs(currentBalance))}
-=======
             <View style={s.actionBar}>
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate('CreateTransaction', {
-                    prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
+                    prefill: { groupId, groupName, returnTo: 'GroupExpenses' },
                   })
                 }
                 style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
               >
-                <AntDesign  name="plus" size={22} color="#FFF" />
+                <AntDesign name="plus" size={22} color="#FFF" />
                 <Text style={s.actionLabel}>Add</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -346,7 +355,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <AntDesign  name="team" size={22} color={colors.text.primary} />
+                <AntDesign name="team" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
               </TouchableOpacity>
             </View>
@@ -510,7 +519,7 @@ export function GroupExpensesScreen() {
                   { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning },
                 ]}
               >
-                <AntDesign  name="lock" size={16} color={colors.status.warning} />
+                <AntDesign name="lock" size={16} color={colors.status.warning} />
                 <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
                   This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It
                   is now read-only.
@@ -529,7 +538,6 @@ export function GroupExpensesScreen() {
             >
               <Text style={[s.secTitle, { color: colors.text.tertiary, flex: 1 }]}>
                 Transactions {transactions.length > 0 ? `\u00B7 ${transactions.length}` : ''}
->>>>>>> Stashed changes
               </Text>
               <View style={s.summaryRow}>
                 <View style={s.summaryItem}>
@@ -545,177 +553,9 @@ export function GroupExpensesScreen() {
                   <Text style={[s.summaryValue, { color: colors.text.primary }]}>
                     {fmt(userTotals.map[currentUser?.id || '']?.paid || 0)}
                   </Text>
-<<<<<<< Updated upstream
-=======
-                )}
-
-                <Text style={[s.sheetSubTitle, { color: colors.text.tertiary }]}>
-                  Manage members via the Members button above
-                </Text>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-      </View>
-    );
-  }
-
-  return (
-    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => loadData(true)}
-            tintColor={colors.accent.primary}
-          />
-        }
-        contentContainerStyle={
-          groups.length === 0 ? { flexGrow: 1 } : { paddingBottom: insets.bottom + 120 }
-        }
-      >
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <View style={[s.hubHeader, { paddingTop: insets.top + 8 }]}>
-            <View>
-              <Text style={[s.hubSubtitle, { color: colors.text.tertiary }]}>Spaces</Text>
-              <Text style={[s.hubTitle, { color: colors.text.primary }]}>
-                Manage your shared spaces
-              </Text>
-            </View>
-          </View>
-
-          <UpgradeBanner message="Remove limits - unlimited spaces & members" />
-
-          <View style={[s.planBar, { backgroundColor: colors.bg.secondary }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <AntDesign
-                name={(planInfo.tier === 'free' ? 'Safety' : 'shield-checkmark') as any}
-                size={16}
-                color={planInfo.tier === 'free' ? '#FF6B6B' : '#00B894'}
-              />
-              <Text style={[s.planText, { color: colors.text.secondary }]}>
-                {groups.length}/{planInfo.maxGroups} spaces
-              </Text>
-            </View>
-            {planInfo.tier === 'free' && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-              >
-                <Text style={[s.planAction, { color: colors.accent.primary }]}>Upgrade</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {sectionedGroups.length === 0 ? (
-            <View style={s.emptyHub}>
-              <View style={[s.emptyHubIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
-                <Ionicons  name="layers" size={44} color={colors.accent.primary} />
-              </View>
-              <Text style={[s.emptyHubTitle, { color: colors.text.primary }]}>No spaces yet</Text>
-              <Text style={[s.emptyHubDesc, { color: colors.text.tertiary }]}>
-                Create a shared space to split expenses with friends, family, and more
-              </Text>
-              <TouchableOpacity
-                style={[s.emptyHubCta, { backgroundColor: colors.accent.primary }]}
-                onPress={handleCreateGroup}
-              >
-                <AntDesign  name="plus" size={18} color="#FFF" />
-                <Text style={s.emptyHubCtaText}>Create Space</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            sectionedGroups.map((section) => (
-              <View key={section.key} style={s.section}>
-                <View style={s.sectionHeader}>
-                  <View style={s.sectionHeaderLeft}>
-                    <View style={[s.sectionIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-                      <AntDesign
-                        name={section.icon as any}
-                        size={16}
-                        color={colors.text.secondary}
-                      />
-                    </View>
-                    <Text style={[s.sectionLabel, { color: colors.text.primary }]}>
-                      {section.label}
-                    </Text>
-                    <View style={[s.sectionCount, { backgroundColor: colors.accent.primary }]}>
-                      <Text style={s.sectionCountText}>{section.groups.length}</Text>
-                    </View>
-                  </View>
->>>>>>> Stashed changes
                 </View>
               </View>
             </View>
-
-            {/* Simplified Debts */}
-            {members.length > 1 && (
-              <View style={[s.debtsCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-                <Text style={[s.debtsTitle, { color: colors.text.primary }]}>Balances</Text>
-                {members.map((m: any) => {
-                  if (m.userId === currentUser?.id) return null;
-                  const u = userTotals.map[m.userId];
-                  if (!u) return null;
-                  const bal = u.paid - userTotals.equalShare;
-                  const owes = bal < 0;
-                  return (
-                    <View key={m.id} style={s.debtRow}>
-                      <Avatar
-                        uri={m.user?.avatarUrl}
-                        name={`${m.user?.firstName || ''} ${m.user?.lastName || ''}`.trim()}
-                        size={28}
-                      />
-                      <Text style={[s.debtName, { color: colors.text.primary }]} numberOfLines={1}>
-                        {m.user?.firstName || m.user?.email || 'Member'}
-                      </Text>
-                      <Text style={[s.debtAmount, { color: owes ? colors.status.error : colors.status.success }]}>
-                        {owes ? 'owes ' : 'gets back '}
-                        {fmt(Math.abs(bal))}
-                      </Text>
-                    </View>
-                  );
-                })}
-                {members.filter((m: any) => m.userId !== currentUser?.id && userTotals.map[m.userId]).length === 0 && (
-                  <Text style={[{ color: colors.text.tertiary, fontSize: 13 }]}>No balances yet</Text>
-                )}
-              </View>
-            )}
-
-            {/* Action Buttons */}
-            <View style={s.actionsRow}>
-              <TouchableOpacity
-                style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('AddExpense', { prefill: { groupId, groupName, returnTo: 'GroupExpenses' } })}
-              >
-                <AntDesign name="plus" size={18} color="#FFF" />
-                <Text style={s.actionText}>Add Expense</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.actionBtn, { backgroundColor: colors.status.success }]}
-                onPress={() => navigation.navigate('Settlement', { groupId, groupName })}
-              >
-                <AntDesign name="swap" size={18} color="#FFF" />
-                <Text style={s.actionText}>Settle Up</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.actionBtn, { backgroundColor: colors.text.tertiary }]}
-                onPress={handleExport}
-                disabled={exporting}
-              >
-                {exporting ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <AntDesign name="download" size={18} color="#FFF" />
-                )}
-                <Text style={s.actionText}>Export</Text>
-              </TouchableOpacity>
-            </View>
-
-            {transactions.length > 0 && (
-              <Text style={[s.secTitle, { color: colors.text.secondary }]}>
-                Expenses · {transactions.length}
-              </Text>
-            )}
           </View>
         }
         renderItem={({ item }: { item: any }) => {
@@ -845,6 +685,90 @@ const s = StyleSheet.create({
   },
   groupName: { fontSize: 20, fontWeight: '700' },
   memberCount: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  actionBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 8,
+    marginBottom: 16,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  actionLabel: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  grid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 8,
+    marginBottom: 12,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  statVal: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  budgetBar: {
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 20,
+    overflow: 'hidden',
+  },
+  budgetFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  memberSection: {
+    paddingHorizontal: 20,
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  memberChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
+  memberDot: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  expiredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  expiredBannerText: {
+    fontSize: 12,
+    fontWeight: '500',
+    flex: 1,
+  },
   balanceCard: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -878,15 +802,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 8,
     marginBottom: 20,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: 14,
   },
   actionText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   secTitle: {

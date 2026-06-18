@@ -120,7 +120,7 @@ export function SmsPermissionScreen() {
                   },
                 ]}
               >
-                <AntDesign  name="exclamationcircle" size={20} color={colors.status.warning} />
+                <AntDesign  name="infocirlceo" size={20} color={colors.status.warning} />
                 <Text style={[styles.infoText, { color: colors.text.secondary }]}>
                   SMS detection is only available on Android devices.
                 </Text>
@@ -233,7 +233,7 @@ export function SmsPermissionScreen() {
                       },
                     ]}
                   >
-                    <AntDesign  name="exclamationcircle" size={18} color={colors.status.warning} />
+                    <AntDesign  name="infocirlceo" size={18} color={colors.status.warning} />
                     <Text style={[styles.infoText, { color: colors.text.secondary }]}>
                       Android {apiLevel}+ restricts SMS access. Grant via Settings or ADB.
                     </Text>
@@ -303,11 +303,7 @@ export function SmsPermissionScreen() {
                     style={[styles.secondaryBtn, { borderColor: colors.accent.primary }]}
                     onPress={() => navigation.navigate('SmsDashboard')}
                   >
-<<<<<<< Updated upstream
-                    <Ionicons name="list-outline" size={18} color={colors.accent.primary} />
-=======
                     <Ionicons  name="list" size={18} color={colors.accent.primary} />
->>>>>>> Stashed changes
                     <Text style={[styles.secondaryBtnText, { color: colors.accent.primary }]}>
                       View Detections
                     </Text>
@@ -455,21 +451,12 @@ export function SmsPermissionScreen() {
               style={[styles.troubleToggle, { borderColor: colors.border.subtle }]}
               onPress={() => setShowTrouble(!showTrouble)}
             >
-<<<<<<< Updated upstream
-              <AntDesign name="warning" size={16} color={colors.text.tertiary} />
-              <Text style={[styles.troubleToggleText, { color: colors.text.tertiary }]}>
-                Troubleshooting
-              </Text>
-              <AntDesign
-                name={(showTrouble ? 'caretup' : 'caretdown') as any}
-=======
               <Ionicons  name="bug" size={16} color={colors.text.tertiary} />
               <Text style={[styles.troubleToggleText, { color: colors.text.tertiary }]}>
                 Troubleshooting
               </Text>
               <Ionicons
                 name={showTrouble ? 'chevron-up-outline' : 'chevron-down-outline'}
->>>>>>> Stashed changes
                 size={14}
                 color={colors.text.tertiary}
               />

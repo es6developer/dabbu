@@ -17,21 +17,12 @@ import {
 } from '../../components/forms';
 
 const CIRCLE_TYPES = [
-<<<<<<< Updated upstream
-  { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
-  { key: 'family', label: 'Family', icon: 'home', color: '#F97316' },
-  { key: 'friends', label: 'Friends', icon: 'team', color: '#34C759' },
-  { key: 'roommates', label: 'Roommates', icon: 'idcard', color: '#4F6EF7' },
-  { key: 'trip', label: 'Trip', icon: 'earth', color: '#14B8A6' },
-  { key: 'sports', label: 'Sports', icon: 'codesquareo', color: '#FF6B6B' },
-=======
   { label: 'Couple', value: 'couple', icon: 'heart', color: '#FF6B9D' },
   { label: 'Family', value: 'family', icon: 'home', color: '#F97316' },
   { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
   { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },
   { label: 'Trip', value: 'trip', icon: 'airplane', color: '#14B8A6' },
   { label: 'Sports', value: 'sports', icon: 'football', color: '#FF6B6B' },
->>>>>>> Stashed changes
 ];
 
 const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;
@@ -195,61 +186,6 @@ export function CreateCircleScreen() {
 }
 
 const styles = StyleSheet.create({
-<<<<<<< Updated upstream
-  root: { flex: 1 },
-  headerBg: {
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerSub: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  input: {
-    fontSize: 15,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  textArea: { minHeight: 80, textAlignVertical: 'top' },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeCard: {
-    width: '30.5%',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  typeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  typeLabel: { fontSize: 12, fontWeight: '700' },
-=======
->>>>>>> Stashed changes
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',

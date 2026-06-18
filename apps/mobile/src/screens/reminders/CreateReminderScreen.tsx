@@ -100,17 +100,10 @@ export function CreateReminderScreen() {
   }
 
   return (
-<<<<<<< Updated upstream
-    <PremiumFormScreen
-      title="New reminder"
-      subtitle="Design the reminder rhythm once, then let Dabbu keep it visible."
-      icon="bells"
-=======
     <FormScreen
       title="New Reminder"
       subtitle="Design the reminder rhythm once, then let Dabbu keep it visible"
       icon="notifications"
->>>>>>> Stashed changes
       accent={[colors.status.warning, colors.accent.primary]}
       footer={
         <FormFooter title="Create Reminder" icon="add" loading={saving} onPress={handleSave} />
@@ -151,50 +144,6 @@ export function CreateReminderScreen() {
           onValueChange={setIsRecurring}
           description="Repeat this reminder automatically"
         />
-<<<<<<< Updated upstream
-      </View>
-      {isRecurring ? (
-        <>
-          <Text style={[local.label, { color: colors.text.tertiary }]}>Frequency</Text>
-          <View style={premiumFormStyles.rowWrap}>
-            {FREQUENCIES.map((f) => (
-              <PremiumChip
-                key={f}
-                label={f.charAt(0).toUpperCase() + f.slice(1)}
-                selected={frequency === f}
-                onPress={() => setFrequency(f)}
-              />
-            ))}
-          </View>
-          <PremiumInput
-            label="Interval"
-            icon="retweet"
-            value={interval}
-            onChangeText={setInterval}
-            placeholder="1"
-            keyboardType="number-pad"
-          />
-          <Text style={[local.label, { color: colors.text.tertiary }]}>Day of Week</Text>
-          <View style={premiumFormStyles.rowWrap}>
-            {DAYS_OF_WEEK.map((d) => (
-              <PremiumChip
-                key={d.value}
-                label={d.label}
-                selected={dayOfWeek === d.value}
-                onPress={() => setDayOfWeek(d.value)}
-              />
-            ))}
-          </View>
-        </>
-      ) : null}
-      <PremiumActionButton
-        title="Create reminder"
-        onPress={handleSave}
-        loading={saving}
-        icon="plus"
-      />
-    </PremiumFormScreen>
-=======
         {isRecurring && (
           <>
             <FormChipGroup label="Frequency" options={FREQUENCIES} selected={frequency} onSelect={setFrequency} size="sm" />
@@ -204,6 +153,5 @@ export function CreateReminderScreen() {
         )}
       </FormSection>
     </FormScreen>
->>>>>>> Stashed changes
   );
 }

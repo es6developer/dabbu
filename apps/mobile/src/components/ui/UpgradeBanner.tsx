@@ -5,7 +5,6 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
-import { usePremium } from '../../store/PremiumContext';
 
 interface UpgradeBannerProps {
   variant?: 'top' | 'inline';
@@ -16,8 +15,7 @@ export function UpgradeBanner({
   variant = 'top',
   message = 'Unlock unlimited groups, advanced analytics & more',
 }: UpgradeBannerProps) {
-  const { user } = useAuth();
-  const { checkEntitlement, refreshSubscription } = usePremium();
+  const { user, isPremium, refreshPremiumStatus } = useAuth();
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(variant === 'top' ? -80 : 30)).current;
@@ -26,7 +24,7 @@ export function UpgradeBanner({
   useFocusEffect(
     useCallback(() => {
       if (user) {
-        refreshSubscription();
+        refreshPremiumStatus();
       }
     }, [user]),
   );
@@ -46,7 +44,7 @@ export function UpgradeBanner({
     ]).start();
   }, []);
 
-  if (!user || checkEntitlement('export_pdf').allowed) {
+  if (!user || isPremium === true) {
     return null;
   }
 
@@ -67,11 +65,7 @@ export function UpgradeBanner({
       >
         <View style={styles.content}>
           <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-<<<<<<< Updated upstream
-            <AntDesign name="star" size={18} color="#FFFFFF" />
-=======
             <Ionicons name="diamond" size={18} color="#FFFFFF" />
->>>>>>> Stashed changes
           </View>
           <View style={styles.textWrap}>
             <Text style={styles.title}>Go Premium</Text>

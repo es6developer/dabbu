@@ -15,7 +15,6 @@ import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { useToast } from '../../store/ToastContext';
@@ -178,7 +177,7 @@ export function SplitTemplatesScreen() {
           <FlatList
             data={templates}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ padding: 16, gap: spacing.lg }}
+            contentContainerStyle={{ padding: 16, gap: 12 }}
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true);
@@ -186,11 +185,7 @@ export function SplitTemplatesScreen() {
             }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-<<<<<<< Updated upstream
-                <AntDesign name="filetext1" size={48} color={colors.text.tertiary} />
-=======
                 <Ionicons  name="documents" size={48} color={colors.text.tertiary} />
->>>>>>> Stashed changes
                 <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
                   No templates yet. Create one!
                 </Text>

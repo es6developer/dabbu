@@ -19,18 +19,14 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
         style={{
           backgroundColor: '#1E1030', borderRadius: 14, padding: 14,
           flexDirection: 'row', alignItems: 'center', gap: 10,
-          borderWidth: 1, borderColor: '#7C3AED30',
+          borderWidth: 1, borderColor: '#8B5CF630',
         }}
       >
         <View style={{
-          width: 36, height: 36, borderRadius: 12, backgroundColor: '#7C3AED20',
+          width: 36, height: 36, borderRadius: 12, backgroundColor: '#8B5CF620',
           alignItems: 'center', justifyContent: 'center',
         }}>
-<<<<<<< Updated upstream
-          <AntDesign name="star" size={18} color="#7C3AED" />
-=======
           <Ionicons name="diamond" size={18} color="#8B5CF6" />
->>>>>>> Stashed changes
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>
@@ -40,7 +36,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
             Get AI insights, unlimited goals, and more
           </Text>
         </View>
-        <AntDesign  name="right" size={16} color="#7C3AED" />
+        <AntDesign  name="right" size={16} color="#8B5CF6" />
       </TouchableOpacity>
     );
   }
@@ -48,17 +44,13 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
   return (
     <View style={{
       margin: 16, backgroundColor: '#1E1030', borderRadius: 20, padding: 24,
-      borderWidth: 1, borderColor: '#7C3AED30', alignItems: 'center', gap: 12,
+      borderWidth: 1, borderColor: '#8B5CF630', alignItems: 'center', gap: 12,
     }}>
       <View style={{
-        width: 56, height: 56, borderRadius: 18, backgroundColor: '#7C3AED20',
+        width: 56, height: 56, borderRadius: 18, backgroundColor: '#8B5CF620',
         alignItems: 'center', justifyContent: 'center',
       }}>
-<<<<<<< Updated upstream
-        <AntDesign name="star" size={28} color="#7C3AED" />
-=======
         <Ionicons name="diamond" size={28} color="#8B5CF6" />
->>>>>>> Stashed changes
       </View>
       <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
         {feature ? `${feature}` : 'Dabbu Premium'}
@@ -71,7 +63,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
       <TouchableOpacity
         onPress={() => navigation.navigate('Premium')}
         style={{
-          backgroundColor: '#7C3AED', borderRadius: 14, paddingVertical: 14,
+          backgroundColor: '#8B5CF6', borderRadius: 14, paddingVertical: 14,
           paddingHorizontal: 32, marginTop: 4,
         }}
       >

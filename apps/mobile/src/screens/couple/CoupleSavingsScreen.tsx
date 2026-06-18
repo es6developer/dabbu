@@ -17,7 +17,6 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
@@ -172,11 +171,7 @@ export function CoupleSavingsScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
-<<<<<<< Updated upstream
-              <AntDesign name="star" size={22} color={colors.accent.primary} />
-=======
               <Ionicons name="trophy" size={22} color={colors.accent.primary} />
->>>>>>> Stashed changes
               <Text style={styles.goalTitle}>Savings Goal</Text>
             </View>
             <View style={styles.goalRow}>
@@ -338,7 +333,7 @@ export function CoupleSavingsScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalOverlay}
         >
           <TouchableOpacity
@@ -449,10 +444,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   goalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   goalTitle: { fontSize: 16, fontWeight: '800', color: '#F97316' },
@@ -477,9 +472,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 16,
     paddingHorizontal: 8,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 2,
   },
   statItem: { flex: 1, alignItems: 'center', gap: 2 },
@@ -491,9 +486,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     gap: 12,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 2,
   },
   sectionTitle: { fontSize: 16, fontWeight: '800' },
@@ -525,11 +520,11 @@ const styles = StyleSheet.create({
   addBtn: {
     overflow: 'hidden',
     borderRadius: 18,
-    elevation: 2,
+    elevation: 4,
     shadowColor: '#F97316',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   addBtnGradient: {
     flexDirection: 'row',

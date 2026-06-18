@@ -5,58 +5,25 @@ import {
   StyleSheet,
   Dimensions,
   FlatList,
+  TouchableOpacity,
   Animated,
-  Image,
-  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-<<<<<<< Updated upstream
-import { spacing, borderRadius, shadows } from '../../theme/design';
-import { LinearGradient } from 'expo-linear-gradient';
-=======
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { onboardingIllustrations } from '../../components/OnboardingIllustrations';
->>>>>>> Stashed changes
 
-const { width, height } = Dimensions.get('window');
-const IMG_H = height * 0.52;
-
-const localImages = {
-  track: require('../../../assets/onboarding/expense-tracking.png'),
-  couple: require('../../../assets/onboarding/couple-space.png'),
-  split: require('../../../assets/onboarding/payment-split.png'),
-};
+const { width } = Dimensions.get('window');
 
 const slides = [
   {
-<<<<<<< Updated upstream
-    id: 'track',
-    image: localImages.track,
-    title: 'Track Every Rupee',
-    tagline: 'I can track my money',
-    subtitle: 'Know where your money goes with clear insights, budgets, and spending trends.',
-  },
-  {
-    id: 'couple',
-    image: localImages.couple,
-=======
     Illustration: onboardingIllustrations[0],
->>>>>>> Stashed changes
     title: 'Build Wealth Together',
-    tagline: 'I can manage finances with my partner',
-    subtitle: 'Share goals, track expenses, and manage your finances as a couple.',
+    desc: 'Track net worth, set shared goals, and grow your money as a couple or family — all in one place.',
   },
   {
-<<<<<<< Updated upstream
-    id: 'split',
-    image: localImages.split,
-    title: 'Split Payments Easily',
-    tagline: 'I can split and settle expenses easily',
-    subtitle: 'Share bills, rent, trips, and group expenses without confusion.',
-=======
     Illustration: onboardingIllustrations[1],
     title: 'Smart Goal Planning',
     desc: 'Set savings goals, track progress, and let AI suggest the best way to reach each milestone faster.',
@@ -70,7 +37,6 @@ const slides = [
     Illustration: onboardingIllustrations[3],
     title: 'Your Financial Health',
     desc: 'Monitor your health score, get AI-powered insights, and earn achievements as you build better habits.',
->>>>>>> Stashed changes
   },
 ];
 
@@ -84,63 +50,53 @@ function SlideContent({
   colors: any;
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-<<<<<<< Updated upstream
-  const slideAnim = useRef(new Animated.Value(24)).current;
-  const imgScale = useRef(new Animated.Value(0.92)).current;
-=======
   const slideAnim = useRef(new Animated.Value(30)).current;
   const { Illustration } = item;
->>>>>>> Stashed changes
 
   useEffect(() => {
     if (isActive) {
       fadeAnim.setValue(0);
-      slideAnim.setValue(24);
-      imgScale.setValue(0.92);
+      slideAnim.setValue(30);
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-        Animated.spring(imgScale, { toValue: 1, friction: 6, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]).start();
     }
   }, [isActive]);
 
   return (
-    <View style={{ width }}>
+    <View style={{ width, alignItems: 'center', paddingHorizontal: PADDING }}>
       <Animated.View
-        style={{
-          flex: 1,
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center' }}
       >
-<<<<<<< Updated upstream
-        {/* Image */}
-        <View style={s.imgSection}>
-          <View style={s.imgGlow} />
-          <Animated.Image
-            source={item.image}
-            style={[s.img, { transform: [{ scale: imgScale }] }]}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Text card */}
-        <View style={s.textCard}>
-          <Text style={[s.tagline, { color: colors.accent.primary }]}>
-            {item.tagline}
-          </Text>
-          <Text style={[s.title, { color: colors.text.primary }]}>
-            {item.title}
-          </Text>
-          <Text style={[s.subtitle, { color: colors.text.secondary }]}>
-            {item.subtitle}
-          </Text>
-=======
         <View style={{ marginBottom: 40 }}>
           <Illustration size={200} />
->>>>>>> Stashed changes
         </View>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: '800',
+            color: colors.text.primary,
+            textAlign: 'center',
+            letterSpacing: -0.5,
+            lineHeight: 36,
+            marginBottom: 12,
+          }}
+        >
+          {item.title}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '500',
+            color: colors.text.tertiary,
+            textAlign: 'center',
+            lineHeight: 24,
+            paddingHorizontal: 16,
+          }}
+        >
+          {item.desc}
+        </Text>
       </Animated.View>
     </View>
   );
@@ -165,17 +121,28 @@ export function OnboardingScreen({ route }: any) {
     await AsyncStorage.setItem('hasSeenOnboarding', 'true');
   }
 
-  const isLast = index === slides.length - 1;
-
-  useEffect(() => {
-    if (isLast) {
-      const t = setTimeout(async () => {
-        await markSeen();
-        navigation.replace('Login');
-      }, 5000);
-      return () => clearTimeout(t);
+  const handleNext = useCallback(async () => {
+    if (index < slides.length - 1) {
+      flatRef.current?.scrollToIndex({ index: index + 1, animated: true });
+    } else {
+      await markSeen();
+      navigation.replace('Login');
     }
-  }, [isLast, navigation]);
+  }, [index, navigation]);
+
+  const handlePrev = useCallback(() => {
+    if (index > 0) {
+      flatRef.current?.scrollToIndex({ index: index - 1, animated: true });
+    }
+  }, [index]);
+
+  const handleSkip = useCallback(async () => {
+    await markSeen();
+    navigation.replace('Login');
+  }, [navigation]);
+
+  const isLast = index === slides.length - 1;
+  const isFirst = index === 0;
 
   const renderSlide = useCallback(
     ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
@@ -186,18 +153,14 @@ export function OnboardingScreen({ route }: any) {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      {/* Skip */}
-      {!isLast && (
-        <Text
-          onPress={async () => {
-            await markSeen();
-            navigation.replace('Login');
-          }}
-          style={[s.skip, { color: colors.text.tertiary, top: insets.top + 12 }]}
+      <View style={{ paddingTop: insets.top + 12 }}>
+        <TouchableOpacity
+          onPress={handleSkip}
+          style={{ alignSelf: 'flex-end', paddingHorizontal: PADDING, paddingVertical: 8 }}
         >
-          Skip
-        </Text>
-      )}
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         ref={flatRef}
@@ -212,40 +175,45 @@ export function OnboardingScreen({ route }: any) {
           Animated.spring(dotAnim, { toValue: idx, useNativeDriver: true, friction: 8 }).start();
         }}
         renderItem={renderSlide}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(_, i) => String(i)}
         windowSize={3}
         maxToRenderPerBatch={3}
         initialNumToRender={3}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        style={{ flex: 1 }}
       />
 
-      {/* Bottom */}
-      <View style={[s.bottom, { paddingBottom: insets.bottom + 28, backgroundColor: colors.bg.primary }]}>
-        <View style={s.dots}>
+      <View
+        style={{
+          paddingHorizontal: PADDING,
+          paddingBottom: insets.bottom + 24,
+          backgroundColor: colors.bg.primary,
+          borderTopLeftRadius: borderRadius.xl,
+          borderTopRightRadius: borderRadius.xl,
+        }}
+      >
+        {/* Dots */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 28,
+          }}
+        >
           {slides.map((_, i) => (
             <View
               key={i}
-              style={[
-                s.dot,
-                {
-                  backgroundColor: i === index ? colors.accent.primary : colors.border.subtle,
-                  width: i === index ? 28 : 8,
-                },
-              ]}
+              style={{
+                width: i === index ? 28 : 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: i === index ? colors.accent.primary : colors.border.subtle,
+              }}
             />
           ))}
         </View>
 
-<<<<<<< Updated upstream
-        {isLast && (
-          <Text
-            onPress={async () => {
-              await markSeen();
-              navigation.replace('Login');
-            }}
-            style={[s.getStarted, { color: '#FFFFFF', backgroundColor: colors.accent.primary }]}
-=======
         {/* Get Started — only visible on last slide; swipe for rest */}
         {isLast && (
           <TouchableOpacity
@@ -272,10 +240,11 @@ export function OnboardingScreen({ route }: any) {
           <TouchableOpacity
             onPress={handlePrev}
             style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
->>>>>>> Stashed changes
           >
-            Get Started
-          </Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
+              Back
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -284,82 +253,4 @@ export function OnboardingScreen({ route }: any) {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  skip: {
-    position: 'absolute',
-    right: spacing.xl,
-    zIndex: 10,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  imgSection: {
-    height: IMG_H,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-    marginTop: 20,
-  },
-  imgGlow: {
-    position: 'absolute',
-    width: IMG_H * 0.72,
-    height: IMG_H * 0.72,
-    borderRadius: IMG_H * 0.36,
-    backgroundColor: 'rgba(139, 92, 246, 0.07)',
-  },
-  img: {
-    width: IMG_H * 0.78,
-    height: IMG_H * 0.78,
-  },
-  textCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: spacing['2xl'],
-    paddingTop: 12,
-  },
-  tagline: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: -0.6,
-    lineHeight: 38,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 12,
-  },
-  bottom: {
-    alignItems: 'center',
-    paddingTop: 8,
-    paddingHorizontal: spacing.xl,
-  },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-  },
-  getStarted: {
-    fontSize: 16,
-    fontWeight: '700',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    letterSpacing: 0.3,
-  },
 });

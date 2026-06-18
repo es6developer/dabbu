@@ -15,7 +15,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, typography as typographyStyles } from '../../theme';
-import { spacing } from '../../theme/design';
 
 interface NotificationItem {
   id: string;
@@ -243,11 +242,7 @@ export function NotificationCenterScreen() {
             ]}
           >
             <AntDesign
-<<<<<<< Updated upstream
-              name={(getCategoryIcon(item.category)) as any}
-=======
               name={getCategoryIcon(item.category) as any}
->>>>>>> Stashed changes
               size={18}
               color={item.overdue ? '#FF3B30' : priorityColor}
             />
@@ -294,11 +289,7 @@ export function NotificationCenterScreen() {
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handlePress(item)}
           >
-<<<<<<< Updated upstream
-            <AntDesign name="folder1" size={14} color={colors.accent.primary} />
-=======
             <Ionicons  name="open" size={14} color={colors.accent.primary} />
->>>>>>> Stashed changes
             <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -421,7 +412,7 @@ const styles = StyleSheet.create({
   headerTitle: { ...typographyStyles.screenTitle, flex: 1, marginLeft: 12 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   markAllBtn: { paddingHorizontal: 4 },
-  markAllText: { ...typographyStyles.subhead },
+  markAllText: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
   countBadge: {
     minWidth: 22,
     height: 22,
@@ -430,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6,
   },
-  countText: { color: '#FFFFFF', ...typographyStyles.caption1 },
+  countText: { color: '#FFFFFF', ...typographyStyles.caption1, fontFamily: 'Inter-Bold' },
   filterRow: { marginBottom: 8 },
   filterList: { paddingHorizontal: 20, gap: 8 },
   filterChip: {
@@ -441,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 6,
   },
-  filterLabel: { ...typographyStyles.subhead },
+  filterLabel: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyIcon: {
     width: 80,
@@ -454,7 +445,7 @@ const styles = StyleSheet.create({
   emptyTitle: { ...typographyStyles.sectionHeader, marginBottom: 8 },
   emptySub: { ...typographyStyles.body, textAlign: 'center' },
   list: { paddingHorizontal: 16, paddingTop: 8 },
-  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: spacing.lg, padding: 14 },
+  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
   iconContainer: {
     width: 38,
@@ -466,9 +457,9 @@ const styles = StyleSheet.create({
   },
   cardContent: { flex: 1 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { ...typographyStyles.headline, flex: 1 },
+  title: { ...typographyStyles.calloutBold, flex: 1 },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100 },
-  badgeText: { fontSize: 9, letterSpacing: 0.3 },
+  badgeText: { fontFamily: 'Inter-Bold', fontSize: 9, letterSpacing: 0.3 },
   message: { ...typographyStyles.subhead, lineHeight: 18, marginTop: 4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   time: { ...typographyStyles.caption1 },
@@ -483,5 +474,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 4,
   },
-  actionText: { ...typographyStyles.caption1 },
+  actionText: { ...typographyStyles.caption1, fontFamily: 'Inter-SemiBold' },
 });

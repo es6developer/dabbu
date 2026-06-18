@@ -137,11 +137,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
             
             style={styles.ctaGradient}
           >
-<<<<<<< Updated upstream
-            <AntDesign name="star" size={20} color="#FFF" />
-=======
             <Ionicons  name="rocket" size={20} color="#FFF" />
->>>>>>> Stashed changes
             <Text style={styles.ctaText}>Claim Your Free Premium Trial</Text>
           </View>
         </TouchableOpacity>

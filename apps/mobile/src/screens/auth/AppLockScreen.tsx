@@ -8,18 +8,13 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-<<<<<<< Updated upstream
-import { AntDesign } from '@expo/vector-icons';
-=======
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
->>>>>>> Stashed changes
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { ConfirmDialog } from '../../components/ui';
-import { useTheme } from '../../theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const KEY_SIZE = (SCREEN_W - 64) / 3;
@@ -30,7 +25,6 @@ interface Props {
 
 export function AppLockScreen({ onUnlock }: Props) {
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
   const [pin, setPin] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -112,13 +106,15 @@ export function AppLockScreen({ onUnlock }: Props) {
   const dotProgress = pin.length / pinLength;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}>
+      <LinearGradient colors={['#131315', '#0A0A0F', '#070708']} style={StyleSheet.absoluteFill} />
+
       <View style={styles.topSection}>
-        <View style={[styles.iconRing, { backgroundColor: `${colors.accent.primary}12`, borderColor: `${colors.accent.primary}20` }]}>
-          <AntDesign name="lock" size={28} color={colors.accent.primary} />
+        <View style={styles.iconRing}>
+          <AntDesign  name="lock" size={28} color="#14B8A6" />
         </View>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.text.secondary }]}>{user?.firstName || 'User'} · Enter PIN</Text>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
       </View>
 
       <View style={styles.dotsSection}>
@@ -129,18 +125,18 @@ export function AppLockScreen({ onUnlock }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: pin[i] ? colors.accent.primary : 'transparent',
-                  borderColor: pin[i] ? colors.accent.primary : colors.border.subtle,
+                  backgroundColor: pin[i] ? '#14B8A6' : 'transparent',
+                  borderColor: pin[i] ? '#14B8A6' : 'rgba(255,255,255,0.12)',
                   transform: pin[i] ? [{ scale: 1 }] : [{ scale: 0.85 }],
                 },
               ]}
             />
           ))}
         </Animated.View>
-        <View style={[styles.progressBar, { backgroundColor: colors.border.subtle }]}>
-          <View style={[styles.progressFill, { width: `${dotProgress * 100}%`, backgroundColor: colors.accent.primary }]} />
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${dotProgress * 100}%` }]} />
         </View>
-        {error ? <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text> : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
 
       <View style={styles.keypadSection}>
@@ -156,7 +152,7 @@ export function AppLockScreen({ onUnlock }: Props) {
                 onPress={handleDelete}
                 activeOpacity={0.5}
               >
-                <AntDesign name="arrowleft" size={22} color={colors.text.tertiary} />
+                <AntDesign  name="back" size={22} color="rgba(255,255,255,0.5)" />
               </TouchableOpacity>
             );
           }
@@ -167,8 +163,8 @@ export function AppLockScreen({ onUnlock }: Props) {
               onPress={() => handlePress(key)}
               activeOpacity={0.6}
             >
-              <View style={[styles.keyInner, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
-                <Text style={[styles.keyText, { color: colors.text.primary }]}>{key}</Text>
+              <View style={styles.keyInner}>
+                <Text style={styles.keyText}>{key}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -176,18 +172,12 @@ export function AppLockScreen({ onUnlock }: Props) {
       </View>
 
       <View style={styles.bottomSection}>
-<<<<<<< Updated upstream
-        <TouchableOpacity style={[styles.biometricBtn, { backgroundColor: `${colors.accent.primary}10` }]} onPress={handleBiometric} activeOpacity={0.7}>
-          <AntDesign name="checkcircle" size={22} color={colors.accent.primary} />
-          <Text style={[styles.biometricText, { color: colors.accent.primary }]}>Use Biometric</Text>
-=======
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
           <Ionicons  name="finger-print" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
->>>>>>> Stashed changes
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
-          <Text style={[styles.forgotText, { color: colors.text.tertiary }]}>Forgot PIN?</Text>
+          <Text style={styles.forgotText}>Forgot PIN?</Text>
         </TouchableOpacity>
       </View>
 
@@ -223,17 +213,21 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
+    backgroundColor: 'rgba(20,184,166,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    borderColor: 'rgba(20,184,166,0.2)',
     marginBottom: 24,
   },
   title: {
+    color: '#FFFFFF',
     fontSize: 26,
     fontWeight: '800',
     marginBottom: 8,
   },
   subtitle: {
+    color: 'rgba(255,255,255,0.5)',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -255,13 +249,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 3,
     borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
+    backgroundColor: '#14B8A6',
     borderRadius: 2,
   },
   errorText: {
+    color: '#FF4D4F',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -282,11 +279,14 @@ const styles = StyleSheet.create({
     width: KEY_SIZE - 8,
     height: KEY_SIZE - 8,
     borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   keyText: {
+    color: '#FFFFFF',
     fontSize: 26,
     fontWeight: '600',
   },
@@ -301,12 +301,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 14,
+    backgroundColor: 'rgba(20,184,166,0.1)',
   },
   biometricText: {
+    color: '#14B8A6',
     fontSize: 15,
     fontWeight: '600',
   },
   forgotText: {
+    color: 'rgba(255,255,255,0.35)',
     fontSize: 13,
     fontWeight: '500',
   },

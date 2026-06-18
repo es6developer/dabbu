@@ -115,11 +115,7 @@ export function GroupSpaceAiScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-<<<<<<< Updated upstream
-          <AntDesign name="enviroment" size={48} color={AI_COLORS.textTertiary} />
-=======
           <Ionicons  name="airplane" size={48} color={AI_COLORS.textTertiary} />
->>>>>>> Stashed changes
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No trip data
           </Text>

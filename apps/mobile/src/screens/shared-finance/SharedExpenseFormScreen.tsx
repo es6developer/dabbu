@@ -28,14 +28,14 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const GREEN = '#10B981';
 
 const SPLIT_TYPES = [
-  { key: 'equal', label: 'Equal', icon: 'retweet', desc: 'Everyone pays the same' },
-  { key: 'percentage', label: 'Percentage', icon: 'info', desc: 'Custom percentages' },
-  { key: 'exact', label: 'Exact', icon: 'wallet', desc: 'Custom amounts' },
-  { key: 'shares', label: 'Shares', icon: 'copy1', desc: 'Split by shares' },
+  { key: 'equal', label: 'Equal', icon: 'arrow-redo', desc: 'Everyone pays the same' },
+  { key: 'percentage', label: 'Percentage', icon: 'percent', desc: 'Custom percentages' },
+  { key: 'exact', label: 'Exact', icon: 'cash', desc: 'Custom amounts' },
+  { key: 'shares', label: 'Shares', icon: 'layers', desc: 'Split by shares' },
 ] as const;
 
 const MM_COLORS = [
-  '#7C3AED',
+  '#8B5CF6',
   '#F97316',
   '#10B981',
   '#3B82F6',
@@ -285,7 +285,7 @@ export function SharedExpenseFormScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <View style={{ paddingTop: 8 }} />
+          <View style={{ paddingTop: insets.top + 4 }} />
           <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
             {/* ── Error ── */}
             {error ? (
@@ -720,13 +720,8 @@ export function SharedExpenseFormScreen() {
                   {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
                 </Text>
               </View>
-<<<<<<< Updated upstream
-              <AntDesign
-                name={(showNotes ? 'caretup' : 'caretdown') as any}
-=======
               <Ionicons
                 name={showNotes ? 'chevron-up-outline' : 'chevron-down-outline'}
->>>>>>> Stashed changes
                 size={16}
                 color={colors.text.tertiary}
               />

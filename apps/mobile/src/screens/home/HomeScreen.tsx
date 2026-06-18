@@ -10,13 +10,12 @@ import {
   RefreshControl,
   Keyboard,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, sectionHeader } from '../../theme/design';
-import { WidgetCard } from '../../components/ui/WidgetCard';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
@@ -124,11 +123,11 @@ function deriveGroupBalance(group: any, currentUserId: string | undefined) {
 
 const INSIGHT_ICONS: Record<string, string> = {
   'Net Worth': 'wallet',
-  Subscriptions: 'creditcard',
-  Loans: 'arrowdown',
+  Subscriptions: 'card',
+  Loans: 'trending-down',
   'Active Goals': 'flag',
-  'Upcoming Bills': 'filetext1',
-  'Budget Health': 'piechart',
+  'Upcoming Bills': 'receipt',
+  'Budget Health': 'pie-chart',
 };
 
 const QUICK_ACTIONS: {
@@ -139,35 +138,10 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  {
-    label: 'Add Expense',
-    icon: 'pluscircle',
-    desc: 'Record a new expense',
-    route: 'Expense',
-    screen: 'AddExpense',
-  },
-  {
-    label: 'Add Income',
-    icon: 'wallet',
-    desc: 'Money received',
-    route: 'Expense',
-    screen: 'AddExpense',
-    params: { type: 'income' },
-  },
-  {
-    label: 'Wallet',
-    icon: 'wallet',
-    desc: 'View expenses wallet',
-    route: 'Expense',
-    screen: 'ExpenseHome',
-  },
-  {
-    label: 'Expense Group',
-    icon: 'team',
-    desc: 'Group expense spaces',
-    route: 'Spaces',
-    screen: 'SharedFinanceHome',
-  },
+  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
+  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
+  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Dashboard', screen: 'NetWorth' },
+  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Goals', screen: 'GoalsList' },
 ];
 
 const COMMON_INDIAN_SUGGESTIONS = [
@@ -222,25 +196,8 @@ export function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);
   const [apiInsights, setApiInsights] = useState<string[]>([]);
-  const [achievements, setAchievements] = useState<any>({
-    earned: [],
-    all: [],
-    earnedCount: 0,
-    totalCount: 0,
-  });
+  const [achievements, setAchievements] = useState<any>({ earned: [], all: [], earnedCount: 0, totalCount: 0 });
   const [milestones, setMilestones] = useState<any[]>([]);
-  const [hasFamilies, setHasFamilies] = useState(false);
-
-  useEffect(() => {
-    api
-      .get('/family')
-      .then((res: any) => {
-        const data = res?.data || res;
-        const families = Array.isArray(data) ? data : data?.families || [];
-        setHasFamilies(families.length > 0);
-      })
-      .catch(() => {});
-  }, []);
 
   const [refreshing, setRefreshing] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
@@ -284,15 +241,15 @@ export function HomeScreen() {
         .filter(Boolean)
         .filter((d: string) => d.toLowerCase().includes(lower))
         .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
-      const fromIndian = COMMON_INDIAN_SUGGESTIONS.filter((s) => s.toLowerCase().includes(lower));
+      const fromIndian = COMMON_INDIAN_SUGGESTIONS.filter((s) =>
+        s.toLowerCase().includes(lower),
+      );
       const combined = [...fromRecent, ...fromIndian]
         .filter((v, i, a) => a.indexOf(v) === i)
         .slice(0, 5);
       setSuggestions(combined);
       setShowSuggestions(combined.length > 0);
-    } catch {
-      /* ignore suggestion errors */
-    }
+    } catch { /* ignore suggestion errors */ }
   }, [quickEntry, recentTxns]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
@@ -302,6 +259,8 @@ export function HomeScreen() {
     const sub = categories.find((c) => c.name === 'Subscription');
     return sub ? sub.amount : 0;
   }, [categories]);
+
+  const safeToSpend = Math.max(0, (totalBalance ?? 0) - upcomingBillsTotal - subscriptionTotal);
 
   const budgetHealth = useMemo(() => {
     if (budgets.length === 0) {
@@ -317,121 +276,51 @@ export function HomeScreen() {
 
   const insights = useMemo(
     () => [
-      { label: 'Net Worth', value: fmt(totalBalance ?? 0), color: colors.status.success },
-      {
-        label: 'Subscriptions',
-        value: `${fmt(subscriptionTotal)}/mo`,
-        color: colors.status.warning,
-      },
-      { label: 'Active Goals', value: String(goals.length), color: colors.accent.primary },
-      { label: 'Upcoming Bills', value: String(reminders.length), color: colors.status.error },
+      { label: 'Net Worth', value: fmt(totalBalance ?? 0), color: '#10B981' },
+      { label: 'Subscriptions', value: `${fmt(subscriptionTotal)}/mo`, color: '#F59E0B' },
+      { label: 'Active Goals', value: String(goals.length), color: colors.brand.primary },
+      { label: 'Upcoming Bills', value: String(reminders.length), color: '#EF4444' },
       {
         label: 'Budget Health',
         value: `${budgetHealth}%`,
-        color:
-          budgetHealth > 70
-            ? colors.status.success
-            : budgetHealth > 40
-              ? colors.status.warning
-              : colors.status.error,
+        color: budgetHealth > 70 ? '#10B981' : budgetHealth > 40 ? '#F59E0B' : '#EF4444',
       },
     ],
     [totalBalance, subscriptionTotal, goals.length, reminders.length, budgetHealth],
   );
 
   const hasData = totalBalance !== null && totalBalance > 0 && monthlyIncome > 0;
-  const sampleGoals =
-    !hasData || goals.length === 0
-      ? [
-          {
-            id: 'sample-1',
-            name: 'Emergency Fund',
-            type: 'emergency',
-            saved: 0,
-            target: 200000,
-            monthlyContribution: 5000,
-            isCompleted: false,
-            color: colors.status.error,
-            icon: 'Safety',
-            targetDate: null,
-          },
-          {
-            id: 'sample-2',
-            name: 'Dream Vacation',
-            type: 'vacation',
-            saved: 0,
-            target: 300000,
-            monthlyContribution: 8000,
-            isCompleted: false,
-            color: '#00B894',
-            icon: 'earth',
-            targetDate: null,
-          },
-        ]
-      : [];
+  const sampleGoals = (!hasData || goals.length === 0) ? [
+    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'shield-checkmark', targetDate: null },
+    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'airplane', targetDate: null },
+  ] : [];
   const demoGoals = goals.length > 0 ? goals : sampleGoals;
-  const sampleTxns: any[] =
-    !hasData || recentTxns.length === 0
-      ? [
-          {
-            id: 'sample-t1',
-            description: 'Morning Coffee',
-            amount: 45,
-            type: 'expense',
-            category: 'Food',
-            date: new Date().toISOString().split('T')[0],
-          },
-          {
-            id: 'sample-t2',
-            description: 'Metro Recharge',
-            amount: 200,
-            type: 'expense',
-            category: 'Transport',
-            date: new Date().toISOString().split('T')[0],
-          },
-          {
-            id: 'sample-t3',
-            description: 'Salary Credit',
-            amount: 75000,
-            type: 'income',
-            category: 'Salary',
-            date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-          },
-          {
-            id: 'sample-t4',
-            description: 'Grocery Store',
-            amount: 1250,
-            type: 'expense',
-            category: 'Groceries',
-            date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
-          },
-        ]
-      : [];
+  const sampleTxns: any[] = (!hasData || recentTxns.length === 0) ? [
+    { id: 'sample-t1', description: 'Morning Coffee', amount: 45, type: 'expense', category: 'Food', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t2', description: 'Metro Recharge', amount: 200, type: 'expense', category: 'Transport', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t3', description: 'Salary Credit', amount: 75000, type: 'income', category: 'Salary', date: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+    { id: 'sample-t4', description: 'Grocery Store', amount: 1250, type: 'expense', category: 'Groceries', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
+  ] : [];
   const displayTxns = recentTxns.length > 0 ? recentTxns : sampleTxns;
 
   const healthScore = useMemo(() => {
-    if (apiHealthScore !== null) {
-      return apiHealthScore;
-    }
+    if (apiHealthScore !== null) return apiHealthScore;
     const sr = monthlyIncome > 0 ? Math.min((savings / monthlyIncome) * 100, 100) : 0;
     const bc = Math.max(0, budgetHealth);
-    const gp =
-      goals.length > 0
-        ? goals.reduce((s: number, g: any) => {
-            const progress =
-              (g.currentAmount ?? 0) > 0 && (g.targetAmount ?? 0) > 0
-                ? Math.min((g.currentAmount / g.targetAmount) * 100, 100)
-                : 0;
-            return s + progress;
-          }, 0) / goals.length
-        : 0;
+    const gp = goals.length > 0
+      ? goals.reduce((s: number, g: any) => {
+          const progress = (g.currentAmount ?? 0) > 0 && (g.targetAmount ?? 0) > 0
+            ? Math.min((g.currentAmount / g.targetAmount) * 100, 100)
+            : 0;
+          return s + progress;
+        }, 0) / goals.length
+      : 0;
     const ef = Math.min(((totalBalance ?? 0) / Math.max(monthlyIncome * 6, 1)) * 100, 100);
-    const dr =
-      totalBalance !== null && totalBalance >= 0
-        ? 100
-        : totalBalance !== null
-          ? Math.max(0, 100 + (totalBalance ?? 0) / 500)
-          : 0;
+    const dr = totalBalance !== null && totalBalance >= 0
+      ? 100
+      : totalBalance !== null
+        ? Math.max(0, 100 + (totalBalance ?? 0) / 500)
+        : 0;
     return Math.round(Math.min(sr * 0.3 + bc * 0.2 + gp * 0.2 + ef * 0.2 + dr * 0.1, 100));
   }, [apiHealthScore, monthlyIncome, savings, budgetHealth, goals, totalBalance]);
 
@@ -440,9 +329,7 @@ export function HomeScreen() {
   const [coachIndex, setCoachIndex] = useState(0);
 
   const coachInsights = useMemo(() => {
-    if (apiInsights.length > 0) {
-      return apiInsights;
-    }
+    if (apiInsights.length > 0) return apiInsights;
     const items: string[] = [];
     if (!hasData) {
       items.push('Welcome to Dabbu! Start by adding your first income or expense.');
@@ -469,9 +356,7 @@ export function HomeScreen() {
   }, [apiInsights, savings, goals, categories, totalBalance, hasData]);
 
   useEffect(() => {
-    if (coachInsights.length <= 1) {
-      return;
-    }
+    if (coachInsights.length <= 1) return;
     const timer = setInterval(() => {
       setCoachIndex((prev) => (prev + 1) % coachInsights.length);
     }, 5000);
@@ -500,64 +385,25 @@ export function HomeScreen() {
 
       const totalCalls = 9;
       let completedCalls = 0;
-      const tickProgress = isFirstLoad
-        ? () => {
-            completedCalls++;
-            const pct = Math.min(Math.round((completedCalls / totalCalls) * 100), 95);
-            setLoadingProgress(pct);
-          }
-        : () => {};
+      const tickProgress = isFirstLoad ? () => {
+        completedCalls++;
+        const pct = Math.min(Math.round((completedCalls / totalCalls) * 100), 95);
+        setLoadingProgress(pct);
+      } : () => {};
 
       try {
-        const balP = api.get<any>('/accounts/stats', ctrl.signal, 8000).finally(tickProgress);
-        const statsP = api
-          .get<any>('/transactions/stats?months=1', ctrl.signal, 8000)
-          .finally(tickProgress);
-        const remP = api
-          .get<any>('/reminders/upcoming?days=7', ctrl.signal, 8000)
-          .finally(tickProgress);
-        const goalP = api.get<any>('/goals', ctrl.signal, 8000).finally(tickProgress);
-        const notifP = api
-          .get<any>('/notifications/unread-count', ctrl.signal, 8000)
-          .finally(tickProgress);
-        const billsP = api
-          .get<any>('/bills?status=pending', ctrl.signal, 8000)
-          .catch(() => [])
-          .finally(tickProgress);
-        const spacesP = api
-          .get<any>('/shared-finance/groups', ctrl.signal, 10000)
-          .catch(() => [])
-          .finally(tickProgress);
-        const budgetsP = api
-          .get<any>('/budgets', ctrl.signal, 8000)
-          .catch(() => [])
-          .finally(tickProgress);
-        const wealthP = api
-          .get<any>('/wealth/dashboard', ctrl.signal, 10000)
-          .catch(() => null)
-          .finally(tickProgress);
+        const balP = api.get<any>('/accounts/stats', ctrl.signal).finally(tickProgress);
+        const statsP = api.get<any>('/transactions/stats?months=1', ctrl.signal).finally(tickProgress);
+        const remP = api.get<any>('/reminders/upcoming?days=7', ctrl.signal).finally(tickProgress);
+        const goalP = api.get<any>('/goals', ctrl.signal).finally(tickProgress);
+        const notifP = api.get<any>('/notifications/unread-count', ctrl.signal).finally(tickProgress);
+        const billsP = api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []).finally(tickProgress);
+        const spacesP = api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []).finally(tickProgress);
+        const budgetsP = api.get<any>('/budgets', ctrl.signal).catch(() => []).finally(tickProgress);
+        const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal).catch(() => null).finally(tickProgress);
 
-        const [
-          balRes,
-          statsRes,
-          remRes,
-          goalRes,
-          notifRes,
-          billsRes,
-          spacesRes,
-          budgetsRes,
-          wealthRes,
-        ] = await Promise.allSettled([
-          balP,
-          statsP,
-          remP,
-          goalP,
-          notifP,
-          billsP,
-          spacesP,
-          budgetsP,
-          wealthP,
-        ]);
+        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes, wealthRes] =
+          await Promise.allSettled([balP, statsP, remP, goalP, notifP, billsP, spacesP, budgetsP, wealthP]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -617,27 +463,15 @@ export function HomeScreen() {
           setBudgets(listFromResponse(budgetsRes.value));
         }
 
-        if (wealthRes.status === 'fulfilled' && wealthRes.value?.data) {
-          const w = wealthRes.value.data;
-          if (w.healthScore !== null && w.healthScore !== undefined) {
-            setApiHealthScore(w.healthScore);
+          if (wealthRes.status === 'fulfilled' && wealthRes.value?.data) {
+            const w = wealthRes.value.data;
+            if (w.healthScore != null) setApiHealthScore(w.healthScore);
+            if (w.insights?.length) setApiInsights(w.insights);
+            if (w.achievements) setAchievements(w.achievements);
+            if (w.milestones?.length) setMilestones(w.milestones);
+            if (w.streak?.currentStreak != null) setStreak(w.streak.currentStreak);
+            if (w.netWorth?.netWorth != null) setNetWorth(w.netWorth.netWorth);
           }
-          if (w.insights?.length) {
-            setApiInsights(w.insights);
-          }
-          if (w.achievements) {
-            setAchievements(w.achievements);
-          }
-          if (w.milestones?.length) {
-            setMilestones(w.milestones);
-          }
-          if (w.streak?.currentStreak !== null && w.streak?.currentStreak !== undefined) {
-            setStreak(w.streak.currentStreak);
-          }
-          if (w.netWorth?.netWorth !== null && w.netWorth?.netWorth !== undefined) {
-            setNetWorth(w.netWorth.netWorth);
-          }
-        }
       } catch {
         /* ignore */
       } finally {
@@ -753,12 +587,7 @@ export function HomeScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen
-        progress={loadingProgress}
-        title="Building your Dashboard"
-        icon="layers-outline"
-        tip={loadingTip}
-      />
+      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers" tip={loadingTip} />
     );
   }
 
@@ -769,227 +598,107 @@ export function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 100 }}
         >
-          <View style={{ paddingHorizontal: spacing.xl, paddingTop: 8 }}>
-            {/* Profile header */}
-            <View
+          <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 14 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
               style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: spacing['3xl'],
+                gap: 14,
               }}
             >
-              <View>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-                  {getGreeting()}
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${COUPLE_COLORS.primary}20`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <AntDesign  name="heart" size={28} color={COUPLE_COLORS.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                  Couple Space
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '700',
-                    color: colors.text.primary,
-                    marginTop: 1,
-                  }}
-                >
-                  {userName} & {couple.partner?.firstName || 'Partner'}
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Budgets, expenses, goals & more
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Notifications')}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    backgroundColor: `${colors.accent.primary}10`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="bells" size={18} color={colors.accent.primary} />
-                  {unreadCount > 0 && (
-                    <View
-                      style={{
-                        position: 'absolute',
-                        top: -2,
-                        right: -2,
-                        minWidth: 15,
-                        height: 15,
-                        borderRadius: 7.5,
-                        backgroundColor: colors.status.error,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        paddingHorizontal: 3,
-                      }}
-                    >
-                      <Text style={{ fontSize: 9, fontWeight: '700', color: colors.text.inverse }}>
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                  <Avatar
-                    uri={user?.avatarUrl}
-                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                    size={36}
-                  />
-                </TouchableOpacity>
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace', params: { screen: 'CoupleIncome' } })}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${colors.status.success}18`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <AntDesign  name="linechart" size={24} color={colors.status.success} />
               </View>
-            </View>
-            {/* Couple mode cards */}
-            <View style={{ gap: spacing.md, marginTop: spacing.md }}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
-                style={{
-                  backgroundColor: colors.bg.card,
-                  borderRadius: 20,
-                  padding: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 14,
-                }}
-              >
-                <View
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 16,
-                    backgroundColor: `${COUPLE_COLORS.primary}20`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="heart" size={28} color={COUPLE_COLORS.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
-                    Couple Space
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      marginTop: 2,
-                    }}
-                  >
-                    Budgets, expenses, goals & more
-                  </Text>
-                </View>
-                <AntDesign name="right" size={20} color={colors.text.tertiary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() =>
-                  navigation.navigate('Settings', {
-                    screen: 'CoupleSpace',
-                    params: { screen: 'CoupleIncome' },
-                  })
-                }
-                style={{
-                  backgroundColor: colors.bg.card,
-                  borderRadius: 20,
-                  padding: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 14,
-                }}
-              >
-                <View
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 16,
-                    backgroundColor: `${colors.status.success}18`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="linechart" size={24} color={colors.status.success} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
-                    Income
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      marginTop: 2,
-                    }}
-                  >
-                    Track earnings together
-                  </Text>
-                </View>
-                <AntDesign name="right" size={20} color={colors.text.tertiary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() =>
-                  navigation.navigate('Settings', {
-                    screen: 'CoupleSpace',
-                    params: { screen: 'CoupleExpenses' },
-                  })
-                }
-                style={{
-                  backgroundColor: colors.bg.card,
-                  borderRadius: 20,
-                  padding: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 14,
-                }}
-              >
-                <View
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 16,
-                    backgroundColor: `${colors.status.error}18`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="shoppingcart" size={24} color={colors.status.error} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
-                    Expenses
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      marginTop: 2,
-                    }}
-                  >
-                    Shared & personal spending
-                  </Text>
-                </View>
-                <AntDesign name="right" size={20} color={colors.text.tertiary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
-                style={{
-                  backgroundColor: COUPLE_COLORS.primary,
-                  borderRadius: 20,
-                  padding: 18,
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.inverse }}>
-                  Open Couple Space
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Income</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Track earnings together
                 </Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace', params: { screen: 'CoupleExpenses' } })}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${colors.status.error}18`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <AntDesign  name="shoppingcart" size={24} color={colors.status.error} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Expenses</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Shared & personal spending
+                </Text>
+              </View>
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
+              style={{
+                backgroundColor: COUPLE_COLORS.primary,
+                borderRadius: 20,
+                padding: 18,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>
+                Open Couple Space
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
@@ -1008,20 +717,15 @@ export function HomeScreen() {
               clearCache();
               loadData(true);
             }}
-            tintColor={colors.accent.primary}
+            tintColor={colors.brand.primary}
           />
         }
       >
-        {/* ─── SECTION 1: HERO — Apple Wallet Widget ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, paddingTop: 0 }}>
+        {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
           {/* Header row */}
           <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: spacing.md,
-            }}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <View>
               <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
@@ -1039,27 +743,9 @@ export function HomeScreen() {
               </Text>
             </View>
             {streak > 0 && (
-<<<<<<< Updated upstream
-              <View
-                style={{
-                  backgroundColor: colors.status.error + '15',
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  borderRadius: 999,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <Text style={{ fontSize: 13 }}>🔥</Text>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.status.error }}>
-                  {streak} days
-                </Text>
-=======
               <View style={{ backgroundColor: '#FF6B6B20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <AntDesign name="heart" size={13} color="#FF6B6B" />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FF6B6B' }}>{streak} days</Text>
->>>>>>> Stashed changes
               </View>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1069,30 +755,15 @@ export function HomeScreen() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: `${colors.accent.primary}10`,
+                  backgroundColor: `${colors.brand.primary}10`,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <AntDesign name="bells" size={18} color={colors.accent.primary} />
+                <AntDesign  name="bells" size={18} color={colors.brand.primary} />
                 {unreadCount > 0 && (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: -2,
-                      right: -2,
-                      minWidth: 15,
-                      height: 15,
-                      borderRadius: 7.5,
-                      backgroundColor: colors.status.error,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      paddingHorizontal: 3,
-                    }}
-                  >
-                    <Text style={{ fontSize: 9, fontWeight: '700', color: colors.text.inverse }}>
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </Text>
+                  <View style={page.badge}>
+                    <Text style={page.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -1106,96 +777,32 @@ export function HomeScreen() {
             </View>
           </View>
 
-          {/* Mode chips */}
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: spacing.sm,
-              marginBottom: spacing.md,
-              marginTop: spacing.xs,
-            }}
-          >
-            {hasFamilies && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Spaces', { screen: 'FamilyDashboard' })}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  borderRadius: 20,
-                  backgroundColor: colors.accent.primary,
-                }}
-                activeOpacity={0.7}
-              >
-                <AntDesign name="team" size={14} color="#FFF" />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#FFF' }}>Family</Text>
-              </TouchableOpacity>
-            )}
-            {couple.isInCouple && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  borderRadius: 20,
-                  backgroundColor: colors.bg.tertiary,
-                }}
-                activeOpacity={0.7}
-              >
-                <AntDesign name="heart" size={14} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>
-                  Couple
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Hero Widget — Net Worth */}
-          <View
-            style={{
-              backgroundColor: colors.bg.card,
-              borderRadius: 20,
-              padding: 20,
-              borderWidth: 1,
-              borderColor: colors.border.default,
-            }}
-          >
+          {/* Hero Card */}
+          <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
+            {/* Net Worth */}
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: '600',
-                color: colors.text.secondary,
+                color: colors.text.tertiary,
                 letterSpacing: 0.3,
               }}
             >
               Net Worth
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>₹</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>₹</Text>
               <Text
                 style={{
-                  fontSize: 40,
+                  fontSize: 36,
                   fontWeight: '800',
                   color: colors.text.primary,
-                  letterSpacing: -2,
+                  letterSpacing: -1.5,
                 }}
               >
                 {(netWorth ?? totalBalance ?? 0).toLocaleString('en-IN')}
               </Text>
             </View>
-<<<<<<< Updated upstream
-            {savings > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  <AntDesign name="arrowup" size={12} color={colors.status.success} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.status.success }}>
-                    {savingsRate.toFixed(1)}%
-=======
             {/* Monthly Growth */}
             {monthlyIncome > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
@@ -1274,210 +881,79 @@ export function HomeScreen() {
                     }}
                   >
                     {fmt(safeToSpend)}
->>>>>>> Stashed changes
                   </Text>
                 </View>
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
-                  Saved {fmtShort(savings)} this month
-                </Text>
+                <AntDesign  name="checkcircle" size={22} color={colors.brand.primary} />
               </View>
             )}
-          </View>
 
-          {/* Stat widgets row — Income | Spent | Score */}
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.bg.card,
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: colors.border.subtle,
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <AntDesign name="linechart" size={16} color={colors.status.success} />
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-                Income
-              </Text>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success }}>
-                {fmt(monthlyIncome)}
-              </Text>
+            {/* Health Score */}
+            <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}08`, marginTop: 14 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  Health Score
+                </Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.brand.primary, letterSpacing: -0.5, marginTop: 1 }}>
+                  {healthScore}/100
+                </Text>
+              </View>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: `${colors.brand.primary}15`, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.brand.primary }}>{healthScore}</Text>
+              </View>
             </View>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.bg.card,
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: colors.border.subtle,
-                alignItems: 'center',
-                gap: 4,
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                const scoreLabel = healthScore > 70 ? 'Great shape' : healthScore > 40 ? 'Room for improvement' : 'Needs attention';
+                Alert.alert(
+                  'Health Score Breakdown',
+                  'Your score is calculated from 5 factors:\n\n' +
+                  'Savings Rate (30%): Income saved\n' +
+                  'Budget Compliance (20%): Budget adherence\n' +
+                  'Goal Progress (20%): Goal completion\n' +
+                  'Emergency Fund (20%): Months saved\n' +
+                  'Debt Ratio (10%): Debt vs assets\n\n' +
+                  'Score: ' + healthScore + '/100 - ' + scoreLabel,
+                );
               }}
+              style={{ marginTop: 4, alignSelf: 'flex-end' }}
             >
-              <AntDesign name="shoppingcart" size={16} color={colors.status.error} />
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-                Spent
+              <Text style={{ fontSize: 10, fontWeight: '600', color: colors.text.tertiary }}>
+                How calculated? →
               </Text>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error }}>
-                {fmt(monthlySpent)}
-              </Text>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: colors.bg.card,
-                borderRadius: 16,
-                padding: 14,
-                borderWidth: 1,
-                borderColor: colors.border.subtle,
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <AntDesign
-                name="heart"
-                size={16}
-                color={
-                  healthScore >= 70
-                    ? colors.status.success
-                    : healthScore >= 40
-                      ? colors.status.warning
-                      : colors.status.error
-                }
-              />
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-                Score
-              </Text>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '800',
-                  color:
-                    healthScore >= 70
-                      ? colors.status.success
-                      : healthScore >= 40
-                        ? colors.status.warning
-                        : colors.status.error,
-                }}
-              >
-                {healthScore}
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* ─── AI FEED ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: 18 }}>
-          <WidgetCard
-            title="AI Feed"
-            action={
-              <TouchableOpacity onPress={() => navigation.navigate('AiCoach')}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  View All
-                </Text>
-              </TouchableOpacity>
-            }
-          >
-            {coachInsights.length > 0 ? (
-              <>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setCoachIndex((p) => (p + 1) % coachInsights.length)}
-                  style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}
-                >
-                  <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      backgroundColor: colors.accent.primary + '15',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <AntDesign name="bulb1" size={18} color={colors.accent.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: colors.text.primary,
-                        lineHeight: 18,
-                      }}
-                    >
-                      {coachInsights[coachIndex % coachInsights.length]}
-                    </Text>
-                    <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
-                      {coachInsights.map((_: string, idx: number) => (
-                        <View
-                          key={idx}
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor:
-                              idx === coachIndex % coachInsights.length
-                                ? colors.accent.primary
-                                : colors.border.default,
-                          }}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                  <AntDesign name="right" size={14} color={colors.text.tertiary} />
-                </TouchableOpacity>
-                {milestones.length > 0 && (
-                  <View
-                    style={{
-                      paddingTop: 10,
-                      borderTopWidth: StyleSheet.hairlineWidth,
-                      borderTopColor: colors.border.subtle,
-                      gap: 6,
-                    }}
-                  >
-                    {milestones.slice(0, 2).map((m: any, i: number) => (
-                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <View
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor: colors.status.success,
-                          }}
-                        />
-                        <Text
-                          style={{ fontSize: 12, color: colors.text.secondary, flex: 1 }}
-                          numberOfLines={1}
-                        >
-                          {m.title || m.message}
-                        </Text>
-                      </View>
+        {/* ─── AI COACH ─── */}
+        {coachInsights.length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, borderLeftWidth: 3, borderLeftColor: colors.brand.primary }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.brand.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+                  <AntDesign  name="message1" size={16} color={colors.brand.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }} numberOfLines={2}>
+                    {coachInsights[coachIndex % coachInsights.length]}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+                    {coachInsights.map((_: string, idx: number) => (
+                      <View key={idx} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: idx === (coachIndex % coachInsights.length) ? colors.brand.primary : colors.border.default }} />
                     ))}
                   </View>
-                )}
-              </>
-            ) : (
-              <Text style={{ fontSize: 13, color: colors.text.tertiary }}>
-                No insights yet. Add more transactions to get AI-powered tips.
-              </Text>
-            )}
-          </WidgetCard>
-        </View>
+                </View>
+                <AntDesign  name="star" size={16} color={colors.brand.primary} />
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* ─── SECTION 2: QUICK ADD ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
-          <WidgetCard>
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-<<<<<<< Updated upstream
-              <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
-=======
               <Ionicons  name="flash" size={16} color={colors.accent.primary} />
->>>>>>> Stashed changes
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -1485,48 +961,28 @@ export function HomeScreen() {
                 placeholderTextColor={colors.text.tertiary}
                 value={quickEntry}
                 onChangeText={setQuickEntry}
-                onSubmitEditing={() => {
-                  setShowSuggestions(false);
-                  handleQuickAdd(quickEntry);
-                }}
+                onSubmitEditing={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}
                 returnKeyType="done"
                 editable={!quickEntryLoading}
-                onFocus={() => {
-                  if (suggestions.length > 0) {
-                    setShowSuggestions(true);
-                  }
-                }}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
               {!quickEntryLoading ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowSuggestions(false);
-                    handleQuickAdd(quickEntry);
-                  }}
-                >
-                  <AntDesign name="arrowright" size={22} color={colors.accent.primary} />
+                <TouchableOpacity onPress={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}>
+                  <AntDesign  name="arrowright" size={22} color={colors.accent.primary} />
                 </TouchableOpacity>
               ) : (
                 <ActivityIndicator size="small" color={colors.accent.primary} />
               )}
             </View>
             {showSuggestions && suggestions.length > 0 && (
-              <View
-                style={[
-                  page.suggestionsWrap,
-                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-                ]}
-              >
+              <View style={[page.suggestionsWrap, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                 {suggestions.map((s: string, i: number) => (
                   <TouchableOpacity
                     key={s}
                     style={[
                       page.suggestionRow,
-                      i < suggestions.length - 1 && {
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.border.subtle,
-                      },
+                      i < suggestions.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle },
                     ]}
                     onPress={() => {
                       setQuickEntry(s + ' ');
@@ -1534,19 +990,11 @@ export function HomeScreen() {
                       quickInputRef.current?.focus();
                     }}
                   >
-                    <AntDesign name="clockcircleo" size={14} color={colors.text.tertiary} />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: colors.text.primary,
-                        flex: 1,
-                      }}
-                      numberOfLines={1}
-                    >
+                    <AntDesign  name="clockcircleo" size={14} color={colors.text.tertiary} />
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary, flex: 1 }} numberOfLines={1}>
                       {s}
                     </Text>
-                    <AntDesign name="up" size={12} color={colors.text.tertiary} />
+                    <AntDesign  name="up" size={12} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1561,7 +1009,7 @@ export function HomeScreen() {
                       { borderTopColor: colors.border.subtle, justifyContent: 'center' },
                     ]}
                   >
-                    <AntDesign name="checkcircleo" size={16} color={colors.status.success} />
+                    <AntDesign  name="checkcircleo" size={16} color={colors.status.success} />
                     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.success }}>
                       Added!
                     </Text>
@@ -1574,7 +1022,12 @@ export function HomeScreen() {
               const catIcon = (CATEGORY_ICONS as any)[parsed.cat] || 'ellipsis-horizontal';
               const catColor = (CATEGORY_COLORS as any)[parsed.cat] || '#636E72';
               return (
-                <View style={[page.quickCat, { borderTopColor: colors.border.subtle }]}>
+                <View
+                  style={[
+                    page.quickCat,
+                    { borderTopColor: colors.border.subtle },
+                  ]}
+                >
                   <View
                     style={{
                       flex: 1,
@@ -1610,8 +1063,7 @@ export function HomeScreen() {
                       style={{
                         fontSize: 16,
                         fontWeight: '700',
-                        color:
-                          quickType === 'expense' ? colors.status.error : colors.status.success,
+                        color: quickType === 'expense' ? colors.status.error : colors.status.success,
                       }}
                     >
                       {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
@@ -1623,10 +1075,7 @@ export function HomeScreen() {
                           paddingHorizontal: 8,
                           paddingVertical: 4,
                           borderRadius: 6,
-                          backgroundColor:
-                            quickType === 'expense'
-                              ? colors.status.error + '18'
-                              : colors.status.success + '18',
+                          backgroundColor: quickType === 'expense' ? colors.status.error + '18' : colors.status.success + '18',
                         },
                       ]}
                     >
@@ -1634,8 +1083,7 @@ export function HomeScreen() {
                         style={{
                           fontSize: 10,
                           fontWeight: '700',
-                          color:
-                            quickType === 'expense' ? colors.status.error : colors.status.success,
+                          color: quickType === 'expense' ? colors.status.error : colors.status.success,
                         }}
                       >
                         {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
@@ -1645,30 +1093,17 @@ export function HomeScreen() {
                 </View>
               );
             })()}
-          </WidgetCard>
+          </View>
         </View>
 
         {/* ─── GOALS PREVIEW ─── */}
         {demoGoals.length > 0 && (
-          <View style={{ marginTop: spacing.xl, paddingHorizontal: spacing.xl }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: spacing.md,
-              }}
-            >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
-                Goals
-              </Text>
+          <View style={{ marginTop: 26, paddingHorizontal: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
               {goals.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Goals', { screen: 'GoalsList' })}
-                >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                    See All
-                  </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Goals', { screen: 'GoalsList' })}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1678,85 +1113,43 @@ export function HomeScreen() {
               const mc = Number(g.monthlyContribution || 0);
               const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
               const remaining = Math.max(target - saved, 0);
-              const config = { color: g.color || colors.accent.primary, icon: g.icon || 'flag' };
+              const config = { color: g.color || colors.brand.primary, icon: g.icon || 'flag' };
               const monthsLeft = mc > 0 ? Math.ceil(remaining / mc) : 0;
               const eta = mc > 0 ? `${monthsLeft}mo left` : '';
-              const tagline =
-                pct === 0 ? 'Not started' : pct >= 100 ? 'Complete!' : `${pct}% complete`;
+              const tagline = pct === 0 ? 'Not started' : pct >= 100 ? 'Complete!' : `${pct}% complete`;
               return (
-                <WidgetCard key={g.id} variant="compact" style={{ marginBottom: spacing.md }}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      if (g.id && !g.id.startsWith('sample-')) {
-                        navigation.navigate('Goals', {
-                          screen: 'GoalDetail',
-                          params: { goalId: g.id, goalName: g.name },
-                        });
-                      }
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 10,
-                          backgroundColor: config.color + '15',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <AntDesign name={config.icon as any} size={18} color={config.color} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}
-                          numberOfLines={1}
-                        >
-                          {g.name || 'Goal'}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '500',
-                            color: colors.text.tertiary,
-                            marginTop: 1,
-                          }}
-                        >
-                          {tagline} · {fmt(remaining)} left{eta ? ` · ${eta}` : ''}
-                        </Text>
-                      </View>
+                <TouchableOpacity
+                  key={g.id}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    if (g.id && !g.id.startsWith('sample-')) {
+                      navigation.navigate('Goals', { screen: 'GoalDetail', params: { goalId: g.id, goalName: g.name } });
+                    }
+                  }}
+                  style={{ backgroundColor: colors.bg.card, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border.default }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: config.color + '15', alignItems: 'center', justifyContent: 'center' }}>
+                      <AntDesign name={config.icon as any} size={18} color={config.color} />
                     </View>
-                    <View
-                      style={{
-                        height: 5,
-                        backgroundColor: colors.border.subtle,
-                        borderRadius: 99,
-                        marginTop: 8,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: `${pct}%`,
-                          height: '100%',
-                          backgroundColor: config.color,
-                          borderRadius: 99,
-                        }}
-                      />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{g.name || 'Goal'}</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>{tagline} · {fmt(remaining)} left{eta ? ` · ${eta}` : ''}</Text>
                     </View>
-                  </TouchableOpacity>
-                </WidgetCard>
+                  </View>
+                  <View style={{ height: 5, backgroundColor: colors.border.subtle, borderRadius: 99, marginTop: 8, overflow: 'hidden' }}>
+                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: config.color, borderRadius: 99 }} />
+                  </View>
+                </TouchableOpacity>
               );
             })}
           </View>
         )}
 
-        {/* ─── SECTION 3: QUICK ACTIONS GRID — 4 per row ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
-          <Text style={[sectionHeader, { color: colors.text.secondary }]}>Quick Actions</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+        {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>Quick Actions</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {QUICK_ACTIONS.map((a) => (
               <TouchableOpacity
                 key={a.label}
@@ -1764,24 +1157,14 @@ export function HomeScreen() {
                 style={[page.actionCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
-<<<<<<< Updated upstream
-                <View style={[page.actionIconWrap, { backgroundColor: colors.accent.primary }]}>
-                  <AntDesign name={a.icon as any} size={20} color="#FFF" />
-=======
                 <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
                   <AntDesign name={a.icon as any} size={22} color={colors.brand.primary} />
->>>>>>> Stashed changes
                 </View>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '600',
-                    color: colors.text.primary,
-                    marginTop: 6,
-                  }}
-                  numberOfLines={1}
-                >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
                   {a.label}
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
+                  {a.desc}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1790,13 +1173,13 @@ export function HomeScreen() {
 
         {/* ─── SECTION 4: RECENT TRANSACTIONS ─── */}
         {(recentTxns.length > 0 || !hasData) && (
-          <View style={{ marginTop: spacing.xl }}>
+          <View style={{ marginTop: 26 }}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingHorizontal: spacing.xl,
+                paddingHorizontal: 20,
                 marginBottom: 12,
               }}
             >
@@ -1805,9 +1188,9 @@ export function HomeScreen() {
               </Text>
               {recentTxns.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
+                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                     See All
                   </Text>
                 </TouchableOpacity>
@@ -1815,34 +1198,40 @@ export function HomeScreen() {
             </View>
             <View
               style={{
-                marginHorizontal: spacing.xl,
+                marginHorizontal: 20,
+                borderRadius: 20,
+                backgroundColor: colors.bg.card,
+                padding: 16,
               }}
             >
-              <WidgetCard>
-                {displayTxns.slice(0, 5).map((tx: any, i: number) => {
-                  const isExpense = tx.type === 'expense' || tx.amount < 0;
-                  const amt = Math.abs(Number(tx.amount || 0));
-                  return (
-                    <TouchableOpacity
-                      key={tx.id || i}
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        navigation.navigate('Expense', {
-                          screen: 'TransactionDetail',
-                          params: { transactionId: tx.id },
-                        })
-                      }
+              {displayTxns.slice(0, 5).map((tx: any, i: number) => {
+                const isExpense = tx.type === 'expense' || tx.amount < 0;
+                const amt = Math.abs(Number(tx.amount || 0));
+                return (
+                  <TouchableOpacity
+                    key={tx.id || i}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 10,
+                      }}
                     >
                       <View
                         style={{
-                          flexDirection: 'row',
+                          width: 40,
+                          height: 40,
+                          borderRadius: 12,
+                          backgroundColor: isExpense
+                            ? `${colors.status.error}14`
+                            : `${colors.status.success}14`,
                           alignItems: 'center',
-                          paddingVertical: 10,
+                          justifyContent: 'center',
                         }}
                       >
-<<<<<<< Updated upstream
-                        <View
-=======
                         <AntDesign
                           name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
                           size={18}
@@ -1856,128 +1245,67 @@ export function HomeScreen() {
                           {tx.description || tx.title || tx.merchant || 'Transaction'}
                         </Text>
                         <Text
->>>>>>> Stashed changes
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 12,
-                            backgroundColor: isExpense
-                              ? `${colors.status.error}14`
-                              : `${colors.status.success}14`,
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            fontSize: 11,
+                            fontWeight: '500',
+                            color: colors.text.tertiary,
+                            marginTop: 2,
                           }}
                         >
-                          <AntDesign
-                            name={(isExpense ? 'arrowup' : 'arrowdown') as any}
-                            size={18}
-                            color={isExpense ? colors.status.error : colors.status.success}
-                          />
-                        </View>
-                        <View style={{ flex: 1, marginLeft: 12 }}>
-                          <Text
-                            style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}
-                          >
-                            {tx.description || tx.title || tx.merchant || 'Transaction'}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '500',
-                              color: colors.text.tertiary,
-                              marginTop: 2,
-                            }}
-                          >
-                            {(tx.category as any)?.name || tx.category || tx.cat || ''}
-                            {tx.date ? ` · ${fmtDate(tx.date)}` : ''}
-                          </Text>
-                        </View>
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: '700',
-                            color: isExpense ? colors.text.primary : colors.status.success,
-                          }}
-                        >
-                          {isExpense ? '' : '+'}₹{amt.toLocaleString('en-IN')}
+                          {((tx.category as any)?.name || tx.category || tx.cat || '')}
+                          {tx.date ? ` · ${fmtDate(tx.date)}` : ''}
                         </Text>
                       </View>
-                      {i < recentTxns.length - 1 && (
-                        <View
-                          style={{
-                            height: 1,
-                            backgroundColor: colors.border.subtle,
-                            marginLeft: 52,
-                          }}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </WidgetCard>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: '700',
+                          color: isExpense ? colors.text.primary : '#10B981',
+                        }}
+                      >
+                        {isExpense ? '' : '+'}₹{amt.toLocaleString('en-IN')}
+                      </Text>
+                    </View>
+                    {i < recentTxns.length - 1 && (
+                      <View
+                        style={{
+                          height: 1,
+                          backgroundColor: colors.border.subtle,
+                          marginLeft: 52,
+                        }}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         )}
 
         {/* ─── SECTION 6: INSIGHTS CAROUSEL ─── */}
-        <View style={{ marginTop: spacing.xl }}>
+        <View style={{ marginTop: 26 }}>
           <Text
             style={{
               fontSize: 16,
               fontWeight: '700',
               color: colors.text.primary,
-              paddingHorizontal: spacing.xl,
+              paddingHorizontal: 20,
               marginBottom: 12,
             }}
           >
             Insights
           </Text>
-          <View style={{ paddingHorizontal: spacing.xl }}>
-            <WidgetCard style={{ paddingVertical: 4 }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: spacing.md }}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          >
+            {insights.map((ins) => (
+              <TouchableOpacity
+                key={ins.label}
+                style={[page.insightCard, { backgroundColor: colors.bg.card }]}
+                activeOpacity={0.7}
               >
-<<<<<<< Updated upstream
-                {insights.map((ins) => (
-                  <View
-                    key={ins.label}
-                    style={{ width: 100, alignItems: 'center', paddingVertical: 8 }}
-                  >
-                    <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
-                      <AntDesign
-                        name={(INSIGHT_ICONS[ins.label] || 'ellipsis1') as any}
-                        size={18}
-                        color={ins.color}
-                      />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '600',
-                        color: colors.text.tertiary,
-                        marginTop: 6,
-                      }}
-                    >
-                      {ins.label}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '800',
-                        color: colors.text.primary,
-                        marginTop: 2,
-                      }}
-                    >
-                      {ins.value}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </WidgetCard>
-          </View>
-=======
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
                   <AntDesign
                     name={(INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal') as any}
@@ -2008,11 +1336,10 @@ export function HomeScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
->>>>>>> Stashed changes
         </View>
 
         {/* ─── SECTION 7: THIS MONTH ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
           <Text
             style={{
               fontSize: 16,
@@ -2023,19 +1350,19 @@ export function HomeScreen() {
           >
             This Month
           </Text>
-          <WidgetCard>
+          <View style={[page.monthCard, { backgroundColor: colors.bg.card }]}>
             <MonthBar
               label="Income"
               value={monthlyIncome}
               max={monthlyIncome}
-              color={colors.status.success}
+              color="#10B981"
               fmt={fmtShort}
             />
             <MonthBar
               label="Spent"
               value={monthlySpent}
               max={monthlyIncome}
-              color={colors.status.error}
+              color="#EF4444"
               fmt={fmtShort}
             />
             <View
@@ -2052,7 +1379,7 @@ export function HomeScreen() {
                 Saved
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#10B981' }}>
                   {fmtShort(savings)}
                 </Text>
                 {savingsRate > 0 && (
@@ -2061,14 +1388,14 @@ export function HomeScreen() {
                       paddingHorizontal: 8,
                       paddingVertical: 3,
                       borderRadius: 6,
-                      backgroundColor: `${savingsRate >= 30 ? colors.status.success : colors.status.warning}15`,
+                      backgroundColor: `${savingsRate >= 30 ? '#10B981' : '#F59E0B'}15`,
                     }}
                   >
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: '700',
-                        color: savingsRate >= 30 ? colors.status.success : colors.status.warning,
+                        color: savingsRate >= 30 ? '#10B981' : '#F59E0B',
                       }}
                     >
                       {savingsRate.toFixed(0)}%
@@ -2083,7 +1410,7 @@ export function HomeScreen() {
                   style={{
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: `${colors.status.success}15`,
+                    backgroundColor: '#10B98115',
                     overflow: 'hidden',
                   }}
                 >
@@ -2092,140 +1419,123 @@ export function HomeScreen() {
                       width: `${Math.min(savingsRate, 100)}%`,
                       height: '100%',
                       borderRadius: 4,
-                      backgroundColor:
-                        savingsRate >= 30 ? colors.status.success : colors.status.warning,
+                      backgroundColor: savingsRate >= 30 ? '#10B981' : '#F59E0B',
                     }}
                   />
                 </View>
               </View>
             )}
-          </WidgetCard>
+          </View>
         </View>
 
         {/* ─── SECTION 8: SPACES ─── */}
         {spaces.length > 0 && (
-          <View style={{ marginTop: spacing.xl }}>
+          <View style={{ marginTop: 28 }}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingHorizontal: spacing.xl,
+                paddingHorizontal: 20,
                 marginBottom: 12,
               }}
             >
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Spaces
               </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  See All
-                </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
+            <View style={{ paddingHorizontal: 20, gap: 10 }}>
               {spaces.slice(0, 4).map((g: any) => {
                 const { owedToMe, iOwe, totalSpent, memberCount } = deriveGroupBalance(g, user?.id);
                 const isOwed = owedToMe > 0;
                 const owes = iOwe > 0;
                 const activeAmount = isOwed ? owedToMe : owes ? iOwe : 0;
-                const amtColor = isOwed
-                  ? colors.status.success
-                  : owes
-                    ? colors.status.error
-                    : colors.text.tertiary;
+                const amtColor = isOwed ? '#10B981' : owes ? '#EF4444' : colors.text.tertiary;
                 const statusLabel = isOwed ? 'You are owed' : owes ? 'You owe' : 'Settled';
                 return (
-                  <WidgetCard key={g.id} variant="compact">
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={() => {
-                        if (g.type === 'couple') {
-                          navigation.navigate('CoupleFinance', {
-                            groupId: g.id,
-                            groupName: g.name,
-                          });
-                        } else if (g.type === 'family') {
-                          navigation.navigate('FamilyDashboard', {
-                            groupId: g.id,
-                            groupName: g.name,
-                          });
-                        } else {
-                          navigation.navigate('SharedGroupDetail', {
-                            groupId: g.id,
-                            groupName: g.name,
-                          });
-                        }
+                  <TouchableOpacity
+                    key={g.id}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      if (g.type === 'couple') {
+                        navigation.navigate('CoupleFinance', { groupId: g.id, groupName: g.name });
+                      } else if (g.type === 'family') {
+                        navigation.navigate('FamilyDashboard', {
+                          groupId: g.id,
+                          groupName: g.name,
+                        });
+                      } else {
+                        navigation.navigate('SharedGroupDetail', {
+                          groupId: g.id,
+                          groupName: g.name,
+                        });
+                      }
+                    }}
+                    style={[page.spaceCard, { backgroundColor: colors.bg.card }]}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                       }}
                     >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
+                      <Text
+                        style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}
+                        numberOfLines={1}
                       >
-                        <Text
-                          style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}
-                          numberOfLines={1}
-                        >
-                          {g.name || g.title}
-                        </Text>
-                        <Text
-                          style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}
-                        >
-                          {memberCount} member{memberCount > 1 ? 's' : ''}
-                        </Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'baseline',
-                          gap: 4,
-                          marginTop: 4,
-                        }}
+                        {g.name || g.title}
+                      </Text>
+                      <Text
+                        style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}
                       >
-                        {activeAmount > 0 ? (
-                          <>
-                            <Text
-                              style={{
-                                fontSize: 20,
-                                fontWeight: '800',
-                                color: amtColor,
-                                letterSpacing: -0.3,
-                              }}
-                            >
-                              ₹{Math.round(activeAmount).toLocaleString('en-IN')}
-                            </Text>
-                            <Text style={{ fontSize: 12, fontWeight: '500', color: amtColor }}>
-                              {statusLabel}
-                            </Text>
-                          </>
-                        ) : (
+                        {memberCount} member{memberCount > 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                    <View
+                      style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 4 }}
+                    >
+                      {activeAmount > 0 ? (
+                        <>
                           <Text
-                            style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}
+                            style={{
+                              fontSize: 20,
+                              fontWeight: '800',
+                              color: amtColor,
+                              letterSpacing: -0.3,
+                            }}
                           >
-                            {totalSpent > 0 ? 'All settled up' : 'No activity'}
+                            ₹{Math.round(activeAmount).toLocaleString('en-IN')}
                           </Text>
-                        )}
-                      </View>
-                      {totalSpent > 0 && (
+                          <Text style={{ fontSize: 12, fontWeight: '500', color: amtColor }}>
+                            {statusLabel}
+                          </Text>
+                        </>
+                      ) : (
                         <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '500',
-                            color: colors.text.tertiary,
-                            marginTop: 2,
-                          }}
+                          style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}
                         >
-                          ₹{(totalSpent || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}{' '}
-                          total
+                          {totalSpent > 0 ? 'All settled up' : 'No activity'}
                         </Text>
                       )}
-                    </TouchableOpacity>
-                  </WidgetCard>
+                    </View>
+                    {totalSpent > 0 && (
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '500',
+                          color: colors.text.tertiary,
+                          marginTop: 2,
+                        }}
+                      >
+                        ₹{(totalSpent || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}{' '}
+                        total
+                      </Text>
+                    )}
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -2234,7 +1544,7 @@ export function HomeScreen() {
 
         {/* ─── SECTION 9: UPCOMING ─── */}
         {reminders.length > 0 && (
-          <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
             <Text
               style={{
                 fontSize: 16,
@@ -2245,7 +1555,7 @@ export function HomeScreen() {
             >
               Upcoming
             </Text>
-            <WidgetCard>
+            <View style={[page.upcomingCard, { backgroundColor: colors.bg.card }]}>
               {reminders.slice(0, 4).map((r, i) => {
                 const due = daysUntil(r.dueDate || r.date);
                 const isOverdue = due === 'Overdue';
@@ -2272,7 +1582,7 @@ export function HomeScreen() {
                         style={{
                           fontSize: 11,
                           fontWeight: '700',
-                          color: isOverdue ? colors.status.error : colors.text.tertiary,
+                          color: isOverdue ? '#EF4444' : colors.text.tertiary,
                         }}
                       >
                         {due}
@@ -2282,7 +1592,7 @@ export function HomeScreen() {
                       style={{
                         width: 1,
                         height: 24,
-                        backgroundColor: isOverdue ? colors.status.error : colors.border.subtle,
+                        backgroundColor: isOverdue ? '#EF4444' : colors.border.subtle,
                       }}
                     />
                     <Text
@@ -2290,7 +1600,7 @@ export function HomeScreen() {
                         flex: 1,
                         fontSize: 14,
                         fontWeight: '600',
-                        color: isOverdue ? colors.status.error : colors.text.primary,
+                        color: isOverdue ? '#EF4444' : colors.text.primary,
                       }}
                       numberOfLines={1}
                     >
@@ -2300,7 +1610,7 @@ export function HomeScreen() {
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: isOverdue ? colors.status.error : colors.text.primary,
+                        color: isOverdue ? '#EF4444' : colors.text.primary,
                       }}
                     >
                       {fmt(amt)}
@@ -2313,69 +1623,34 @@ export function HomeScreen() {
                   onPress={() => navigation.navigate('Reminders')}
                   style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                    View All
-                  </Text>
-                  <AntDesign name="right" size={14} color={colors.accent.primary} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>View All</Text>
+                  <AntDesign  name="right" size={14} color={colors.brand.primary} />
                 </TouchableOpacity>
               )}
-            </WidgetCard>
+            </View>
           </View>
         )}
 
         {/* Achievements */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: colors.text.primary,
-              marginBottom: 12,
-            }}
-          >
-            Achievements
-          </Text>
-          <WidgetCard>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 12,
-              }}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>
-                Badges Earned
-              </Text>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
-                {achievements.earnedCount}/{achievements.totalCount || 0}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {(achievements.earned.length > 0 ? achievements.earned : [])
-                .slice(0, 4)
-                .map((ach: any) => (
-                  <View
-                    key={ach.id || ach.code}
-                    style={{ flex: 1, minWidth: '45%', alignItems: 'center', padding: 8 }}
-                  >
-                    <Text style={{ fontSize: 28 }}>{ach.icon || '\uD83C\uDFC6'}</Text>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '600',
-                        color: colors.text.primary,
-                        marginTop: 4,
-                        textAlign: 'center',
-                      }}
-                      numberOfLines={1}
-                    >
-                      {ach.name || ach.code}
-                    </Text>
-                  </View>
-                ))}
-            </View>
-          </WidgetCard>
+        <View style={{ paddingHorizontal: 20, marginTop: 24, marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+              Achievements
+            </Text>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+              {achievements.earnedCount}/{achievements.totalCount || 0}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(achievements.earned.length > 0 ? achievements.earned : []).slice(0, 4).map((ach: any) => (
+              <View key={ach.id || ach.code} style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 10, alignItems: 'center', width: '47%' }}>
+                <Text style={{ fontSize: 24 }}>{ach.icon || '\uD83C\uDFC6'}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.primary, marginTop: 4 }} numberOfLines={1}>
+                  {ach.name || ach.code}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={{ height: 40 }} />
@@ -2384,8 +1659,6 @@ export function HomeScreen() {
   );
 }
 
-<<<<<<< Updated upstream
-=======
 function HeroMonthRow({
   label,
   value,
@@ -2461,7 +1734,6 @@ function ObligationRow({
   );
 }
 
->>>>>>> Stashed changes
 function MonthBar({
   label,
   value,
@@ -2480,9 +1752,7 @@ function MonthBar({
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
-          {label}
-        </Text>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>{label}</Text>
         <Text style={{ fontSize: 13, fontWeight: '700', color }}>{formatFn(value)}</Text>
       </View>
       <View
@@ -2503,25 +1773,52 @@ function MonthBar({
 
 const page = StyleSheet.create({
   screen: { flex: 1 },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 15,
+    height: 15,
+    borderRadius: 7.5,
+    backgroundColor: '#FF4545',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { fontSize: 9, fontWeight: '700', color: '#FFF' },
   heroCard: {
     borderRadius: 24,
     padding: 22,
     marginTop: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  heroMonth: {
+    marginTop: 16,
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  safePill: {
+    marginTop: 14,
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   quickAddCard: {
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   quickAddInput: {
     flex: 1,
@@ -2548,16 +1845,19 @@ const page = StyleSheet.create({
     marginRight: 6,
   },
   actionCard: {
-    width: (W - spacing.xl * 2 - spacing.md * 3) / 4,
-    borderRadius: 16,
-    padding: spacing.sm,
-    paddingTop: spacing.md,
-    alignItems: 'center',
+    width: (W - 20 * 2 - 10) / 2,
+    borderRadius: 18,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   actionIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2595,28 +1895,28 @@ const page = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   spaceCard: {
     borderRadius: 16,
     padding: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.02,
-    shadowRadius: 2,
-    elevation: 0.5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   upcomingCard: {
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   seeAllBtn: {
     flexDirection: 'row',

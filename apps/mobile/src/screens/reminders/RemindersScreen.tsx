@@ -112,11 +112,7 @@ export function RemindersScreen() {
       <View style={styles.row}>
         <View style={[styles.iconBox, { backgroundColor: getPriorityColor(item.priority) + '20' }]}>
           <AntDesign
-<<<<<<< Updated upstream
-            name={(getTypeIcon(item.type)) as any}
-=======
             name={getTypeIcon(item.type) as any}
->>>>>>> Stashed changes
             size={20}
             color={getPriorityColor(item.priority)}
           />

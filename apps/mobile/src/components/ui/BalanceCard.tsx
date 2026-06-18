@@ -40,11 +40,7 @@ export function BalanceCard({
         <View style={styles.labelRow}>
           <Text style={styles.label}>Joint Wallet</Text>
           <View style={styles.premiumDot}>
-<<<<<<< Updated upstream
-            <AntDesign name="star" size={10} color="#FFFFFF" />
-=======
             <Ionicons name="diamond" size={10} color="#FFFFFF" />
->>>>>>> Stashed changes
             <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
         </View>
@@ -103,10 +99,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: -24,
     shadowColor: '#3D1B6D',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 5,
   },
   card: {
     borderRadius: 24,

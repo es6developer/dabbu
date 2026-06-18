@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,27 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Modal,
+  TextInput,
   Alert,
-  Animated,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { usePremium } from '../../store/PremiumContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
+import { useToast } from '../../store/ToastContext';
+
+const H_PADDING = 20;
 
 const FREE_MAX = 3;
 const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPerGroup: 10 };
@@ -37,7 +44,7 @@ const SPACE_ICONS: Record<string, string> = {
 };
 
 const COVER_GRADIENTS: Record<string, [string, string]> = {
-  couple: ['#7C3AED', '#5AC8FA'],
+  couple: ['#7C3AED', '#A78BFA'],
   family: ['#2563EB', '#60A5FA'],
   trip: ['#0D9488', '#2DD4BF'],
   friends: ['#DC2626', '#FB7185'],
@@ -49,19 +56,6 @@ const COVER_GRADIENTS: Record<string, [string, string]> = {
   sports: ['#059669', '#34D399'],
 };
 
-<<<<<<< Updated upstream
-const COVER_ICONS: Record<string, string> = {
-  couple: 'heart',
-  family: 'team',
-  trip: 'enviroment',
-  friends: 'addusergroup',
-  wedding: 'heart',
-  house_purchase: 'home',
-  office: 'tool',
-  event: 'star',
-  apartment: 'appstore-o',
-  sports: 'codesquareo',
-=======
 const COVER_EMOJIS: Record<string, string> = {
   couple: 'heart',
   family: 'team',
@@ -73,7 +67,6 @@ const COVER_EMOJIS: Record<string, string> = {
   event: 'star',
   apartment: 'building',
   sports: 'Trophy',
->>>>>>> Stashed changes
 };
 
 function fmtCompact(v: number) {
@@ -179,7 +172,7 @@ function getGreeting() {
   return 'Good Evening';
 }
 
-function GreetingHeader({ netBalance, userName, colors, onSettings, onBalancePress }: any) {
+function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
   const isPositive = netBalance >= 0;
   const statusColor = isPositive ? colors.status.success : colors.status.error;
   const statusLabel = isPositive ? 'You are owed across spaces' : 'You owe across spaces';
@@ -216,7 +209,6 @@ function GreetingHeader({ netBalance, userName, colors, onSettings, onBalancePre
       {netBalance !== 0 && (
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={onBalancePress}
           style={{
             marginTop: 16,
             backgroundColor: colors.bg.card,
@@ -240,11 +232,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings, onBalancePre
             }}
           >
             <AntDesign
-<<<<<<< Updated upstream
-              name={(isPositive ? 'downcircle' : 'upcircle') as any}
-=======
               name={(isPositive ? 'arrow-down-circle' : 'arrow-up-circle') as any}
->>>>>>> Stashed changes
               size={24}
               color={statusColor}
             />
@@ -331,20 +319,13 @@ function GroupCard({
   userBalance,
   balanceArray,
 }: any) {
-  const [expanded, setExpanded] = useState(false);
-  const animRef = useRef(new Animated.Value(0)).current;
-
   const { owedToMe, iOwe, isSettled, totalSpent, memberCount, unsettledOthers } =
     deriveGroupBalance(group, currentUserId, userBalance, balanceArray);
   const members = group.members || [];
   const lastActivity = timeSince(group.updatedAt || group.createdAt);
-<<<<<<< Updated upstream
-  const coverIcon = COVER_ICONS[group.type] || 'folder1';
-=======
   const icon = SPACE_ICONS[group.type] || 'people';
   const coverGradient = COVER_GRADIENTS[group.type] || ['#6B7280', '#9CA3AF'];
   const coverIcon = COVER_EMOJIS[group.type] || 'folder1';
->>>>>>> Stashed changes
   const goalCount = group._count?.goals || group.goals?.length || 0;
   const aiTip = group.aiTip || null;
 
@@ -366,47 +347,17 @@ function GroupCard({
       : colors.status.error;
   const canSettle = totalSpent > 0 && !isSettled;
 
-  const toggleExpand = useCallback(() => {
-    const toValue = expanded ? 0 : 1;
-    Animated.timing(animRef, {
-      toValue,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-    setExpanded(!expanded);
-  }, [expanded, animRef]);
-
-  const bodyHeight = animRef.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 160],
-  });
-
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <View
         style={{
           backgroundColor: colors.bg.card,
-          borderRadius: 18,
+          borderRadius: 16,
           borderWidth: 1,
-          borderColor: colors.border.subtle,
+          borderColor: colors.border.default,
+          overflow: 'hidden',
         }}
       >
-<<<<<<< Updated upstream
-        {/* Top Row — collapsed view */}
-        <View style={{ padding: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                backgroundColor: `${amountColor}14`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AntDesign name={coverIcon as any} size={22} color={colors.text.primary} />
-=======
         {/* Cover Image Strip */}
         <View style={{ height: 64, backgroundColor: coverGradient[0], justifyContent: 'center', paddingHorizontal: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -420,157 +371,89 @@ function GroupCard({
                   {group.type || 'space'}
                 </Text>
               </View>
->>>>>>> Stashed changes
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
-                {group.name || group.title}
-              </Text>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, textTransform: 'capitalize' }}>
-                {group.type || 'space'} • {memberCount} {memberCount === 1 ? 'member' : 'members'}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'flex-end', gap: 2 }}>
-              {activeAmount > 0 ? (
-                <>
-                  <Text style={{ fontSize: 17, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}>
-                    ₹{Math.round(activeAmount).toLocaleString('en-IN')}
-                  </Text>
-                  <Text style={{ fontSize: 10, fontWeight: '600', color: amountColor }}>{statusText}</Text>
-                </>
-              ) : (
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
-                  {totalSpent > 0 ? 'Settled' : 'Empty'}
-                </Text>
-              )}
-            </View>
-            <TouchableOpacity
-              onPress={toggleExpand}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                backgroundColor: colors.bg.tertiary,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AntDesign name={expanded ? 'up' : 'down'} size={12} color={colors.text.secondary} />
-            </TouchableOpacity>
+            <MemberAvatars members={members} />
           </View>
         </View>
 
-        {/* Expanded Details */}
-        {expanded && (
-          <View
-            style={{
-              paddingHorizontal: 16,
-              paddingBottom: 16,
-              gap: 12,
-              borderTopWidth: 1,
-              borderTopColor: colors.border.subtle,
-              paddingTop: 12,
-            }}
-          >
-            {/* Stats */}
-            <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
-              {totalSpent > 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.accent.primary}12`, alignItems: 'center', justifyContent: 'center' }}>
-                    <AntDesign name="wallet" size={13} color={colors.accent.primary} />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Total</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
-                  </View>
-                </View>
-              )}
-              {goalCount > 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.status.warning}15`, alignItems: 'center', justifyContent: 'center' }}>
-                    <AntDesign name="flag" size={13} color={colors.status.warning} />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Goals</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{goalCount}</Text>
-                  </View>
-                </View>
-              )}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.text.tertiary}15`, alignItems: 'center', justifyContent: 'center' }}>
-                  <AntDesign name="clockcircleo" size={13} color={colors.text.tertiary} />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Active</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{lastActivity}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Members Avatars */}
-            {members.length > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <MemberAvatars members={members} />
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                  {members.slice(0, 5).map((m: any) => m.split?.(' ')[0] || m.name?.split?.(' ')[0]).filter(Boolean).join(', ')}
-                  {members.length > 5 ? ` +${members.length - 5} more` : ''}
+        {/* Body */}
+        <View style={{ padding: 14, gap: 10 }}>
+          {/* Balance Row */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+            {activeAmount > 0 ? (
+              <>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}>
+                  ₹{Math.round(activeAmount).toLocaleString('en-IN')}
                 </Text>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: amountColor }}>
+                  {statusText}
+                </Text>
+              </>
+            ) : (
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+                {totalSpent > 0 ? 'All settled up' : 'No activity yet'}
+              </Text>
+            )}
+          </View>
+
+          {/* Stats Row */}
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            {memberCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <AntDesign  name="team" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{memberCount}</Text>
               </View>
             )}
-
-            {/* AI Insight */}
-            {aiTip && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 }}>
-                <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={2}>
-                  {aiTip}
-                </Text>
+            {totalSpent > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <AntDesign  name="wallet" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
               </View>
             )}
-
-            {/* Action Buttons */}
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity
-                onPress={onAddExpense}
-                activeOpacity={0.8}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 11,
-                  borderRadius: 12,
-                  backgroundColor: colors.accent.primary,
-                }}
-              >
-                <AntDesign name="plus" size={14} color="#FFFFFF" />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>Add Expense</Text>
-              </TouchableOpacity>
-              {canSettle && (
-                <TouchableOpacity
-                  onPress={onSettle}
-                  activeOpacity={0.8}
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    paddingVertical: 11,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: settlementColor,
-                  }}
-                >
-                  <AntDesign name="swap" size={14} color={settlementColor} />
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: settlementColor }}>Settle</Text>
-                </TouchableOpacity>
-              )}
+            {goalCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <AntDesign  name="flag" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{goalCount} goals</Text>
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <AntDesign  name="clockcircleo" size={13} color={colors.text.tertiary} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{lastActivity}</Text>
             </View>
           </View>
-        )}
+
+          {/* AI Insight */}
+          {aiTip && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 }}>
+              <AntDesign  name="bulb1" size={13} color={colors.accent.primary} />
+              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={1}>
+                {aiTip}
+              </Text>
+            </View>
+          )}
+
+          {/* Action Buttons */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+            <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onAddExpense}>
+              <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${colors.accent.primary}12` }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <AntDesign  name="plus" size={13} color={colors.accent.primary} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>Add</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+            {canSettle && (
+              <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onSettle}>
+                <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${settlementColor}15` }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <AntDesign  name="swap" size={13} color={settlementColor} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>Settle</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -580,15 +463,20 @@ export function SharedScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { accessToken, user } = useAuth();
-  const { checkEntitlement } = usePremium();
+  const { accessToken, user, isPremium } = useAuth();
+  const { showToast } = useToast();
+
   const [groups, setGroups] = useState<any[]>([]);
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
   const [groupBalanceArrays, setGroupBalanceArrays] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newType, setNewType] = useState('friends');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -672,11 +560,11 @@ export function SharedScreen() {
   );
 
   const planInfo = useMemo(() => {
-    if (checkEntitlement('export_pdf').allowed) {
+    if (isPremium) {
       return { tier: 'premium' as const, maxGroups: 100, maxMembersPerGroup: 100 };
     }
     return groups[0]?._plan || DEFAULT_PLAN;
-  }, [groups]);
+  }, [groups, isPremium]);
   const maxSpaces = planInfo.maxGroups;
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'User';
   const isAtLimit = groups.length >= maxSpaces;
@@ -700,7 +588,48 @@ export function SharedScreen() {
       );
       return;
     }
-    navigation.navigate('CreateSharedGroup');
+    setShowCreateModal(true);
+  }
+
+  async function handleCreateSpace() {
+    if (!newName.trim()) {
+      return;
+    }
+    if (groups.length >= maxSpaces) {
+      setShowCreateModal(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const body: any = { name: newName.trim(), type: newType.toLowerCase(), currency: 'INR' };
+      const res = await api.post<any>('/shared-finance/groups', body);
+      showToast('Group created');
+      const newGroupId = res?.id || res?._id;
+      resetModal();
+      if (newGroupId) {
+        navigation.navigate('SharedGroupDetail', {
+          groupId: newGroupId,
+          groupName: newName.trim(),
+        });
+      } else {
+        loadData(true);
+      }
+    } catch (e: any) {
+      const msg = e?.message || 'Failed to create space. Please try again.';
+      Alert.alert('Error', msg);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function resetModal() {
+    setShowCreateModal(false);
+    setNewName('');
+    setNewType('friends');
+    setInviteEmail('');
   }
 
   if (loading) {
@@ -708,7 +637,7 @@ export function SharedScreen() {
       <PremiumLoaderScreen
         progress={loadingProgress}
         title="Loading Your Spaces"
-        icon="layers-outline"
+        icon="layers"
       />
     );
   }
@@ -730,13 +659,12 @@ export function SharedScreen() {
         }
       >
         {/* ─── Greeting Header ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, paddingTop: insets.top + 12 }}>
+        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
           <GreetingHeader
             netBalance={netBalance}
             userName={userName}
             colors={colors}
             onSettings={() => navigation.navigate('Settings')}
-            onBalancePress={() => navigation.navigate('SharedDashboard', { screen: 'SharedSettlements' })}
           />
         </View>
 
@@ -748,7 +676,7 @@ export function SharedScreen() {
             justifyContent: 'space-between',
             marginTop: 28,
             marginBottom: 14,
-            paddingHorizontal: spacing.xl,
+            paddingHorizontal: H_PADDING,
           }}
         >
           <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
@@ -769,11 +697,7 @@ export function SharedScreen() {
             }}
           >
             <AntDesign
-<<<<<<< Updated upstream
-              name={(isAtLimit ? 'lock' : 'plus') as any}
-=======
               name={(isAtLimit ? 'lock-closed' : 'add') as any}
->>>>>>> Stashed changes
               size={16}
               color={isAtLimit ? colors.status.error : colors.accent.primary}
             />
@@ -782,7 +706,7 @@ export function SharedScreen() {
 
         {/* ─── Spaces List ─── */}
         {groups.length > 0 ? (
-          <View style={{ paddingHorizontal: spacing.xl, gap: spacing.lg }}>
+          <View style={{ paddingHorizontal: H_PADDING, gap: 10 }}>
             {groups.map((group: any) => (
               <GroupCard
                 key={group.id}
@@ -820,7 +744,7 @@ export function SharedScreen() {
           </View>
         ) : (
           <View
-            style={{ alignItems: 'center', gap: 10, paddingTop: 60, paddingHorizontal: spacing.xl }}
+            style={{ alignItems: 'center', gap: 10, paddingTop: 60, paddingHorizontal: H_PADDING }}
           >
             <View
               style={{
@@ -859,7 +783,7 @@ export function SharedScreen() {
                 backgroundColor: colors.accent.primary,
                 marginTop: 6,
               }}
-              onPress={() => navigation.navigate('CreateSharedGroup')}
+              onPress={() => setShowCreateModal(true)}
             >
               <AntDesign  name="plus" size={16} color={colors.text.inverse} />
               <Text style={{ color: colors.text.inverse, fontSize: 14, fontWeight: '700' }}>
@@ -874,7 +798,7 @@ export function SharedScreen() {
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
             style={{
-              marginHorizontal: spacing.xl,
+              marginHorizontal: H_PADDING,
               marginTop: 20,
               paddingVertical: 10,
               paddingHorizontal: 14,
@@ -899,8 +823,6 @@ export function SharedScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
-<<<<<<< Updated upstream
-=======
 
       {/* ─── Create Modal ─── */}
       <Modal
@@ -1056,11 +978,80 @@ export function SharedScreen() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
->>>>>>> Stashed changes
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+});
+
+const mod = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  sheet: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
+  field: { marginBottom: 16 },
+  label: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  input: {
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  typeRow: { gap: 8, paddingVertical: 4 },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  typeChipText: { fontSize: 13, fontWeight: '600' },
+  inviteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    minHeight: 50,
+  },
+  inviteInput: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: 12 },
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  cancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  cancelBtnText: { fontSize: 15, fontWeight: '700' },
+  submitBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  submitBtnText: { fontSize: 15, fontWeight: '700' },
 });

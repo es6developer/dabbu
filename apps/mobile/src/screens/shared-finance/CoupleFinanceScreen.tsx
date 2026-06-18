@@ -44,18 +44,18 @@ function fmtDate(dateStr: string) {
 
 function getCategoryIcon(cat: string): { icon: string; color: string } {
   const map: Record<string, { icon: string; color: string }> = {
-    Food: { icon: 'enviroment', color: '#FF6B6B' },
+    Food: { icon: 'restaurant', color: '#FF6B6B' },
     Groceries: { icon: 'shoppingcart', color: '#34C759' },
-    Travel: { icon: 'earth', color: '#60A5FA' },
+    Travel: { icon: 'airplane', color: '#60A5FA' },
     Rent: { icon: 'home', color: '#FB923C' },
     Bills: { icon: 'filetext1', color: '#F59E0B' },
     Shopping: { icon: 'shoppingcart', color: '#F472B6' },
     Entertainment: { icon: 'play', color: '#14B8A6' },
     Medical: { icon: 'medicinebox', color: '#FF4D4F' },
-    salary: { icon: 'solution1', color: '#34C759' },
+    salary: { icon: 'briefcase', color: '#34C759' },
     income: { icon: 'linechart', color: '#34C759' },
   };
-  return map[cat] || { icon: 'minuscircleo', color: '#9CA3AF' };
+  return map[cat] || { icon: 'minuscirlceo', color: '#9CA3AF' };
 }
 
 export function CoupleFinanceScreen() {
@@ -316,11 +316,7 @@ export function CoupleFinanceScreen() {
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
-<<<<<<< Updated upstream
-              <AntDesign name="barchart" size={20} color="#FFF" />
-=======
               <Ionicons name="bar-chart-outline" size={20} color="#FFF" />
->>>>>>> Stashed changes
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -395,11 +391,7 @@ export function CoupleFinanceScreen() {
                 ]}
               >
                 <AntDesign
-<<<<<<< Updated upstream
-                  name={(totalIncome >= totalExpenses ? 'arrowup' : 'arrowdown') as any}
-=======
                   name={(totalIncome >= totalExpenses ? 'trending-up' : 'trending-down') as any}
->>>>>>> Stashed changes
                   size={14}
                   color={totalIncome >= totalExpenses ? '#34C759' : '#FF4D4F'}
                 />
@@ -751,10 +743,10 @@ const s = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   heroFinanceTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   heroFinanceLabel: {
@@ -781,11 +773,10 @@ const s = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     gap: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardTitle: { fontSize: 15, fontWeight: '700' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -809,11 +800,10 @@ const s = StyleSheet.create({
     padding: 14,
     gap: 6,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.02,
-    shadowRadius: 3,
-    elevation: 0.5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   statIconWrap: {
     width: 36,
@@ -856,11 +846,10 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.02,
-    shadowRadius: 3,
-    elevation: 0.5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   activityIcon: {
     width: 42,

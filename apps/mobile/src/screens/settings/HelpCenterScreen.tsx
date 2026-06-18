@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 
 const FAQS = [
   {
@@ -60,13 +59,8 @@ export function HelpCenterScreen() {
         >
           <View style={styles.faqHeader}>
             <Text style={[styles.faqQ, { color: colors.text.primary }]}>{faq.q}</Text>
-<<<<<<< Updated upstream
-            <AntDesign
-              name={(expanded === i ? 'caretup' : 'caretdown') as any}
-=======
             <Ionicons
               name={expanded === i ? 'chevron-up-outline' : 'chevron-down-outline'}
->>>>>>> Stashed changes
               size={18}
               color={colors.text.tertiary}
             />
@@ -96,7 +90,7 @@ const styles = StyleSheet.create({
   },
   supportBtnText: { fontSize: 16, fontWeight: '600' },
   sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 16 },
-  faqCard: { padding: 16, borderRadius: 14, marginBottom: spacing.lg, borderWidth: 1 },
+  faqCard: { padding: 16, borderRadius: 14, marginBottom: 8, borderWidth: 1 },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   faqQ: { fontSize: 15, fontWeight: '500', flex: 1, marginRight: 8 },
   faqA: { fontSize: 14, marginTop: 12, lineHeight: 20 },

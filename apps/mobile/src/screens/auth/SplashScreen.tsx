@@ -1,7 +1,4 @@
 import React, { useEffect } from 'react';
-<<<<<<< Updated upstream
-import { View, Text, Image, StyleSheet, StatusBar } from 'react-native';
-=======
 import { View, Text, Image, StyleSheet, Dimensions, StatusBar } from 'react-native';
 import Svg, {
   Circle,
@@ -13,7 +10,6 @@ import Svg, {
   Path,
   G,
 } from 'react-native-svg';
->>>>>>> Stashed changes
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,8 +20,41 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 
+const { width: W, height: H } = Dimensions.get('window');
 const LOGO_SZ = 80;
 const LOGO_IMG = 52;
+
+function Particle({ size, left, top, color, delay }: { size: number; left: number; top: number; color: string; delay: number }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(0.6, { duration: 1000 }));
+    translateY.value = withDelay(delay, withTiming(-20, { duration: 1000 }));
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          left,
+          top,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: color,
+        },
+        animStyle,
+      ]}
+    />
+  );
+}
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const { colors } = useTheme();
@@ -74,11 +103,26 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         </View>
       </Animated.View>
 
-<<<<<<< Updated upstream
-      <Animated.View style={[s.brandWrap, brandAnim]}>
-        <Text style={[s.brandName, { color: colors.text.primary }]}>Dabbu</Text>
-      </Animated.View>
-=======
+      {/* Decorative finance illustration */}
+      <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: 0.12 }} pointerEvents="none">
+        <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+          <G opacity={0.5}>
+            {/* Overlapping coins */}
+            <Circle cx={W * 0.2} cy={H * 0.7} r={60} fill="#C4B5FD" opacity={0.3} />
+            <Circle cx={W * 0.25} cy={H * 0.65} r={50} fill="#8B5CF6" opacity={0.2} />
+            <Circle cx={W * 0.8} cy={H * 0.75} r={70} fill="#A78BFA" opacity={0.25} />
+            <Circle cx={W * 0.85} cy={H * 0.68} r={45} fill="#C4B5FD" opacity={0.15} />
+            {/* Growth curve */}
+            <Path d={`M${W * 0.1} ${H * 0.85} Q${W * 0.3} ${H * 0.7} ${W * 0.5} ${H * 0.75} T${W * 0.9} ${H * 0.6}`} stroke="#C4B5FD" strokeWidth={2} fill="none" strokeLinecap="round" />
+            <Path d={`M${W * 0.1} ${H * 0.88} Q${W * 0.35} ${H * 0.78} ${W * 0.5} ${H * 0.82} T${W * 0.9} ${H * 0.68}`} stroke="#8B5CF6" strokeWidth={1.5} fill="none" strokeLinecap="round" />
+            {/* Small star/diamond accents */}
+            <Circle cx={W * 0.5} cy={H * 0.73} r={3} fill="#DDD6FE" />
+            <Circle cx={W * 0.75} cy={H * 0.65} r={2.5} fill="#C4B5FD" />
+            <Circle cx={W * 0.35} cy={H * 0.76} r={2} fill="#A78BFA" />
+          </G>
+        </Svg>
+      </View>
+
       {/* Decorative finance illustration */}
       <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: 0.12 }} pointerEvents="none">
         <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
@@ -105,7 +149,6 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       <Particle size={3} left={W * 0.1} top={H * 0.78} color="#DDD6FE" delay={200} />
       <Particle size={4} left={W * 0.5} top={H * 0.08} color="#A78BFA" delay={400} />
       <Particle size={3} left={W * 0.88} top={H * 0.5} color="#C4B5FD" delay={600} />
->>>>>>> Stashed changes
 
       <Animated.View style={[s.taglineWrap, taglineAnim]}>
         <Text style={[s.tagline, { color: colors.text.tertiary }]}>

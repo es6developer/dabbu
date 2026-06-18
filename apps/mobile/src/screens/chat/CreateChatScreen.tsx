@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
 import {
   FormScreen,
   FormSection,
@@ -35,23 +34,6 @@ export function CreateChatScreen() {
   }
 
   return (
-<<<<<<< Updated upstream
-    <PremiumFormScreen
-      title="New chat"
-      subtitle="Create a focused conversation space for money decisions and quick coordination."
-      icon="message1"
-      accent={[colors.accent.primary, colors.accent.primary]}
-    >
-      <PremiumInput
-        label="Chat name"
-        icon="message1"
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Enter chat name"
-      />
-      <PremiumActionButton title="Create chat" onPress={handleCreate} loading={saving} icon="plus" />
-    </PremiumFormScreen>
-=======
     <FormScreen
       title="New Chat"
       subtitle="Create a focused conversation space for money decisions and quick coordination"
@@ -72,6 +54,5 @@ export function CreateChatScreen() {
         />
       </FormSection>
     </FormScreen>
->>>>>>> Stashed changes
   );
 }

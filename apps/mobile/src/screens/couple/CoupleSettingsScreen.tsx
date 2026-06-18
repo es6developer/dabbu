@@ -15,7 +15,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { Avatar } from '../../components/ui/Avatar';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -33,7 +32,7 @@ const NOTIFICATION_ITEMS: NotificationPref[] = [
   { key: 'newExpenses', label: 'New Expenses', icon: 'creditcard' },
   { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'exclamationcircle' },
   { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar' },
-  { key: 'goalProgress', label: 'Goal Progress', icon: 'flag' },
+  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy' },
 ];
 
 function daysSince(date: string): number {
@@ -259,7 +258,7 @@ export function CoupleSettingsScreen() {
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
-                <View style={[styles.settingIcon, { backgroundColor: colors.accent.primary }]}>
+                <View style={[styles.settingIcon, { backgroundColor: colors.accent.secondary }]}>
                   <AntDesign  name="piechart" size={16} color="#FFF" />
                 </View>
               </View>
@@ -309,11 +308,7 @@ export function CoupleSettingsScreen() {
               return (
                 <View key={item.key} style={[styles.notifRow, !isLast && styles.notifRowBorder]}>
                   <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
-<<<<<<< Updated upstream
-                    <AntDesign name={(item.icon) as any} size={14} color="#FFF" />
-=======
                     <AntDesign name={item.icon as any} size={14} color="#FFF" />
->>>>>>> Stashed changes
                   </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
                     {item.label}
@@ -321,7 +316,7 @@ export function CoupleSettingsScreen() {
                   <Switch
                     value={val}
                     onValueChange={(v) => handleToggle(item.key, v)}
-                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#7C3AED' }}
+                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
                     thumbColor={val ? '#FFFFFF' : 'rgba(255,255,255,0.4)'}
                     ios_backgroundColor="rgba(255,255,255,0.12)"
                   />
@@ -405,10 +400,10 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     shadowColor: '#F97316',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   profileRow: {
     flexDirection: 'row',
@@ -472,9 +467,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowRadius: 8,
     elevation: 2,
   },
 
@@ -573,9 +568,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(255,77,79,0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowRadius: 8,
     elevation: 2,
   },
   leaveIcon: {

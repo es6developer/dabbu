@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import {
@@ -40,43 +39,15 @@ export function CreateFamilyScreen() {
   }
 
   return (
-<<<<<<< Updated upstream
-    <PremiumFormScreen
-      title="Create family"
-      subtitle="Build a private space for household money, reminders, goals, and shared decisions."
-      icon="team"
-=======
     <FormScreen
       title="Create Family"
       subtitle="Build a private space for household money, reminders, goals, and shared decisions"
       icon="people"
->>>>>>> Stashed changes
       accent={[colors.status.success, colors.accent.primary]}
       footer={
         <FormFooter title="Create Family" icon="add" loading={saving} onPress={handleCreate} />
       }
     >
-<<<<<<< Updated upstream
-      <PremiumError message={error} />
-      <PremiumInput
-        label="Family name"
-        icon="home"
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Sharma Family"
-      />
-      <PremiumInput
-        label="Description"
-        icon="filetext1"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="A short description..."
-        multiline
-        numberOfLines={3}
-      />
-      <PremiumActionButton title="Create family" onPress={handleCreate} loading={saving} icon="plus" />
-    </PremiumFormScreen>
-=======
       <FormError message={error} />
       <FormSection title="Family Details">
         <FormField
@@ -96,6 +67,5 @@ export function CreateFamilyScreen() {
         />
       </FormSection>
     </FormScreen>
->>>>>>> Stashed changes
   );
 }

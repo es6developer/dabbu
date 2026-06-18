@@ -15,7 +15,6 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { getCategoryIcon } from '../../config/categoryIcons';
-import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 const BAR_H = 8;
@@ -42,12 +41,12 @@ function pctColor(pct: number, colors: any): string {
 
 function statusBadge(pct: number): { label: string; bg: string; text: string; icon: string } {
   if (pct > 90) {
-    return { label: 'Exceeded', bg: '#FFE5E5', text: '#CC3B3B', icon: 'exclamationcircle' };
+    return { label: 'Exceeded', bg: '#FFE5E5', text: '#CC3B3B', icon: 'alert-circle' };
   }
   if (pct > 70) {
     return { label: 'Warning', bg: '#FFF4D9', text: '#B8860B', icon: 'warning' };
   }
-  return { label: 'Normal', bg: '#E5F9E5', text: '#2E7D32', icon: 'checkcircle' };
+  return { label: 'Normal', bg: '#E5F9E5', text: '#2E7D32', icon: 'checkmark-circle' };
 }
 
 export function CoupleBudgetsScreen() {
@@ -230,11 +229,7 @@ export function CoupleBudgetsScreen() {
 
           {categories.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
-<<<<<<< Updated upstream
-              <AntDesign name="appstore1" size={32} color={colors.text.tertiary} />
-=======
               <Ionicons  name="layers" size={32} color={colors.text.tertiary} />
->>>>>>> Stashed changes
               <Text style={[styles.emptyCardText, { color: colors.text.secondary }]}>
                 No categories set up yet
               </Text>
@@ -334,10 +329,10 @@ const styles = StyleSheet.create({
     padding: 22,
     marginTop: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   heroTop: {
     flexDirection: 'row',
@@ -384,9 +379,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     gap: 8,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 2,
   },
   catTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -423,10 +418,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginTop: 8,
     shadowColor: '#F97316',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   adjustBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 

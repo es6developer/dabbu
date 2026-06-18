@@ -4,7 +4,6 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
@@ -38,7 +37,7 @@ export function ChallengesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100, paddingHorizontal: 20 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={colors.accent.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={colors.brand.primary} />
         }
       >
         <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text.primary, marginBottom: 4 }}>Challenges</Text>
@@ -66,11 +65,7 @@ export function ChallengesScreen() {
 
         {!loading && challenges.totalActive === 0 && (
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
-<<<<<<< Updated upstream
-            <AntDesign name="star" size={48} color={colors.text.tertiary} />
-=======
             <Ionicons  name="trophy" size={48} color={colors.text.tertiary} />
->>>>>>> Stashed changes
             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}>No challenges yet</Text>
           </View>
         )}
@@ -84,7 +79,7 @@ function ChallengeCard({ challenge, colors }: { challenge: any; colors: any }) {
   const isComplete = challenge.completed;
 
   return (
-    <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, marginBottom: spacing.lg }}>
+    <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Text style={{ fontSize: 28 }}>{challenge.icon}</Text>
         <View style={{ flex: 1 }}>
@@ -99,12 +94,12 @@ function ChallengeCard({ challenge, colors }: { challenge: any; colors: any }) {
       </View>
 
       <View style={{ height: 6, backgroundColor: colors.border.subtle, borderRadius: 99, marginTop: 10, overflow: 'hidden' }}>
-        <View style={{ width: `${Math.min(pct, 100)}%`, height: '100%', backgroundColor: isComplete ? colors.status.success : colors.accent.primary, borderRadius: 99 }} />
+        <View style={{ width: `${Math.min(pct, 100)}%`, height: '100%', backgroundColor: isComplete ? colors.status.success : colors.brand.primary, borderRadius: 99 }} />
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
         <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>{challenge.progress}/{challenge.target}</Text>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: isComplete ? colors.status.success : colors.accent.primary }}>{pct}%</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: isComplete ? colors.status.success : colors.brand.primary }}>{pct}%</Text>
       </View>
     </View>
   );

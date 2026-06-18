@@ -15,12 +15,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-<<<<<<< Updated upstream
-import { AntDesign } from '@expo/vector-icons';
-import { PieChart } from 'react-native-chart-kit';
-=======
 import { AntDesign, Ionicons } from '@expo/vector-icons';
->>>>>>> Stashed changes
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -28,38 +23,37 @@ import { CATEGORY_COLORS } from '../../config/categoryIcons';
 import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, palette } from '../../theme';
-import { spacing } from '../../theme/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
 import { useToast } from '../../store/ToastContext';
 
-const TABS = ['summary', 'expenses', 'analytics', 'people'] as const;
+const TABS = ['summary', 'expenses', 'people'] as const;
 
 const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: string; icon: string }> =
   {
     friends: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
-      icon: 'team',
+      icon: 'people',
     },
-    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'earth' },
+    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'airplane' },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
       icon: 'home',
     },
     couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
-    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'codesquareo' },
-    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'idcard' },
-    office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'solution1' },
+    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'football' },
+    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'business' },
+    office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
     event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
-    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'appstore1' },
+    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'building' },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
-      icon: 'team',
+      icon: 'people',
     },
   };
 
@@ -75,47 +69,6 @@ function normalize<T>(res: any): T {
     return res as T;
   }
   return res as T;
-}
-
-function computeAllSettlements(
-  balanceRows: Array<{ userId: string; name: string; balance: number; upiId?: string }>,
-) {
-  const creditors = balanceRows.filter(r => r.balance > 0).sort((a, b) => b.balance - a.balance);
-  const debtors = balanceRows.filter(r => r.balance < 0).sort((a, b) => a.balance - b.balance);
-
-  const settlements: Array<{
-    from: string;
-    fromName: string;
-    to: string;
-    toName: string;
-    amount: number;
-    upiId?: string;
-    type: 'pay' | 'collect';
-  }> = [];
-
-  let ci = 0;
-  for (const debtor of debtors) {
-    let remaining = Math.abs(debtor.balance);
-    while (remaining > 0.01 && ci < creditors.length) {
-      const creditor = creditors[ci];
-      const payAmount = Math.min(remaining, creditor.balance);
-      const rounded = Math.round(payAmount);
-      settlements.push({
-        from: debtor.userId,
-        fromName: debtor.name,
-        to: creditor.userId,
-        toName: creditor.name,
-        amount: rounded,
-        upiId: creditor.upiId,
-        type: 'pay',
-      });
-      remaining -= rounded;
-      creditor.balance -= rounded;
-      if (creditor.balance < 0.01) ci++;
-    }
-  }
-
-  return settlements;
 }
 
 function computeSmartSettlements(
@@ -201,9 +154,6 @@ export function SharedGroupDetailScreen() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [simplified, setSimplified] = useState(true);
-  const [settlements, setSettlements] = useState<any[]>([]);
-  const [settlementsLoading, setSettlementsLoading] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
@@ -288,22 +238,6 @@ export function SharedGroupDetailScreen() {
     });
     return unsub;
   }, [loadData]);
-
-  useEffect(() => {
-    if (!groupId) return;
-    let cancelled = false;
-    setSettlementsLoading(true);
-    api
-      .get<any[]>(`/shared-finance/groups/${groupId}/settlements/plan?simplified=${simplified}`)
-      .then((res) => {
-        if (!cancelled) setSettlements(Array.isArray(res) ? res : []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setSettlementsLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [groupId, simplified]);
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
@@ -425,7 +359,7 @@ export function SharedGroupDetailScreen() {
       title: a.description,
       detail: `${a.userName} · ${new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`,
       date: a.createdAt,
-      icon: (iconMap[a.action] || 'minuscircleo') as any,
+      icon: (iconMap[a.action] || 'minuscirlceo') as any,
       type: a.action as any,
     }));
     const expenseActivity = expenses.slice(0, 20).map((tx) => ({
@@ -451,7 +385,7 @@ export function SharedGroupDetailScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="people-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="team" />
     );
   }
 
@@ -480,23 +414,7 @@ export function SharedGroupDetailScreen() {
   }
 
   function renderSummary() {
-    const localSettlements = settlements
-      .filter((s: any) => !simplified || s.from === currentUser?.id || s.to === currentUser?.id)
-      .map((s: any) => {
-        const isMeFrom = s.from === currentUser?.id;
-        const isMeTo = s.to === currentUser?.id;
-        const memberMap = new Map(balanceRows.map((r) => [r.userId, r]));
-        const toRow = memberMap.get(s.to);
-        return {
-          from: s.from,
-          fromName: isMeTo ? 'You' : s.fromName,
-          to: s.to,
-          toName: isMeFrom ? 'You' : s.toName,
-          amount: s.amount,
-          upiId: isMeFrom ? toRow?.upiId : undefined,
-          type: isMeFrom ? ('pay' as const) : ('remind' as const),
-        };
-      });
+    const settlements = computeSmartSettlements(balanceRows, currentUser?.id);
     const catEntries = (() => {
       const cats: Record<string, number> = {};
       expenses.forEach((e) => {
@@ -510,11 +428,7 @@ export function SharedGroupDetailScreen() {
 
     return (
       <View style={s.tabPanel}>
-        {settlementsLoading ? (
-          <View style={[s.settlementHero, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 16 }]}>
-            <ActivityIndicator size="small" color={colors.accent.primary} />
-          </View>
-        ) : (
+        {settlements.length > 0 && (
           <View style={[s.settlementHero, { backgroundColor: colors.bg.card }]}>
             <View style={s.settlementHeroHeader}>
               <AntDesign  name="swap" size={18} color={colors.accent.primary} />
@@ -524,82 +438,67 @@ export function SharedGroupDetailScreen() {
                   : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
               </Text>
             </View>
-            {settlements.length > 0 && (
-              <>
-                <TouchableOpacity
-                  onPress={() => setSimplified(p => !p)}
-                  style={s.simplifyToggle}
-                >
-                  <AntDesign
-                    name={simplified ? 'checksquare' : 'checksquareo'}
-                    size={18}
-                    color={colors.accent.primary}
-                  />
-                  <Text style={[s.simplifyToggleText, { color: colors.text.secondary }]}>
-                    Simplified settlements
+            {settlements.map((st, i) => (
+              <View key={i} style={s.settlementRow}>
+                <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
+                  <Text style={s.settlementAvatarText}>
+                    {st.fromName === 'You' ? st.toName[0]?.toUpperCase() : st.fromName[0]?.toUpperCase()}
                   </Text>
-                </TouchableOpacity>
-                {localSettlements.map((st, i) => (
-                  <View key={i} style={s.settlementRow}>
-                    <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
-                      <Text style={s.settlementAvatarText}>
-                        {st.fromName === 'You' ? st.toName[0]?.toUpperCase() : st.fromName[0]?.toUpperCase()}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.settlementLabel, { color: colors.text.primary }]}>
-                        {st.type === 'pay'
-                          ? `Pay ${st.toName}`
-                          : `${st.fromName} pays you`}
-                      </Text>
-                      <Text style={[s.settlementAmount, { color: colors.text.tertiary }]}>
-                        {fmt(st.amount)}
-                      </Text>
-                    </View>
-                    {st.type === 'pay' && st.upiId ? (
-                      <TouchableOpacity
-                        style={[s.upiBtn, { backgroundColor: '#34C759' }]}
-                        onPress={() => {
-                          const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
-                          Linking.openURL(upiLink).catch(() =>
-                            Alert.alert(
-                              'Unable to open UPI',
-                              'No UPI app found. Please try GPay, PhonePe, or Paytm.',
-                            ),
-                          );
-                        }}
-                      >
-                        <AntDesign  name="wallet" size={14} color="#FFF" />
-                        <Text style={s.upiBtnText}>Pay</Text>
-                      </TouchableOpacity>
-                    ) : st.type === 'remind' ? (
-                      <TouchableOpacity
-                        style={[s.upiBtn, { backgroundColor: colors.status.warning }]}
-                        onPress={() => {
-                          const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
-                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-                          Linking.openURL(whatsappUrl).catch(() =>
-                            Alert.alert('Reminder', msg),
-                          );
-                        }}
-                      >
-                        <AntDesign  name="bells" size={14} color="#FFF" />
-                        <Text style={s.upiBtnText}>Remind</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                ))}
-              </>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.settlementLabel, { color: colors.text.primary }]}>
+                    {st.type === 'pay'
+                      ? `Pay ${st.toName}`
+                      : `${st.fromName} pays you`}
+                  </Text>
+                  <Text style={[s.settlementAmount, { color: colors.text.tertiary }]}>
+                    {fmt(st.amount)}
+                  </Text>
+                </View>
+                {st.type === 'pay' && st.upiId ? (
+                  <TouchableOpacity
+                    style={[s.upiBtn, { backgroundColor: '#34C759' }]}
+                    onPress={() => {
+                      const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
+                      Linking.openURL(upiLink).catch(() =>
+                        Alert.alert(
+                          'Unable to open UPI',
+                          'No UPI app found. Please try GPay, PhonePe, or Paytm.',
+                        ),
+                      );
+                    }}
+                  >
+                    <AntDesign  name="wallet" size={14} color="#FFF" />
+                    <Text style={s.upiBtnText}>Pay</Text>
+                  </TouchableOpacity>
+                ) : st.type === 'remind' ? (
+                  <TouchableOpacity
+                    style={[s.upiBtn, { backgroundColor: colors.status.warning }]}
+                    onPress={() => {
+                      const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                      Linking.openURL(whatsappUrl).catch(() =>
+                        Alert.alert('Reminder', msg),
+                      );
+                    }}
+                  >
+                    <AntDesign  name="bells" size={14} color="#FFF" />
+                    <Text style={s.upiBtnText}>Remind</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ))}
+            {settlements.length > 0 && (
+              <TouchableOpacity
+                style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
+                onPress={() => navigation.navigate('Settlement', { groupId })}
+              >
+                <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
+                  View all settlements
+                </Text>
+                <AntDesign  name="right" size={14} color={colors.accent.primary} />
+              </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
-              onPress={() => navigation.navigate('Settlement', { groupId })}
-            >
-              <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
-                View all settlements
-              </Text>
-              <AntDesign  name="right" size={14} color={colors.accent.primary} />
-            </TouchableOpacity>
           </View>
         )}
 
@@ -607,11 +506,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-<<<<<<< Updated upstream
-                <AntDesign name="enviroment" size={20} color={colors.accent.primary} />
-=======
                 <Ionicons  name="airplane" size={20} color={colors.accent.primary} />
->>>>>>> Stashed changes
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -694,13 +589,8 @@ export function SharedGroupDetailScreen() {
               AI Insights
             </Text>
           </View>
-<<<<<<< Updated upstream
-          <AntDesign
-            name={(insightsOpen ? 'caretup' : 'caretdown') as any}
-=======
           <Ionicons
             name={insightsOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
->>>>>>> Stashed changes
             size={18}
             color={colors.text.tertiary}
           />
@@ -802,144 +692,6 @@ export function SharedGroupDetailScreen() {
     );
   }
 
-  function renderAnalytics() {
-    const myPaid = balanceRows.find((r) => r.userId === currentUser?.id)?.paid || 0;
-    const othersPaid = stats.totalSpent - myPaid;
-    const chart_w = (Dimensions.get('window').width || 375) - 64;
-
-    const chartConfig = {
-      color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
-      labelColor: () => colors.text.secondary,
-    };
-
-    const pieColors = [
-      '#FF6B6B', '#34C759', '#38BDF8', '#FBBF24', '#FB923C',
-      '#A78BFA', '#F472B6', '#14B8A6', '#7C3AED', '#22C55E',
-      '#FF9F0A', '#636E72', '#00CEC9', '#FF8FB3', '#60A5FA',
-    ];
-
-    const catData = (() => {
-      const cats: Record<string, number> = {};
-      expenses.forEach((e) => {
-        const c = (e.category || 'Other').toLowerCase();
-        cats[c] = (cats[c] || 0) + Number(e.amount || 0);
-      });
-      const entries = Object.entries(cats).sort(([, a], [, b]) => b - a);
-      return entries.map(([name, amount], i) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        amount,
-        color: CATEGORY_COLORS[name] || pieColors[i % pieColors.length],
-        legendFontColor: colors.text.secondary,
-        legendFontSize: 11,
-      }));
-    })();
-
-    const monthData = (() => {
-      const map: Record<string, number> = {};
-      expenses.forEach((e) => {
-        const d = new Date(e.date || e.expenseDate || e.createdAt);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        map[key] = (map[key] || 0) + Number(e.amount || 0);
-      });
-      const entries = Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
-      return entries.map(([name, amount], i) => ({
-        name: name.slice(5),
-        amount,
-        color: pieColors[i % pieColors.length],
-        legendFontColor: colors.text.secondary,
-        legendFontSize: 11,
-      }));
-    })();
-
-    const memberData = (() => {
-      const map: Record<string, number> = {};
-      expenses.forEach((e) => {
-        const uid = e.paidBy;
-        const member = members.find((m: any) => m.userId === uid);
-        const name = member?.user?.firstName || member?.user?.email || 'Someone';
-        map[name] = (map[name] || 0) + Number(e.amount || 0);
-      });
-      const entries = Object.entries(map).sort(([, a], [, b]) => b - a);
-      return entries.map(([name, amount], i) => ({
-        name,
-        amount,
-        color: pieColors[i % pieColors.length],
-        legendFontColor: colors.text.secondary,
-        legendFontSize: 11,
-      }));
-    })();
-
-    return (
-      <View style={s.tabPanel}>
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Overview</Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.accent.primary }]}>{fmt(myPaid)}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>What I paid</Text>
-            </View>
-            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.warning}10`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.status.warning }]}>{fmt(othersPaid)}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Others paid</Text>
-            </View>
-            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.error}08`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.status.error }]}>{fmt(stats.totalSpent)}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>All paid</Text>
-            </View>
-          </View>
-        </View>
-
-        {catData.length > 0 && (
-          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Category wise</Text>
-            <PieChart
-              data={catData}
-              width={chart_w}
-              height={200}
-              chartConfig={chartConfig}
-              accessor="amount"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
-          </View>
-        )}
-
-        {monthData.length > 0 && (
-          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Date wise</Text>
-            <PieChart
-              data={monthData}
-              width={chart_w}
-              height={200}
-              chartConfig={chartConfig}
-              accessor="amount"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
-          </View>
-        )}
-
-        {memberData.length > 0 && (
-          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Member wise</Text>
-            <PieChart
-              data={memberData}
-              width={chart_w}
-              height={200}
-              chartConfig={chartConfig}
-              accessor="amount"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
-          </View>
-        )}
-      </View>
-    );
-  }
-
   function renderExpenseItem(item: any) {
     const payer = members.find((m: any) => m.userId === item.paidBy);
     const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
@@ -1003,20 +755,6 @@ export function SharedGroupDetailScreen() {
             </Text>
           ) : null}
         </View>
-        {!iPaid && myShare > 0 && payer?.user?.upiId && (
-          <TouchableOpacity
-            style={[s.payNowBtn, { backgroundColor: '#34C759' }]}
-            onPress={() => {
-              const upiLink = `upi://pay?pa=${encodeURIComponent(payer.user.upiId)}&pn=${encodeURIComponent(payerName)}&am=${myShare}&cu=INR&tn=${encodeURIComponent(item.description || 'Expense')}`;
-              Linking.openURL(upiLink).catch(() =>
-                Alert.alert('Unable to open UPI', 'No UPI app found. Please try GPay, PhonePe, or Paytm.'),
-              );
-            }}
-          >
-            <AntDesign name="wallet" size={14} color="#FFF" />
-            <Text style={s.payNowText}>Pay Now</Text>
-          </TouchableOpacity>
-        )}
       </TouchableOpacity>
     );
   }
@@ -1046,7 +784,7 @@ export function SharedGroupDetailScreen() {
       return (
         <View style={s.tabPanel}>
           <EmptyState
-            icon="adduser"
+            icon="team"
             title="Invite your people"
             message="Add members to start splitting expenses."
             actionLabel="Invite Members"
@@ -1222,11 +960,7 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
-<<<<<<< Updated upstream
-                  <AntDesign name="message1" size={18} color="#34C759" />
-=======
                   <Ionicons  name="logo-whatsapp" size={18} color="#34C759" />
->>>>>>> Stashed changes
                   <Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -1256,31 +990,18 @@ export function SharedGroupDetailScreen() {
   async function removeMember(member: any) {
     Alert.alert(
       'Remove Member',
-      `What should happen to ${member.user?.firstName || 'this member'}'s expenses in this group?`,
+      `Remove ${member.user?.firstName || 'this member'} from the group?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete all their expenses',
+          text: 'Remove',
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
-              await api.post(`/shared-finance/groups/${groupId}/members/${member.id}/remove`, {
-                deleteTransactions: true,
-              });
-              showToast('Member removed');
-              await loadData(true);
-            } catch (e: any) {
-              Alert.alert('Error', e.message || 'Failed to remove member');
-            }
-          },
-        },
-        {
-          text: 'Keep their expenses',
-          onPress: async () => {
-            try {
-              if (accessToken) setAccessToken(accessToken);
-              await api.post(`/shared-finance/groups/${groupId}/members/${member.id}/remove`);
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
+              await api.delete(`/shared-finance/groups/${groupId}/members/${member.id}`);
               showToast('Member removed');
               await loadData(true);
             } catch (e: any) {
@@ -1364,7 +1085,11 @@ export function SharedGroupDetailScreen() {
             tintColor={colors.accent.primary}
           />
         }
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 120 }}
+        contentContainerStyle={
+          activeTab === 'expenses' && expenses.length === 0
+            ? s.emptyContainer
+            : { paddingBottom: insets.bottom + 120 }
+        }
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) =>
           activeTab === 'expenses' && section.data.length > 0 ? (
@@ -1418,11 +1143,7 @@ export function SharedGroupDetailScreen() {
                       <>
                         <Text style={s.groupMeta}>·</Text>
                         <AntDesign
-<<<<<<< Updated upstream
-                          name={(myBalanceRow.balance >= 0 ? 'arrowdown' : 'arrowup') as any}
-=======
                           name={(myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up') as any}
->>>>>>> Stashed changes
                           size={10}
                           color="rgba(255,255,255,0.6)"
                         />
@@ -1495,9 +1216,7 @@ export function SharedGroupDetailScreen() {
                         ? 'Summary'
                         : tab === 'expenses'
                           ? 'Expenses'
-                          : tab === 'analytics'
-                            ? 'Analytics'
-                            : 'People'}
+                          : 'People'}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -1505,7 +1224,6 @@ export function SharedGroupDetailScreen() {
             </View>
 
             {activeTab === 'summary' && renderSummary()}
-            {activeTab === 'analytics' && renderAnalytics()}
             {activeTab === 'people' && renderPeople()}
           </Animated.View>
         }
@@ -1525,16 +1243,13 @@ export function SharedGroupDetailScreen() {
         }
       />
 
-      {activeTab === 'expenses' && expenses.length > 0 && (
-        <TouchableOpacity
-          style={[s.fab, { backgroundColor: colors.accent.primary }]}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
-        >
-          <AntDesign name="plus" size={20} color="#FFF" />
-          <Text style={s.fabLabel}>Add Expense</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={[s.fab, { backgroundColor: colors.accent.primary }]}
+        onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
+        activeOpacity={0.85}
+      >
+        <AntDesign  name="plus" size={26} color="#FFF" />
+      </TouchableOpacity>
 
       <Modal
         visible={settingsOpen}
@@ -1588,60 +1303,6 @@ export function SharedGroupDetailScreen() {
               placeholderTextColor={colors.text.tertiary}
               multiline
             />
-            <View style={{ flexDirection: 'row', marginTop: 16 }}>
-              <TouchableOpacity
-                style={[
-                  s.leaveGroupBtn,
-                  { backgroundColor: colors.status.error + '20', borderColor: colors.status.error },
-                ]}
-                onPress={() => {
-                  setSettingsOpen(false);
-                  setTimeout(() => {
-                    Alert.alert(
-                      'Leave group',
-                      'What should happen to your expenses in this group?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Delete all my expenses',
-                          style: 'destructive',
-                          onPress: async () => {
-                            try {
-                              if (accessToken) setAccessToken(accessToken);
-                              await api.post(`/shared-finance/groups/${groupId}/leave`, {
-                                deleteTransactions: true,
-                              });
-                              navigation.goBack();
-                              showToast('Left the group');
-                            } catch (e: any) {
-                              Alert.alert('Error', e.message || 'Try again');
-                            }
-                          },
-                        },
-                        {
-                          text: 'Keep my expenses (marked as left)',
-                          onPress: async () => {
-                            try {
-                              if (accessToken) setAccessToken(accessToken);
-                              await api.post(`/shared-finance/groups/${groupId}/leave`);
-                              navigation.goBack();
-                              showToast('Left the group');
-                            } catch (e: any) {
-                              Alert.alert('Error', e.message || 'Try again');
-                            }
-                          },
-                        },
-                      ],
-                    );
-                  }, 300);
-                }}
-              >
-                <AntDesign name="logout" size={16} color={colors.status.error} />
-                <Text style={[s.leaveGroupBtnText, { color: colors.status.error }]}>
-                  {' '}Leave Group
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View style={s.modalActions}>
               <TouchableOpacity
                 style={[
@@ -1678,8 +1339,7 @@ export function SharedGroupDetailScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
-  analyticsNumber: { fontSize: 20, fontWeight: '800', marginBottom: 4 },
-  analyticsLabel: { fontSize: 11, fontWeight: '600' },
+  emptyContainer: { flexGrow: 1, paddingTop: 60 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: {
     width: 38,
@@ -1706,7 +1366,7 @@ const s = StyleSheet.create({
   tabRow: { flexDirection: 'row', gap: 8 },
   tabChip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 },
   tabText: { fontSize: 13, fontWeight: '700' },
-  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 12, flexGrow: 1 },
+  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 12 },
   secTitle: {
     fontSize: 11,
     fontWeight: '700',
@@ -1718,19 +1378,19 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 1,
   },
   settlementHero: {
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
   },
   settlementHeroHeader: {
     flexDirection: 'row',
@@ -1781,9 +1441,9 @@ const s = StyleSheet.create({
     padding: 16,
     gap: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 1,
   },
   tripIconWrap: {
@@ -1814,9 +1474,9 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 1,
   },
   insightToggleTitle: { fontSize: 14, fontWeight: '700' },
@@ -1827,12 +1487,12 @@ const s = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderLeftWidth: 3,
-    marginBottom: spacing.lg,
+    marginBottom: 8,
   },
   expenseCard: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginBottom: spacing.lg,
+    marginBottom: 10,
     padding: 14,
     borderRadius: 18,
     gap: 12,
@@ -1849,10 +1509,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
   expenseAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
   expenseTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -1860,23 +1520,12 @@ const s = StyleSheet.create({
   expenseAmount: { fontSize: 16, fontWeight: '700', marginLeft: 8 },
   expenseDateLine: { fontSize: 11, marginTop: 1 },
   yourShareText: { fontSize: 11, fontWeight: '600', marginTop: 1 },
-  payNowBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    alignSelf: 'center',
-    marginLeft: 8,
-  },
-  payNowText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   peopleCard: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 18,
     padding: 14,
-    marginBottom: spacing.lg,
+    marginBottom: 8,
     gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1936,20 +1585,18 @@ const s = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    width: 56,
+    height: 56,
     borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
     zIndex: 100,
   },
-  fabLabel: { color: '#FFF', fontSize: 14, fontWeight: '800' },
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2002,31 +1649,5 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-  },
-  leaveGroupBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    flex: 1,
-  },
-  leaveGroupBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  simplifyToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    marginBottom: 4,
-  },
-  simplifyToggleText: {
-    fontSize: 13,
-    fontWeight: '600',
   },
 });

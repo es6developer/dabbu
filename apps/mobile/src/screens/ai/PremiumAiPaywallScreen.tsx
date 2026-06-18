@@ -176,19 +176,19 @@ export function PremiumAiPaywallScreen() {
   );
   const PREVIEW_CARDS = [
     {
-      icon: 'linechart' as const,
+      icon: 'analytics' as const,
       title: 'Financial DNA',
       desc: 'Saver Score: 82',
       color: AI_COLORS.primary,
     },
     {
-      icon: 'linechart' as const,
+      icon: 'trending-up' as const,
       title: 'Predictions',
       desc: 'Month-end: ₹24,500',
       color: AI_COLORS.success,
     },
     {
-      icon: 'team' as const,
+      icon: 'people' as const,
       title: 'Family Health',
       desc: 'Score: 76/100',
       color: AI_COLORS.purple,
@@ -219,11 +219,7 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
-<<<<<<< Updated upstream
-            <AntDesign name="star" size={40} color={AI_COLORS.primary} />
-=======
             <Ionicons  name="diamond" size={40} color={AI_COLORS.primary} />
->>>>>>> Stashed changes
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>

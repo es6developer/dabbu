@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { typography as designTypo } from '../../theme';
 import { palette } from '../../theme/colors';
 import { API_URL } from '../../config/api';
@@ -41,7 +41,7 @@ interface PendingAuth {
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const TAB_BAR_H_PAD = spacing.xl * 2;
+const TAB_BAR_H_PAD = PADDING * 2;
 const TAB_WIDTH = (SCREEN_W - TAB_BAR_H_PAD - 8) / 2;
 
 function createStyles(colors: typeof palette.dark, isDark: boolean) {
@@ -50,14 +50,14 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: spacing.xl + 16,
+      paddingBottom: PADDING + 16,
       paddingTop: 16,
     },
     tabBarFixed: {
       position: 'absolute',
-      left: spacing.xl,
-      right: spacing.xl,
-      top: spacing.xl,
+      left: PADDING,
+      right: PADDING,
+      top: PADDING,
       zIndex: 10,
     },
     tabBar: {
@@ -75,6 +75,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     tabText: {
       fontSize: 14,
+      fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
     tabIndicator: {
@@ -83,7 +84,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       height: '100%',
       top: 0,
       left: 4,
-      backgroundColor: colors.accent.primary,
+      backgroundColor: colors.brand.primary,
       borderRadius: borderRadius.md,
       zIndex: 1,
       ...shadows.sm,
@@ -96,8 +97,9 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       fontSize: 15,
       color: colors.text.secondary,
       marginTop: 6,
+      fontFamily: 'Inter-Regular',
       lineHeight: 22,
-      marginBottom: spacing.xl,
+      marginBottom: PADDING,
     },
     form: {},
     nameRow: {
@@ -122,6 +124,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       flex: 1,
       color: colors.text.primary,
       fontSize: 15,
+      fontFamily: 'Inter-Regular',
       paddingVertical: 0,
     },
     inputIcon: {
@@ -143,6 +146,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     errorText: {
       color: colors.status.error,
       fontSize: 13,
+      fontFamily: 'Inter-Medium',
       flex: 1,
     },
     footnotes: {
@@ -150,7 +154,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginTop: 4,
-      marginBottom: spacing.xl,
+      marginBottom: PADDING,
     },
     checkboxRow: {
       flexDirection: 'row',
@@ -167,20 +171,22 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       marginRight: 10,
     },
     checkboxActive: {
-      backgroundColor: colors.accent.primary,
-      borderColor: colors.accent.primary,
+      backgroundColor: colors.brand.primary,
+      borderColor: colors.brand.primary,
     },
     checkboxLabel: {
       color: colors.text.secondary,
       fontSize: 13,
+      fontFamily: 'Inter-Medium',
     },
     forgotLink: {
       color: colors.text.link,
       fontSize: 13,
+      fontFamily: 'Inter-Semibold',
     },
     primaryButton: {
       height: 56,
-      backgroundColor: colors.accent.primary,
+      backgroundColor: colors.brand.primary,
       borderRadius: borderRadius.xl,
       justifyContent: 'center',
       alignItems: 'center',
@@ -190,6 +196,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     primaryButtonText: {
       color: '#FFFFFF',
       fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
     switchRow: {
@@ -201,15 +208,17 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     switchText: {
       color: colors.text.secondary,
       fontSize: 13,
+      fontFamily: 'Inter-Regular',
     },
     switchLink: {
       color: colors.text.link,
       fontSize: 13,
+      fontFamily: 'Inter-SemiBold',
     },
     divider: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: spacing.xl,
+      marginVertical: PADDING,
     },
     dividerLine: {
       flex: 1,
@@ -219,6 +228,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     dividerText: {
       color: colors.text.tertiary,
       fontSize: 12,
+      fontFamily: 'Inter-Medium',
       marginHorizontal: 12,
     },
     googleButton: {
@@ -236,6 +246,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     googleButtonText: {
       color: colors.text.primary,
       fontSize: 15,
+      fontFamily: 'Inter-SemiBold',
     },
     demoButton: {
       height: 54,
@@ -250,16 +261,18 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       marginTop: 10,
     },
     demoButtonText: {
-      color: colors.accent.primary,
+      color: colors.brand.primary,
       fontSize: 15,
+      fontFamily: 'Inter-SemiBold',
     },
     privacyRow: {
       alignItems: 'center',
-      marginTop: spacing.xl,
+      marginTop: PADDING,
     },
     privacyText: {
       color: colors.text.tertiary,
       fontSize: 12,
+      fontFamily: 'Inter-Medium',
     },
   });
 }
@@ -307,7 +320,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
           <AntDesign
             name={icon as any}
             size={18}
-            color={focused ? colors.accent.primary : colors.text.tertiary}
+            color={focused ? colors.brand.primary : colors.text.tertiary}
             style={styles.inputIcon}
           />
         )}
@@ -371,6 +384,7 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
         style={{
           color: colors.status.error,
           fontSize: 13,
+          fontFamily: 'Inter-Medium',
           flex: 1,
         }}
       >
@@ -398,7 +412,7 @@ function PrimaryButton({
         style={
           {
             height: 56,
-            backgroundColor: colors.accent.primary,
+            backgroundColor: colors.brand.primary,
             borderRadius: borderRadius.xl,
             justifyContent: 'center',
             alignItems: 'center',
@@ -430,6 +444,7 @@ function PrimaryButton({
           style={{
             color: '#FFFFFF',
             fontSize: 16,
+            fontFamily: 'Inter-SemiBold',
             letterSpacing: 0.3,
           }}
         >
@@ -461,7 +476,6 @@ export function PremiumAuthScreen() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [referralCode, setReferralCode] = useState('');
 
   const pendingAuthRef = useRef<PendingAuth | null>(null);
   const indicatorX = useRef(new Animated.Value(tab === 'login' ? 0 : TAB_WIDTH)).current;
@@ -534,7 +548,7 @@ export function PremiumAuthScreen() {
     setLoading(true);
     setError('');
     try {
-      await googleLogin(idToken, referralCode || undefined);
+      await googleLogin(idToken);
     } catch (e: any) {
       setError(e.message || 'Google sign-in failed');
     } finally {
@@ -583,9 +597,6 @@ export function PremiumAuthScreen() {
       };
       body.deviceName = 'iPhone';
       body.platform = 'ios';
-      if (referralCode.trim()) {
-        body.referralCode = referralCode.trim();
-      }
 
       const registerRes = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -692,10 +703,10 @@ export function PremiumAuthScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: spacing.xl + 16 + insets.bottom },
+              { paddingBottom: PADDING + 16 + insets.bottom },
             ]}
           >
-            <View style={{ height: spacing.xl + TAB_BAR_HEIGHT + spacing.xl }} />
+            <View style={{ height: PADDING + TAB_BAR_HEIGHT + PADDING }} />
 
             <Animated.View style={{ opacity: fadeAnim }}>
               {tab === 'login' ? (
@@ -834,17 +845,6 @@ export function PremiumAuthScreen() {
                       styles={styles}
                     />
 
-                    <InputField
-                      placeholder="Referral code (optional)"
-                      value={referralCode}
-                      onChangeText={setReferralCode}
-                      autoCapitalize="characters"
-                      returnKeyType="next"
-                      icon="gift"
-                      colors={colors}
-                      styles={styles}
-                    />
-
                     {error ? <ErrorBox message={error} colors={colors} /> : null}
 
                     <PrimaryButton
@@ -899,11 +899,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-<<<<<<< Updated upstream
-              <AntDesign name="star" size={20} color={colors.accent.primary} />
-=======
               <Ionicons  name="rocket" size={20} color={colors.brand.primary} />
->>>>>>> Stashed changes
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 
