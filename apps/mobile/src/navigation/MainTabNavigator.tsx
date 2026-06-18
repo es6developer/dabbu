@@ -63,6 +63,10 @@ import { NotificationSettingsScreen } from '../screens/settings/NotificationSett
 import { FavoriteContactsScreen } from '../screens/settings/FavoriteContactsScreen';
 import { AddPartnerScreen } from '../screens/settings/AddPartnerScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
+import { StreaksScreen } from '../screens/home/StreaksScreen';
+import { YearlySummaryScreen } from '../screens/home/YearlySummaryScreen';
+import { DataExportScreen } from '../screens/settings/DataExportScreen';
+import { SupportScreen } from '../screens/settings/SupportScreen';
 import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
 
@@ -281,6 +285,26 @@ function SettingsNavigator() {
         options={{ title: 'Contact Us' }}
       />
       <SettingsStack.Screen
+        name="Support"
+        component={SupportScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="Streaks"
+        component={StreaksScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="YearlySummary"
+        component={YearlySummaryScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="DataExport"
+        component={DataExportScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
         name="Privacy"
         component={PrivacyPolicyScreen}
         options={{ title: 'Privacy Policy' }}
@@ -421,7 +445,8 @@ export function MainTabNavigator() {
       label: 'Add Expense',
       icon: 'add-circle-outline',
       color: '#DC2626',
-      onPress: () => navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'expense' } }),
+      onPress: () =>
+        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'expense' } }),
     },
     {
       label: 'Add Income',
@@ -652,9 +677,7 @@ function IOSTabBar({
         style={tabStyles.tabItem}
         onPress={onPress}
       >
-        <Animated.View
-          style={{ transform: [{ scale: scaleAnims[route.name] }] }}
-        >
+        <Animated.View style={{ transform: [{ scale: scaleAnims[route.name] }] }}>
           {icon}
         </Animated.View>
         <Text
@@ -680,20 +703,20 @@ function IOSTabBar({
       style={[
         tabStyles.container,
         {
-          backgroundColor: isDark
-            ? 'rgba(17,17,17,0.92)'
-            : 'rgba(248,248,250,0.92)',
+          backgroundColor: isDark ? 'rgba(17,17,17,0.92)' : 'rgba(248,248,250,0.92)',
         },
       ]}
     >
-      <BlurView intensity={Platform.OS === 'ios' ? 80 : 50} tint={glassTint} style={tabStyles.blurWrap}>
+      <BlurView
+        intensity={Platform.OS === 'ios' ? 80 : 50}
+        tint={glassTint}
+        style={tabStyles.blurWrap}
+      >
         <View
           style={[
             tabStyles.outerWrapper,
             {
-              backgroundColor: isDark
-                ? 'rgba(28,28,30,0.85)'
-                : 'rgba(255,255,255,0.85)',
+              backgroundColor: isDark ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.85)',
               borderColor: isDark ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.1)',
               shadowColor: colors.accent.primary,
             },

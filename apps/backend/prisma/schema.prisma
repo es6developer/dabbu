@@ -5,7 +5,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "extendedWhereUnique"]
+  previewFeatures = ["fullTextSearch", "fullTextIndex", "extendedWhereUnique"]
   binaryTargets   = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -259,6 +259,10 @@ model User {
   familyDocumentsUploaded  FamilyDocument[]        @relation("FamilyDocumentUploader")
   familyCalendarEventsCreated FamilyCalendarEvent[] @relation("CalendarEventCreator")
   familyCalendarEventsAssigned FamilyCalendarEvent[] @relation("CalendarEventAssignee")
+  notificationPreference       NotificationPreference[]
+  userEngagement               UserEngagement?
+  yearlySummaries              YearlySummary[]
+  dataExports                  DataExport[]
 
   @@index([email])
   @@index([isActive])
@@ -2584,8 +2588,8 @@ model NotificationPreference {
   emailEnabled    Boolean  @default(true)
   smsEnabled      Boolean  @default(false)
   inAppEnabled    Boolean  @default(true)
-  quietHoursStart Int?     @default(null)
-  quietHoursEnd   Int?     @default(null)
+  quietHoursStart Int?
+  quietHoursEnd   Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
