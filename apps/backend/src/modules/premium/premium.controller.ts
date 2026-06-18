@@ -97,6 +97,14 @@ export class PremiumController {
     return this.premiumService.pauseSubscription(req.user.id);
   }
 
+  @Post('restore')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Restore purchase from Razorpay or App Store' })
+  async restorePurchase(@Req() req: any) {
+    return this.premiumService.restorePurchase(req.user.id);
+  }
+
   @Post('resume')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
@@ -137,6 +145,22 @@ export class PremiumController {
   @ApiOperation({ summary: 'Get current usage statistics' })
   async getUsage(@Req() req: any) {
     return this.premiumService.getUsage(req.user.id);
+  }
+
+  @Get('entitlements')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user entitlements with granted features and limits' })
+  async getEntitlements(@Req() req: any) {
+    return this.premiumService.getUserEntitlements(req.user.id);
+  }
+
+  @Get('limits/:featureKey')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check usage limit for a specific feature' })
+  async checkLimit(@Req() req: any, @Param('featureKey') featureKey: string) {
+    return this.premiumService.checkLimit(req.user.id, featureKey);
   }
 
   @Get('check')

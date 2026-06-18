@@ -154,6 +154,15 @@ export class PremiumWebhookService {
         await this.premiumService.handlePaymentFailed(payload);
         break;
 
+      case 'subscription.completed':
+        await this.premiumService.handleCancellation(razorpaySubId, payload);
+        this.logger.log(`Subscription ${razorpaySubId} completed all billing cycles`);
+        break;
+
+      case 'payment.refunded':
+        await this.premiumService.handlePaymentRefunded(payload);
+        break;
+
       default:
         this.logger.warn(`Unhandled webhook event type: ${eventType}`);
     }

@@ -487,13 +487,25 @@ export class PremiumService {
     return this.usageEngine.getUsage(this.prisma, userId);
   }
 
+  async getUserEntitlements(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    const planCode = sub?.plan?.code || 'FREE';
+    const grantedFeatures = this.entitlementEngine.getGrantedFeatures(planCode);
+    const limits = this.usageEngine.getLimitsForPlan(planCode);
+    const isPremium = grantedFeatures.length > 0 && sub?.status === 'active';
+    return { planCode, grantedFeatures, limits, isPremium };
+  }
+
   async checkLimit(userId: string, featureKey: string) {
     const sub = await this.prisma.subscription.findUnique({
       where: { userId },
       include: { plan: true },
     });
     const planCode = sub?.plan?.code || 'FREE';
-    return this.usageEngine.checkLimit(this.prisma, userId, featureKey, planCode);
+    return this.usageEngine.checkUsage(this.prisma, userId, featureKey, planCode);
   }
 
   async trackEvent(userId: string, event: string, properties?: Record<string, any>) {
@@ -612,6 +624,226 @@ export class PremiumService {
 
   async getFeatures() {
     return this.entitlementEngine.getFeatureRegistry();
+  }
+
+  async getFeatureComparison() {
+    const plans = await this.getPlans();
+    const comparison = this.entitlementEngine.getFeatureComparison();
+    const planFeatures = plans.map((plan: any) => ({
+      code: plan.code,
+      name: plan.name,
+      price: plan.price,
+      interval: plan.interval,
+      features: this.entitlementEngine.getGrantedFeatures(plan.code),
+    }));
+    return { comparison, plans: planFeatures };
+  }
+
+  async getPlanLimits() {
+    const plans = await this.getPlans();
+    return plans.map((plan: any) => ({
+      code: plan.code,
+      name: plan.name,
+      limits: this.usageEngine.getLimitsForPlan(plan.code),
+    }));
+  }
+
+  async getUpgradeRecommendation(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    const currentPlanCode = sub?.plan?.code || 'FREE';
+    const tier = this.usageEngine.getPlanTier(currentPlanCode);
+    if (tier === 'family') {
+      return { current: currentPlanCode, recommendation: null, message: 'Already on highest plan' };
+    }
+    const usage = this.usageEngine.getLimitsForPlan(currentPlanCode);
+    const exceeded: string[] = [];
+    for (const [key, def] of Object.entries(usage)) {
+      if (def.limit !== -1 && def.limit < 10) {
+        exceeded.push(key);
+      }
+    }
+    const recommendation = tier === 'free' ? 'PREMIUM' : 'FAMILY';
+    const message =
+      exceeded.length > 0
+        ? `You're approaching limits on: ${exceeded.join(', ')}`
+        : `Unlock more features with ${recommendation}`;
+    return { current: currentPlanCode, recommendation, message, exceeded };
+  }
+
+  async restorePurchase(userId: string) {
+    const existingSub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    if (existingSub && existingSub.status === 'active') {
+      return { restored: true, message: 'Subscription already active' };
+    }
+    if (existingSub?.razorpaySubscriptionId) {
+      const rzpSub = await this.razorpayService.fetchSubscription(
+        existingSub.razorpaySubscriptionId,
+      );
+      if (
+        rzpSub &&
+        (rzpSub.status === 'active' ||
+          rzpSub.status === 'completed' ||
+          rzpSub.status === 'authenticated')
+      ) {
+        await this.handleActivation(existingSub.razorpaySubscriptionId!, rzpSub);
+        return { restored: true, message: 'Subscription restored from Razorpay' };
+      }
+    }
+    const lastPayment = await this.prisma.paymentTransaction.findFirst({
+      where: { userId, status: 'captured' },
+      orderBy: { createdAt: 'desc' },
+      include: { subscription: { include: { plan: true } } },
+    });
+    if (lastPayment?.subscription && lastPayment.subscription.status !== 'cancelled') {
+      const plan = lastPayment.subscription.plan;
+      const grantedFeatures = this.entitlementEngine.getGrantedFeatures(plan.code);
+      await this.prisma.premiumEntitlement.deleteMany({ where: { userId } });
+      if (grantedFeatures.length > 0) {
+        await this.prisma.premiumEntitlement.createMany({
+          data: grantedFeatures.map((featureKey: string) => ({
+            userId,
+            subscriptionId: lastPayment.subscription.id,
+            featureKey,
+            enabled: true,
+          })),
+        });
+      }
+      await this.prisma.subscription.update({
+        where: { id: lastPayment.subscription.id },
+        data: { status: 'active' },
+      });
+      return { restored: true, message: 'Subscription restored from last payment' };
+    }
+    return { restored: false, message: 'No previous purchase found' };
+  }
+
+  async validateFeature(userId: string, featureKey: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    const planCode = sub?.plan?.code || 'FREE';
+    const entitlement = this.entitlementEngine.check(featureKey, planCode);
+    if (!entitlement.allowed) {
+      return { allowed: false, reason: entitlement.reason, upgradePlan: entitlement.upgradePlan };
+    }
+    const usageLimit = this.usageEngine.getLimitsForPlan(planCode)[featureKey];
+    if (usageLimit && usageLimit.limit !== -1) {
+      const usage = await this.usageEngine.checkUsage(this.prisma, userId, featureKey, planCode);
+      if (!usage.allowed) {
+        const tier = this.usageEngine.getPlanTier(planCode);
+        return {
+          allowed: false,
+          reason: 'LIMIT_REACHED',
+          upgradePlan: tier === 'free' ? 'PREMIUM' : 'FAMILY',
+          usage: { current: usage.current, limit: usage.limit, remaining: usage.remaining },
+        };
+      }
+    }
+    return { allowed: true, reason: null, upgradePlan: null };
+  }
+
+  async getDashboardData(): Promise<any> {
+    const totalUsers = await this.prisma.user.count();
+    const activeSubs = await this.prisma.subscription.findMany({
+      where: { status: 'active' },
+      include: { plan: true },
+    });
+    const activeSubscriptions = activeSubs.length;
+    const mrr = activeSubs.reduce((sum: number, s: any) => {
+      const price = Number(s.plan.price);
+      if (s.plan.interval === 'yearly') {
+        return sum + price / 12;
+      }
+      return sum + price;
+    }, 0);
+    const arpu = activeSubscriptions > 0 ? mrr / activeSubscriptions : 0;
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const cancelledLast30 = await this.prisma.subscription.count({
+      where: { status: 'cancelled', updatedAt: { gte: thirtyDaysAgo } },
+    });
+    const churnRate =
+      activeSubscriptions + cancelledLast30 > 0
+        ? cancelledLast30 / (activeSubscriptions + cancelledLast30)
+        : 0;
+    const plans = await this.getPlans();
+    const planDistribution = await Promise.all(
+      plans.map(async (plan: any) => {
+        const count = await this.prisma.subscription.count({
+          where: { planId: plan.id, status: 'active' },
+        });
+        const revenue = count * Number(plan.price);
+        return { code: plan.code, name: plan.name, count, revenue };
+      }),
+    );
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const signups = await this.prisma.user.findMany({
+      where: { createdAt: { gte: sixMonthsAgo } },
+      orderBy: { createdAt: 'asc' },
+    });
+    const monthlySignupsMap: Record<string, number> = {};
+    for (const u of signups) {
+      const m = u.createdAt.toISOString().slice(0, 7);
+      monthlySignupsMap[m] = (monthlySignupsMap[m] || 0) + 1;
+    }
+    const monthlySignups = Object.entries(monthlySignupsMap).map(([month, count]) => ({
+      month,
+      count,
+    }));
+    const payments = await this.prisma.paymentTransaction.findMany({
+      where: { status: 'captured', paidAt: { gte: sixMonthsAgo } },
+      orderBy: { paidAt: 'asc' },
+    });
+    const revenueMap: Record<string, number> = {};
+    for (const p of payments) {
+      const m = p.paidAt!.toISOString().slice(0, 7);
+      revenueMap[m] = (revenueMap[m] || 0) + Number(p.amount);
+    }
+    const revenueHistory = Object.entries(revenueMap).map(([month, revenue]) => ({
+      month,
+      revenue,
+    }));
+    const totalPremium = await this.prisma.subscription.count({
+      where: { status: 'active', plan: { code: { not: 'FREE' } } },
+    });
+    const conversionRate = totalUsers > 0 ? (totalPremium / totalUsers) * 100 : 0;
+    const recentEvents = await this.prisma.subscriptionEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    const familySubs = await this.prisma.familySubscription.count({
+      where: { status: 'active' },
+    });
+    const failedPayments = await this.prisma.paymentTransaction.count({
+      where: { status: 'failed', createdAt: { gte: thirtyDaysAgo } },
+    });
+    const renewals = await this.prisma.paymentTransaction.count({
+      where: { status: 'captured', paidAt: { gte: thirtyDaysAgo } },
+    });
+    return {
+      totalUsers,
+      activeSubscriptions,
+      familySubscriptions: familySubs,
+      mrr: Math.round(mrr * 100) / 100,
+      arr: Math.round(mrr * 12 * 100) / 100,
+      arpu: Math.round(arpu * 100) / 100,
+      churnRate: Math.round(churnRate * 10000) / 100,
+      planDistribution,
+      monthlySignups,
+      revenueHistory,
+      conversionRate: Math.round(conversionRate * 100) / 100,
+      trialConversionRate: 0,
+      failedPayments,
+      renewals,
+      recentEvents,
+    };
   }
 
   async getCancellationOffer(userId: string) {
@@ -1022,6 +1254,39 @@ export class PremiumService {
     }
   }
 
+  async handlePaymentRefunded(payload: any) {
+    const payment = payload.payment?.entity;
+    if (!payment) {
+      return;
+    }
+
+    const existing = await this.prisma.paymentTransaction.findFirst({
+      where: { razorpayPaymentId: payment.id },
+    });
+    if (existing) {
+      await this.prisma.paymentTransaction.update({
+        where: { id: existing.id },
+        data: { status: 'refunded' },
+      });
+
+      const sub = existing.subscriptionId
+        ? await this.prisma.subscription.findUnique({ where: { id: existing.subscriptionId } })
+        : null;
+      if (sub) {
+        await this.prisma.invoice.updateMany({
+          where: { subscriptionId: sub.id, paymentId: payment.id },
+          data: { status: 'refunded' },
+        });
+      }
+    }
+
+    await this.trackEvent(existing?.userId || 'unknown', 'payment_refunded', {
+      paymentId: payment.id,
+      amount: payment.amount,
+      status: 'refunded',
+    });
+  }
+
   private async recordPayment(sub: any, payment: any) {
     const existing = await this.prisma.paymentTransaction.findFirst({
       where: { razorpayPaymentId: payment.id },
@@ -1040,6 +1305,20 @@ export class PremiumService {
         method: payment.method || 'upi',
         razorpayPaymentId: payment.id,
         razorpayOrderId: payment.order_id,
+        paidAt: new Date(),
+      },
+    });
+
+    await this.prisma.invoice.create({
+      data: {
+        subscriptionId: sub.id,
+        userId: sub.userId,
+        invoiceNumber: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        amount: payment.amount ? payment.amount / 100 : 0,
+        currency: payment.currency || 'INR',
+        status: 'paid',
+        razorpayInvoiceId: payment.invoice_id || undefined,
+        paymentId: payment.id,
         paidAt: new Date(),
       },
     });

@@ -61,6 +61,9 @@ export class RazorpayService {
     customerContact?: string;
     notes?: Record<string, string>;
     addonAmount?: number;
+    authType?: 'automatic' | 'manual';
+    maxAmount?: number;
+    expireBy?: number;
   }): Promise<any> {
     try {
       const body: any = {
@@ -70,6 +73,17 @@ export class RazorpayService {
         notify_info: { notify_email: params.customerEmail },
         notes: params.notes || {},
       };
+      body.auth_type = params.authType || 'automatic';
+      if (params.authType === 'automatic' || !params.authType) {
+        body.mandate = {
+          method: 'emandate',
+          frequency: params.totalCount === 12 ? 'monthly' : 'yearly',
+          max_amount: params.maxAmount || 0,
+        };
+      }
+      if (params.expireBy) {
+        body.expire_by = params.expireBy;
+      }
       if (params.customerContact) {
         body.notify_info.notify_phone = params.customerContact;
       }

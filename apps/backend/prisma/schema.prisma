@@ -2907,6 +2907,70 @@ model CancellationRecovery {
   @@map("cancellation_recovery")
 }
 
+// ─── INVOICES ────────────────────────────────────────────────
+model Invoice {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  subscriptionId  String    @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  invoiceNumber   String    @unique @db.VarChar(50)
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("INR") @db.VarChar(10)
+  status          String    @default("pending") @db.VarChar(20)
+  invoiceUrl      String?   @db.Text
+  invoicePdfUrl   String?   @db.Text
+  razorpayInvoiceId String? @db.VarChar(255)
+  paymentId       String?   @db.VarChar(255)
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  paidAt          DateTime?
+  dueAt           DateTime?
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+  @@index([invoiceNumber])
+  @@index([status, createdAt])
+  @@map("invoices")
+}
+
+// ─── FAMILY SUBSCRIPTIONS ─────────────────────────────────────
+model FamilySubscription {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  ownerId         String   @db.VarChar(36)
+  subscriptionId  String   @db.VarChar(36)
+  familyId        String   @unique @db.VarChar(36)
+  maxMembers      Int      @default(6)
+  memberCount     Int      @default(1)
+  status          String   @default("active") @db.VarChar(20)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([subscriptionId])
+  @@index([familyId, status])
+  @@map("family_subscriptions")
+}
+
+// ─── ADMIN AUDIT LOG ──────────────────────────────────────────
+model SubscriptionAudit {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  action          String   @db.VarChar(50)
+  performedBy     String   @db.VarChar(36)
+  targetUserId    String?  @db.VarChar(36)
+  subscriptionId  String?  @db.VarChar(36)
+  details         Json?    @db.Json
+  ipAddress       String?  @db.VarChar(45)
+  userAgent       String?  @db.VarChar(255)
+  createdAt       DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([targetUserId])
+  @@index([performedBy])
+  @@map("subscription_audit")
+}
+
 // ─── DOCUMENT VAULT ──────────────────────────────────────────
 // aadhaar, pan, passport, driving_license, insurance, vehicle_rc, warranty, medical
 model UserDocument {
