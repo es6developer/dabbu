@@ -38,7 +38,7 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       chipColor: palette.brand.primary,
       icon: 'people',
     },
-    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'planner' },
+    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'earth' },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,

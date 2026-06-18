@@ -152,12 +152,12 @@ export function NotificationCenterScreen() {
       handleMarkRead(item.id);
     }
     if (item.data?.reminderId) {
-      navigation.navigate('Reminders', {
+      navigation.navigate('FamilyHub', {
         screen: 'ReminderDetail',
         params: { reminderId: item.data.reminderId },
       });
     } else if (item.data?.groupId) {
-      navigation.navigate('Expense', {
+      navigation.navigate('Wallet', {
         screen: 'GroupExpenses',
         params: { groupId: item.data.groupId },
       });
@@ -278,7 +278,7 @@ export function NotificationCenterScreen() {
             onPress={() => {
               handleMarkRead(item.id);
               if (item.data?.reminderId) {
-                navigation.navigate('CompleteReminder', { reminderId: item.data.reminderId });
+                navigation.navigate('FamilyHub', { screen: 'ReminderDetail', params: { reminderId: item.data.reminderId } });
               }
             }}
           >

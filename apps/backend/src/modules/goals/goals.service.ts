@@ -147,6 +147,27 @@ export class GoalsService {
         .catch((err) => this.logger.warn(`Failed to notify goal milestone: ${err.message}`));
     }
 
+    if (existing.deadline && !existing.isCompleted) {
+      const deadline = new Date(existing.deadline);
+      const created = new Date(existing.createdAt);
+      const now = new Date();
+      const totalDuration = deadline.getTime() - created.getTime();
+      const elapsed = now.getTime() - created.getTime();
+      if (totalDuration > 0 && elapsed > 0) {
+        const expectedProgress = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+        if (newProgress < expectedProgress - 10) {
+          this.notificationEvents
+            .goalBehindSchedule(userId, {
+              goalId: id,
+              name: existing.name,
+              progress: newProgress,
+              expected: expectedProgress,
+            })
+            .catch((err) => this.logger.warn(`Failed to notify behind schedule: ${err.message}`));
+        }
+      }
+    }
+
     return this.formatGoal(goal);
   }
 

@@ -46,12 +46,12 @@ function getCategoryIcon(cat: string): { icon: string; color: string } {
   const map: Record<string, { icon: string; color: string }> = {
     Food: { icon: 'rest', color: '#FF6B6B' },
     Groceries: { icon: 'shoppingcart', color: '#34C759' },
-    Travel: { icon: 'planner', color: '#60A5FA' },
+    Travel: { icon: 'earth', color: '#60A5FA' },
     Rent: { icon: 'home', color: '#FB923C' },
     Bills: { icon: 'filetext1', color: '#F59E0B' },
     Shopping: { icon: 'shoppingcart', color: '#F472B6' },
     Entertainment: { icon: 'play', color: '#14B8A6' },
-    Medical: { icon: 'medicinebox', color: '#FF4D4F' },
+    Medical: { icon: 'heart', color: '#FF4D4F' },
     salary: { icon: 'briefcase', color: '#34C759' },
     income: { icon: 'linechart', color: '#34C759' },
   };
@@ -308,7 +308,7 @@ export function CoupleFinanceScreen() {
             <Text style={s.headerTitle}>Couple Finance</Text>
             <TouchableOpacity
               style={s.headerBtn}
-              onPress={() => navigation.navigate('AiCouple', { groupId, groupName })}
+              onPress={() => navigation.navigate('DabbuAI', { groupId, groupName })}
             >
               <AntDesign  name="star" size={20} color="#FFD700" />
             </TouchableOpacity>

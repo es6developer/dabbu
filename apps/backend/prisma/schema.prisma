@@ -224,45 +224,47 @@ model User {
   loginActivity LoginActivity[]
 
   // Friends & Contacts
-  friendsInitiated     Friend[]               @relation("UserFriends")
-  friendsAdded         Friend[]               @relation("FriendOf")
-  contactHashes        ContactHash[]
-  favoritesOwned       FavoriteContact[]      @relation("FavoritesOwner")
-  favoritedBy          FavoriteContact[]      @relation("FavoritedContact")
-  supportTickets       SupportTicket[]
-  referralRewards      ReferralReward[]
-  CoupleFinanceIncome  CoupleFinanceIncome[]
-  CoupleFinanceSaving  CoupleFinanceSaving[]
-  FinancialDna         FinancialDna[]
-  AiInsight            AiInsight[]
-  AiPrediction         AiPrediction[]
-  AiAnomaly            AiAnomaly[]
-  AiRecommendation     AiRecommendation[]
-  AiScore              AiScore[]
-  UserBehaviorMetric   UserBehaviorMetric[]
-  GoalPrediction       GoalPrediction[]
-  DashboardAiCard      DashboardAiCard[]
-  SmartCategoryMapping SmartCategoryMapping[]
-  LifeEvent            LifeEvent[]
-  AiMilestone          AiMilestone[]
-  AiFeedCard           AiFeedCard[]
-  loans                UserLoan[]
-  netWorth             UserNetWorth?
-  netWorthSnapshots    NetWorthSnapshot[]
-  coupleTimelineEvents    CoupleTimelineEvent[]
-  familyGoalsCreated       FamilyGoal[]           @relation("FamilyGoalCreator")
-  familyGoalsAssigned      FamilyGoal[]           @relation("FamilyGoalAssignee")
-  familyBillsPaid          FamilyBill[]           @relation("FamilyBillPayer")
-  familyBillsAssigned      FamilyBill[]           @relation("FamilyBillAssignee")
-  familyContributions      FamilyContribution[]
-  familyInvestmentsManaged FamilyInvestment[]     @relation("FamilyInvestmentManager")
-  familyDocumentsUploaded  FamilyDocument[]        @relation("FamilyDocumentUploader")
-  familyCalendarEventsCreated FamilyCalendarEvent[] @relation("CalendarEventCreator")
-  familyCalendarEventsAssigned FamilyCalendarEvent[] @relation("CalendarEventAssignee")
+  friendsInitiated             Friend[]                 @relation("UserFriends")
+  friendsAdded                 Friend[]                 @relation("FriendOf")
+  contactHashes                ContactHash[]
+  favoritesOwned               FavoriteContact[]        @relation("FavoritesOwner")
+  favoritedBy                  FavoriteContact[]        @relation("FavoritedContact")
+  supportTickets               SupportTicket[]
+  referralRewards              ReferralReward[]
+  CoupleFinanceIncome          CoupleFinanceIncome[]
+  CoupleFinanceSaving          CoupleFinanceSaving[]
+  FinancialDna                 FinancialDna[]
+  AiInsight                    AiInsight[]
+  AiPrediction                 AiPrediction[]
+  AiAnomaly                    AiAnomaly[]
+  AiRecommendation             AiRecommendation[]
+  AiScore                      AiScore[]
+  UserBehaviorMetric           UserBehaviorMetric[]
+  GoalPrediction               GoalPrediction[]
+  DashboardAiCard              DashboardAiCard[]
+  SmartCategoryMapping         SmartCategoryMapping[]
+  LifeEvent                    LifeEvent[]
+  AiMilestone                  AiMilestone[]
+  AiFeedCard                   AiFeedCard[]
+  loans                        UserLoan[]
+  netWorth                     UserNetWorth?
+  netWorthSnapshots            NetWorthSnapshot[]
+  coupleTimelineEvents         CoupleTimelineEvent[]
+  familyGoalsCreated           FamilyGoal[]             @relation("FamilyGoalCreator")
+  familyGoalsAssigned          FamilyGoal[]             @relation("FamilyGoalAssignee")
+  familyBillsPaid              FamilyBill[]             @relation("FamilyBillPayer")
+  familyBillsAssigned          FamilyBill[]             @relation("FamilyBillAssignee")
+  familyContributions          FamilyContribution[]
+  familyInvestmentsManaged     FamilyInvestment[]       @relation("FamilyInvestmentManager")
+  familyDocumentsUploaded      FamilyDocument[]         @relation("FamilyDocumentUploader")
+  familyCalendarEventsCreated  FamilyCalendarEvent[]    @relation("CalendarEventCreator")
+  familyCalendarEventsAssigned FamilyCalendarEvent[]    @relation("CalendarEventAssignee")
   notificationPreference       NotificationPreference[]
   userEngagement               UserEngagement?
   yearlySummaries              YearlySummary[]
   dataExports                  DataExport[]
+  dashboardWidgets             DashboardWidget[]
+  CookieConsent                CookieConsent?
 
   @@index([email])
   @@index([isActive])
@@ -454,6 +456,7 @@ model Family {
   documents          FamilyDocument[]
   healthScores       FamilyHealthScore[]
   calendarEvents     FamilyCalendarEvent[]
+  dashboardWidgets   DashboardWidget[]
 
   @@index([code])
   @@index([ownerId])
@@ -772,7 +775,7 @@ model Bill {
   amount       Decimal   @db.Decimal(15, 2)
   dueDate      DateTime  @db.Date
   isPaid       Boolean   @default(false)
-  paidAmount   Decimal   @default(0) @db.Decimal(15, 2)  // Amount paid so far (for partial payments)
+  paidAmount   Decimal   @default(0) @db.Decimal(15, 2) // Amount paid so far (for partial payments)
   paidDate     DateTime? @db.Date
   isRecurring  Boolean   @default(false)
   frequency    String?   @db.VarChar(20)
@@ -914,18 +917,18 @@ model Analytics {
 // ─── NOTIFICATIONS ─────────────────────────────────────────
 // User notifications (in-app and push)
 model Notification {
-  id        String    @id @default(uuid()) @db.VarChar(36)
-  userId    String    @db.VarChar(36)
-  type      String    @db.VarChar(50) // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert, reminder_upcoming, reminder_overdue
-  title     String    @db.VarChar(255)
-  message   String    @db.Text
-  isRead    Boolean   @default(false)
-  readAt    DateTime?
-  isArchived Boolean  @default(false)
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  userId     String    @db.VarChar(36)
+  type       String    @db.VarChar(50) // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert, reminder_upcoming, reminder_overdue
+  title      String    @db.VarChar(255)
+  message    String    @db.Text
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  isArchived Boolean   @default(false)
   archivedAt DateTime?
-  actionUrl String?   @db.VarChar(500)
-  data      Json?     @db.Json
-  createdAt DateTime  @default(now())
+  actionUrl  String?   @db.VarChar(500)
+  data       Json?     @db.Json
+  createdAt  DateTime  @default(now())
 
   // Smart reminder notification fields
   reminderId   String?   @db.VarChar(36)
@@ -1045,6 +1048,9 @@ model AdminUser {
   permissions Json      @db.Json
   isActive    Boolean   @default(true)
   lastLoginAt DateTime?
+  mfaSecret   String?   @db.VarChar(255)
+  mfaEnabled  Boolean   @default(false)
+  mfaVerified Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -1216,10 +1222,10 @@ model SharedGroup {
   updatedAt DateTime @updatedAt
 
   // Couple net worth cache
-  netWorth          Decimal?  @default(0) @db.Decimal(15, 2)
-  totalAssets       Decimal?  @default(0) @db.Decimal(15, 2)
-  totalLiabilities  Decimal?  @default(0) @db.Decimal(15, 2)
-  lastNetWorthCalc  DateTime?
+  netWorth         Decimal?  @default(0) @db.Decimal(15, 2)
+  totalAssets      Decimal?  @default(0) @db.Decimal(15, 2)
+  totalLiabilities Decimal?  @default(0) @db.Decimal(15, 2)
+  lastNetWorthCalc DateTime?
 
   creator                 User                     @relation("GroupCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   members                 SharedGroupMember[]
@@ -1702,61 +1708,62 @@ model CoupleBudgetCategory {
 // Financial life planners: Baby, House, Car, Retirement
 
 model CouplePlanner {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  groupId      String   @db.VarChar(36)
-  plannerType  String   @db.VarChar(20) // BABY | HOUSE | CAR | RETIREMENT | DREAM
-  status       String   @default("active") @db.VarChar(20) // active | completed | paused
-  targetAmount Decimal? @db.Decimal(15, 2)
-  currentSavings Decimal? @db.Decimal(15, 2)
-  monthlyTarget Decimal? @db.Decimal(15, 2)
-  deadline     DateTime?
-  title        String?  @db.VarChar(100)  // Dream board title
-  category     String?  @db.VarChar(30)   // home | travel | wedding | car | baby | etc
-  icon         String?  @db.VarChar(30)   // icon name
-  startedAt    DateTime @default(now())
-  completedAt  DateTime?
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  groupId        String    @db.VarChar(36)
+  plannerType    String    @db.VarChar(20) // BABY | HOUSE | CAR | RETIREMENT | DREAM
+  status         String    @default("active") @db.VarChar(20) // active | completed | paused
+  targetAmount   Decimal?  @db.Decimal(15, 2)
+  currentSavings Decimal?  @db.Decimal(15, 2)
+  monthlyTarget  Decimal?  @db.Decimal(15, 2)
+  deadline       DateTime?
+  title          String?   @db.VarChar(100) // Dream board title
+  category       String?   @db.VarChar(30) // home | travel | wedding | car | baby | etc
+  icon           String?   @db.VarChar(30) // icon name
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
 
   // Baby-specific
-  babyTimeline     String?  @db.VarChar(20) // 6months | 1year | 2years | 3years | flexible
+  babyTimeline     String?   @db.VarChar(20) // 6months | 1year | 2years | 3years | flexible
   expectedDelivery DateTime?
-  medicalBudget    Decimal? @db.Decimal(15, 2)
-  emergencyFund    Decimal? @db.Decimal(15, 2)
-  hospitalType     String?  @db.VarChar(20) // govt | private | corporate
+  medicalBudget    Decimal?  @db.Decimal(15, 2)
+  emergencyFund    Decimal?  @db.Decimal(15, 2)
+  hospitalType     String?   @db.VarChar(20) // govt | private | corporate
 
   // House-specific
-  propertyPrice     Decimal? @db.Decimal(15, 2)
-  downPayment       Decimal? @db.Decimal(15, 2)
-  loanAmount        Decimal? @db.Decimal(15, 2)
-  interestRate      Decimal? @db.Decimal(5, 2)
-  loanTenure        Int?
-  emiEstimate       Decimal? @db.Decimal(15, 2)
+  propertyPrice      Decimal?  @db.Decimal(15, 2)
+  downPayment        Decimal?  @db.Decimal(15, 2)
+  loanAmount         Decimal?  @db.Decimal(15, 2)
+  interestRate       Decimal?  @db.Decimal(5, 2)
+  loanTenure         Int?
+  emiEstimate        Decimal?  @db.Decimal(15, 2)
   affordabilityScore Int?
-  bestTimeToBuy     DateTime?
+  bestTimeToBuy      DateTime?
 
   // Car-specific
-  carPrice           Decimal? @db.Decimal(15, 2)
-  carDownPayment     Decimal? @db.Decimal(15, 2)
-  carLoanAmount      Decimal? @db.Decimal(15, 2)
-  carInterestRate    Decimal? @db.Decimal(5, 2)
-  carLoanTenure      Int?
-  carEmi             Decimal? @db.Decimal(15, 2)
-  carInsuranceAnnual Decimal? @db.Decimal(15, 2)
-  carFuelMonthly     Decimal? @db.Decimal(15, 2)
+  carPrice             Decimal? @db.Decimal(15, 2)
+  carDownPayment       Decimal? @db.Decimal(15, 2)
+  carLoanAmount        Decimal? @db.Decimal(15, 2)
+  carInterestRate      Decimal? @db.Decimal(5, 2)
+  carLoanTenure        Int?
+  carEmi               Decimal? @db.Decimal(15, 2)
+  carInsuranceAnnual   Decimal? @db.Decimal(15, 2)
+  carFuelMonthly       Decimal? @db.Decimal(15, 2)
   carMaintenanceAnnual Decimal? @db.Decimal(15, 2)
 
   // Retirement-specific
-  currentAge       Int?
-  retirementAge    Int?
-  monthlyExpense   Decimal? @db.Decimal(15, 2)
-  expectedCorpus   Decimal? @db.Decimal(15, 2)
-  inflationRate    Decimal? @db.Decimal(5, 2) @default(6)
-  expectedReturns  Decimal? @db.Decimal(5, 2) @default(10)
+  currentAge      Int?
+  retirementAge   Int?
+  monthlyExpense  Decimal? @db.Decimal(15, 2)
+  expectedCorpus  Decimal? @db.Decimal(15, 2)
+  inflationRate   Decimal? @default(6) @db.Decimal(5, 2)
+  expectedReturns Decimal? @default(10) @db.Decimal(5, 2)
 
   metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
   @@index([groupId, plannerType])
   @@map("couple_planners")
 }
@@ -1769,10 +1776,10 @@ model CoupleTimelineEvent {
   groupId     String   @db.VarChar(36)
   userId      String?  @db.VarChar(36)
   eventType   String   @db.VarChar(30) // expense_added | goal_contribution | salary_added
-                                       // | bill_paid | investment_added | debt_cleared
-                                       // | milestone_reached | planner_progress | planner_started
-                                       // | income_added | savings_contribution | goal_created
-                                       // | goal_completed | budget_set
+  // | bill_paid | investment_added | debt_cleared
+  // | milestone_reached | planner_progress | planner_started
+  // | income_added | savings_contribution | goal_created
+  // | goal_completed | budget_set
   title       String   @db.VarChar(255)
   description String?  @db.Text
   amount      Decimal? @db.Decimal(15, 2)
@@ -1782,6 +1789,7 @@ model CoupleTimelineEvent {
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User?       @relation(fields: [userId], references: [id])
+
   @@index([groupId, createdAt])
   @@map("couple_timeline_events")
 }
@@ -1798,8 +1806,8 @@ model Couple {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  partner1 User  @relation("CoupleToPartner1", fields: [partner1Id], references: [id], onDelete: Cascade)
-  partner2 User  @relation("CoupleToPartner2", fields: [partner2Id], references: [id], onDelete: Cascade)
+  partner1 User @relation("CoupleToPartner1", fields: [partner1Id], references: [id], onDelete: Cascade)
+  partner2 User @relation("CoupleToPartner2", fields: [partner2Id], references: [id], onDelete: Cascade)
 
   @@unique([partner1Id, partner2Id])
   @@index([partner1Id])
@@ -1817,6 +1825,7 @@ model CoupleLevel {
   updatedAt   DateTime @updatedAt
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
   @@map("couple_levels")
 }
 
@@ -2602,16 +2611,16 @@ model NotificationPreference {
 
 // ─── User Engagement ──────────────────────────────────────
 model UserEngagement {
-  id                    String    @id @default(uuid()) @db.VarChar(36)
-  userId                String    @unique @db.VarChar(36)
-  lastAppOpenAt         DateTime?
-  lastActionAt          DateTime?
+  id                     String    @id @default(uuid()) @db.VarChar(36)
+  userId                 String    @unique @db.VarChar(36)
+  lastAppOpenAt          DateTime?
+  lastActionAt           DateTime?
   lastNotificationSentAt DateTime?
-  reEngagementStage     String    @default("active") @db.VarChar(20) // active, at_risk_7d, at_risk_14d, at_risk_30d, dormant_60d, lost_90d
-  reEngagementSentCount Int       @default(0)
-  reEngagementOptOut    Boolean   @default(false)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  reEngagementStage      String    @default("active") @db.VarChar(20) // active, at_risk_7d, at_risk_14d, at_risk_30d, dormant_60d, lost_90d
+  reEngagementSentCount  Int       @default(0)
+  reEngagementOptOut     Boolean   @default(false)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -2647,6 +2656,19 @@ model YearlySummary {
   @@map("yearly_summaries")
 }
 
+// ─── Recent Searches ─────────────────────────────────────
+model RecentSearch {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  query     String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("recent_searches")
+}
+
 // ─── Data Export ───────────────────────────────────────────
 model DataExport {
   id          String    @id @default(uuid()) @db.VarChar(36)
@@ -2666,6 +2688,20 @@ model DataExport {
   @@index([userId, status])
   @@index([userId, createdAt])
   @@map("data_exports")
+}
+
+// ─── Cookie Consent ─────────────────────────────────────────
+model CookieConsent {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @unique @db.VarChar(36)
+  consent    String   @db.VarChar(20) // accepted, rejected
+  categories Json?    @db.Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("cookie_consents")
 }
 
 // ─── Referral Program ─────────────────────────────────────
@@ -2858,14 +2894,14 @@ model FeatureFlag {
 
 // ─── REMOTE CONFIG ────────────────────────────────────────
 model RemoteConfig {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  key       String   @unique @db.VarChar(100)
-  value     Json     @db.Json
-  type      String   @default("string") @db.VarChar(20) // string, number, boolean, json
-  description String? @db.Text
-  environment String  @default("all") @db.VarChar(20)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  key         String   @unique @db.VarChar(100)
+  value       Json     @db.Json
+  type        String   @default("string") @db.VarChar(20) // string, number, boolean, json
+  description String?  @db.Text
+  environment String   @default("all") @db.VarChar(20)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([key, environment])
   @@map("remote_config")
@@ -2969,13 +3005,13 @@ model PremiumEntitlement {
 
 // ─── SUBSCRIPTION USAGE ─────────────────────────────────────
 model SubscriptionUsage {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  userId     String   @db.VarChar(36)
-  featureKey String   @db.VarChar(100)
-  count      Int      @default(0)
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  userId     String    @db.VarChar(36)
+  featureKey String    @db.VarChar(100)
+  count      Int       @default(0)
   resetAt    DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@unique([userId, featureKey])
   @@index([userId])
@@ -3035,24 +3071,24 @@ model CancellationRecovery {
 
 // ─── INVOICES ────────────────────────────────────────────────
 model Invoice {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  subscriptionId  String    @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  invoiceNumber   String    @unique @db.VarChar(50)
-  amount          Decimal   @db.Decimal(10, 2)
-  currency        String    @default("INR") @db.VarChar(10)
-  status          String    @default("pending") @db.VarChar(20)
-  invoiceUrl      String?   @db.Text
-  invoicePdfUrl   String?   @db.Text
-  razorpayInvoiceId String? @db.VarChar(255)
-  paymentId       String?   @db.VarChar(255)
-  periodStart     DateTime?
-  periodEnd       DateTime?
-  paidAt          DateTime?
-  dueAt           DateTime?
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid()) @db.VarChar(36)
+  subscriptionId    String    @db.VarChar(36)
+  userId            String    @db.VarChar(36)
+  invoiceNumber     String    @unique @db.VarChar(50)
+  amount            Decimal   @db.Decimal(10, 2)
+  currency          String    @default("INR") @db.VarChar(10)
+  status            String    @default("pending") @db.VarChar(20)
+  invoiceUrl        String?   @db.Text
+  invoicePdfUrl     String?   @db.Text
+  razorpayInvoiceId String?   @db.VarChar(255)
+  paymentId         String?   @db.VarChar(255)
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  paidAt            DateTime?
+  dueAt             DateTime?
+  metadata          Json?     @db.Json
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([userId, status])
   @@index([subscriptionId])
@@ -3063,15 +3099,15 @@ model Invoice {
 
 // ─── FAMILY SUBSCRIPTIONS ─────────────────────────────────────
 model FamilySubscription {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  ownerId         String   @db.VarChar(36)
-  subscriptionId  String   @db.VarChar(36)
-  familyId        String   @unique @db.VarChar(36)
-  maxMembers      Int      @default(6)
-  memberCount     Int      @default(1)
-  status          String   @default("active") @db.VarChar(20)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  ownerId        String   @db.VarChar(36)
+  subscriptionId String   @db.VarChar(36)
+  familyId       String   @unique @db.VarChar(36)
+  maxMembers     Int      @default(6)
+  memberCount    Int      @default(1)
+  status         String   @default("active") @db.VarChar(20)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([ownerId])
   @@index([subscriptionId])
@@ -3081,15 +3117,15 @@ model FamilySubscription {
 
 // ─── ADMIN AUDIT LOG ──────────────────────────────────────────
 model SubscriptionAudit {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  action          String   @db.VarChar(50)
-  performedBy     String   @db.VarChar(36)
-  targetUserId    String?  @db.VarChar(36)
-  subscriptionId  String?  @db.VarChar(36)
-  details         Json?    @db.Json
-  ipAddress       String?  @db.VarChar(45)
-  userAgent       String?  @db.VarChar(255)
-  createdAt       DateTime @default(now())
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  action         String   @db.VarChar(50)
+  performedBy    String   @db.VarChar(36)
+  targetUserId   String?  @db.VarChar(36)
+  subscriptionId String?  @db.VarChar(36)
+  details        Json?    @db.Json
+  ipAddress      String?  @db.VarChar(45)
+  userAgent      String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
 
   @@index([action, createdAt])
   @@index([targetUserId])
@@ -3583,23 +3619,23 @@ model FamilyIntelligence {
 // ─── FAMILY GOALS ─────────────────────────────────────────
 // Goals specific to a family (not SharedGroup-based)
 model FamilyGoal {
-  id            String    @id @default(uuid()) @db.VarChar(36)
-  familyId      String    @db.VarChar(36)
-  name          String    @db.VarChar(255)
-  targetAmount  Decimal   @db.Decimal(15, 2)
-  savedAmount   Decimal   @default(0) @db.Decimal(15, 2)
-  deadline      DateTime? @db.Date
-  category      String    @default("savings") @db.VarChar(50) // house, education, marriage, vacation, baby, emergency, vehicle, investment, custom
-  assignedTo    String?   @db.VarChar(36)
-  status        String    @default("active") @db.VarChar(20) // active, completed, cancelled
-  notes         String?   @db.Text
-  createdBy     String    @db.VarChar(36)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  familyId     String    @db.VarChar(36)
+  name         String    @db.VarChar(255)
+  targetAmount Decimal   @db.Decimal(15, 2)
+  savedAmount  Decimal   @default(0) @db.Decimal(15, 2)
+  deadline     DateTime? @db.Date
+  category     String    @default("savings") @db.VarChar(50) // house, education, marriage, vacation, baby, emergency, vehicle, investment, custom
+  assignedTo   String?   @db.VarChar(36)
+  status       String    @default("active") @db.VarChar(20) // active, completed, cancelled
+  notes        String?   @db.Text
+  createdBy    String    @db.VarChar(36)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  assignee  User?  @relation("FamilyGoalAssignee", fields: [assignedTo], references: [id])
-  creator   User   @relation("FamilyGoalCreator", fields: [createdBy], references: [id])
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  assignee User?  @relation("FamilyGoalAssignee", fields: [assignedTo], references: [id])
+  creator  User   @relation("FamilyGoalCreator", fields: [createdBy], references: [id])
 
   @@index([familyId, status])
   @@map("family_goals")
@@ -3608,24 +3644,24 @@ model FamilyGoal {
 // ─── FAMILY BILLS ─────────────────────────────────────────
 // Bills shared within a family
 model FamilyBill {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  familyId    String    @db.VarChar(36)
-  name        String    @db.VarChar(255)
-  amount      Decimal   @db.Decimal(15, 2)
-  dueDate     DateTime? @db.Date
-  category    String    @default("other") @db.VarChar(50) // rent, electricity, water, internet, school_fees, insurance, loans, emi, subscriptions, other
-  frequency   String    @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
-  isPaid      Boolean   @default(false)
-  paidBy      String?   @db.VarChar(36)
-  paidAt      DateTime?
-  assignedTo  String?   @db.VarChar(36)
-  notes       String?   @db.VarChar(500)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  familyId   String    @db.VarChar(36)
+  name       String    @db.VarChar(255)
+  amount     Decimal   @db.Decimal(15, 2)
+  dueDate    DateTime? @db.Date
+  category   String    @default("other") @db.VarChar(50) // rent, electricity, water, internet, school_fees, insurance, loans, emi, subscriptions, other
+  frequency  String    @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
+  isPaid     Boolean   @default(false)
+  paidBy     String?   @db.VarChar(36)
+  paidAt     DateTime?
+  assignedTo String?   @db.VarChar(36)
+  notes      String?   @db.VarChar(500)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  payer     User?  @relation("FamilyBillPayer", fields: [paidBy], references: [id])
-  assignee  User?  @relation("FamilyBillAssignee", fields: [assignedTo], references: [id])
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  payer    User?  @relation("FamilyBillPayer", fields: [paidBy], references: [id])
+  assignee User?  @relation("FamilyBillAssignee", fields: [assignedTo], references: [id])
 
   @@index([familyId, isPaid])
   @@index([familyId, dueDate])
@@ -3635,14 +3671,14 @@ model FamilyBill {
 // ─── FAMILY CONTRIBUTIONS ─────────────────────────────────
 // Track contributions by family members
 model FamilyContribution {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  familyId  String   @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  amount    Decimal  @db.Decimal(15, 2)
-  period    String   @db.VarChar(20) // month-year like "2026-06"
-  type      String   @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
-  date      DateTime @default(now())
-  notes     String?  @db.VarChar(500)
+  id       String   @id @default(uuid()) @db.VarChar(36)
+  familyId String   @db.VarChar(36)
+  userId   String   @db.VarChar(36)
+  amount   Decimal  @db.Decimal(15, 2)
+  period   String   @db.VarChar(20) // month-year like "2026-06"
+  type     String   @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
+  date     DateTime @default(now())
+  notes    String?  @db.VarChar(500)
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
@@ -3655,18 +3691,18 @@ model FamilyContribution {
 // ─── FAMILY INVESTMENTS ───────────────────────────────────
 // Family-level investment tracking
 model FamilyInvestment {
-  id            String    @id @default(uuid()) @db.VarChar(36)
-  familyId      String    @db.VarChar(36)
-  name          String    @db.VarChar(255)
-  type          String    @db.VarChar(50) // stocks, mutual_funds, gold, fd, crypto, property, pf, nps, other
-  amount        Decimal   @db.Decimal(15, 2)
-  currentValue  Decimal   @db.Decimal(15, 2)
-  returns       Decimal   @default(0) @db.Decimal(10, 2) // percentage returns
-  purchaseDate  DateTime? @db.Date
-  notes         String?   @db.VarChar(500)
-  managedBy     String?   @db.VarChar(36)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  familyId     String    @db.VarChar(36)
+  name         String    @db.VarChar(255)
+  type         String    @db.VarChar(50) // stocks, mutual_funds, gold, fd, crypto, property, pf, nps, other
+  amount       Decimal   @db.Decimal(15, 2)
+  currentValue Decimal   @db.Decimal(15, 2)
+  returns      Decimal   @default(0) @db.Decimal(10, 2) // percentage returns
+  purchaseDate DateTime? @db.Date
+  notes        String?   @db.VarChar(500)
+  managedBy    String?   @db.VarChar(36)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   family  Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   manager User?  @relation("FamilyInvestmentManager", fields: [managedBy], references: [id])
@@ -3704,19 +3740,19 @@ model FamilyDocument {
 // ─── FAMILY HEALTH SCORE ──────────────────────────────────
 // Periodic health score snapshots for families
 model FamilyHealthScore {
-  id                  String   @id @default(uuid()) @db.VarChar(36)
-  familyId            String   @db.VarChar(36)
-  overallScore        Int      @default(0)
-  savingsScore        Int      @default(0)
-  debtScore           Int      @default(0)
-  goalsScore          Int      @default(0)
-  insuranceScore      Int      @default(0)
-  emergencyFundScore  Int      @default(0)
-  investmentRatioScore Int     @default(0)
-  periodStart         DateTime
-  periodEnd           DateTime
-  computedAt          DateTime @default(now())
-  createdAt           DateTime @default(now())
+  id                   String   @id @default(uuid()) @db.VarChar(36)
+  familyId             String   @db.VarChar(36)
+  overallScore         Int      @default(0)
+  savingsScore         Int      @default(0)
+  debtScore            Int      @default(0)
+  goalsScore           Int      @default(0)
+  insuranceScore       Int      @default(0)
+  emergencyFundScore   Int      @default(0)
+  investmentRatioScore Int      @default(0)
+  periodStart          DateTime
+  periodEnd            DateTime
+  computedAt           DateTime @default(now())
+  createdAt            DateTime @default(now())
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
@@ -3758,21 +3794,21 @@ model FamilyCalendarEvent {
 // Pre-computed daily feed cards shown in Today Feed screen.
 // Generated by cron jobs; never computed on demand.
 model AiFeedCard {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  userId          String   @db.VarChar(36)
-  type            String   @db.VarChar(50)
-  priority        String   @default("medium") @db.VarChar(20)
-  title           String   @db.VarChar(200)
-  message         String   @db.Text
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  type            String    @db.VarChar(50)
+  priority        String    @default("medium") @db.VarChar(20)
+  title           String    @db.VarChar(200)
+  message         String    @db.Text
   impactValue     Float?
   confidenceScore Float?
-  category        String   @db.VarChar(50)
-  actionType      String?  @db.VarChar(50)
-  actionPayload   Json?    @db.Json
-  metadata        Json?    @db.Json
-  isRead          Boolean  @default(false)
-  isDismissed     Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  category        String    @db.VarChar(50)
+  actionType      String?   @db.VarChar(50)
+  actionPayload   Json?     @db.Json
+  metadata        Json?     @db.Json
+  isRead          Boolean   @default(false)
+  isDismissed     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
   expiresAt       DateTime?
   readAt          DateTime?
 
@@ -3788,15 +3824,15 @@ model AiFeedCard {
 // ─── EMI PAYMENT HISTORY ─────────────────────────────────────
 // Individual EMI payments recorded against a loan
 model EmiPayment {
-  id        String    @id @default(uuid()) @db.VarChar(36)
-  loanId    String    @db.VarChar(36)
-  userId    String    @db.VarChar(36)
-  amount    Decimal   @db.Decimal(12, 2)
-  paidDate  DateTime  @db.Date
-  principal Decimal   @default(0) @db.Decimal(12, 2)
-  interest  Decimal   @default(0) @db.Decimal(12, 2)
-  notes     String?   @db.VarChar(200)
-  createdAt DateTime  @default(now())
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  loanId    String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  amount    Decimal  @db.Decimal(12, 2)
+  paidDate  DateTime @db.Date
+  principal Decimal  @default(0) @db.Decimal(12, 2)
+  interest  Decimal  @default(0) @db.Decimal(12, 2)
+  notes     String?  @db.VarChar(200)
+  createdAt DateTime @default(now())
 
   loan UserLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
 
@@ -3817,15 +3853,15 @@ model UserLoan {
   interestPaid Decimal   @default(0) @db.Decimal(12, 2)
   interestRate Decimal   @default(0) @db.Decimal(5, 2) // annual interest rate in %
   monthlyEmi   Decimal   @default(0) @db.Decimal(12, 2)
-  tenureMonths Int?                                     // total loan tenure in months
-  emiDay       Int?                                     // Day of month EMI is due (1-31)
-  startDate    DateTime?  @db.Date                      // Loan start date
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  tenureMonths Int? // total loan tenure in months
+  emiDay       Int? // Day of month EMI is due (1-31)
+  startDate    DateTime? @db.Date // Loan start date
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emiPayments  EmiPayment[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emiPayments EmiPayment[]
 
   @@index([userId])
   @@map("user_loans")
@@ -3834,25 +3870,25 @@ model UserLoan {
 // ─── USER NET WORTH ─────────────────────────────────────────
 // Personal net worth tracking (assets vs liabilities)
 model UserNetWorth {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  userId      String   @db.VarChar(36) @unique
-  totalAssets Decimal  @default(0) @db.Decimal(14, 2)
-  totalLiabilities Decimal @default(0) @db.Decimal(14, 2)
-  bank        Decimal  @default(0) @db.Decimal(14, 2)
-  cash        Decimal  @default(0) @db.Decimal(14, 2)
-  gold        Decimal  @default(0) @db.Decimal(14, 2)
-  stocks      Decimal  @default(0) @db.Decimal(14, 2)
-  mutualFunds Decimal  @default(0) @db.Decimal(14, 2)
-  crypto      Decimal  @default(0) @db.Decimal(14, 2)
-  property    Decimal  @default(0) @db.Decimal(14, 2)
-  investments Decimal  @default(0) @db.Decimal(14, 2)
-  fixedDeposits Decimal @default(0) @db.Decimal(14, 2)
-  homeLoan    Decimal  @default(0) @db.Decimal(14, 2)
-  personalLoan Decimal @default(0) @db.Decimal(14, 2)
-  creditCardDebt Decimal @default(0) @db.Decimal(14, 2)
-  otherLiabilities Decimal @default(0) @db.Decimal(14, 2)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  userId           String   @unique @db.VarChar(36)
+  totalAssets      Decimal  @default(0) @db.Decimal(14, 2)
+  totalLiabilities Decimal  @default(0) @db.Decimal(14, 2)
+  bank             Decimal  @default(0) @db.Decimal(14, 2)
+  cash             Decimal  @default(0) @db.Decimal(14, 2)
+  gold             Decimal  @default(0) @db.Decimal(14, 2)
+  stocks           Decimal  @default(0) @db.Decimal(14, 2)
+  mutualFunds      Decimal  @default(0) @db.Decimal(14, 2)
+  crypto           Decimal  @default(0) @db.Decimal(14, 2)
+  property         Decimal  @default(0) @db.Decimal(14, 2)
+  investments      Decimal  @default(0) @db.Decimal(14, 2)
+  fixedDeposits    Decimal  @default(0) @db.Decimal(14, 2)
+  homeLoan         Decimal  @default(0) @db.Decimal(14, 2)
+  personalLoan     Decimal  @default(0) @db.Decimal(14, 2)
+  creditCardDebt   Decimal  @default(0) @db.Decimal(14, 2)
+  otherLiabilities Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -3863,30 +3899,52 @@ model UserNetWorth {
 // ─── NET WORTH SNAPSHOT ──────────────────────────────
 // Monthly history of net worth for trend tracking
 model NetWorthSnapshot {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  userId          String   @db.VarChar(36)
-  snapshotDate    DateTime @db.Date
-  totalAssets     Decimal  @default(0) @db.Decimal(14, 2)
-  totalLiabilities Decimal @default(0) @db.Decimal(14, 2)
-  netWorth        Decimal  @default(0) @db.Decimal(14, 2)
-  bank            Decimal  @default(0) @db.Decimal(14, 2)
-  cash            Decimal  @default(0) @db.Decimal(14, 2)
-  gold            Decimal  @default(0) @db.Decimal(14, 2)
-  stocks          Decimal  @default(0) @db.Decimal(14, 2)
-  mutualFunds     Decimal  @default(0) @db.Decimal(14, 2)
-  crypto          Decimal  @default(0) @db.Decimal(14, 2)
-  property        Decimal  @default(0) @db.Decimal(14, 2)
-  investments     Decimal  @default(0) @db.Decimal(14, 2)
-  fixedDeposits   Decimal  @default(0) @db.Decimal(14, 2)
-  homeLoan        Decimal  @default(0) @db.Decimal(14, 2)
-  personalLoan    Decimal  @default(0) @db.Decimal(14, 2)
-  creditCardDebt  Decimal  @default(0) @db.Decimal(14, 2)
-  otherLiabilities Decimal @default(0) @db.Decimal(14, 2)
-  createdAt       DateTime @default(now())
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  userId           String   @db.VarChar(36)
+  snapshotDate     DateTime @db.Date
+  totalAssets      Decimal  @default(0) @db.Decimal(14, 2)
+  totalLiabilities Decimal  @default(0) @db.Decimal(14, 2)
+  netWorth         Decimal  @default(0) @db.Decimal(14, 2)
+  bank             Decimal  @default(0) @db.Decimal(14, 2)
+  cash             Decimal  @default(0) @db.Decimal(14, 2)
+  gold             Decimal  @default(0) @db.Decimal(14, 2)
+  stocks           Decimal  @default(0) @db.Decimal(14, 2)
+  mutualFunds      Decimal  @default(0) @db.Decimal(14, 2)
+  crypto           Decimal  @default(0) @db.Decimal(14, 2)
+  property         Decimal  @default(0) @db.Decimal(14, 2)
+  investments      Decimal  @default(0) @db.Decimal(14, 2)
+  fixedDeposits    Decimal  @default(0) @db.Decimal(14, 2)
+  homeLoan         Decimal  @default(0) @db.Decimal(14, 2)
+  personalLoan     Decimal  @default(0) @db.Decimal(14, 2)
+  creditCardDebt   Decimal  @default(0) @db.Decimal(14, 2)
+  otherLiabilities Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt        DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, snapshotDate])
   @@index([userId, snapshotDate])
   @@map("net_worth_snapshots")
+}
+
+// ─── DASHBOARD WIDGETS ────────────────────────────────────────
+// Per-user widget configuration for personal/couple/family dashboards
+model DashboardWidget {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  scope      String   @default("personal") @db.VarChar(20) // personal, couple, family
+  familyId   String?  @db.VarChar(36)
+  widgetType String   @db.VarChar(50) // NET_WORTH, THIS_MONTH, HEALTH_SCORE, etc.
+  enabled    Boolean  @default(true)
+  position   Int      @default(0)
+  config     Json?    @db.Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family? @relation(fields: [familyId], references: [id])
+
+  @@unique([userId, scope, widgetType])
+  @@index([userId, scope, enabled, position])
+  @@map("dashboard_widgets")
 }

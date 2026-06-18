@@ -413,6 +413,139 @@ export function assignTicket(id: string) {
   });
 }
 
+// ─── System Health ─────────────────────────────────────────
+
+export interface SystemHealth {
+  status: string;
+  uptime: number;
+  version: string;
+  services: {
+    database: { status: string; latency?: number };
+    redis: { status: string };
+    memory: { usage: string; heapUsed: number; heapTotal: number };
+    cpu: { loadAverage: number[]; cores: number };
+    disk?: { status: string; free: number; total: number };
+  };
+}
+
+export function getSystemHealth() {
+  return request<{ data: SystemHealth }>('/admin/analytics/system-health');
+}
+
+// ─── Coupons ────────────────────────────────────────────────
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  maxUses: number | null;
+  usedCount: number;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export function listCoupons() {
+  return request<{ data: Coupon[] }>('/admin/coupons');
+}
+
+export function createCoupon(data: {
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  maxUses?: number;
+  expiresAt?: string;
+}) {
+  return request<{ data: Coupon }>('/admin/coupons', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateCoupon(id: string, data: Partial<Coupon>) {
+  return request<{ data: Coupon }>(`/admin/coupons/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteCoupon(id: string) {
+  return request<{ data: { message: string } }>(`/admin/coupons/${id}`, { method: 'DELETE' });
+}
+
+// ─── Expiring Subscriptions ─────────────────────────────────
+
+export interface ExpiringSubscription {
+  id: string;
+  user: { id: string; email: string; firstName: string; lastName: string };
+  plan: { name: string; price: number; interval: string };
+  currentPeriodEnd: string;
+  status: string;
+}
+
+export function getExpiringSubscriptions(days = 7) {
+  return request<{ data: ExpiringSubscription[] }>(`/admin/subscriptions/expiring?days=${days}`);
+}
+
+export function getFailedPayments() {
+  return request<{ data: any[] }>('/admin/subscriptions/failed-payments');
+}
+
+export function getSubscriptionDetail(id: string) {
+  return request<{ data: any }>(`/admin/subscriptions/${id}`);
+}
+
+export interface ConversionFunnel {
+  pricing_viewed: number;
+  checkout_started: number;
+  payment_completed: number;
+  retained_30d: number;
+  viewToCheckout: string;
+  checkoutToPayment: string;
+  paymentToRetained: string;
+  overallConversion: string;
+}
+
+export function getConversionFunnel() {
+  return request<{ data: ConversionFunnel }>('/admin/analytics/conversion');
+}
+
+// ─── MFA ────────────────────────────────────────────────────
+
+export interface MfaSetupData {
+  secret: string;
+  qrCodeUrl: string;
+}
+
+export function loginWithMfa(email: string, password: string, totpCode: string) {
+  return request<{ data: { accessToken: string; admin: any } }>('/admin/auth/login-mfa', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, totpCode }),
+  });
+}
+
+export function getMfaStatus() {
+  return request<{ data: { required: boolean; verified: boolean; email: string } }>('/admin/mfa/status');
+}
+
+export function setupMfa() {
+  return request<{ data: MfaSetupData }>('/admin/mfa/setup', { method: 'POST' });
+}
+
+export function verifyMfaSetup(totpCode: string) {
+  return request<{ data: { verified: boolean } }>('/admin/mfa/verify', {
+    method: 'POST',
+    body: JSON.stringify({ totpCode }),
+  });
+}
+
+export function disableMfa() {
+  return request<{ data: { message: string } }>('/admin/mfa/disable', { method: 'POST' });
+}
+
 // ─── Admin Users ────────────────────────────────────────────
 
 export interface AdminUser {

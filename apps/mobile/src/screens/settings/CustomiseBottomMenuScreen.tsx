@@ -18,7 +18,7 @@ const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
-  Expense: { label: 'Expenses', icon: 'receipt', desc: 'Transactions & accounts' },
+  Expense: { label: 'Expenses', icon: 'filetext1', desc: 'Transactions & accounts' },
   QuickAction: { label: 'Quick Action', icon: 'pluscircle', desc: 'Center FAB with quick actions' },
   Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
   Settings: { label: 'Settings', icon: 'settings', desc: 'Profile, preferences & more' },

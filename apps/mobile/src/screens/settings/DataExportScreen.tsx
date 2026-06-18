@@ -17,13 +17,13 @@ export function DataExportScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/compliance/exports').then(r => setHistory(r.data || [])).catch(() => {}).finally(() => setLoading(false));
+    api.get<any>('/compliance/exports').then(r => setHistory(r.data || [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await api.post('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'accounts', 'budgets', 'settings', 'streaks'] });
+      const res = await api.post<any>('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'accounts', 'budgets', 'settings', 'streaks'] });
       const data = res.data?.data || res;
       if (data.data) {
         const jsonStr = JSON.stringify(data.data, null, 2);
@@ -35,7 +35,7 @@ export function DataExportScreen() {
         }
       }
       Alert.alert('Export Complete', 'Your data has been exported successfully.');
-      const hRes = await api.get('/compliance/exports');
+      const hRes = await api.get<any>('/compliance/exports');
       setHistory(hRes.data || []);
     } catch (err: any) {
       Alert.alert('Export Failed', err?.response?.data?.message || err.message);

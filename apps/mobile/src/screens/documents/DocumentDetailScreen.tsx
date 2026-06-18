@@ -27,7 +27,7 @@ const CATEGORIES = [
   { key: 'driving_license', label: 'Driving License', icon: 'car' },
   { key: 'insurance', label: 'Insurance', icon: 'checkcircle' },
   { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'document-text' },
-  { key: 'warranty', label: 'Warranty', icon: 'receipt' },
+  { key: 'warranty', label: 'Warranty', icon: 'filetext1' },
   { key: 'medical', label: 'Medical', icon: 'medkit' },
 ];
 

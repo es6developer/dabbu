@@ -6,8 +6,8 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 @Injectable()
 export class PremiumWebhookService {
   private readonly logger = new Logger(PremiumWebhookService.name);
-  private readonly MAX_RETRIES = 3;
-  private readonly RETRY_BASE_DELAY_MS = 1000;
+  private readonly MAX_RETRIES = 5;
+  private readonly RETRY_BASE_DELAY_MS = 2000;
 
   constructor(
     private premiumService: PremiumService,
@@ -53,6 +53,13 @@ export class PremiumWebhookService {
         data: { status: 'processed', processedAt: new Date() },
       });
       this.logger.log(`Processed webhook ${eventId} (${eventType})`);
+
+      await this.auditLog('webhook_processed', {
+        eventId,
+        eventType,
+        status: 'success',
+      });
+
       return { duplicate: false };
     } catch (err: any) {
       this.logger.error(`Failed to process webhook ${eventId} (${eventType}): ${err.message}`);
@@ -60,9 +67,7 @@ export class PremiumWebhookService {
       const retryCount = (payload._retryCount || 0) + 1;
       if (retryCount <= this.MAX_RETRIES) {
         const delay = this.RETRY_BASE_DELAY_MS * Math.pow(2, retryCount - 1);
-        this.logger.log(
-          `Scheduling retry ${retryCount}/${this.MAX_RETRIES} for ${eventId} in ${delay}ms`,
-        );
+        this.logger.log(`Scheduling retry ${retryCount}/${this.MAX_RETRIES} for ${eventId} in ${delay}ms`);
         setTimeout(() => {
           this.retryWebhookEvent(event.id, eventId, eventType, payload, retryCount).catch((e) =>
             this.logger.error(`Retry failed for ${eventId}: ${e.message}`),
@@ -74,6 +79,14 @@ export class PremiumWebhookService {
         where: { id: event.id },
         data: { status: 'failed', errorMessage: err.message },
       });
+
+      await this.auditLog('webhook_failed', {
+        eventId,
+        eventType,
+        error: err.message,
+        retryCount,
+      });
+
       throw err;
     }
   }
@@ -93,12 +106,19 @@ export class PremiumWebhookService {
         data: { status: 'processed', processedAt: new Date() },
       });
       this.logger.log(`Retry ${retryCount} succeeded for ${eventId}`);
+
+      await this.auditLog('webhook_retry_success', {
+        eventId,
+        eventType,
+        retryCount,
+      });
     } catch (err: any) {
       this.logger.error(`Retry ${retryCount} failed for ${eventId}: ${err.message}`);
       await this.prisma.webhookEvent.update({
         where: { id: eventDbId },
         data: { errorMessage: `Retry ${retryCount}: ${err.message}` },
       });
+
       if (retryCount < this.MAX_RETRIES) {
         const delay = this.RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
         setTimeout(() => {
@@ -106,40 +126,53 @@ export class PremiumWebhookService {
             (e) => this.logger.error(`Final retry failed for ${eventId}: ${e.message}`),
           );
         }, delay);
+      } else {
+        await this.auditLog('webhook_max_retries_exceeded', {
+          eventId,
+          eventType,
+          maxRetries: this.MAX_RETRIES,
+        });
       }
     }
   }
 
   private async processWebhookEvent(eventType: string, payload: any) {
-    const razorpaySubId = payload.subscription?.entity?.id || payload.subscription_id || payload.id;
+    const razorpaySubId =
+      payload.subscription?.entity?.id || payload.subscription_id || payload.id;
+
+    this.logger.log(`Processing webhook event: ${eventType} for subscription: ${razorpaySubId}`);
 
     switch (eventType) {
       case 'subscription.activated':
-        await this.premiumService.handleActivation(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionActivated(razorpaySubId, payload);
         break;
 
       case 'subscription.charged':
-        await this.premiumService.handleCharge(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionCharged(razorpaySubId, payload);
+        break;
+
+      case 'subscription.completed':
+        await this.premiumService.handleSubscriptionCompleted(razorpaySubId, payload);
         break;
 
       case 'subscription.pending':
-        await this.premiumService.handlePending(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionPending(razorpaySubId, payload);
         break;
 
       case 'subscription.halted':
-        await this.premiumService.handleHalted(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionHalted(razorpaySubId, payload);
         break;
 
       case 'subscription.cancelled':
-        await this.premiumService.handleCancellation(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionCancelled(razorpaySubId, payload);
         break;
 
       case 'subscription.paused':
-        await this.premiumService.handlePause(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionPaused(razorpaySubId, payload);
         break;
 
       case 'subscription.resumed':
-        await this.premiumService.handleResume(razorpaySubId, payload);
+        await this.premiumService.handleSubscriptionResumed(razorpaySubId, payload);
         break;
 
       case 'payment.authorized':
@@ -154,17 +187,26 @@ export class PremiumWebhookService {
         await this.premiumService.handlePaymentFailed(payload);
         break;
 
-      case 'subscription.completed':
-        await this.premiumService.handleCancellation(razorpaySubId, payload);
-        this.logger.log(`Subscription ${razorpaySubId} completed all billing cycles`);
-        break;
-
       case 'payment.refunded':
         await this.premiumService.handlePaymentRefunded(payload);
         break;
 
       default:
         this.logger.warn(`Unhandled webhook event type: ${eventType}`);
+    }
+  }
+
+  private async auditLog(action: string, details: Record<string, any>) {
+    try {
+      await this.prisma.subscriptionAudit.create({
+        data: {
+          action,
+          performedBy: 'webhook',
+          details,
+        },
+      });
+    } catch (err) {
+      this.logger.warn(`Failed to create audit log: ${(err as Error).message}`);
     }
   }
 }

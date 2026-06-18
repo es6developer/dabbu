@@ -36,7 +36,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORY_ICONS: Record<string, string> = {
   home: 'home',
-  travel: 'planner',
+  travel: 'earth',
   wedding: 'heart',
   car: 'car',
   baby: 'happy',

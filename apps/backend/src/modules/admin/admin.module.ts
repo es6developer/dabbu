@@ -6,6 +6,7 @@ import { EmailModule } from '../email/email.module';
 import { NotificationModule } from '../notification/notification.module';
 import { FeaturesModule } from '../features/features.module';
 import { PremiumModule } from '../premium/premium.module';
+import { ComplianceModule } from '../compliance/compliance.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminGuard } from './guards';
@@ -17,6 +18,7 @@ import { AdminGuard } from './guards';
     NotificationModule,
     FeaturesModule,
     PremiumModule,
+    ComplianceModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

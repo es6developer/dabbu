@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -13,99 +12,46 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
-import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
+import { getAllAvatarXmls } from '../../assets/avatars';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 
-interface Preset {
-  seed: string;
-  name: string;
-  url: string;
-}
+const AVATAR_NAMES = [
+  'Short Hair Glasses', 'Short Hair Beard', 'Long Hair Glasses', 'Curly Hair Smile',
+  'Big Hair Glasses', 'Bald Beard', 'Short Hair Beanie', 'Straight Hair',
+  'Angry Glasses', 'Ponytail Smile', 'Pixie Cut', 'Long Hair Straight',
+];
 
 export function AvatarPickerScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { user, accessToken, completeProfileSetup } = useAuth();
+  const { user, completeProfileSetup } = useAuth();
 
-  const [presets, setPresets] = useState<Preset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState(false);
-  const [selectedSeed, setSelectedSeed] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadPresets();
-  }, []);
-
-  useEffect(() => {
-    if (presets.length > 0 && user?.avatarUrl) {
-      const match = presets.find((p) => user.avatarUrl?.includes(`seed=${p.seed}`));
-      if (match) {
-        setSelectedSeed(match.seed);
-      }
-    }
-  }, [presets, user?.avatarUrl]);
-
-  async function loadPresets() {
-    setLoading(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.get<any>('/auth/avatar/presets');
-      const data = Array.isArray(res) ? res : res?.data || [];
-      setPresets(data);
-    } catch {
-      setPresets([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleRegenerate = useCallback(async () => {
-    setRegenerating(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.post<any>('/auth/avatar/regenerate');
-      const avatarUrl = res?.data?.avatarUrl;
-      if (avatarUrl && user) {
-        completeProfileSetup({ avatarUrl });
-      }
-      Alert.alert('Avatar Updated', 'Your new avatar has been saved!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to regenerate avatar');
-    } finally {
-      setRegenerating(false);
-    }
-  }, [accessToken, user, completeProfileSetup, navigation]);
-
-  const selectPreset = useCallback(
-    async (preset: Preset) => {
-      setSelectedSeed(preset.seed);
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
-        await api.post('/auth/avatar/select', { seed: preset.seed });
-        if (user) {
-          completeProfileSetup({ avatarUrl: preset.url });
-        }
-        Alert.alert('Avatar Updated', `You selected "${preset.name}"!`, [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } catch (e: any) {
-        Alert.alert('Error', e.message || 'Failed to select avatar');
-      }
-    },
-    [accessToken, user, completeProfileSetup, navigation],
-  );
+  const avatarXmls = useMemo(() => getAllAvatarXmls(), []);
 
   const currentAvatarUrl = user?.avatarUrl || null;
+
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(() => {
+    if (currentAvatarUrl) {
+      const idx = AVATAR_NAMES.findIndex((_, i) => currentAvatarUrl === `local:${i}`);
+      return idx >= 0 ? idx : null;
+    }
+    return null;
+  });
+
+  const selectAvatar = useCallback(
+    (index: number) => {
+      setSelectedIndex(index);
+      if (user) {
+        completeProfileSetup({ avatarUrl: `local:${index}` });
+      }
+      Alert.alert('Avatar Updated', `You selected "${AVATAR_NAMES[index]}"!`, [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    },
+    [user, completeProfileSetup, navigation],
+  );
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
@@ -116,7 +62,7 @@ export function AvatarPickerScreen() {
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: `${colors.accent.primary}10` }]}
           >
-            <AntDesign  name="left" size={20} color={colors.accent.primary} />
+            <AntDesign name="left" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>Choose Avatar</Text>
           <View style={{ width: 40 }} />
@@ -134,78 +80,45 @@ export function AvatarPickerScreen() {
           </Text>
         </View>
 
-        {/* Regenerate Button */}
-        <TouchableOpacity
-          style={[s.regenerateBtn, { backgroundColor: colors.accent.primary }]}
-          onPress={handleRegenerate}
-          disabled={regenerating}
-          activeOpacity={0.8}
-        >
-          {regenerating ? (
-            <ActivityIndicator color="#FFF" size="small" />
-          ) : (
-            <>
-              <AntDesign  name="swap" size={18} color="#FFF" />
-              <Text style={s.regenerateText}>Generate Random Avatar</Text>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* Presets */}
+        {/* Avatar Grid */}
         <View style={{ flex: 1, marginTop: 24 }}>
           <Text style={[s.sectionLabel, { color: colors.text.secondary }]}>
-            Choose from Presets
+            Choose from Avatars
           </Text>
-          {loading ? (
-            <View style={s.loadingWrap}>
-              <ActivityIndicator size="large" color={colors.accent.primary} />
-            </View>
-          ) : (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.grid}>
-              {presets.map((preset) => (
-                <TouchableOpacity
-                  key={preset.seed}
-                  style={[
-                    s.presetItem,
-                    {
-                      backgroundColor: colors.bg.card,
-                      borderColor:
-                        selectedSeed === preset.seed ? colors.accent.primary : colors.border.subtle,
-                    },
-                  ]}
-                  onPress={() => selectPreset(preset)}
-                  activeOpacity={0.7}
-                  disabled={selectedSeed === preset.seed}
-                >
-                  <View style={{ position: 'relative' }}>
-                    <Avatar uri={preset.url} name={preset.name} size={64} />
-                    {selectedSeed === preset.seed && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: -4,
-                          right: -4,
-                          width: 24,
-                          height: 24,
-                          borderRadius: 12,
-                          backgroundColor: colors.accent.primary,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderWidth: 2,
-                          borderColor: colors.bg.primary,
-                        }}
-                      >
-                        <AntDesign  name="check" size={14} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </View>
-                  <Text style={[s.presetName, { color: colors.text.secondary }]} numberOfLines={1}>
-                    {preset.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.grid}>
+            {avatarXmls.map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  s.presetItem,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor:
+                      selectedIndex === index ? colors.accent.primary : colors.border.subtle,
+                  },
+                ]}
+                onPress={() => selectAvatar(index)}
+                activeOpacity={0.7}
+                disabled={selectedIndex === index}
+              >
+                <View style={{ position: 'relative' }}>
+                  <Avatar
+                    uri={`local:${index}`}
+                    name={AVATAR_NAMES[index]}
+                    size={64}
+                  />
+                  {selectedIndex === index && (
+                    <View style={s.checkBadge}>
+                      <AntDesign name="check" size={14} color="#FFFFFF" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[s.presetName, { color: colors.text.secondary }]} numberOfLines={1}>
+                  {AVATAR_NAMES[index]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </View>
     </View>
@@ -240,31 +153,12 @@ const s = StyleSheet.create({
     fontWeight: '700',
     marginTop: 12,
   },
-  regenerateBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 16,
-    ...shadows.md,
-  },
-  regenerateText: {
-    color: '#FFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 12,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   grid: {
     flexDirection: 'row',
@@ -284,5 +178,18 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     marginTop: 8,
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
 });

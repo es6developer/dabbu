@@ -11,7 +11,7 @@ function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
-const TABS = ['Insights', 'Savings', 'Goals', 'Ask Dabbu'] as const;
+const TABS = ['Insights', 'DNA', 'Savings', 'Feed', 'Ask Dabbu'] as const;
 
 export function DabbuAIScreen() {
   const insets = useSafeAreaInsets();
@@ -22,22 +22,31 @@ export function DabbuAIScreen() {
   const [healthScore, setHealthScore] = useState<any>(null);
   const [savingsOpps, setSavingsOpps] = useState<any[]>([]);
   const [predictions, setPredictions] = useState<any>(null);
+  const [financialDna, setFinancialDna] = useState<any>(null);
+  const [anomalies, setAnomalies] = useState<any[]>([]);
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [feedCards, setFeedCards] = useState<any[]>([]);
+  const [feedSummary, setFeedSummary] = useState<any>(null);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<{ role: string; text: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const indicatorPos = useRef(new Animated.Value(0)).current;
-  const tabW = 80;
+  const tabW = 72;
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [insRes, healthRes, saveRes, predRes] = await Promise.all([
+      const [insRes, healthRes, saveRes, predRes, dnaRes, anomalyRes, milestoneRes, feedRes] = await Promise.all([
         api.get('/ai/insights?section=dashboard').catch(() => ({})),
         api.get('/ai/health-score').catch(() => ({})),
         api.get('/ai/savings-opportunities').catch(() => ({})),
         api.get('/ai/predictions').catch(() => ({})),
+        api.get('/ai/dna').catch(() => null),
+        api.get('/ai/anomalies').catch(() => ({data: []})),
+        api.get('/ai/milestones').catch(() => ({data: []})),
+        api.get('/ai/today-feed').catch(() => ({data: []})),
       ]);
       const ires = insRes as any;
       setInsights(Array.isArray(ires?.data) ? ires.data : []);
@@ -45,6 +54,12 @@ export function DabbuAIScreen() {
       const sres = saveRes as any;
       setSavingsOpps(Array.isArray(sres?.data) ? sres.data : []);
       setPredictions((predRes as any)?.data || predRes);
+      setFinancialDna((dnaRes as any)?.data || dnaRes);
+      setAnomalies(Array.isArray((anomalyRes as any)?.data) ? (anomalyRes as any).data : []);
+      setMilestones(Array.isArray((milestoneRes as any)?.data) ? (milestoneRes as any).data : []);
+      const feed = (feedRes as any)?.data || feedRes;
+      setFeedCards(Array.isArray(feed?.cards) ? feed.cards : Array.isArray(feed) ? feed : []);
+      setFeedSummary(feed?.summary || null);
     } catch {} finally { setLoading(false); }
   }, []);
 
@@ -98,7 +113,7 @@ export function DabbuAIScreen() {
             {healthScore && (
               <TouchableOpacity
                 style={[styles.healthCard, { backgroundColor: colors.card.balance }]}
-                onPress={() => navigation.navigate('Home', { screen: 'HomeMain', params: { section: 'healthScore' } })}
+                onPress={() => navigation.navigate('Dashboard')}
               >
                 <View>
                   <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Dabbu Health Score</Text>
@@ -133,6 +148,73 @@ export function DabbuAIScreen() {
                 </View>
               </View>
             ))}
+          </>
+        )}
+
+        {activeTab === 'DNA' && (
+          <>
+            {financialDna ? (
+              <View style={[styles.healthCard, { backgroundColor: colors.card.balance }]}>
+                <View>
+                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Financial DNA</Text>
+                  <Text style={[styles.healthScore, { color: colors.text.primary }]}>
+                    {financialDna.archetype || financialDna.personality || 'Analyzing...'}
+                  </Text>
+                  <Text style={[styles.healthLevel, { color: colors.text.tertiary }]}>
+                    {financialDna.description || ''}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {financialDna?.traits && Array.isArray(financialDna.traits) && financialDna.traits.map((trait: any, i: number) => (
+              <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
+                <View style={[styles.insightDot, { backgroundColor: colors.accent.primary }]} />
+                <View style={styles.insightContent}>
+                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{trait.name || trait.label}</Text>
+                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{trait.value || trait.description}</Text>
+                </View>
+              </View>
+            ))}
+
+            {anomalies.length > 0 && (
+              <View style={{ marginTop: 16 }}>
+                <Text style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}>Recent Anomalies</Text>
+                {anomalies.slice(0, 3).map((a: any, i: number) => (
+                  <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
+                    <View style={[styles.insightDot, { backgroundColor: colors.status.error }]} />
+                    <View style={styles.insightContent}>
+                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{a.title || 'Unusual transaction'}</Text>
+                      <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{a.description || a.message}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {milestones.length > 0 && (
+              <View style={{ marginTop: 16 }}>
+                <Text style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}>Milestones</Text>
+                {milestones.slice(0, 3).map((m: any, i: number) => (
+                  <View key={i} style={[styles.savingCard, { backgroundColor: colors.bg.card }]}>
+                    <AntDesign name="star" size={18} color="#FBBF24" />
+                    <View style={styles.savingInfo}>
+                      <Text style={[styles.savingTitle, { color: colors.text.primary }]}>{m.title || m.name || 'Milestone'}</Text>
+                      <Text style={[styles.savingDesc, { color: colors.text.secondary }]}>{m.description || m.message || ''}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {!financialDna && anomalies.length === 0 && milestones.length === 0 && (
+              <View style={styles.emptyState}>
+                <AntDesign name="profile" size={32} color={colors.text.tertiary} />
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                  Add more transactions to build your Financial DNA profile.
+                </Text>
+              </View>
+            )}
           </>
         )}
 
@@ -173,13 +255,50 @@ export function DabbuAIScreen() {
           </>
         )}
 
-        {activeTab === 'Goals' && (
-          <View style={styles.emptyState}>
-            <AntDesign name="flag" size={32} color={colors.text.tertiary}  />
-            <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-              AI-powered goal coaching coming soon. Set a goal to get started.
-            </Text>
-          </View>
+        {activeTab === 'Feed' && (
+          <>
+            {feedSummary && (
+              <View style={[styles.healthCard, { backgroundColor: colors.card.balance }]}>
+                <View>
+                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Today's AI Feed</Text>
+                  <Text style={[styles.healthScore, { color: colors.text.primary, fontSize: 16 }]}>
+                    {feedSummary.title || 'Your financial snapshot'}
+                  </Text>
+                  {feedSummary.description && (
+                    <Text style={[styles.healthLevel, { color: colors.text.tertiary }]}>{feedSummary.description}</Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {feedCards.map((card: any, i: number) => (
+              <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card, marginBottom: 8 }]}>
+                <View style={[styles.insightDot, {
+                  backgroundColor: card.type === 'warning' ? colors.status.error
+                    : card.type === 'success' ? colors.status.success
+                    : colors.accent.primary,
+                }]} />
+                <View style={styles.insightContent}>
+                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{card.title || card.name}</Text>
+                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{card.description || card.message}</Text>
+                  {card.amount != null && (
+                    <Text style={[styles.insightTitle, { color: colors.accent.primary, marginTop: 4 }]}>
+                      {fmt(Number(card.amount))}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+
+            {feedCards.length === 0 && (
+              <View style={styles.emptyState}>
+                <AntDesign name="barschart" size={32} color={colors.text.tertiary} />
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                  Your AI feed will show personalized financial insights here.
+                </Text>
+              </View>
+            )}
+          </>
         )}
 
         {(activeTab === 'Ask Dabbu') && (

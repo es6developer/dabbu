@@ -28,7 +28,14 @@ export function FamilyBillsWidget({ data }: { data: any }) {
       </View>
       {bills.slice(0, 6).map((bill: any, i: number) => (
         <View key={i} style={styles.billRow}>
-          <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.name || bill.category || '-'}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.name || bill.category || '-'}</Text>
+            {bill.daysRemaining !== undefined && (
+              <Text style={[styles.daysBadge, { color: colors.accent.primary }]}>
+                {bill.daysRemaining === 0 ? 'Due today' : `${bill.daysRemaining}d left`}
+              </Text>
+            )}
+          </View>
           <Text style={[styles.billAmount, { color: colors.text.primary }]}>
             ₹{(Number(bill.amount) || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </Text>
@@ -43,7 +50,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 14, fontWeight: '700' },
   billRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  billName: { fontSize: 13, fontWeight: '500', flex: 1 },
+  billName: { fontSize: 13, fontWeight: '500' },
+  daysBadge: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   billAmount: { fontSize: 13, fontWeight: '700' },
   empty: { fontSize: 14, fontWeight: '500' },
 });

@@ -33,7 +33,7 @@ const GOAL_ICONS = [
   { key: 'rest', icon: 'enviroment', label: 'Dining' },
   { key: 'fitness', icon: 'heart', label: 'Fitness' },
   { key: 'school', icon: 'book', label: 'Education' },
-  { key: 'medkit', icon: 'medicinebox', label: 'Health' },
+  { key: 'medkit', icon: 'heart', label: 'Health' },
   { key: 'shirt', icon: 'skin', label: 'Fashion' },
   { key: 'tv', icon: 'tablet1', label: 'Electronics' },
   { key: 'wallet', icon: 'wallet', label: 'Savings' },
@@ -66,6 +66,8 @@ export function CoupleGoalsScreen() {
   const [formNotes, setFormNotes] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [goalPredictions, setGoalPredictions] = useState<Record<string, any>>({});
+  const [aiRebalance, setAiRebalance] = useState<any>(null);
   const { showToast } = useToast();
 
   const fetchGoals = useCallback(async (isRefresh = false) => {
@@ -81,8 +83,25 @@ export function CoupleGoalsScreen() {
         setGoals([]);
         return;
       }
-      const res = await api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/dashboard`);
-      setGoals(res?.goals || []);
+      const [dashboardRes, rebalanceRes] = await Promise.all([
+        api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/dashboard`),
+        api.get('/ai/goals/rebalance').catch(() => null),
+      ]);
+      const goals = dashboardRes?.goals || [];
+      setGoals(goals);
+      setAiRebalance((rebalanceRes as any)?.data || rebalanceRes);
+
+      // Fetch AI prediction for each goal
+      const predMap: Record<string, any> = {};
+      await Promise.allSettled(
+        goals.map(async (goal: any) => {
+          try {
+            const pred = await api.get(`/ai/goals/${goal.id}/prediction`);
+            predMap[goal.id] = (pred as any)?.data || pred;
+          } catch {}
+        }),
+      );
+      setGoalPredictions(predMap);
     } catch (e: any) {
       setGoals([]);
       if (e?.message !== 'Session expired') {
@@ -321,6 +340,19 @@ export function CoupleGoalsScreen() {
               <View style={[styles.progressBar, { backgroundColor: colors.bg.tertiary }]}>
                 <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: colors.accent.primary }]} />
               </View>
+
+              {goalPredictions[item.id] && (
+                <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
+                  <AntDesign name="bulb1" size={12} color="#FBBF24" />
+                  <Text style={{ fontSize: 11, color: colors.text.tertiary, flex: 1 }}>
+                    {goalPredictions[item.id].predictedCompletion
+                      ? `AI predicts completion by ${new Date(goalPredictions[item.id].predictedCompletion).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                      : goalPredictions[item.id].probability != null
+                        ? `${Math.round(goalPredictions[item.id].probability * 100)}% confidence of achieving this goal`
+                        : 'AI tracking progress'}
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.goalMetaRow}>
                 <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />

@@ -19,7 +19,7 @@ import {
 const REMINDER_TYPES = [
   { label: 'General', value: 'general', icon: 'appstore-o' },
   { label: 'Payment', value: 'payment', icon: 'wallet' },
-  { label: 'Bill', value: 'bill', icon: 'receipt' },
+  { label: 'Bill', value: 'bill', icon: 'filetext1' },
   { label: 'Subscription', value: 'subscription', icon: 'sync' },
   { label: 'Goal', value: 'goal', icon: 'star' },
 ];

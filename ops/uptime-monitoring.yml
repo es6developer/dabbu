@@ -1,0 +1,88 @@
+# Uptime Monitoring Configuration
+# Deploy to UptimeRobot, Checkly, or similar service
+#
+# Endpoints to monitor:
+
+checks:
+  - name: API Health
+    url: https://api.dabbu.app/api/v1/health
+    type: http
+    interval: 60s
+    timeout: 10s
+    alert_after: 2
+    expected_status: 200
+    notifications:
+      - slack
+      - email
+
+  - name: API Readiness
+    url: https://api.dabbu.app/api/v1/health/ready
+    type: http
+    interval: 60s
+    timeout: 10s
+    expected_body: '"status":"ready"'
+    notifications:
+      - slack
+      - email
+
+  - name: API Liveness
+    url: https://api.dabbu.app/api/v1/health/live
+    type: http
+    interval: 60s
+    timeout: 10s
+    expected_body: '"status":"alive"'
+    notifications:
+      - slack
+
+  - name: Admin Panel
+    url: https://admin.dabbu.app/login
+    type: http
+    interval: 5m
+    timeout: 15s
+    expected_status: 200
+    notifications:
+      - slack
+      - email
+
+  - name: Swagger Docs
+    url: https://api.dabbu.app/api/v1/docs
+    type: http
+    interval: 5m
+    timeout: 15s
+    expected_status: 200
+    notifications:
+      - slack
+
+  - name: SSL Certificate
+    url: https://api.dabbu.app
+    type: ssl
+    interval: 24h
+    days_before_expiry: 14
+    notifications:
+      - slack
+      - email
+
+# SSL certificate monitoring (auto-renewal via Let's Encrypt / Traefik)
+ssl:
+  - domain: api.dabbu.app
+  - domain: admin.dabbu.app
+  - domain: dabbu.app
+
+# Heartbeat (synthetic transaction)
+heartbeat:
+  enabled: true
+  endpoint: https://api.dabbu.app/api/v1/health
+  interval: 5m
+
+# Notification channels
+notifications:
+  slack:
+    webhook_url: ${SLACK_WEBHOOK_URL}
+    channel: "#dabbu-alerts"
+  email:
+    to:
+      - ops@dabbu.app
+    from: monitoring@dabbu.app
+  pagerduty:
+    integration_key: ${PAGERDUTY_KEY}
+    severity: critical

@@ -1,5 +1,8 @@
 export {
   AdminLoginDto,
+  AdminLoginMfaDto,
+  MfaSetupDto,
+  MfaVerifyDto,
   AdminCreateDto,
   ListUsersQueryDto,
   UpdateUserStatusDto,
@@ -15,7 +18,7 @@ export {
   ListAdminsQueryDto,
 } from './admin-login.dto';
 
-export type { SystemStatsResponse } from './admin-login.dto';
+export type { MfaStatusDto, SystemStatsResponse } from './admin-login.dto';
 
 export {
   AdminSubscriptionFilterDto,

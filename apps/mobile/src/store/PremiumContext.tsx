@@ -1,17 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
+import { getPlanTier, PlanTier } from '../config/entitlements';
 
-interface EntitlementResult {
+export interface EntitlementResult {
   allowed: boolean;
-  reason: string | null;
-  upgradePlan: string | null;
+  reason: 'UPGRADE_REQUIRED' | 'LIMIT_REACHED' | null;
+  upgradePlan: PlanTier | null;
+}
+
+export interface UsageInfo {
+  used: number;
+  limit: number;
+  remaining: number;
+  period: string;
 }
 
 interface PremiumState {
   subscription: any | null;
   plans: any[];
-  usage: Record<string, number>;
+  usage: Record<string, UsageInfo>;
   entitlements: string[];
   loading: boolean;
   error: string | null;
@@ -19,16 +27,19 @@ interface PremiumState {
 
 interface PremiumContextValue extends PremiumState {
   subscribe: (planCode: string) => Promise<any>;
-  cancelSubscription: (reason?: string) => Promise<void>;
-  reactivateSubscription: () => Promise<void>;
-  changePlan: (newPlanCode: string) => Promise<void>;
-  refreshSubscription: () => Promise<void>;
+  cancel: (reason?: string, reasonCode?: string) => Promise<void>;
+  resume: () => Promise<void>;
+  upgrade: (planCode: string) => Promise<void>;
+  downgrade: (planCode: string) => Promise<void>;
+  refresh: () => Promise<void>;
   checkLimit: (featureKey: string) => Promise<{ allowed: boolean; current: number; limit: number }>;
   canAccess: (featureKey: string) => boolean;
   checkEntitlement: (featureKey: string) => EntitlementResult;
-  getUsage: () => Promise<Record<string, number>>;
+  getUsage: () => Promise<Record<string, UsageInfo>>;
   trackEvent: (event: string, properties?: any) => Promise<void>;
   restorePurchases: () => Promise<any>;
+  isPremium: boolean;
+  daysRemaining: number;
 }
 
 const PremiumContext = createContext<PremiumContextValue | undefined>(undefined);
@@ -43,19 +54,29 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     loading: true,
     error: null,
   });
+  const [isPremium, setIsPremium] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState(0);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const refreshSubscription = useCallback(async () => {
+  const refresh = useCallback(async () => {
     try {
       const [sub, entitlementsData] = await Promise.all([
         api.get<any>('/premium/current'),
         api.get<any>('/premium/entitlements'),
       ]);
       if (mountedRef.current) {
+        const planCode = sub?.plan?.code || 'FREE';
+        const premium = sub?.status === 'active' && planCode !== 'FREE';
+        const days = sub?.currentPeriodEnd
+          ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / (1000 * 86400)))
+          : 0;
+
+        setIsPremium(premium);
+        setDaysRemaining(days);
         setState(prev => ({
           ...prev,
           subscription: sub,
@@ -79,55 +100,70 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       if (mountedRef.current) {
         setState(prev => ({ ...prev, plans: Array.isArray(planList) ? planList : [] }));
       }
-    } catch {
-      // silent
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
     if (user) {
-      Promise.all([refreshSubscription(), loadPlans()]);
+      Promise.all([refresh(), loadPlans()]);
     } else {
-      setState(prev => ({ ...prev, loading: false, subscription: null, plans: [], entitlements: [] }));
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        subscription: null,
+        plans: [],
+        entitlements: [],
+      }));
+      setIsPremium(false);
+      setDaysRemaining(0);
     }
-  }, [user, refreshSubscription, loadPlans]);
+  }, [user]);
 
   const subscribe = useCallback(async (planCode: string) => {
     try {
       const result = await api.post<any>('/premium/subscribe', { planCode });
-      await refreshSubscription();
+      await refresh();
       return result;
     } catch (e: any) {
       throw new Error(e?.message || 'Subscription failed');
     }
-  }, [refreshSubscription]);
+  }, [refresh]);
 
-  const cancelSubscription = useCallback(async (reason?: string) => {
+  const cancel = useCallback(async (reason?: string, reasonCode?: string) => {
     try {
-      await api.post('/premium/cancel', { reason });
-      await refreshSubscription();
+      await api.post('/premium/cancel', { reason, reasonCode });
+      await refresh();
     } catch (e: any) {
       throw new Error(e?.message || 'Cancellation failed');
     }
-  }, [refreshSubscription]);
+  }, [refresh]);
 
-  const reactivateSubscription = useCallback(async () => {
+  const resume = useCallback(async () => {
     try {
       await api.post('/premium/reactivate');
-      await refreshSubscription();
+      await refresh();
     } catch (e: any) {
       throw new Error(e?.message || 'Reactivation failed');
     }
-  }, [refreshSubscription]);
+  }, [refresh]);
 
-  const changePlan = useCallback(async (newPlanCode: string) => {
+  const upgrade = useCallback(async (planCode: string) => {
     try {
-      await api.post('/premium/change-plan', { planCode: newPlanCode });
-      await refreshSubscription();
+      await api.post('/subscription/upgrade', { planCode });
+      await refresh();
     } catch (e: any) {
-      throw new Error(e?.message || 'Plan change failed');
+      throw new Error(e?.message || 'Upgrade failed');
     }
-  }, [refreshSubscription]);
+  }, [refresh]);
+
+  const downgrade = useCallback(async (planCode: string) => {
+    try {
+      await api.post('/subscription/downgrade', { planCode });
+      await refresh();
+    } catch (e: any) {
+      throw new Error(e?.message || 'Downgrade failed');
+    }
+  }, [refresh]);
 
   const checkLimit = useCallback(async (featureKey: string) => {
     try {
@@ -145,7 +181,6 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const canAccess = useCallback((featureKey: string): boolean => {
     const sub = state.subscription;
     if (!sub || sub.status !== 'active') return false;
-    const planCode = sub.plan?.code || 'FREE';
     return state.entitlements.includes(featureKey);
   }, [state.subscription, state.entitlements]);
 
@@ -154,16 +189,22 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       return { allowed: true, reason: null, upgradePlan: null };
     }
     const planCode = state.subscription?.plan?.code || 'FREE';
-    const isFamilyOnly = ['family_space', 'family_dashboard', 'family_calendar'].includes(featureKey);
-    if (isFamilyOnly) {
+    const tier = getPlanTier(planCode);
+    const familyOnlyFeatures = [
+      'family_dashboard', 'family_space', 'family_goals', 'family_wealth',
+      'family_contributions', 'family_calendar', 'family_bills', 'family_investments',
+      'family_ai_advisor', 'family_reports', 'family_health_score',
+      'shared_vault', 'shared_documents', 'shared_ai', 'up_to_6_members',
+    ];
+    if (familyOnlyFeatures.includes(featureKey)) {
       return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: 'FAMILY' };
     }
-    return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: planCode === 'FREE' ? 'PREMIUM' : 'FAMILY' };
+    return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: tier === 'FREE' ? 'PREMIUM' : 'FAMILY' };
   }, [canAccess, state.subscription]);
 
   const getUsage = useCallback(async () => {
     try {
-      const data = await api.get<Record<string, number>>('/premium/usage');
+      const data = await api.get<Record<string, UsageInfo>>('/premium/usage');
       if (mountedRef.current) {
         setState(prev => ({ ...prev, usage: data || {} }));
       }
@@ -176,12 +217,12 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const restorePurchases = useCallback(async () => {
     try {
       const result = await api.post<any>('/premium/restore');
-      await refreshSubscription();
+      await refresh();
       return result;
     } catch (e: any) {
       throw new Error(e?.message || 'Restore failed');
     }
-  }, [refreshSubscription]);
+  }, [refresh]);
 
   const trackEvent = useCallback(async (event: string, properties?: any) => {
     try {
@@ -190,24 +231,25 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         category: 'premium',
         properties: { ...properties, timestamp: new Date().toISOString() },
       });
-    } catch {
-      // silent
-    }
+    } catch {}
   }, []);
 
   const value: PremiumContextValue = {
     ...state,
     subscribe,
-    cancelSubscription,
-    reactivateSubscription,
-    changePlan,
-    refreshSubscription,
+    cancel,
+    resume,
+    upgrade,
+    downgrade,
+    refresh,
     checkLimit,
     canAccess,
     checkEntitlement,
     getUsage,
     trackEvent,
     restorePurchases,
+    isPremium,
+    daysRemaining,
   };
 
   return (

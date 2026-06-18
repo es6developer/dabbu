@@ -441,6 +441,48 @@ export class ListAdminsQueryDto {
   limit?: number;
 }
 
+export class AdminLoginMfaDto {
+  @ApiProperty({ example: 'admin@dabbu.app' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'AdminStr0ng!Pass' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @IsNotEmpty()
+  totpCode: string;
+}
+
+export class MfaSetupDto {
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @IsNotEmpty()
+  totpCode: string;
+}
+
+export class MfaVerifyDto {
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @IsNotEmpty()
+  totpCode: string;
+}
+
+export class MfaStatusDto {
+  @ApiProperty()
+  required: boolean;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiPropertyOptional()
+  mfaToken?: string;
+}
+
 export interface SystemStatsResponse {
   totalUsers: number;
   activeUsers: number;

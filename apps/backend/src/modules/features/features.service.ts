@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { createHash } from 'crypto';
 
 interface FeatureFlag {
@@ -28,7 +29,10 @@ export class FeaturesService {
   private lastConfigCacheTime = 0;
   private readonly CACHE_TTL = 30_000;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly analyticsService: AnalyticsService,
+  ) {}
 
   async getEnabledFeatures(userId?: string): Promise<string[]> {
     const flags = await this.getAllFeatures();
@@ -75,7 +79,45 @@ export class FeaturesService {
       if (hashNum >= flag.rolloutPercentage) return null;
     }
 
-    return flag.variant || 'control';
+    const variant = flag.variant || 'control';
+
+    // Track A/B test assignment
+    try {
+      await this.analyticsService.track(userId, {
+        event: 'ab_test_assignment',
+        properties: {
+          experiment: flag.experimentId,
+          variant,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch {}
+
+    return variant;
+  }
+
+  async getVariant(userId: string, experimentName: string) {
+    const flag = await this.prisma.featureFlag.findUnique({
+      where: { name: experimentName },
+    });
+
+    if (!flag || !flag.isEnabled) return { variant: 'control' };
+
+    const variant = flag.variant || 'control';
+
+    // Track A/B test assignment
+    try {
+      await this.analyticsService.track(userId, {
+        event: 'ab_test_assignment',
+        properties: {
+          experiment: experimentName,
+          variant,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch {}
+
+    return { variant, isEnabled: flag.isEnabled };
   }
 
   async getAllFeatures(): Promise<FeatureFlag[]> {

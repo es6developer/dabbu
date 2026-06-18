@@ -13,9 +13,9 @@
 - [ ] Run `npm audit` and fix all vulnerabilities
 - [ ] Enable Helmet CSP headers for production
 - [ ] Session timeout configured correctly
+- [x] Client-side RBAC implemented (hide destructive UI per role)
 - [ ] Admin MFA/2FA enabled for super_admin accounts
 - [ ] Admin auth switched to httpOnly cookies (not localStorage)
-- [ ] Client-side RBAC implemented (hide destructive UI per role)
 - [ ] Login alert emails sent on new device detection
 - [ ] Rate limiting configured on file upload endpoints
 - [ ] Presigned URLs for S3/R2 file access instead of public URLs
@@ -42,7 +42,7 @@
 
 ### Monitoring & Alerting
 - [ ] Sentry DSN configured for backend
-- [ ] Sentry DSN configured for mobile app (@sentry/react-native)
+- [x] Sentry DSN configured for mobile app (@sentry/react-native)
 - [ ] Sentry DSN configured for admin panel (@sentry/nextjs)
 - [ ] OpenTelemetry exporter configured
 - [ ] Uptime monitoring configured (Pingdom / UptimeRobot)
@@ -54,9 +54,10 @@
   - [ ] SSL certificate expiry < 30 days
 - [ ] PagerDuty/OpsGenie on-call rotation configured
 - [ ] Log aggregation (ELK / Datadog) configured
-- [ ] Load testing completed (k6/artillery at 2x expected load)
+- [x] Load testing scripts created (k6 at tests/load/)
+- [x] Prisma connection pool size tuned (10 connections)
+- [ ] Load testing completed against staging environment
 - [ ] MySQL slow query log enabled
-- [ ] Prisma connection pool size tuned
 
 ## Launch Day (T-0)
 

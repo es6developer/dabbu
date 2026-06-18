@@ -20,8 +20,8 @@ export function SupportScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api.get('/support/faq').then(r => setFaqs(r.data || [])).catch(() => {});
-    api.get('/support/tickets').then(r => setTickets(r.data || [])).catch(() => {});
+    api.get<any>('/support/faq').then(r => setFaqs(r.data || [])).catch(() => {});
+    api.get<any>('/support/tickets').then(r => setTickets(r.data || [])).catch(() => {});
   }, []);
 
   const handleSubmit = async () => {
@@ -36,7 +36,7 @@ export function SupportScreen() {
       setSubject('');
       setMessage('');
       setActiveTab('tickets');
-      const r = await api.get('/support/tickets');
+      const r = await api.get<any>('/support/tickets');
       setTickets(r.data || []);
     } catch (err: any) {
       Alert.alert('Error', err?.response?.data?.message || err.message);

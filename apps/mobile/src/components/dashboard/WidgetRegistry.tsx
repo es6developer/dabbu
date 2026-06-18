@@ -296,6 +296,7 @@ registerWidget({
 });
 
 export const PERSONAL_WIDGETS: WidgetType[] = [
+  'greeting',
   'netWorth',
   'monthlySnapshot',
   'healthScore',
@@ -308,6 +309,7 @@ export const PERSONAL_WIDGETS: WidgetType[] = [
 ];
 
 export const COUPLE_WIDGETS: WidgetType[] = [
+  'coupleHero',
   'combinedWealth',
   'coupleSnapshot',
   'sharedSavings',
@@ -321,6 +323,7 @@ export const COUPLE_WIDGETS: WidgetType[] = [
 ];
 
 export const FAMILY_WIDGETS: WidgetType[] = [
+  'familyHero',
   'familyWealth',
   'familySnapshot',
   'familyContributions',

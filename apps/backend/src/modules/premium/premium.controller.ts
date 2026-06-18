@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, Req, Headers, Param, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PremiumService } from './premium.service';
 import { RazorpayService } from './razorpay.service';
 import { PremiumWebhookService } from './premium-webhook.service';
@@ -14,6 +14,7 @@ import {
   SubscriptionAnalyticsEventDto,
   ValidateCouponDto,
   CancellationRecoveryDto,
+  PaginationDto,
 } from './dto/premium.dto';
 
 @ApiTags('Premium')
@@ -46,7 +47,7 @@ export class PremiumController {
   @Post('preview')
   @ApiOperation({ summary: 'Preview what features a plan would grant' })
   async previewChange(@Body('planCode') planCode: string) {
-    return this.premiumService.previewChange(planCode);
+    return this.premiumService.getFeatureComparison();
   }
 
   @Get('current')
@@ -68,7 +69,7 @@ export class PremiumController {
   @Post('change-plan')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Change current plan' })
+  @ApiOperation({ summary: 'Change current plan (upgrade or downgrade)' })
   async changePlan(@Req() req: any, @Body() dto: ChangePlanDto) {
     return this.premiumService.changePlan(req.user.id, dto.newPlanCode);
   }
@@ -78,7 +79,7 @@ export class PremiumController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel subscription with reason' })
   async cancelSubscription(@Req() req: any, @Body() dto: CancelSubscriptionDto) {
-    return this.premiumService.cancelSubscription(req.user.id, dto.reason, dto.reasonCode);
+    return this.premiumService.cancel(req.user.id, dto.reason, dto.reasonCode);
   }
 
   @Post('reactivate')
@@ -86,7 +87,7 @@ export class PremiumController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Reactivate cancelled subscription' })
   async reactivateSubscription(@Req() req: any, @Body() dto: ReactivateSubscriptionDto) {
-    return this.premiumService.reactivateSubscription(req.user.id);
+    return this.premiumService.resume(req.user.id);
   }
 
   @Post('pause')
@@ -110,7 +111,7 @@ export class PremiumController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Resume paused subscription' })
   async resumeSubscription(@Req() req: any) {
-    return this.premiumService.resumeSubscription(req.user.id);
+    return this.premiumService.resume(req.user.id);
   }
 
   @Post('retry-payment')
@@ -125,18 +126,8 @@ export class PremiumController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get billing history (paginated)' })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  async getBillingHistory(
-    @Req() req: any,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
-    return this.premiumService.getPaymentHistory(
-      req.user.id,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 10,
-    );
+  async getBillingHistory(@Req() req: any, @Query() query: PaginationDto) {
+    return this.premiumService.getPaymentHistory(req.user.id, query.page || 1, query.limit || 10);
   }
 
   @Get('usage')
@@ -201,14 +192,8 @@ export class PremiumController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get invoice history' })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  async getInvoices(@Req() req: any, @Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.premiumService.getPaymentHistory(
-      req.user.id,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 10,
-    );
+  async getInvoices(@Req() req: any, @Query() query: PaginationDto) {
+    return this.premiumService.getInvoiceHistory(req.user.id, query.page || 1, query.limit || 10);
   }
 
   @Post('cancellation/recovery')
@@ -259,12 +244,8 @@ export class PremiumController {
     if (!rzpSub) {
       return { verified: false, message: 'Could not fetch subscription from Razorpay' };
     }
-    if (
-      rzpSub.status === 'active' ||
-      rzpSub.status === 'authenticated' ||
-      rzpSub.status === 'completed'
-    ) {
-      await this.premiumService.handleActivation(sub.razorpaySubscriptionId, rzpSub);
+    if (rzpSub.status === 'active' || rzpSub.status === 'authenticated' || rzpSub.status === 'completed') {
+      await this.premiumService.handleSubscriptionActivated(sub.razorpaySubscriptionId, rzpSub);
       return { verified: true, message: 'Subscription activated' };
     }
     return { verified: false, message: `Razorpay status: ${rzpSub.status}` };

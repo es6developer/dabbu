@@ -21,9 +21,9 @@ export class TransactionsService {
       const found = await this.prisma.transactionCategory.findFirst({
         where: { userId, name: dto.category, isActive: true },
       });
-      categoryId = found?.id || (await this.predictCategory(userId, dto));
+      categoryId = found?.id || (await this.predictCategory(userId, dto)) || undefined;
     } else if (!categoryId) {
-      categoryId = await this.predictCategory(userId, dto);
+      categoryId = await this.predictCategory(userId, dto) || undefined;
     }
 
     const metadata: Record<string, any> = { ...((dto as any).metadata || {}) };
@@ -55,6 +55,8 @@ export class TransactionsService {
       include: { category: true },
     });
 
+    const amount = Number(tx.amount);
+
     if (dto.expenseGroupId) {
       this.notifyGroupMembers(userId, dto.expenseGroupId, tx).catch((err) =>
         this.logger.warn(`Failed to notify group members: ${err.message}`),
@@ -62,11 +64,15 @@ export class TransactionsService {
     } else {
       this.notificationEvents
         .expenseAdded(userId, {
-          amount: Number(tx.amount),
+          amount,
           description: tx.description || '',
           category: tx.category?.name || 'Uncategorized',
         })
         .catch((err) => this.logger.warn(`Failed to notify expense added: ${err.message}`));
+
+      this.detectLargeExpense(userId, amount, tx).catch((err) =>
+        this.logger.warn(`Failed to check large expense: ${err.message}`),
+      );
     }
 
     return tx;
@@ -110,6 +116,31 @@ export class TransactionsService {
         }),
       ),
     );
+  }
+
+  private async detectLargeExpense(userId: string, amount: number, tx: any) {
+    const recentTxs = await this.prisma.transaction.findMany({
+      where: { userId, deletedAt: null, type: 'expense' },
+      orderBy: { date: 'desc' },
+      take: 20,
+      select: { amount: true },
+    });
+
+    if (recentTxs.length < 2) return;
+
+    const avgAmount = recentTxs.reduce((s, t) => s + Number(t.amount), 0) / recentTxs.length;
+    const threshold = avgAmount * 2;
+
+    if (amount > threshold && amount > 500) {
+      this.notificationEvents
+        .largeExpenseDetected(userId, {
+          amount,
+          description: tx.description || '',
+          category: tx.category?.name || 'Uncategorized',
+          threshold: Math.round(threshold),
+        })
+        .catch((err) => this.logger.warn(`Failed to notify large expense: ${err.message}`));
+    }
   }
 
   async findAll(userId: string, filter: TransactionFilterDto) {
@@ -235,9 +266,9 @@ export class TransactionsService {
         ...(dto.tags !== undefined && { tags: dto.tags }),
         ...(dto.isRecurring !== undefined && { isRecurring: dto.isRecurring }),
         ...(dto.recurringFrequency !== undefined && { recurringFrequency: dto.recurringFrequency }),
-        ...(dto.recurringId !== undefined && { recurringId: dto.recurringId }),
-        ...(dto.recurringEndDate !== undefined && {
-          recurringEndDate: dto.recurringEndDate ? new Date(dto.recurringEndDate) : null,
+        ...((dto as any).recurringId !== undefined && { recurringId: (dto as any).recurringId }),
+        ...((dto as any).recurringEndDate !== undefined && {
+          recurringEndDate: (dto as any).recurringEndDate ? new Date((dto as any).recurringEndDate) : null,
         }),
         ...(dto.expenseGroupId !== undefined && { expenseGroupId: dto.expenseGroupId || null }),
         ...(dto.metadata !== undefined && { metadata: dto.metadata }),

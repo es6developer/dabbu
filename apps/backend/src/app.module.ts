@@ -21,7 +21,6 @@ import { PrismaModule } from './common/prisma/prisma.module';
 
 // Common
 import { SecurityConfig } from './common/security/security.config';
-import { HealthController } from './common/health/health.controller';
 import { CacheModule } from './common/cache/cache.module';
 
 // Modules
@@ -29,7 +28,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { FamilyModule } from './modules/family/family.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { CoupleModule } from './modules/couple/couple.module';
-import { AccountsModule } from './modules/accounts/accounts.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
@@ -73,6 +71,8 @@ import { StorageModule } from './modules/storage/storage.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { SupportModule } from './modules/support/support.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { HealthModule } from './modules/health/health.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -144,7 +144,6 @@ import { AuditModule } from './modules/audit/audit.module';
     FamilyModule,
     ChatModule,
     CoupleModule,
-    AccountsModule,
     TransactionsModule,
     CategoriesModule,
     ReminderModule,
@@ -188,8 +187,10 @@ import { AuditModule } from './modules/audit/audit.module';
     ComplianceModule,
     SupportModule,
     AuditModule,
+    HealthModule,
+    MetricsModule,
   ],
-  controllers: [HealthController],
+  controllers: [],
   providers: [
     SecurityConfig,
     {

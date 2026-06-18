@@ -79,7 +79,7 @@ export function UpgradeBottomSheet({
     navigation.navigate('Settings', { screen: 'Premium' });
   };
 
-  const planGradient = plan === 'FAMILY' ? (['#D97706', '#B45309'] as const) : (['#7C3AED', '#6D28D9'] as const);
+  const planGradient: string[] = plan === 'FAMILY' ? ['#D97706', '#B45309'] : ['#7C3AED', '#6D28D9'];
   const planColor = plan === 'FAMILY' ? '#D97706' : '#7C3AED';
 
   const upgradeFeatures = plan === 'FAMILY'

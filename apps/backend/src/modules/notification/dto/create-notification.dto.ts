@@ -16,6 +16,50 @@ export enum NotificationType {
   GROUP_EXPENSE = 'group_expense',
   GROUP_INCOME = 'group_income',
   GROUP_ADD = 'group_add',
+  EXPENSE = 'expense',
+  EXPENSE_ALERT = 'expense_alert',
+  BUDGET_EXCEEDED = 'budget_exceeded',
+  BUDGET_ALERT = 'budget_alert',
+  SPENDING_SPIKE = 'spending_spike',
+  GROUP_INVITE = 'group_invite',
+  GROUP_JOIN = 'group_join',
+  GROUP_REMOVE = 'group_remove',
+  GROUP_LEAVE = 'group_leave',
+  MEMBER_ADDED = 'member_added',
+  MEMBER_JOINED = 'member_joined',
+  SETTLEMENT_REQUEST = 'settlement_request',
+  SETTLEMENT_COMPLETE = 'settlement_complete',
+  PAYMENT_SENT = 'payment_sent',
+  GOAL_CREATED = 'goal_created',
+  GOAL_MILESTONE = 'goal_milestone',
+  GOAL_COMPLETE = 'goal_complete',
+  GOAL_BEHIND = 'goal_behind',
+  EMI_REMINDER = 'emi_reminder',
+  EMI_OVERDUE = 'emi_overdue',
+  SUBSCRIPTION_REMINDER = 'subscription_reminder',
+  SUBSCRIPTION_RENEWAL = 'subscription_renewal',
+  BILL_REMINDER = 'bill_reminder',
+  REMINDER_UPCOMING = 'reminder_upcoming',
+  REMINDER_OVERDUE = 'reminder_overdue',
+  INSIGHT_SAVINGS = 'insight_savings',
+  INSIGHT_SPENDING = 'insight_spending',
+  DAILY_DIGEST = 'daily_digest',
+  WEEKLY_DIGEST = 'weekly_digest',
+  MONTHLY_REPORT = 'monthly_report',
+  AI_INSIGHT = 'ai_insight',
+  FRIEND_REQUEST = 'friend_request',
+  FRIEND_ACCEPTED = 'friend_accepted',
+  FAMILY_INVITE = 'family_invite',
+  FAMILY_REMOVE = 'family_remove',
+  FAMILY_LEAVE = 'family_leave',
+  COUPLE_REQUEST = 'couple_request',
+  COUPLE_APPROVED = 'couple_approved',
+  REFERRAL_LINK_CLICKED = 'referral_link_clicked',
+  REFERRAL_SIGNUP = 'referral_signup',
+  REFERRAL_REWARD_CREDITED = 'referral_reward_credited',
+  REFERRAL_REWARD_CLAIMED = 'referral_reward_claimed',
+  REFERRAL_REJECTED = 'referral_rejected',
+  TEST_PUSH = 'test_push',
 }
 
 export enum NotificationChannel {
@@ -34,7 +78,7 @@ export class CreateNotificationDto {
   @ApiProperty({ enum: NotificationType, example: NotificationType.BILL })
   @IsEnum(NotificationType)
   @IsNotEmpty()
-  type: NotificationType;
+  type: string;
 
   @ApiProperty({ example: 'Bill payment due tomorrow' })
   @IsString()

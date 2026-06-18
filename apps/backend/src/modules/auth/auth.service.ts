@@ -14,6 +14,8 @@ import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { ReferralService } from '../referral/referral.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { AuditService } from '../audit/audit.service';
 import {
   RegisterDto,
   LoginDto,
@@ -38,6 +40,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly referralService: ReferralService,
+    private readonly notificationGateway: NotificationGateway,
+    private readonly auditService: AuditService,
   ) {}
 
   private generateAvatarUrl(seed: string): string {
@@ -320,6 +324,15 @@ export class AuthService {
         session.deviceName || undefined,
         session.platform || undefined,
       );
+      await this.auditService.log({
+        userId,
+        action: 'logout',
+        entity: 'session',
+        entityId: session.id,
+        description: `User logged out from ${session.deviceName || 'unknown device'}`,
+        ipAddress: session.ipAddress || undefined,
+        userAgent: session.userAgent || undefined,
+      });
     }
   }
 
@@ -1301,6 +1314,13 @@ export class AuthService {
       where: { id: sessionId },
       data: { isRevoked: true, revokedAt: new Date() },
     });
+
+    this.notificationGateway.server?.to(`user:${userId}`).emit('session:revoked', {
+      sessionId,
+      deviceName: session.deviceName,
+      revokedAt: new Date(),
+    });
+
     await this.logLoginActivity(
       userId,
       'logout',

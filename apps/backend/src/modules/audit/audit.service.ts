@@ -105,6 +105,24 @@ export class AuditService {
     return { data, total, limit, offset };
   }
 
+  async exportLogs(userId: string, format: 'csv' | 'json') {
+    const logs = await this.prisma.auditLog.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 10000,
+    });
+
+    if (format === 'csv') {
+      const headers = 'ID,Action,Entity,Entity ID,Description,IP Address,Created At\n';
+      const rows = logs.map(l =>
+        `"${l.id}","${l.action}","${l.entity}","${l.entityId || ''}","${(l.description || '').replace(/"/g, '""')}","${l.ipAddress || ''}","${l.createdAt.toISOString()}"`
+      ).join('\n');
+      return { data: headers + rows, contentType: 'text/csv', filename: `audit-log-${Date.now()}.csv` };
+    }
+
+    return { data: JSON.stringify(logs, null, 2), contentType: 'application/json', filename: `audit-log-${Date.now()}.json` };
+  }
+
   async getAdminAuditTrail(adminId: string, limit = 50, offset = 0) {
     const [data, total] = await Promise.all([
       this.prisma.auditLog.findMany({

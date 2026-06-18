@@ -9,12 +9,14 @@ import { JwtStrategy } from './jwt.strategy';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 import { ReferralModule } from '../referral/referral.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     PrismaModule,
     EmailModule,
     ReferralModule,
+    NotificationModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

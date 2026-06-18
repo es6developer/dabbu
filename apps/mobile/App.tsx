@@ -3,6 +3,10 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { StatusBar, LogBox, Appearance, View, UIManager, Platform } from 'react-native';
 import * as Font from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
+import * as Sentry from '@sentry/react-native';
+import { initSentry } from './src/config/sentry';
+
+initSentry();
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -25,6 +29,7 @@ import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
 import { OfflineProvider } from './src/store/OfflineContext';
+import { DashboardProvider } from './src/store/DashboardContext';
 import { ToastProvider } from './src/store/ToastContext';
 import { AlertProvider } from './src/components/ui/CustomAlert';
 import { OfflineBanner } from './src/components/ui/OfflineBanner';
@@ -90,7 +95,7 @@ function ThemedNavigationContainer({
   );
 }
 
-export default function App(): React.ReactElement | null {
+function AppInner(): React.ReactElement | null {
   const [appIsReady, setAppIsReady] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
@@ -166,6 +171,7 @@ export default function App(): React.ReactElement | null {
               <LockProvider>
                 <FavoritesProvider>
                   <OfflineProvider>
+                    <DashboardProvider>
                     <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                       <ThemedStatusBar />
                       <NotificationInitializer />
@@ -179,6 +185,7 @@ export default function App(): React.ReactElement | null {
                         <ApiProgressBar />
                       </View>
                     </ThemedNavigationContainer>
+                    </DashboardProvider>
                   </OfflineProvider>
                 </FavoritesProvider>
               </LockProvider>
@@ -190,3 +197,6 @@ export default function App(): React.ReactElement | null {
     </GestureHandlerRootView>
   );
 }
+
+const App = Sentry.wrap(AppInner);
+export default App;

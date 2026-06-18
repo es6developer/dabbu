@@ -1,10 +1,17 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Param, Query, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Query, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PremiumService } from './premium.service';
 import { EntitlementEngine } from './entitlement.engine';
 import { UsageEngine } from './usage.engine';
-import { RazorpayService } from './razorpay.service';
+import {
+  CheckoutDto,
+  UpgradePlanDto,
+  DowngradePlanDto,
+  CancelSubscriptionDto,
+  ValidateFeatureDto,
+  PaginationDto,
+} from './dto/premium.dto';
 
 @ApiTags('Subscription')
 @Controller('subscription')
@@ -13,7 +20,6 @@ export class SubscriptionController {
     private premiumService: PremiumService,
     private entitlementEngine: EntitlementEngine,
     private usageEngine: UsageEngine,
-    private razorpayService: RazorpayService,
   ) {}
 
   @Get()
@@ -29,97 +35,63 @@ export class SubscriptionController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get usage statistics with remaining limits' })
   async getUsage(@Req() req: any) {
-    const sub = await this.premiumService.getCurrentSubscription(req.user.id);
-    const planCode = sub?.plan?.code || 'FREE';
-    return this.usageEngine.getRemainingUsage(this.premiumService['prisma'], req.user.id, planCode);
+    return this.premiumService.getUsage(req.user.id);
   }
 
   @Get('features')
   @ApiOperation({ summary: 'Get feature comparison across all plans' })
   async getFeatures() {
-    const plans = await this.premiumService.getPlans();
-    const comparison = this.entitlementEngine.getFeatureComparison();
-    const planFeatures = plans.map((plan: any) => ({
-      code: plan.code,
-      name: plan.name,
-      price: plan.price,
-      interval: plan.interval,
-      features: this.entitlementEngine.getGrantedFeatures(plan.code),
-    }));
-    return { comparison, plans: planFeatures };
-  }
-
-  @Get('paywall')
-  @ApiOperation({ summary: 'Get paywall data (plans, features, comparison)' })
-  async getPaywall() {
-    const plans = await this.premiumService.getPlans();
-    const comparison = this.entitlementEngine.getFeatureComparison();
-    const planFeatures = plans.map((plan: any) => ({
-      code: plan.code,
-      name: plan.name,
-      price: plan.price,
-      interval: plan.interval,
-      features: this.entitlementEngine.getGrantedFeatures(plan.code),
-    }));
-    const limits = plans.map((plan: any) => ({
-      code: plan.code,
-      limits: this.usageEngine.getLimitsForPlan(plan.code),
-    }));
-    return { plans: planFeatures, comparison, limits };
+    return this.premiumService.getFeatureComparison();
   }
 
   @Get('invoices')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get paginated invoices' })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
-  async getInvoices(@Req() req: any, @Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.premiumService.getPaymentHistory(
+  async getInvoices(@Req() req: any, @Query() query: PaginationDto) {
+    return this.premiumService.getInvoiceHistory(
       req.user.id,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 10,
+      query.page || 1,
+      query.limit || 10,
     );
+  }
+
+  @Get('paywall')
+  @ApiOperation({ summary: 'Get paywall data (plans, features, comparison, limits)' })
+  async getPaywall() {
+    return this.premiumService.getPaywall();
   }
 
   @Post('checkout')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create checkout session for a plan' })
-  async createCheckout(
-    @Req() req: any,
-    @Body('planCode') planCode: string,
-    @Body('couponCode') couponCode?: string,
-  ) {
-    return this.premiumService.subscribe(req.user.id, planCode, couponCode);
+  async createCheckout(@Req() req: any, @Body() dto: CheckoutDto) {
+    return this.premiumService.subscribe(req.user.id, dto.planCode, dto.couponCode);
   }
 
   @Post('upgrade')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Upgrade to a higher-tier plan' })
-  async upgradePlan(@Req() req: any, @Body('planCode') planCode: string) {
-    return this.premiumService.changePlan(req.user.id, planCode);
+  async upgradePlan(@Req() req: any, @Body() dto: UpgradePlanDto) {
+    return this.premiumService.upgrade(req.user.id, dto.planCode);
   }
 
   @Post('downgrade')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Downgrade to a lower-tier plan' })
-  async downgradePlan(@Req() req: any, @Body('planCode') planCode: string) {
-    return this.premiumService.changePlan(req.user.id, planCode);
+  async downgradePlan(@Req() req: any, @Body() dto: DowngradePlanDto) {
+    return this.premiumService.downgrade(req.user.id, dto.planCode);
   }
 
   @Post('cancel')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel subscription with reason' })
-  async cancelSubscription(
-    @Req() req: any,
-    @Body('reason') reason?: string,
-    @Body('reasonCode') reasonCode?: string,
-  ) {
-    return this.premiumService.cancelSubscription(req.user.id, reason, reasonCode);
+  async cancelSubscription(@Req() req: any, @Body() dto: CancelSubscriptionDto) {
+    return this.premiumService.cancel(req.user.id, dto.reason, dto.reasonCode);
   }
 
   @Post('resume')
@@ -127,7 +99,7 @@ export class SubscriptionController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Resume a paused/cancelled subscription' })
   async resumeSubscription(@Req() req: any) {
-    return this.premiumService.resumeSubscription(req.user.id);
+    return this.premiumService.resume(req.user.id);
   }
 
   @Post('restore')
@@ -142,8 +114,8 @@ export class SubscriptionController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Validate if a feature is accessible, accounting for usage limits' })
-  async validateFeature(@Req() req: any, @Body('featureKey') featureKey: string) {
-    return this.premiumService.validateFeature(req.user.id, featureKey);
+  async validateFeature(@Req() req: any, @Body() dto: ValidateFeatureDto) {
+    return this.premiumService.validateFeature(req.user.id, dto.featureKey);
   }
 
   @Get('admin/analytics')
@@ -154,6 +126,6 @@ export class SubscriptionController {
     if (req.user?.role !== 'admin' && req.user?.role !== 'super_admin') {
       throw new ForbiddenException('Admin access required');
     }
-    return this.premiumService.getDashboardData();
+    return this.premiumService.getAnalytics();
   }
 }

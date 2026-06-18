@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { NotificationService } from './notification.service';
 import {
+  CreateNotificationDto,
   ListNotificationsQueryDto,
   UpdateDeviceTokenDto,
   UpdateNotificationPreferencesDto,
@@ -19,6 +20,16 @@ import {
 @Controller()
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+
+  @Post('notifications')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a notification (triggers push, in-app, and email based on preferences)' })
+  async create(
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateNotificationDto,
+  ) {
+    return this.notificationService.create({ ...dto, userId });
+  }
 
   @Get('notifications')
   @ApiOperation({ summary: 'List user notifications' })
@@ -181,6 +192,12 @@ export class NotificationController {
     @Body() data: any,
   ) {
     return this.notificationService.updateCategoryPreference(userId, category, data);
+  }
+
+  @Get('notifications/analytics')
+  @ApiOperation({ summary: 'Get notification delivery and open rate analytics' })
+  async getNotificationAnalytics(@CurrentUser('id') userId: string) {
+    return this.notificationService.getNotificationAnalytics(userId);
   }
 
   @Post('notifications/monthly-summary')

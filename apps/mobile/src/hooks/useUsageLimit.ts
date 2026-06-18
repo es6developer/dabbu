@@ -1,43 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePremium } from '../store/PremiumContext';
+import { getUsageLimit } from '../config/entitlements';
+
+interface UsageLimitState {
+  current: number;
+  limit: number;
+  remaining: number;
+  allowed: boolean;
+  loading: boolean;
+  percentUsed: number;
+}
 
 export function useUsageLimit(featureKey: string) {
-  const { checkLimit, subscription, loading } = usePremium();
-  const [state, setState] = useState<{
-    current: number;
-    limit: number;
-    remaining: number;
-    allowed: boolean;
-    loading: boolean;
-  }>({ current: 0, limit: 0, remaining: 0, allowed: false, loading: true });
+  const { checkLimit, subscription, loading: premiumLoading } = usePremium();
+  const [state, setState] = useState<UsageLimitState>({
+    current: 0,
+    limit: 0,
+    remaining: 0,
+    allowed: false,
+    loading: true,
+    percentUsed: 0,
+  });
 
-  useEffect(() => {
-    if (loading) return;
+  const load = useCallback(async () => {
+    if (premiumLoading) return;
 
     const planCode = subscription?.plan?.code || 'FREE';
-    const { getUsageLimit } = require('../config/entitlements');
-    const limit = getUsageLimit(featureKey, planCode);
+    const configuredLimit = getUsageLimit(featureKey, planCode);
 
-    checkLimit(featureKey).then(limitInfo => {
+    try {
+      const limitInfo = await checkLimit(featureKey);
       const current = limitInfo.current;
-      const maxLimit = limit ?? limitInfo.limit;
+      const limit = configuredLimit === null ? -1 : configuredLimit;
+
       setState({
         current,
-        limit: maxLimit === null ? Infinity : maxLimit,
-        remaining: maxLimit === null ? Infinity : Math.max(0, maxLimit - current),
-        allowed: maxLimit === null || current < maxLimit,
+        limit,
+        remaining: limit === -1 ? -1 : Math.max(0, limit - current),
+        allowed: limit === -1 || current < limit,
         loading: false,
+        percentUsed: limit === -1 ? 0 : Math.min(100, Math.round((current / limit) * 100)),
       });
-    }).catch(() => {
+    } catch {
       setState({
         current: 0,
-        limit: limit === null ? Infinity : limit,
-        remaining: limit === null ? Infinity : limit,
-        allowed: limit === null || 0 < limit,
+        limit: configuredLimit === null ? -1 : configuredLimit,
+        remaining: configuredLimit === null ? -1 : configuredLimit,
+        allowed: configuredLimit === null || 0 < configuredLimit,
         loading: false,
+        percentUsed: 0,
       });
-    });
-  }, [featureKey, checkLimit, subscription, loading]);
+    }
+  }, [featureKey, checkLimit, subscription, premiumLoading]);
 
-  return state;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { ...state, refresh: load };
+}
+
+export function useUsageLimits(featureKeys: string[]) {
+  const results: Record<string, UsageLimitState & { refresh: () => Promise<void> }> = {};
+  for (const key of featureKeys) {
+    results[key] = useUsageLimit(key);
+  }
+  return results;
 }

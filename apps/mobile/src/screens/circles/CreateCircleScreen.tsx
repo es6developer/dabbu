@@ -21,7 +21,7 @@ const CIRCLE_TYPES = [
   { label: 'Family', value: 'family', icon: 'home', color: '#F97316' },
   { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
   { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },
-  { label: 'Trip', value: 'trip', icon: 'planner', color: '#14B8A6' },
+  { label: 'Trip', value: 'trip', icon: 'earth', color: '#14B8A6' },
   { label: 'Sports', value: 'sports', icon: 'football', color: '#FF6B6B' },
 ];
 

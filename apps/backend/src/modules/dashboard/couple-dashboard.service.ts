@@ -1,0 +1,219 @@
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { CacheService } from '../../common/cache/cache.service';
+
+@Injectable()
+export class CoupleDashboardService {
+  private readonly logger = new Logger(CoupleDashboardService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
+
+  async getWidgets(userId: string) {
+    const cacheKey = `dashboard:couple:${userId}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { partnerId: true, isCoupleMode: true },
+    });
+    if (!user?.partnerId || !user.isCoupleMode) {
+      return [{ type: 'COUPLE_WEALTH', data: null, state: 'disabled' }];
+    }
+
+    const configs = await this.prisma.dashboardWidget.findMany({
+      where: { userId, scope: 'couple', enabled: true },
+      orderBy: { position: 'asc' },
+    });
+
+    const enabledTypes = new Set(
+      configs.length > 0
+        ? configs.map(c => c.widgetType)
+        : ['COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS'],
+    );
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const fetchers: Record<string, () => Promise<any>> = {
+      COUPLE_WEALTH: () => this.getCoupleWealth(userId, user.partnerId!),
+      COUPLE_GOALS: () => this.getCoupleGoals(userId),
+      COUPLE_TIMELINE: () => this.getCoupleTimeline(userId, user.partnerId!),
+      THIS_MONTH: () => this.getCombinedThisMonth([userId, user.partnerId!], monthStart, monthEnd),
+      HEALTH_SCORE: () => this.getCombinedHealthScore([userId, user.partnerId!]),
+      AI_INSIGHTS: () => this.getCombinedAiInsights([userId, user.partnerId!]),
+      UPCOMING_BILLS: () => this.getCombinedBills([userId, user.partnerId!]),
+      RECENT_TRANSACTIONS: () => this.getCombinedTransactions([userId, user.partnerId!]),
+    };
+
+    const results = await Promise.all(
+      [...enabledTypes].map(async (type: string) => {
+        try {
+          const data = fetchers[type] ? await fetchers[type]() : null;
+          return { type, data, state: 'loaded' as const };
+        } catch (err) {
+          this.logger.error(`Couple widget ${type} failed: ${err}`);
+          return { type, data: null, state: 'error' as const };
+        }
+      }),
+    );
+
+    const widgetOrder = [...enabledTypes];
+    results.sort((a, b) => widgetOrder.indexOf(a.type) - widgetOrder.indexOf(b.type));
+
+    await this.cache.set(cacheKey, results, 120);
+    return results;
+  }
+
+  private async getCoupleWealth(userId: string, partnerId: string) {
+    const [userNw, partnerNw] = await Promise.all([
+      this.prisma.userNetWorth.findUnique({ where: { userId } }),
+      this.prisma.userNetWorth.findUnique({ where: { userId: partnerId } }),
+    ]);
+    const combined = {
+      totalAssets: Number(userNw?.totalAssets || 0) + Number(partnerNw?.totalAssets || 0),
+      totalLiabilities: Number(userNw?.totalLiabilities || 0) + Number(partnerNw?.totalLiabilities || 0),
+    };
+    const netWorth = combined.totalAssets - combined.totalLiabilities;
+    return {
+      totalAssets: combined.totalAssets,
+      savings: 0,
+      investments: 0,
+      netWorth,
+    };
+  }
+
+  private async getCoupleGoals(userId: string) {
+    const goals = await this.prisma.goal.findMany({
+      where: { userId, deletedAt: null, isCompleted: false },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true, icon: true, color: true },
+    });
+    const emojiMap: Record<string, string> = { house: '🏠', car: '🚗', vacation: '✈️', education: '📚', wedding: '💒', emergency: '🆘', baby: '👶', retirement: '🌴', other: '🎯' };
+    return goals.map(g => ({
+      name: g.name, emoji: emojiMap[g.type || 'other'] || g.icon || '🎯',
+      progress: Number(g.targetAmount) > 0 ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100) : 0,
+    }));
+  }
+
+  private async getCoupleTimeline(userId: string, partnerId: string) {
+    const profile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
+    });
+    if (!profile) return { events: [], level: 1, xp: 0 };
+    const [events, level] = await Promise.all([
+      this.prisma.coupleTimelineEvent.findMany({
+        where: { groupId: profile.groupId },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      this.prisma.coupleLevel.findUnique({ where: { groupId: profile.groupId } }),
+    ]);
+    return {
+      events: events.map(e => ({ id: e.id, type: e.eventType, description: e.description || e.title, date: e.createdAt })),
+      level: level?.level || 1,
+      xp: level?.xp || 0,
+    };
+  }
+
+  private async getCombinedThisMonth(userIds: string[], monthStart: Date, monthEnd: Date) {
+    const [u1Income, u2Income, u1Expense, u2Expense] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId: userIds[0], deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId: userIds[1], deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId: userIds[0], deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId: userIds[1], deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+    ]);
+    const userIncome = Number(u1Income._sum.amount || 0);
+    const partnerIncome = Number(u2Income._sum.amount || 0);
+    const combinedIncome = userIncome + partnerIncome;
+    const combinedExpense = Number(u1Expense._sum.amount || 0) + Number(u2Expense._sum.amount || 0);
+    const combinedSavings = Math.max(0, combinedIncome - combinedExpense);
+    return {
+      yourContribution: { amount: userIncome },
+      partnerContribution: { amount: partnerIncome },
+      combinedIncome,
+      combinedExpense,
+      combinedSavings,
+    };
+  }
+
+  private async getCombinedHealthScore(userIds: string[]) {
+    const scores = await this.prisma.aiScore.findMany({
+      where: { userId: { in: userIds } },
+      orderBy: { createdAt: 'desc' },
+      take: 2,
+      distinct: ['userId'],
+    });
+    const avgScore = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + sc.overallScore, 0) / scores.length) : 0;
+    const avgSub = (field: string) => scores.length > 0
+      ? Math.round(scores.reduce((s, sc) => s + Number((sc as any)[field] || 0), 0) / scores.length)
+      : 0;
+    return {
+      score: avgScore,
+      subScores: [
+        avgSub('savingsRate'),
+        avgSub('budgetDiscipline'),
+        avgSub('goalProgress'),
+        avgSub('emergencyFund'),
+        100 - avgSub('debtRatio'),
+      ],
+    };
+  }
+
+  private async getCombinedAiInsights(userIds: string[]) {
+    const insights = await this.prisma.aiInsight.findMany({
+      where: { userId: { in: userIds }, isDismissed: false },
+      orderBy: { createdAt: 'desc' },
+      take: 1,
+      select: { title: true, description: true },
+    });
+    if (insights.length > 0) {
+      return { title: insights[0].title || null, text: insights[0].description || insights[0].title };
+    }
+    return { text: 'Start tracking together to get shared AI insights' };
+  }
+
+  private async getCombinedBills(userIds: string[]) {
+    const bills = await this.prisma.bill.findMany({
+      where: { userId: { in: userIds }, deletedAt: null, isPaid: false, dueDate: { gte: new Date() } },
+      orderBy: { dueDate: 'asc' },
+      take: 10,
+      select: { id: true, name: true, amount: true, dueDate: true },
+    });
+    return bills.map(b => ({
+      name: b.name, amount: Number(b.amount),
+      daysRemaining: Math.max(0, Math.ceil((new Date(b.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
+    }));
+  }
+
+  private async getCombinedTransactions(userIds: string[]) {
+    const txns = await this.prisma.transaction.findMany({
+      where: { userId: { in: userIds }, deletedAt: null },
+      orderBy: { date: 'desc' },
+      take: 10,
+      select: { id: true, description: true, amount: true, date: true, type: true, categoryId: true },
+    });
+    return txns.map(t => ({
+      id: t.id, description: t.description, amount: Number(t.amount), date: t.date,
+      type: t.type === 'income' ? 'arrowdown' : 'arrowup',
+      category: t.categoryId,
+    }));
+  }
+}

@@ -18,7 +18,7 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const KEY_SIZE = (SCREEN_W - 64) / 3;
 
 interface Props {
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 export function PinSetupScreen({ onComplete }: Props) {
@@ -94,7 +94,7 @@ export function PinSetupScreen({ onComplete }: Props) {
         setAccessToken(accessToken);
         api.post('/auth/lock', { pin: created }).catch(() => {});
       }
-      onComplete();
+      onComplete?.();
     } catch {
       triggerShake();
       setError('Failed to save PIN. Try again.');

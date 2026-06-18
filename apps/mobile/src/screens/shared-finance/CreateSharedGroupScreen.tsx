@@ -17,7 +17,7 @@ import {
 
 const GROUP_TYPES = [
   { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
-  { label: 'Trip', value: 'trip', icon: 'planner', color: '#14B8A6' },
+  { label: 'Trip', value: 'trip', icon: 'earth', color: '#14B8A6' },
   { label: 'Family', value: 'family', icon: 'home', color: '#14B8A6' },
   { label: 'Couple', value: 'couple', icon: 'heart', color: '#FF6B9D' },
   { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },

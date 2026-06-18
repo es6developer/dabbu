@@ -28,7 +28,7 @@ export function YearlySummaryScreen() {
   const fetchSummary = useCallback(async (year: number) => {
     setLoading(true);
     try {
-      const res = await api.get(`/retention/yearly-summary/${year}`);
+      const res = await api.get<any>(`/retention/yearly-summary/${year}`);
       setSummary(res.data || null);
     } catch {
       setSummary(null);

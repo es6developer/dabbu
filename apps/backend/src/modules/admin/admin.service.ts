@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
@@ -16,6 +17,8 @@ import { NotificationService } from '../notification/notification.service';
 import { FeaturesService } from '../features/features.service';
 import {
   AdminLoginDto,
+  AdminLoginMfaDto,
+  MfaVerifyDto,
   AdminCreateDto,
   ListUsersQueryDto,
   UpdateUserStatusDto,
@@ -47,7 +50,7 @@ export class AdminService {
     private readonly emailService: EmailService,
   ) {}
 
-  async login(dto: AdminLoginDto): Promise<{ accessToken: string; admin: any }> {
+  async login(dto: AdminLoginDto): Promise<{ accessToken?: string; admin?: any; mfaRequired?: boolean; mfaToken?: string }> {
     const admin = await this.prisma.adminUser.findUnique({
       where: { email: dto.email },
     });
@@ -63,6 +66,19 @@ export class AdminService {
     const isPasswordValid = await bcrypt.compare(dto.password, admin.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (admin.mfaEnabled) {
+      const mfaToken = this.jwtService.sign(
+        { sub: admin.id, email: admin.email, step: 'mfa' },
+        {
+          secret: this.configService.get<string>('jwt.secret'),
+          expiresIn: '5m',
+          issuer: this.configService.get<string>('jwt.issuer') || 'dabbu',
+          audience: 'dabbu-admins',
+        },
+      );
+      return { mfaRequired: true, mfaToken };
     }
 
     await this.prisma.adminUser.update({
@@ -91,6 +107,244 @@ export class AdminService {
 
     const { password, ...adminWithoutPassword } = admin;
     return { accessToken, admin: adminWithoutPassword };
+  }
+
+  async loginWithMfa(dto: AdminLoginMfaDto): Promise<{ accessToken: string; admin: any }> {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!admin) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!admin.isActive) {
+      throw new UnauthorizedException('Admin account is deactivated');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, admin.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!admin.mfaEnabled || !admin.mfaSecret) {
+      throw new UnauthorizedException('MFA is not enabled for this account');
+    }
+
+    const isValid = this.verifyTotpCode(admin.mfaSecret, dto.totpCode);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    await this.prisma.adminUser.update({
+      where: { id: admin.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    await this.createAuditLog({
+      adminId: admin.id,
+      action: 'login',
+      entity: 'admin_user',
+      entityId: admin.id,
+      description: 'Admin logged in with MFA',
+      ipAddress: null,
+    });
+
+    const accessToken = this.jwtService.sign(
+      { sub: admin.id, email: admin.email, role: admin.role },
+      {
+        secret: this.configService.get<string>('jwt.secret'),
+        expiresIn: this.configService.get<string>('jwt.adminExpiresIn') || '8h',
+        issuer: this.configService.get<string>('jwt.issuer') || 'dabbu',
+        audience: 'dabbu-admins',
+      },
+    );
+
+    const { password, mfaSecret, ...adminWithoutPassword } = admin;
+    return { accessToken, admin: adminWithoutPassword };
+  }
+
+  async getMfaStatus(adminId: string): Promise<{ required: boolean; verified: boolean; email: string }> {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { email: true, mfaEnabled: true, mfaVerified: true },
+    });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    return { required: admin.mfaEnabled, verified: admin.mfaVerified, email: admin.email };
+  }
+
+  async setupMfa(adminId: string): Promise<{ secret: string; qrCodeUrl: string }> {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { email: true, mfaEnabled: true, mfaVerified: true },
+    });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    if (admin.mfaEnabled && admin.mfaVerified) {
+      throw new BadRequestException('MFA is already enabled and verified');
+    }
+
+    const secret = this.generateTotpSecret();
+    const qrCodeUrl = this.buildOtpauthUrl(secret, admin.email);
+
+    await this.prisma.adminUser.update({
+      where: { id: adminId },
+      data: { mfaSecret: secret, mfaEnabled: false, mfaVerified: false },
+    });
+
+    return { secret, qrCodeUrl };
+  }
+
+  async verifyMfaSetup(adminId: string, dto: MfaVerifyDto): Promise<{ verified: boolean }> {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { mfaSecret: true, mfaVerified: true },
+    });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    if (admin.mfaVerified) {
+      throw new BadRequestException('MFA is already verified');
+    }
+    if (!admin.mfaSecret) {
+      throw new BadRequestException('MFA has not been set up yet. Call setup first.');
+    }
+
+    const isValid = this.verifyTotpCode(admin.mfaSecret, dto.totpCode);
+    if (!isValid) {
+      throw new BadRequestException('Invalid MFA code. Please try again.');
+    }
+
+    await this.prisma.adminUser.update({
+      where: { id: adminId },
+      data: { mfaEnabled: true, mfaVerified: true },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'admin_user',
+      entityId: adminId,
+      description: 'Enabled MFA',
+      ipAddress: null,
+    });
+
+    return { verified: true };
+  }
+
+  async disableMfa(adminId: string): Promise<{ message: string }> {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+      select: { mfaEnabled: true },
+    });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    if (!admin.mfaEnabled) {
+      throw new BadRequestException('MFA is not enabled');
+    }
+
+    await this.prisma.adminUser.update({
+      where: { id: adminId },
+      data: { mfaSecret: null, mfaEnabled: false, mfaVerified: false },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'admin_user',
+      entityId: adminId,
+      description: 'Disabled MFA',
+      ipAddress: null,
+    });
+
+    return { message: 'MFA disabled successfully' };
+  }
+
+  // ─── TOTP Helpers ────────────────────────────────────────
+
+  private generateTotpSecret(): string {
+    const bytes = crypto.randomBytes(20);
+    return this.base32Encode(bytes);
+  }
+
+  private buildOtpauthUrl(secret: string, email: string): string {
+    const issuer = encodeURIComponent('Dabbu');
+    const label = encodeURIComponent(`Dabbu:${email}`);
+    return `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+  }
+
+  private verifyTotpCode(secret: string, code: string): boolean {
+    const now = Math.floor(Date.now() / 1000);
+    for (let i = -1; i <= 1; i++) {
+      const expected = this.generateTotp(secret, now + i * 30);
+      if (expected === code) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private generateTotp(secret: string, timeSeconds: number): string {
+    const key = this.base32Decode(secret);
+    let timeStep = Math.floor(timeSeconds / 30);
+    const counter = Buffer.alloc(8);
+    for (let i = 7; i >= 0; i--) {
+      counter[i] = timeStep & 0xff;
+      timeStep >>>= 8;
+    }
+    const hmac = crypto.createHmac('sha1', key).update(counter).digest();
+    const offset = hmac[hmac.length - 1] & 0xf;
+    const binary =
+      ((hmac[offset] & 0x7f) << 24) |
+      ((hmac[offset + 1] & 0xff) << 16) |
+      ((hmac[offset + 2] & 0xff) << 8) |
+      (hmac[offset + 3] & 0xff);
+    return String(binary % 1000000).padStart(6, '0');
+  }
+
+  private base32Encode(buffer: Buffer): string {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = 0;
+    let value = 0;
+    let output = '';
+    for (let i = 0; i < buffer.length; i++) {
+      value = (value << 8) | buffer[i];
+      bits += 8;
+      while (bits >= 5) {
+        bits -= 5;
+        output += alphabet[(value >> bits) & 0x1f];
+      }
+    }
+    if (bits > 0) {
+      output += alphabet[(value << (5 - bits)) & 0x1f];
+    }
+    while (output.length % 8 !== 0) {
+      output += '=';
+    }
+    return output;
+  }
+
+  private base32Decode(str: string): Buffer {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const cleaned = str.replace(/=+$/, '').toUpperCase();
+    let bits = 0;
+    let value = 0;
+    const bytes: number[] = [];
+    for (let i = 0; i < cleaned.length; i++) {
+      const idx = alphabet.indexOf(cleaned[i]);
+      if (idx === -1) continue;
+      value = (value << 5) | idx;
+      bits += 5;
+      if (bits >= 8) {
+        bits -= 8;
+        bytes.push((value >> bits) & 0xff);
+      }
+    }
+    return Buffer.from(bytes);
   }
 
   async createAdmin(dto: AdminCreateDto, createdByAdminId: string): Promise<any> {
@@ -1669,10 +1923,11 @@ export class AdminService {
       apiRequests24h,
     ] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
-      this.prisma.loginActivity.count({
+      this.prisma.loginActivity.findMany({
         where: { createdAt: { gte: last7d }, action: 'login_success' },
+        select: { userId: true },
         distinct: ['userId'],
-      }),
+      }).then(r => r.length),
       this.prisma.subscription.count(),
       this.prisma.subscription.count({ where: { status: 'active' } }),
       this.prisma.paymentTransaction.aggregate({

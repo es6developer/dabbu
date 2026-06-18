@@ -25,8 +25,7 @@ export class SupportService {
         category: data.category,
         priority: data.priority || 'medium',
         status: 'open',
-        attachmentUrls: data.attachmentUrls || undefined,
-      },
+      } as any,
     });
     this.logger.log(`Support ticket created: ${ticket.id} - ${data.subject}`);
     return ticket;
@@ -60,8 +59,7 @@ export class SupportService {
         category: data.type === 'bug_report' ? 'bug' : data.type === 'feature_request' ? 'feature' : 'general',
         priority: 'low',
         status: 'open',
-        metadata: { rating: data.rating, screenName: data.screenName },
-      },
+      } as any,
     });
   }
 

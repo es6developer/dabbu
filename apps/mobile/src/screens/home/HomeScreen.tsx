@@ -130,7 +130,7 @@ const INSIGHT_ICONS: Record<string, string> = {
   Subscriptions: 'creditcard',
   Loans: 'caretdown',
   'Active Goals': 'flag',
-  'Upcoming Bills': 'receipt',
+  'Upcoming Bills': 'filetext1',
   'Budget Health': 'pie-chart',
 };
 
@@ -142,8 +142,8 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Wallet', screen: 'CategorySelection' },
-  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Wallet', screen: 'CategorySelection', params: { type: 'arrowdown' } },
+  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Wallet', screen: 'AddExpense', params: { type: 'expense' } },
+  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Wallet', screen: 'AddExpense', params: { type: 'income' } },
   { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Home', screen: 'NetWorth' },
   { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Home', screen: 'GoalsList' },
 ];
@@ -296,7 +296,7 @@ export function HomeScreen() {
   const hasData = totalBalance !== null && totalBalance > 0 && monthlyIncome > 0;
   const sampleGoals = (!hasData || goals.length === 0) ? [
     { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'checkcircle', targetDate: null },
-    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'planner', targetDate: null },
+    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'earth', targetDate: null },
   ] : [];
   const demoGoals = goals.length > 0 ? goals : sampleGoals;
   const sampleTxns: any[] = (!hasData || recentTxns.length === 0) ? [
@@ -1255,7 +1255,7 @@ export function HomeScreen() {
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Spaces
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Family', { screen: 'FamilyHome' })}>
+              <TouchableOpacity onPress={() => navigation.navigate('FamilyHub', { screen: 'FamilyHome' })}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -1377,7 +1377,7 @@ export function HomeScreen() {
                     key={r.id || i}
                     activeOpacity={0.7}
                     onPress={() =>
-                      navigation.navigate('Reminders', {
+                      navigation.navigate('FamilyHub', {
                         screen: 'ReminderDetail',
                         params: { id: r.id },
                       })
@@ -1432,7 +1432,7 @@ export function HomeScreen() {
               })}
               {reminders.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Reminders')}
+                  onPress={() => navigation.navigate('FamilyHub')}
                   style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>View All</Text>

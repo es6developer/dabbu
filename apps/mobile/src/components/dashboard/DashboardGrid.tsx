@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { spacing } from '../../theme/design';
+
 import { api } from '../../services/api';
 import { WidgetWrapper } from './WidgetWrapper';
 import { WidgetType, PERSONAL_WIDGETS, COUPLE_WIDGETS, FAMILY_WIDGETS } from './WidgetRegistry';
@@ -26,9 +26,6 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
 
   const [widgetOrder, setWidgetOrder] = useState<WidgetType[]>(() => {
     if (dashboardLayout && dashboardLayout.length > 0) return dashboardLayout;
-    const orderKey = mode === 'family' ? 'familyWidgetOrder' : mode === 'couple' ? 'coupleWidgetOrder' : 'widgetOrder';
-    const saved = data?.widgetOrder?.[orderKey];
-    if (saved && Array.isArray(saved) && saved.length > 0) return saved;
     if (mode === 'family') return [...FAMILY_WIDGETS];
     if (mode === 'couple') return [...COUPLE_WIDGETS];
     return [...PERSONAL_WIDGETS];
@@ -43,11 +40,11 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaving(true);
     saveTimerRef.current = setTimeout(() => {
-      api.put('/user/preferences/dashboard', { layout: order }).catch(() => {}).finally(() => {
+      api.post(`/dashboard/widgets/reorder?scope=${mode}`, { widgetTypes: order }).catch(() => {}).finally(() => {
         setSaving(false);
       });
     }, 500);
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     return () => {

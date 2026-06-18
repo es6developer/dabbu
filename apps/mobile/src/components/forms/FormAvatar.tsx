@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { getAvatarByIndex } from '../../assets/avatars';
 
 interface FormAvatarProps {
   uri?: string | null;
@@ -17,6 +19,10 @@ export function FormAvatar({ uri, name, size = 80, onPress, editable }: FormAvat
     ? name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
+  const isLocal = !!uri && uri.startsWith('local:');
+  const localIndex = isLocal ? parseInt(uri!.replace('local:', ''), 10) : -1;
+  const localSvg = isLocal ? getAvatarByIndex(localIndex) : null;
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -30,7 +36,9 @@ export function FormAvatar({ uri, name, size = 80, onPress, editable }: FormAvat
           { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
         ]}
       >
-        {uri ? (
+        {localSvg ? (
+          <SvgXml xml={localSvg} width={size} height={size} preserveAspectRatio="xMidYMid slice" />
+        ) : uri && !isLocal ? (
           <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
         ) : (
           <Text style={[styles.initials, { color: colors.text.secondary, fontSize: size * 0.35 }]}>

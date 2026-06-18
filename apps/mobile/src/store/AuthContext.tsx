@@ -73,7 +73,6 @@ interface AuthState {
   accessToken: string | null;
   isNewUser: boolean;
   needsPhone: boolean;
-  isPremium: boolean | null;
 }
 
 interface CoupleRequestItem {
@@ -182,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken: null,
     isNewUser: false,
     needsPhone: false,
-    isPremium: null,
   });
 
   const tokenRefreshInFlight = useRef<Promise<boolean> | null>(null);
@@ -256,7 +254,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: null,
       isNewUser: false,
       needsPhone: false,
-      isPremium: null,
     });
   }, [clearAuth_, clearSessionTimeout]);
 
@@ -337,7 +334,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: null,
           isNewUser: false,
           needsPhone: false,
-          isPremium: null,
         });
       });
     });
@@ -372,7 +368,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: token,
           isNewUser: false,
           needsPhone: false,
-          isPremium: null,
         });
         resetSessionTimeout();
         refreshPremiumStatus();
@@ -398,7 +393,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: token,
       isNewUser: wasNewUser,
       needsPhone: user ? !user.phone : false,
-      isPremium: null,
     });
     resetSessionTimeout();
     refreshPremiumStatus();
@@ -652,17 +646,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshPremiumStatus = useCallback(async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        setState((prev) => ({ ...prev, isPremium: false }));
-        return;
-      }
-      const res = await api.get<any>('/premium/entitlements');
-      setState((prev) => ({ ...prev, isPremium: !!res?.isPremium }));
-    } catch {
-      setState((prev) => ({ ...prev, isPremium: false }));
-    }
+    // Premium state is now managed by PremiumContext - this is kept for
+    // backward compatibility with callers that trigger a refresh on navigation
   }, []);
 
   const sendCoupleRequest = useCallback(async (phone: string) => {

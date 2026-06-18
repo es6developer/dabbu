@@ -25,7 +25,7 @@ const PRIORITIES = [
 
 const TASK_CATEGORIES = [
   { label: 'General', value: 'General', icon: 'appstore-o' },
-  { label: 'Grocery', value: 'Grocery', icon: 'basket' },
+  { label: 'Grocery', value: 'Grocery', icon: 'shoppingcart' },
   { label: 'Shopping', value: 'Shopping', icon: 'shoppingcart' },
   { label: 'Custom', value: 'Custom', icon: 'tag' },
 ];

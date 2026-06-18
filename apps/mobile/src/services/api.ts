@@ -257,6 +257,7 @@ const CACHE_TTL: Record<string, number> = {
   '/notifications': 120_000,
   '/notifications/unread-count': 120_000,
   '/user/preferences': 600_000,
+  '/search': 60_000,
   '/reminders': 300_000,
   '/reminders/upcoming': 300_000,
   '/goals': 300_000,

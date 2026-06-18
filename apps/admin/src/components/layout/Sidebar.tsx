@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, hasRole } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +20,9 @@ import {
   Shield,
   Home,
   FileText,
+  Activity,
+  Tag,
+  TrendingUp,
 } from 'lucide-react';
 
 interface NavItem {
@@ -28,20 +31,23 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const navItems: NavItem[] = [
+const allNavItems: (NavItem & { minRole?: string })[] = [
   { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { label: 'Users', href: '/users', icon: <Users size={20} /> },
   { label: 'Families', href: '/families', icon: <Home size={20} /> },
   { label: 'Subscriptions', href: '/subscriptions', icon: <CreditCard size={20} /> },
   { label: 'Plans', href: '/plans', icon: <Package size={20} /> },
   { label: 'Revenue', href: '/revenue', icon: <BarChart3 size={20} /> },
+  { label: 'Conversion', href: '/conversion', icon: <TrendingUp size={20} /> },
   { label: 'Churn', href: '/churn', icon: <TrendingDown size={20} /> },
-  { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={20} /> },
-  { label: 'Notifications', href: '/notifications', icon: <Bell size={20} /> },
+  { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={20} />, minRole: 'admin' },
+  { label: 'System Health', href: '/system-health', icon: <Activity size={20} /> },
+  { label: 'Notifications', href: '/notifications', icon: <Bell size={20} />, minRole: 'admin' },
   { label: 'Support', href: '/support', icon: <LifeBuoy size={20} /> },
-  { label: 'Admins', href: '/admins', icon: <Shield size={20} /> },
+  { label: 'Coupons', href: '/coupons', icon: <Tag size={20} />, minRole: 'admin' },
+  { label: 'Admins', href: '/admins', icon: <Shield size={20} />, minRole: 'super_admin' },
   { label: 'Logs', href: '/logs', icon: <FileText size={20} /> },
-  { label: 'Settings', href: '/settings', icon: <Settings size={20} /> },
+  { label: 'Settings', href: '/settings', icon: <Settings size={20} />, minRole: 'admin' },
 ];
 
 export function Sidebar() {
@@ -49,8 +55,12 @@ export function Sidebar() {
   const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(false);
 
-  function handleSignOut() {
+  async function handleSignOut() {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     router.push('/login');
   }
 
@@ -70,7 +80,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+          {allNavItems.filter(item => !item.minRole || hasRole(item.minRole as any)).map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link

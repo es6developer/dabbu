@@ -81,6 +81,8 @@ export function CoupleSpaceScreen() {
     };
   }, []);
 
+  const [aiIntelligence, setAiIntelligence] = useState<any>(null);
+
   const fetchDashboard = useCallback(async (isRefresh = false) => {
     if (!accessToken) return;
     setAccessToken(accessToken);
@@ -100,8 +102,14 @@ export function CoupleSpaceScreen() {
         groupId = coupleGroup.id;
         groupIdRef.current = groupId;
       }
-      const dashboard: any = await api.get(`/shared-finance/groups/${groupId!}/couple/dashboard`, undefined, 10000);
-      if (mountedRef.current) setData(buildData(dashboard, groupId!));
+      const [dashboard, aiData] = await Promise.all([
+        api.get(`/shared-finance/groups/${groupId!}/couple/dashboard`, undefined, 10000),
+        api.get(`/ai/couple/intelligence?groupId=${groupId!}`).catch(() => null),
+      ]);
+      if (mountedRef.current) {
+        setData(buildData(dashboard, groupId!));
+        setAiIntelligence((aiData as any)?.data || aiData);
+      }
     } catch (e: any) {
       if (mountedRef.current) setError(e?.message || 'Failed to load couple data');
     } finally {
@@ -292,6 +300,47 @@ export function CoupleSpaceScreen() {
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.warning }}>{fmt(bill.amount)}</Text>
               </View>
             ))}
+          </View>
+        )}
+
+        {/* AI Couple Intelligence */}
+        {aiIntelligence && (
+          <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <AntDesign name="bulb1" size={18} color="#FBBF24" />
+              <Text style={[styles.cardTitle, { color: colors.text.primary }]}>AI Couple Intelligence</Text>
+            </View>
+            {aiIntelligence.compatibilityScore != null && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                <View style={[styles.statBox, { backgroundColor: colors.bg.tertiary, flex: 0 }]}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Compatibility</Text>
+                  <Text style={{ fontSize: 22, fontWeight: '800', color: aiIntelligence.compatibilityScore >= 70 ? colors.status.success : colors.status.warning, marginTop: 2 }}>
+                    {aiIntelligence.compatibilityScore}%
+                  </Text>
+                </View>
+                <View style={{ flex: 1, gap: 4 }}>
+                  {aiIntelligence.sharedGoals != null && (
+                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>🎯 {aiIntelligence.sharedGoals} shared goals</Text>
+                  )}
+                  {aiIntelligence.fairnessScore != null && (
+                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>⚖️ Spending fairness: {aiIntelligence.fairnessScore}%</Text>
+                  )}
+                  {aiIntelligence.savingsRate != null && (
+                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>💾 Combined savings rate: {aiIntelligence.savingsRate}%</Text>
+                  )}
+                </View>
+              </View>
+            )}
+            {aiIntelligence.insight && (
+              <View style={{ marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: colors.bg.tertiary }}>
+                <Text style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 18 }}>{aiIntelligence.insight}</Text>
+              </View>
+            )}
+            {aiIntelligence.personalityMatch && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Personality: {aiIntelligence.personalityMatch}</Text>
+              </View>
+            )}
           </View>
         )}
 

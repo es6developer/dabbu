@@ -12,6 +12,9 @@ import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 import { BiometricSetupScreen } from '../screens/auth/BiometricSetupScreen';
 import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
+import { PremiumAuthScreen } from '../screens/auth/PremiumAuthScreen';
+import { OtpVerificationScreen } from '../screens/auth/OtpVerificationScreen';
+import { PinSetupScreen } from '../screens/auth/PinSetupScreen';
 
 export type AuthStackParamList = {
   Onboarding: { referralCode?: string } | undefined;
@@ -22,6 +25,9 @@ export type AuthStackParamList = {
   OtpVerification: { email: string; purpose: 'email_verification' | 'password_reset' | 'login' };
   BiometricSetup: undefined;
   Privacy: undefined;
+  PremiumAuth: undefined;
+  OtpVerificationLegacy: { email: string; purpose: string };
+  PinSetup: { onComplete?: () => void } | undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -57,6 +63,9 @@ export function AuthNavigator(): React.ReactElement | null {
       <Stack.Screen name="OtpVerification" component={PremiumOtpScreen} />
       <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
       <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="PremiumAuth" component={PremiumAuthScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="OtpVerificationLegacy" component={OtpVerificationScreen} />
+      <Stack.Screen name="PinSetup" component={PinSetupScreen} />
     </Stack.Navigator>
   );
 }

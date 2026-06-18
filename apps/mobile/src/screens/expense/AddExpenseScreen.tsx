@@ -14,12 +14,12 @@ import {
 } from '../../components/forms';
 
 const CATEGORIES = [
-  { name: 'Food', icon: 'fast-food', color: '#F97316' },
-  { name: 'Travel', icon: 'planner', color: '#3B82F6' },
-  { name: 'Bills', icon: 'receipt', color: '#14B8A6' },
+  { name: 'Food', icon: 'rest', color: '#F97316' },
+  { name: 'Travel', icon: 'earth', color: '#3B82F6' },
+  { name: 'Bills', icon: 'filetext1', color: '#14B8A6' },
   { name: 'Shopping', icon: 'shoppingcart', color: '#EC4899' },
-  { name: 'Groceries', icon: 'basket', color: '#22C55E' },
-  { name: 'Entertainment', icon: 'film', color: '#8B5CF6' },
+  { name: 'Groceries', icon: 'shoppingcart', color: '#22C55E' },
+  { name: 'Entertainment', icon: 'playcircleo', color: '#8B5CF6' },
   { name: 'Sports', icon: 'football', color: '#F59E0B' },
   { name: 'Other', icon: 'ellipsis1', color: '#6B7280' },
 ];
@@ -69,8 +69,8 @@ export function AddExpenseScreen() {
         label="Amount"
         value={amount}
         onChangeText={setAmount}
-        type={type}
-        onTypeChange={setType}
+        type={type as any}
+        onTypeChange={setType as any}
         quickAmounts={QUICK_AMOUNTS}
         autoFocus
       />

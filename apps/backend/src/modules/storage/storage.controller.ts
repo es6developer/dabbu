@@ -1,9 +1,9 @@
 import {
-  Controller, Post, Delete, Param, UseGuards, UseInterceptors,
+  Controller, Get, Post, Delete, Param, Query, Req, UseGuards, UseInterceptors,
   UploadedFile, BadRequestException, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { StorageService } from './storage.service';
@@ -17,6 +17,7 @@ export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post('upload')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -26,7 +27,7 @@ export class StorageController {
   @ApiOperation({ summary: 'Upload a file to cloud storage' })
   async upload(
     @CurrentUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
   ) {
     if (!file) throw new BadRequestException('File required');
     return this.storageService.upload(file, `users/${userId}`, {
@@ -36,6 +37,7 @@ export class StorageController {
   }
 
   @Post('upload/receipt')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -45,7 +47,7 @@ export class StorageController {
   @ApiOperation({ summary: 'Upload a receipt' })
   async uploadReceipt(
     @CurrentUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
   ) {
     if (!file) throw new BadRequestException('File required');
     return this.storageService.upload(file, `users/${userId}/receipts`, {
@@ -56,6 +58,7 @@ export class StorageController {
   }
 
   @Post('upload/avatar')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -65,7 +68,7 @@ export class StorageController {
   @ApiOperation({ summary: 'Upload profile avatar' })
   async uploadAvatar(
     @CurrentUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
   ) {
     if (!file) throw new BadRequestException('File required');
     const result = await this.storageService.upload(file, `users/${userId}/avatar`, {
@@ -77,6 +80,7 @@ export class StorageController {
   }
 
   @Post('upload/document')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -86,13 +90,31 @@ export class StorageController {
   @ApiOperation({ summary: 'Upload a document to vault' })
   async uploadDocument(
     @CurrentUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
   ) {
     if (!file) throw new BadRequestException('File required');
     return this.storageService.upload(file, `users/${userId}/documents`, {
       optimize: file.mimetype.startsWith('image/'),
       generateThumbnail: file.mimetype.startsWith('image/'),
     });
+  }
+
+  @Get('usage')
+  @ApiOperation({ summary: 'Get storage usage for the current user' })
+  async getUsage(@CurrentUser('id') userId: string) {
+    return this.storageService.getStorageUsage(userId);
+  }
+
+  @Get('presigned-url')
+  @ApiOperation({ summary: 'Generate a presigned URL for S3/R2 file access' })
+  @ApiQuery({ name: 'key', required: true })
+  @ApiQuery({ name: 'expiresIn', required: false })
+  async getPresignedUrl(
+    @Query('key') key: string,
+    @Query('expiresIn') expiresIn?: string,
+  ) {
+    const url = await this.storageService.getPresignedUrl(key, expiresIn ? parseInt(expiresIn) : undefined);
+    return { data: { url } };
   }
 
   @Delete(':path')

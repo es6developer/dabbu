@@ -14,7 +14,7 @@ const STREAK_ICONS: Record<string, { icon: string; color: string; label: string 
   financial: { icon: 'wallet', color: '#8b5cf6', label: 'Financial Activity' },
   savings: { icon: 'piggy-bank', color: '#ec4899', label: 'Savings Streak' },
   goal_progress: { icon: 'flag', color: '#14b8a6', label: 'Goal Progress' },
-  bill_payment: { icon: 'receipt', color: '#eab308', label: 'Bill Payment' },
+  bill_payment: { icon: 'filetext1', color: '#eab308', label: 'Bill Payment' },
 };
 
 function getStreakEmoji(count: number): string {
@@ -51,15 +51,15 @@ export function StreaksScreen() {
   const fetchData = useCallback(async () => {
     try {
       const [streaksRes, engRes] = await Promise.all([
-        api.get('/retention/streaks'),
-        api.get('/retention/engagement'),
+        api.get<any>('/retention/streaks'),
+        api.get<any>('/retention/engagement'),
       ]);
       setStreaks(streaksRes.data || []);
       setEngagement(engRes.data || null);
 
       const currentYear = new Date().getFullYear();
       try {
-        const yrRes = await api.get(`/retention/yearly-summary/${currentYear}`);
+        const yrRes: any = await api.get(`/retention/yearly-summary/${currentYear}`);
         setYearlySummary(yrRes.data || null);
       } catch {
         setYearlySummary(null);

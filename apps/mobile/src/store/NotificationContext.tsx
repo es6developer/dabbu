@@ -33,13 +33,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     clearInAppNotification,
     fetchUnreadCount,
     handleNotificationData,
+    showInAppNotification,
   } = useNotifications();
 
   const handleBannerPress = useCallback(() => {
     if (inAppNotification?.data) {
       handleNotificationData(inAppNotification.data as any);
     } else {
-      navigation.navigate('Home', { screen: 'NotificationCenter' });
+      navigation.navigate('Dashboard', { screen: 'NotificationCenter' });
     }
   }, [inAppNotification, handleNotificationData, navigation]);
 
@@ -48,11 +49,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const socket = connectNotificationSocket(accessToken);
     socket.on('notification:new', (notification: any) => {
       fetchUnreadCount();
+      showInAppNotification(notification);
     });
     return () => {
       socket.off('notification:new');
     };
-  }, [accessToken, fetchUnreadCount]);
+  }, [accessToken, fetchUnreadCount, showInAppNotification]);
 
   useEffect(() => {
     return () => {

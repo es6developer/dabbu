@@ -1,232 +1,82 @@
 import { Injectable } from '@nestjs/common';
 
+export type PlanTier = 'FREE' | 'PREMIUM' | 'FAMILY';
+
 export interface EntitlementResult {
   allowed: boolean;
-  reason: string | null;
-  upgradePlan: string | null;
+  reason: 'UPGRADE_REQUIRED' | 'LIMIT_REACHED' | null;
+  upgradePlan: PlanTier | null;
 }
 
 export interface FeatureDef {
-  plans: string[];
+  tier: PlanTier;
   description: string;
-  icon?: string;
-  familyOnly?: boolean;
 }
-
-export type PlanTier = 'FREE' | 'PREMIUM' | 'FAMILY';
 
 @Injectable()
 export class EntitlementEngine {
   private readonly FEATURES: Record<string, FeatureDef> = {
-    personal_dashboard: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Personal Dashboard',
-    },
-    manual_expense: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Manual Expense Tracking',
-    },
-    manual_income: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Manual Income Tracking',
-    },
-    basic_categories: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Basic Categories',
-    },
-    basic_reports: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Basic Reports',
-    },
-    basic_goals: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Basic Goals',
-    },
-    basic_budget: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Basic Budget',
-    },
-    basic_ai: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Basic AI Insights',
-    },
-    upi_settlements: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'UPI Settlements',
-    },
-    couple_invite: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Couple Invitation',
-    },
-    couple_dashboard: {
-      plans: ['FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Couple Dashboard',
-    },
+    personal_dashboard: { tier: 'FREE', description: 'Personal Dashboard' },
+    manual_expense: { tier: 'FREE', description: 'Manual Expense Tracking' },
+    manual_income: { tier: 'FREE', description: 'Manual Income Tracking' },
+    basic_categories: { tier: 'FREE', description: 'Basic Categories' },
+    basic_reports: { tier: 'FREE', description: 'Basic Reports' },
+    basic_goals: { tier: 'FREE', description: 'Basic Goals' },
+    basic_budget: { tier: 'FREE', description: 'Basic Budget' },
+    basic_ai_insights: { tier: 'FREE', description: 'Basic AI Insights' },
+    upi_settlements: { tier: 'FREE', description: 'UPI Settlements' },
+    couple_invite: { tier: 'FREE', description: 'Couple Invitation' },
+    couple_dashboard: { tier: 'FREE', description: 'Couple Dashboard' },
 
-    net_worth: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Net Worth Tracking',
-      icon: 'Trophy',
-    },
-    health_score: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Financial Health Score',
-      icon: 'heart',
-    },
-    ai_coach: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'AI Financial Coach',
-      icon: 'bulb1',
-    },
-    advanced_ai: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Advanced AI Insights',
-      icon: 'linechart',
-    },
-    advanced_reports: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Advanced Reports',
-      icon: 'linechart',
-    },
-    export_pdf: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Export Reports as PDF',
-      icon: 'download',
-    },
-    export_excel: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Export Reports as Excel',
-      icon: 'table',
-    },
-    custom_categories: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Custom Categories',
-      icon: 'appstore-o',
-    },
-    investment_tracker: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Investment Tracker',
-      icon: 'linechart',
-    },
-    bill_prediction: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Bill Prediction',
-      icon: 'bells',
-    },
-    emergency_fund: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Emergency Fund Tracker',
-      icon: 'Safety',
-    },
-    document_vault: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Document Vault',
-      icon: 'folder1',
-    },
-    priority_support: {
-      plans: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Priority Support',
-      icon: 'customerservice',
-    },
+    unlimited_transactions: { tier: 'PREMIUM', description: 'Unlimited Transactions' },
+    unlimited_goals: { tier: 'PREMIUM', description: 'Unlimited Goals' },
+    unlimited_budgets: { tier: 'PREMIUM', description: 'Unlimited Budgets' },
+    unlimited_history: { tier: 'PREMIUM', description: 'Unlimited History' },
+    advanced_reports: { tier: 'PREMIUM', description: 'Advanced Reports' },
+    export_pdf: { tier: 'PREMIUM', description: 'PDF Export' },
+    export_excel: { tier: 'PREMIUM', description: 'Excel Export' },
+    net_worth: { tier: 'PREMIUM', description: 'Net Worth' },
+    health_score: { tier: 'PREMIUM', description: 'Financial Health Score' },
+    advanced_ai_insights: { tier: 'PREMIUM', description: 'Advanced AI Insights' },
+    ai_coach: { tier: 'PREMIUM', description: 'AI Coach' },
+    custom_categories: { tier: 'PREMIUM', description: 'Custom Categories' },
+    investment_tracker: { tier: 'PREMIUM', description: 'Investment Tracker' },
+    bill_prediction: { tier: 'PREMIUM', description: 'Bill Prediction' },
+    emergency_fund_tracker: { tier: 'PREMIUM', description: 'Emergency Fund Tracker' },
+    document_vault: { tier: 'PREMIUM', description: 'Document Vault' },
+    priority_support: { tier: 'PREMIUM', description: 'Priority Support' },
 
-    family_space: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Space',
-      icon: 'team',
-      familyOnly: true,
-    },
-    family_dashboard: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Dashboard',
-      icon: 'team',
-      familyOnly: true,
-    },
-    family_goals: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Goals',
-      icon: 'flag',
-      familyOnly: true,
-    },
-    family_wealth: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Wealth Dashboard',
-      icon: 'linechart',
-      familyOnly: true,
-    },
-    family_contributions: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Contributions',
-      icon: 'arrowup',
-      familyOnly: true,
-    },
-    family_calendar: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Calendar',
-      icon: 'calendar',
-      familyOnly: true,
-    },
-    family_bills: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Bills',
-      icon: 'bells',
-      familyOnly: true,
-    },
-    family_investments: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Investments',
-      icon: 'linechart',
-      familyOnly: true,
-    },
-    family_ai_advisor: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family AI Advisor',
-      icon: 'bulb1',
-      familyOnly: true,
-    },
-    family_reports: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Reports',
-      icon: 'linechart',
-      familyOnly: true,
-    },
-    family_health_score: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Family Health Score',
-      icon: 'heart',
-      familyOnly: true,
-    },
-    shared_vault: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Shared Document Vault',
-      icon: 'folder1',
-      familyOnly: true,
-    },
-    shared_documents: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Shared Documents',
-      icon: 'folder1',
-      familyOnly: true,
-    },
-    shared_ai: {
-      plans: ['FAMILY_MONTHLY', 'FAMILY_YEARLY'],
-      description: 'Shared AI',
-      icon: 'bulb1',
-      familyOnly: true,
-    },
+    family_dashboard: { tier: 'FAMILY', description: 'Family Dashboard' },
+    family_space: { tier: 'FAMILY', description: 'Family Space' },
+    family_goals: { tier: 'FAMILY', description: 'Family Goals' },
+    family_wealth: { tier: 'FAMILY', description: 'Family Wealth' },
+    family_contributions: { tier: 'FAMILY', description: 'Family Contributions' },
+    family_calendar: { tier: 'FAMILY', description: 'Family Calendar' },
+    family_bills: { tier: 'FAMILY', description: 'Family Bills' },
+    family_investments: { tier: 'FAMILY', description: 'Family Investments' },
+    family_ai_advisor: { tier: 'FAMILY', description: 'Family AI Advisor' },
+    family_reports: { tier: 'FAMILY', description: 'Family Reports' },
+    family_health_score: { tier: 'FAMILY', description: 'Family Health Score' },
+    shared_vault: { tier: 'FAMILY', description: 'Shared Vault' },
+    shared_documents: { tier: 'FAMILY', description: 'Shared Documents' },
+    shared_ai: { tier: 'FAMILY', description: 'Shared AI' },
+    up_to_6_members: { tier: 'FAMILY', description: 'Up To 6 Members' },
   };
 
-  private getPlanTier(planCode: string): PlanTier {
-    if (planCode === 'FAMILY_MONTHLY' || planCode === 'FAMILY_YEARLY') {
-      return 'FAMILY';
-    }
-    if (planCode === 'PREMIUM' || planCode === 'PREMIUM_MONTHLY' || planCode === 'PREMIUM_YEARLY') {
-      return 'PREMIUM';
-    }
+  private readonly HIERARCHY: Record<PlanTier, number> = {
+    FREE: 0,
+    PREMIUM: 1,
+    FAMILY: 2,
+  };
+
+  private getEffectiveTier(planCode: string): PlanTier {
+    if (planCode === 'FAMILY_MONTHLY' || planCode === 'FAMILY_YEARLY') return 'FAMILY';
+    if (planCode === 'PREMIUM' || planCode === 'PREMIUM_MONTHLY' || planCode === 'PREMIUM_YEARLY') return 'PREMIUM';
     return 'FREE';
   }
 
-  canAccess(planCode: string, featureKey: string): EntitlementResult {
-    return this.check(featureKey, planCode);
+  private getPlanCode(planCode: string): string {
+    return planCode;
   }
 
   check(featureKey: string, planCode: string = 'FREE'): EntitlementResult {
@@ -234,14 +84,17 @@ export class EntitlementEngine {
     if (!feature) {
       return { allowed: true, reason: null, upgradePlan: null };
     }
-    const allowed = feature.plans.some(
-      (p) =>
-        p === planCode || planCode.startsWith(p.replace('_MONTHLY', '').replace('_YEARLY', '')),
-    );
-    if (allowed) {
+
+    const tier = this.getEffectiveTier(planCode);
+    const requiredTier = feature.tier;
+    const tierValue = this.HIERARCHY[tier];
+    const requiredValue = this.HIERARCHY[requiredTier];
+
+    if (tierValue >= requiredValue) {
       return { allowed: true, reason: null, upgradePlan: null };
     }
-    if (feature.familyOnly) {
+
+    if (requiredTier === 'FAMILY') {
       return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: 'FAMILY' };
     }
     return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: 'PREMIUM' };
@@ -264,27 +117,15 @@ export class EntitlementEngine {
   }
 
   canUseAI(planCode: string = 'FREE'): EntitlementResult {
-    return this.check('advanced_ai', planCode);
+    return this.check('advanced_ai_insights', planCode);
   }
 
   canUseExports(planCode: string = 'FREE'): EntitlementResult {
-    const pdf = this.check('export_pdf', planCode);
-    if (!pdf.allowed) {
-      return pdf;
-    }
-    return { allowed: true, reason: null, upgradePlan: null };
+    return this.check('export_pdf', planCode);
   }
 
   canUseFamilyDashboard(planCode: string = 'FREE'): EntitlementResult {
     return this.check('family_dashboard', planCode);
-  }
-
-  canUseFamilyCalendar(planCode: string = 'FREE'): EntitlementResult {
-    return this.check('family_calendar', planCode);
-  }
-
-  canUseFamilyAI(planCode: string = 'FREE'): EntitlementResult {
-    return this.check('family_ai_advisor', planCode);
   }
 
   canUseInvestmentTracker(planCode: string = 'FREE'): EntitlementResult {
@@ -316,22 +157,31 @@ export class EntitlementEngine {
   }
 
   canUseEmergencyFund(planCode: string = 'FREE'): EntitlementResult {
-    return this.check('emergency_fund', planCode);
+    return this.check('emergency_fund_tracker', planCode);
   }
 
   canUsePrioritySupport(planCode: string = 'FREE'): EntitlementResult {
     return this.check('priority_support', planCode);
   }
 
+  canUseFamilyCalendar(planCode: string = 'FREE'): EntitlementResult {
+    return this.check('family_calendar', planCode);
+  }
+
+  canUseFamilyAI(planCode: string = 'FREE'): EntitlementResult {
+    return this.check('family_ai_advisor', planCode);
+  }
+
   getGrantedFeatures(planCode: string): string[] {
+    const tier = this.getEffectiveTier(planCode);
+    const tierValue = this.HIERARCHY[tier];
     return Object.entries(this.FEATURES)
-      .filter(([_, def]) =>
-        def.plans.some(
-          (p) =>
-            p === planCode || planCode.startsWith(p.replace('_MONTHLY', '').replace('_YEARLY', '')),
-        ),
-      )
+      .filter(([_, def]) => this.HIERARCHY[def.tier] <= tierValue)
       .map(([key]) => key);
+  }
+
+  getFeatureTier(featureKey: string): PlanTier | null {
+    return this.FEATURES[featureKey]?.tier ?? null;
   }
 
   getFeatureRegistry(): Record<string, FeatureDef> {
@@ -342,9 +192,9 @@ export class EntitlementEngine {
     const result: Record<string, { free: boolean; premium: boolean; family: boolean }> = {};
     for (const [key, def] of Object.entries(this.FEATURES)) {
       result[key] = {
-        free: def.plans.includes('FREE'),
-        premium: def.plans.some((p) => p === 'PREMIUM_MONTHLY' || p === 'PREMIUM_YEARLY'),
-        family: def.plans.some((p) => p === 'FAMILY_MONTHLY' || p === 'FAMILY_YEARLY'),
+        free: def.tier === 'FREE',
+        premium: def.tier === 'PREMIUM' || def.tier === 'FAMILY',
+        family: def.tier === 'FAMILY',
       };
     }
     return result;

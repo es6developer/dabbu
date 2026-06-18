@@ -31,6 +31,16 @@ interface NotificationData {
   [key: string]: any;
 }
 
+export interface InAppNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  data?: NotificationData;
+  timestamp: number;
+  read: boolean;
+}
+
 export function useNotifications() {
   const { accessToken, user } = useAuth();
   const navigation = useNavigation<any>();
@@ -38,6 +48,7 @@ export function useNotifications() {
     null,
   );
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inAppNotification, setInAppNotification] = useState<InAppNotification | null>(null);
   const notificationResponseListener = useRef<Notifications.Subscription | null>(null);
   const appState = useRef(AppState.currentState);
 
@@ -72,7 +83,7 @@ export function useNotifications() {
         case 'shared_finance':
         case 'group_expense':
           if (data.groupId) {
-            navigation.navigate('Spaces', {
+            navigation.navigate('FamilyHub', {
               screen: 'SharedGroupDetail',
               params: { groupId: data.groupId },
             });
@@ -88,7 +99,7 @@ export function useNotifications() {
           break;
         case 'settlement':
           if (data.groupId) {
-            navigation.navigate('Spaces', {
+            navigation.navigate('FamilyHub', {
               screen: 'Settlement',
               params: { groupId: data.groupId },
             });
@@ -97,7 +108,7 @@ export function useNotifications() {
         case 'reminder':
         case 'emi':
           if (data.reminderId) {
-            navigation.navigate('Dashboard', {
+            navigation.navigate('FamilyHub', {
               screen: 'ReminderDetail',
               params: { reminderId: data.reminderId },
             });
@@ -165,11 +176,33 @@ export function useNotifications() {
     return () => subscription.remove();
   }, [fetchUnreadCount]);
 
+  const clearInAppNotification = useCallback(() => {
+    setInAppNotification(null);
+  }, []);
+
+  const showInAppNotification = useCallback(
+    (notification: { id: string; title: string; message: string; type: string; data?: any }) => {
+      setInAppNotification({
+        id: notification.id,
+        title: notification.title,
+        body: notification.message || notification.body || '',
+        type: (notification.type as NotificationType) || 'system',
+        data: notification.data,
+        timestamp: Date.now(),
+        read: false,
+      });
+    },
+    [],
+  );
+
   return {
     permissionStatus,
     unreadCount,
+    inAppNotification,
     requestPermission,
     fetchUnreadCount,
     handleNotificationData,
+    clearInAppNotification,
+    showInAppNotification,
   };
 }

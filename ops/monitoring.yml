@@ -1,0 +1,37 @@
+monitoring:
+  sentry:
+    dsn: "${SENTRY_DSN}"
+    sample_rate: 0.5
+    traces_sample_rate: 0.2
+    profiles_sample_rate: 0.1
+
+  alerts:
+    - name: "High Error Rate"
+      condition: "error_rate > 5% for 5 minutes"
+      severity: critical
+      channels: [slack, email]
+    - name: "API Latency"
+      condition: "p95_latency > 500ms for 10 minutes"
+      severity: warning
+      channels: [slack]
+    - name: "Database Connections"
+      condition: "db_connections > 80 for 5 minutes"
+      severity: warning
+      channels: [slack]
+    - name: "Disk Usage"
+      condition: "disk_usage > 85%"
+      severity: critical
+      channels: [slack, email]
+
+  uptime:
+    provider: "uptimerobot"
+    monitors:
+      - url: "https://api.dabbu.app/health"
+        interval: 5
+        type: "https"
+      - url: "https://admin.dabbu.app"
+        interval: 5
+        type: "https"
+      - url: "https://dabbu.app"
+        interval: 5
+        type: "https"

@@ -5,6 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { usePremium } from '../../store/PremiumContext';
 
 interface UpgradeBannerProps {
   variant?: 'top' | 'inline';
@@ -15,7 +16,8 @@ export function UpgradeBanner({
   variant = 'top',
   message = 'Unlock unlimited groups, advanced analytics & more',
 }: UpgradeBannerProps) {
-  const { user, isPremium, refreshPremiumStatus } = useAuth();
+  const { user } = useAuth();
+  const { isPremium, refresh } = usePremium();
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(variant === 'top' ? -80 : 30)).current;
@@ -24,7 +26,7 @@ export function UpgradeBanner({
   useFocusEffect(
     useCallback(() => {
       if (user) {
-        refreshPremiumStatus();
+        refresh();
       }
     }, [user]),
   );

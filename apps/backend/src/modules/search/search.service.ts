@@ -4,7 +4,6 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
-  private recentSearches = new Map<string, { query: string; timestamp: Date }[]>();
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -28,7 +27,8 @@ export class SearchService {
     const results: any[] = [];
     let totalResults = 0;
 
-    const searchFilter = query;
+    const sanitized = query.replace(/[%_\\]/g, '\\$&');
+    const searchFilter = sanitized;
 
     if (!types || types.includes('transactions')) {
       const txnWhere: any = {
@@ -48,94 +48,98 @@ export class SearchService {
         if (options.amountMax !== undefined) txnWhere.amount.lte = options.amountMax;
       }
 
-      const txns = await this.prisma.transaction.findMany({
-        where: txnWhere,
-        orderBy: { date: 'desc' },
-        take: limit,
-        skip: offset,
-        include: { category: { select: { id: true, name: true, icon: true } } },
-      });
+      const [txns, total] = await Promise.all([
+        this.prisma.transaction.findMany({
+          where: txnWhere,
+          orderBy: { date: 'desc' },
+          take: limit,
+          skip: offset,
+          include: { category: { select: { id: true, name: true, icon: true } } },
+        }),
+        this.prisma.transaction.count({ where: txnWhere }),
+      ]);
       results.push(...txns.map(t => ({ ...t, _type: 'transaction' })));
-      totalResults += txns.length;
+      totalResults += total;
     }
 
     if (!types || types.includes('goals')) {
-      const goals = await this.prisma.goal.findMany({
-        where: {
-          userId,
-          deletedAt: null,
-          OR: [
-            { name: { contains: searchFilter, mode: 'insensitive' } },
-            { notes: { contains: searchFilter, mode: 'insensitive' } },
-          ],
-        },
-        take: limit,
-        skip: offset,
-      });
+      const goalsWhere: any = {
+        userId,
+        deletedAt: null,
+        OR: [
+          { name: { contains: searchFilter, mode: 'insensitive' } },
+          { notes: { contains: searchFilter, mode: 'insensitive' } },
+        ],
+      };
+      const [goals, total] = await Promise.all([
+        this.prisma.goal.findMany({ where: goalsWhere, take: limit, skip: offset }),
+        this.prisma.goal.count({ where: goalsWhere }),
+      ]);
       results.push(...goals.map(g => ({ ...g, _type: 'goal' })));
-      totalResults += goals.length;
+      totalResults += total;
     }
 
     if (!types || types.includes('bills')) {
-      const bills = await this.prisma.bill.findMany({
-        where: {
-          userId,
-          deletedAt: null,
-          OR: [
-            { name: { contains: searchFilter, mode: 'insensitive' } },
-            { notes: { contains: searchFilter, mode: 'insensitive' } },
-            { payee: { contains: searchFilter, mode: 'insensitive' } },
-          ],
-        },
-        take: limit,
-        skip: offset,
-      });
+      const billsWhere: any = {
+        userId,
+        deletedAt: null,
+        OR: [
+          { name: { contains: searchFilter, mode: 'insensitive' } },
+          { notes: { contains: searchFilter, mode: 'insensitive' } },
+          { payee: { contains: searchFilter, mode: 'insensitive' } },
+        ],
+      };
+      const [bills, total] = await Promise.all([
+        this.prisma.bill.findMany({ where: billsWhere, take: limit, skip: offset }),
+        this.prisma.bill.count({ where: billsWhere }),
+      ]);
       results.push(...bills.map(b => ({ ...b, _type: 'bill' })));
-      totalResults += bills.length;
+      totalResults += total;
     }
 
     if (!types || types.includes('documents')) {
-      const docs = await this.prisma.userDocument.findMany({
-        where: {
-          userId,
-          deletedAt: null,
-          name: { contains: searchFilter, mode: 'insensitive' },
-        },
-        take: limit,
-        skip: offset,
-      });
+      const docsWhere: any = {
+        userId,
+        deletedAt: null,
+        name: { contains: searchFilter, mode: 'insensitive' },
+      };
+      const [docs, total] = await Promise.all([
+        this.prisma.userDocument.findMany({ where: docsWhere, take: limit, skip: offset }),
+        this.prisma.userDocument.count({ where: docsWhere }),
+      ]);
       results.push(...docs.map(d => ({ ...d, _type: 'document' })));
-      totalResults += docs.length;
+      totalResults += total;
     }
 
     if (!types || types.includes('family')) {
-      const families = await this.prisma.familyMember.findMany({
-        where: {
-          userId,
-          family: {
-            OR: [
-              { name: { contains: searchFilter, mode: 'insensitive' } },
-            ],
-          },
-        },
-        include: { family: { select: { id: true, name: true } } },
-        take: limit,
-      });
+      const familiesWhere: any = {
+        userId,
+        family: { name: { contains: searchFilter, mode: 'insensitive' } },
+      };
+      const [families, total] = await Promise.all([
+        this.prisma.familyMember.findMany({
+          where: familiesWhere,
+          include: { family: { select: { id: true, name: true } } },
+          take: limit,
+        }),
+        this.prisma.familyMember.count({ where: familiesWhere }),
+      ]);
       results.push(...families.map(f => ({ ...f, _type: 'family' })));
-      totalResults += families.length;
+      totalResults += total;
     }
 
     if (!types || types.includes('budgets')) {
-      const budgets = await this.prisma.budget.findMany({
-        where: {
-          userId,
-          deletedAt: null,
-          name: { contains: searchFilter, mode: 'insensitive' },
-        },
-        take: limit,
-      });
+      const budgetsWhere: any = {
+        userId,
+        deletedAt: null,
+        name: { contains: searchFilter, mode: 'insensitive' },
+      };
+      const [budgets, total] = await Promise.all([
+        this.prisma.budget.findMany({ where: budgetsWhere, take: limit }),
+        this.prisma.budget.count({ where: budgetsWhere }),
+      ]);
       results.push(...budgets.map(b => ({ ...b, _type: 'budget' })));
-      totalResults += budgets.length;
+      totalResults += total;
     }
 
     const suggestions = await this.getSuggestions(userId, query);
@@ -150,7 +154,7 @@ export class SearchService {
       this.prisma.transaction.findMany({
         where: {
           userId,
-          description: { contains: query, mode: 'insensitive' },
+          description: { contains: query },
           deletedAt: null,
         },
         select: { description: true },
@@ -160,7 +164,7 @@ export class SearchService {
       this.prisma.goal.findMany({
         where: {
           userId,
-          name: { contains: query, mode: 'insensitive' },
+          name: { contains: query },
           deletedAt: null,
         },
         select: { name: true },
@@ -169,7 +173,7 @@ export class SearchService {
       this.prisma.bill.findMany({
         where: {
           userId,
-          name: { contains: query, mode: 'insensitive' },
+          name: { contains: query },
           deletedAt: null,
         },
         select: { name: true },
@@ -189,23 +193,48 @@ export class SearchService {
   }
 
   async trackRecentSearch(userId: string, query: string) {
-    const userSearches = this.recentSearches.get(userId) || [];
-    userSearches.unshift({ query, timestamp: new Date() });
-    if (userSearches.length > 20) userSearches.pop();
-    this.recentSearches.set(userId, userSearches);
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO recent_searches (id, userId, query, createdAt)
+        VALUES (UUID(), ${userId}, ${query}, NOW())
+      `;
+    } catch (err: any) {
+      this.logger.warn(`Failed to track recent search: ${err.message}`);
+    }
   }
 
   async getRecentSearches(userId: string) {
-    const searches = this.recentSearches.get(userId) || [];
-    return searches.slice(0, 10).map(s => s.query);
+    try {
+      const rows = await this.prisma.$queryRaw<Array<{ query: string }>>`
+        SELECT DISTINCT query FROM recent_searches
+        WHERE userId = ${userId}
+        ORDER BY createdAt DESC
+        LIMIT 10
+      `;
+      return rows.map(r => r.query);
+    } catch (err: any) {
+      this.logger.warn(`Failed to get recent searches: ${err.message}`);
+      return [];
+    }
   }
 
   async clearRecentSearches(userId: string) {
-    this.recentSearches.delete(userId);
+    try {
+      await this.prisma.$executeRaw`
+        DELETE FROM recent_searches WHERE userId = ${userId}
+      `;
+    } catch (err: any) {
+      this.logger.warn(`Failed to clear recent searches: ${err.message}`);
+    }
   }
 
   async removeRecentSearch(userId: string, query: string) {
-    const searches = this.recentSearches.get(userId) || [];
-    this.recentSearches.set(userId, searches.filter(s => s.query !== query));
+    try {
+      await this.prisma.$executeRaw`
+        DELETE FROM recent_searches WHERE userId = ${userId} AND query = ${query}
+      `;
+    } catch (err: any) {
+      this.logger.warn(`Failed to remove recent search: ${err.message}`);
+    }
   }
 }

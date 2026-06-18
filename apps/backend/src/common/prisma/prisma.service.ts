@@ -10,7 +10,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const isDev = process.env.NODE_ENV !== 'production';
     const poolOpts = isDev
       ? 'connection_limit=5&pool_timeout=30'
-      : 'connection_limit=2&pool_timeout=15';
+      : 'connection_limit=10&pool_timeout=30';
     const connector = baseUrl?.includes('mysql') ? 'mysql' : 'mysql';
     const url = baseUrl
       ? baseUrl.includes('?')

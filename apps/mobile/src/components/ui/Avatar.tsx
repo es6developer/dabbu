@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '../../theme';
+import { getAvatarXml, getAvatarByIndex } from '../../assets/avatars';
 
 const svgCache = new Map<string, string>();
 
@@ -16,6 +17,14 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
   const [svg, setSvg] = useState<string | null>(svgCache.get(uri || '') || null);
   const mountedRef = useRef(true);
 
+  const isLocal = uri?.startsWith('local:');
+  const localIndex = isLocal ? parseInt(uri!.replace('local:', ''), 10) : -1;
+  const localSvg = isLocal
+    ? getAvatarByIndex(localIndex)
+    : !uri && name
+      ? getAvatarXml(name)
+      : null;
+
   const initials =
     (name || '')
       .split(' ')
@@ -27,7 +36,7 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
 
   useEffect(() => {
     mountedRef.current = true;
-    if (!uri) {
+    if (!uri || isLocal) {
       setSvg(null);
       return;
     }
@@ -54,20 +63,22 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
     };
   }, [uri]);
 
+  const displaySvg = svg || localSvg;
+
   return (
     <View
       style={{
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: svg ? 'transparent' : `${colors.accent.primary}15`,
+        backgroundColor: displaySvg ? 'transparent' : `${colors.accent.primary}15`,
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
       }}
     >
-      {svg ? (
-        <SvgXml xml={svg} width={size} height={size} />
+      {displaySvg ? (
+        <SvgXml xml={displaySvg} width={size} height={size} preserveAspectRatio="xMidYMid slice" />
       ) : (
         <Text
           style={{

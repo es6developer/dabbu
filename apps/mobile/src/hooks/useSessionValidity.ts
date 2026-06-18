@@ -92,7 +92,7 @@ export function useSessionValidity({
     setState((prev) => ({ ...prev, isValid: false, isExpired: true }));
     cleanup();
     onSessionExpired?.();
-    navigation.navigate('MainTabs');
+    navigation.navigate('Dashboard');
   }, [onSessionExpired, navigation]);
 
   const cleanup = useCallback(() => {

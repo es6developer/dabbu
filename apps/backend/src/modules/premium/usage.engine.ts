@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-export interface UsageLimit {
+export interface UsageLimitDef {
   featureKey: string;
-  freeLimit: number;
+  freeLimit: number | null;
   premiumLimit: number | null;
   familyLimit: number | null;
   period: 'monthly' | 'all_time' | 'rolling_days';
@@ -19,7 +19,7 @@ export interface UsageCheckResult {
 
 @Injectable()
 export class UsageEngine {
-  private readonly LIMITS: UsageLimit[] = [
+  private readonly LIMITS: UsageLimitDef[] = [
     {
       featureKey: 'goals',
       freeLimit: 3,
@@ -52,22 +52,8 @@ export class UsageEngine {
     {
       featureKey: 'couple_spaces',
       freeLimit: 1,
-      premiumLimit: null,
-      familyLimit: null,
-      period: 'all_time',
-    },
-    {
-      featureKey: 'categories',
-      freeLimit: 10,
-      premiumLimit: null,
-      familyLimit: null,
-      period: 'all_time',
-    },
-    {
-      featureKey: 'attachments',
-      freeLimit: 5,
-      premiumLimit: null,
-      familyLimit: null,
+      premiumLimit: 1,
+      familyLimit: 1,
       period: 'all_time',
     },
     {
@@ -75,6 +61,13 @@ export class UsageEngine {
       freeLimit: 0,
       premiumLimit: 0,
       familyLimit: 6,
+      period: 'all_time',
+    },
+    {
+      featureKey: 'documents',
+      freeLimit: 0,
+      premiumLimit: null,
+      familyLimit: null,
       period: 'all_time',
     },
     {
@@ -92,42 +85,27 @@ export class UsageEngine {
       period: 'all_time',
     },
     {
-      featureKey: 'documents',
-      freeLimit: 0,
-      premiumLimit: 50,
-      familyLimit: 100,
+      featureKey: 'categories',
+      freeLimit: 10,
+      premiumLimit: null,
+      familyLimit: null,
       period: 'all_time',
     },
   ];
 
   getPlanTier(planCode: string): 'free' | 'premium' | 'family' {
-    if (planCode === 'FAMILY_MONTHLY' || planCode === 'FAMILY_YEARLY') {
-      return 'family';
-    }
-    if (planCode === 'PREMIUM' || planCode === 'PREMIUM_MONTHLY' || planCode === 'PREMIUM_YEARLY') {
-      return 'premium';
-    }
+    if (planCode === 'FAMILY_MONTHLY' || planCode === 'FAMILY_YEARLY') return 'family';
+    if (planCode === 'PREMIUM' || planCode === 'PREMIUM_MONTHLY' || planCode === 'PREMIUM_YEARLY') return 'premium';
     return 'free';
   }
 
-  getLimit(featureKey: string, planCode: string): number {
+  getLimit(featureKey: string, planCode: string): number | null {
     const def = this.LIMITS.find((l) => l.featureKey === featureKey);
-    if (!def) {
-      return -1;
-    }
+    if (!def) return null;
+
     const tier = this.getPlanTier(planCode);
-    if (tier === 'family' && def.familyLimit !== null) {
-      return def.familyLimit;
-    }
-    if (tier === 'family' && def.familyLimit === null) {
-      return -1;
-    }
-    if (tier === 'premium' && def.premiumLimit !== null) {
-      return def.premiumLimit;
-    }
-    if (tier === 'premium' && def.premiumLimit === null) {
-      return -1;
-    }
+    if (tier === 'family') return def.familyLimit;
+    if (tier === 'premium') return def.premiumLimit;
     return def.freeLimit;
   }
 
@@ -136,6 +114,7 @@ export class UsageEngine {
     userId: string,
     featureKey: string,
     planCode: string = 'FREE',
+    options?: { skipEntitlementCheck?: boolean },
   ): Promise<UsageCheckResult> {
     const def = this.LIMITS.find((l) => l.featureKey === featureKey);
     if (!def) {
@@ -143,11 +122,12 @@ export class UsageEngine {
     }
 
     const limit = this.getLimit(featureKey, planCode);
-    if (limit === -1) {
+    if (limit === null) {
       return { allowed: true, current: 0, limit: -1, remaining: -1, period: def.period };
     }
 
     let usage = 0;
+
     if (def.period === 'monthly') {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
@@ -208,10 +188,7 @@ export class UsageEngine {
     userId: string,
     planCode: string = 'FREE',
   ): Promise<Record<string, { used: number; limit: number; remaining: number; period: string }>> {
-    const result: Record<
-      string,
-      { used: number; limit: number; remaining: number; period: string }
-    > = {};
+    const result: Record<string, { used: number; limit: number; remaining: number; period: string }> = {};
     for (const def of this.LIMITS) {
       const check = await this.checkUsage(prisma, userId, def.featureKey, planCode);
       result[def.featureKey] = {
@@ -224,8 +201,8 @@ export class UsageEngine {
     return result;
   }
 
-  getLimitsForPlan(planCode: string): Record<string, { limit: number; period: string }> {
-    const result: Record<string, { limit: number; period: string }> = {};
+  getLimitsForPlan(planCode: string): Record<string, { limit: number | null; period: string }> {
+    const result: Record<string, { limit: number | null; period: string }> = {};
     for (const def of this.LIMITS) {
       const limit = this.getLimit(def.featureKey, planCode);
       result[def.featureKey] = { limit, period: def.period };

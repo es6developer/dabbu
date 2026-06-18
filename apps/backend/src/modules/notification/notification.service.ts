@@ -26,7 +26,7 @@ export class NotificationService {
     private readonly prisma: PrismaService,
     private readonly fcmService: FcmService,
     @Optional() private readonly emailService?: EmailService,
-    @Optional() @InjectQueue('notification-queue') private readonly notificationQueue: Queue | null,
+    @Optional() @InjectQueue('notification-queue') private readonly notificationQueue?: Queue | null,
     @Optional() private readonly notificationGateway?: NotificationGateway,
   ) {}
 
@@ -729,6 +729,27 @@ export class NotificationService {
     ]);
 
     return { data: notifications, total, limit: filters.limit || 50, offset: filters.offset || 0 };
+  }
+
+  async getNotificationAnalytics(userId?: string) {
+    const where = userId ? { userId } : {};
+
+    const [total, delivered, opened, failed] = await Promise.all([
+      this.prisma.notificationLog.count({ where }),
+      this.prisma.notificationLog.count({ where: { ...where, status: 'delivered' } }),
+      this.prisma.notificationLog.count({ where: { ...where, status: 'opened' } }),
+      this.prisma.notificationLog.count({ where: { ...where, status: 'failed' } }),
+    ]);
+
+    return {
+      total,
+      delivered,
+      opened,
+      failed,
+      deliveryRate: total > 0 ? ((delivered / total) * 100).toFixed(1) + '%' : '0%',
+      openRate: delivered > 0 ? ((opened / delivered) * 100).toFixed(1) + '%' : '0%',
+      failureRate: total > 0 ? ((failed / total) * 100).toFixed(1) + '%' : '0%',
+    };
   }
 
   async sendMonthlySummary(userId: string) {

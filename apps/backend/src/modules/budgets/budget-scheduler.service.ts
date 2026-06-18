@@ -52,29 +52,21 @@ export class BudgetSchedulerService {
 
       const isExceeded = percentage >= 100;
 
-      await this.prisma.notification.create({
-        data: {
+      const title = isExceeded ? 'Budget Exceeded' : 'Budget Alert';
+      const message = isExceeded
+        ? `Your "${budget.name}" budget of ₹${amount.toLocaleString()} has been exceeded (${percentage}% used).`
+        : `Your "${budget.name}" budget is at ${percentage}% (₹${spent.toLocaleString()} of ₹${amount.toLocaleString()}).`;
+
+      await this.notificationService
+        .create({
           userId: budget.userId,
           type: 'budget_alert',
-          title: isExceeded ? 'Budget Exceeded' : 'Budget Alert',
-          message: isExceeded
-            ? `Your "${budget.name}" budget of ₹${amount.toLocaleString()} has been exceeded (${percentage}% used).`
-            : `Your "${budget.name}" budget is at ${percentage}% (₹${spent.toLocaleString()} of ₹${amount.toLocaleString()}).`,
+          title,
+          message,
           data: { budgetId: budget.id, percentage, spent, amount },
           priority: isExceeded ? 'high' : 'medium',
-        },
-      });
-
-      this.notificationService
-        .sendPush(
-          budget.userId,
-          isExceeded ? 'Budget Exceeded' : 'Budget Alert',
-          isExceeded
-            ? `Your "${budget.name}" budget of ₹${amount.toLocaleString()} has been exceeded (${percentage}% used).`
-            : `Your "${budget.name}" budget is at ${percentage}% (₹${spent.toLocaleString()} of ₹${amount.toLocaleString()}).`,
-          { type: 'budget_alert', budgetId: budget.id, percentage, spent, amount },
-        )
-        .catch((err) => this.logger.error(`Push failed for budget alert: ${err.message}`));
+        })
+        .catch((err) => this.logger.error(`Budget alert failed: ${err.message}`));
 
       alertsCreated++;
     }

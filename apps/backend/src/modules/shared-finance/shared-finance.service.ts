@@ -1453,7 +1453,7 @@ export class SharedFinanceService {
     try {
       await this.notificationService.create({
         userId: settlement.group.createdBy,
-        type: 'settlement_complete' as any,
+        type: 'settlement_complete',
         title: 'Settlement Completed',
         message: `${fromName} settled ₹${amount.toLocaleString('en-IN')} with ${toName} in ${settlement.group.name}`,
         data: {
@@ -1471,7 +1471,7 @@ export class SharedFinanceService {
       if (otherPartyId !== settlement.group.createdBy) {
         await this.notificationService.create({
           userId: otherPartyId,
-          type: 'settlement_complete' as any,
+          type: 'settlement_complete',
           title: 'Settlement Completed',
           message: `₹${amount.toLocaleString('en-IN')} settled in ${settlement.group.name}`,
           data: {
@@ -4626,7 +4626,7 @@ export class SharedFinanceService {
     try {
       await this.notificationService.create({
         userId: group?.createdBy || partnerId,
-        type: 'settlement_complete' as any,
+        type: 'settlement_complete',
         title: 'Settlement Completed',
         message: `Couple settled up ₹${amount.toLocaleString('en-IN')}`,
         data: {
@@ -4640,7 +4640,7 @@ export class SharedFinanceService {
       });
       await this.notificationService.create({
         userId: partnerId,
-        type: 'settlement_complete' as any,
+        type: 'settlement_complete',
         title: 'Settlement Completed',
         message: `${fromName} settled ₹${amount.toLocaleString('en-IN')} with you`,
         data: {

@@ -27,7 +27,7 @@ const CATEGORIES = [
   { key: 'insurance', label: 'Insurance', icon: 'Safety' },
   { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'filetext1' },
   { key: 'warranty', label: 'Warranty', icon: 'filetext1' },
-  { key: 'medical', label: 'Medical', icon: 'medicinebox' },
+  { key: 'medical', label: 'Medical', icon: 'heart' },
 ];
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -37,7 +37,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   driving_license: 'car',
   insurance: 'checkcircle',
   vehicle_rc: 'document-text',
-  warranty: 'receipt',
+  warranty: 'filetext1',
   medical: 'medkit',
 };
 

@@ -1,5 +1,34 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, BadRequestException } from '@nestjs/common';
 import Razorpay from 'razorpay';
+import { validatePaymentVerification } from 'razorpay/dist/utils/razorpay-utils';
+
+export interface RazorpayPlanParams {
+  period: 'monthly' | 'yearly';
+  interval: number;
+  amount: number;
+  name: string;
+  description?: string;
+}
+
+export interface RazorpaySubscriptionParams {
+  planId: string;
+  totalCount: number;
+  customerEmail: string;
+  customerContact?: string;
+  notes?: Record<string, string>;
+  addonAmount?: number;
+  authType?: 'automatic' | 'manual';
+  maxAmount?: number;
+  expireBy?: number;
+}
+
+export interface RazorpayCustomerParams {
+  name: string;
+  email: string;
+  contact: string;
+  fail_existing?: string;
+  notes?: Record<string, string>;
+}
 
 @Injectable()
 export class RazorpayService {
@@ -27,16 +56,10 @@ export class RazorpayService {
     return this.razorpay;
   }
 
-  async createPlan(params: {
-    period: string;
-    interval: number;
-    amount: number;
-    name: string;
-    description?: string;
-  }): Promise<any> {
+  async createPlan(params: RazorpayPlanParams): Promise<any> {
     try {
       const plan: any = await this.getClient().plans.create({
-        period: params.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
+        period: params.period,
         interval: params.interval,
         item: {
           name: params.name,
@@ -44,7 +67,6 @@ export class RazorpayService {
           amount: params.amount,
           currency: 'INR',
         },
-        notes: { plan_code: params.name },
       });
       return plan;
     } catch (err: any) {
@@ -54,55 +76,46 @@ export class RazorpayService {
     }
   }
 
-  async createSubscription(params: {
-    planId: string;
-    totalCount: number;
-    customerEmail: string;
-    customerContact?: string;
-    notes?: Record<string, string>;
-    addonAmount?: number;
-    authType?: 'automatic' | 'manual';
-    maxAmount?: number;
-    expireBy?: number;
-  }): Promise<any> {
+  async createSubscription(params: RazorpaySubscriptionParams): Promise<any> {
     try {
       const body: any = {
         plan_id: params.planId,
         total_count: params.totalCount,
         customer_notify: 1,
-        notify_info: { notify_email: params.customerEmail },
+        notify_info: {
+          notify_email: params.customerEmail,
+          ...(params.customerContact ? { notify_phone: params.customerContact } : {}),
+        },
         notes: params.notes || {},
+        auth_type: params.authType || 'automatic',
       };
-      body.auth_type = params.authType || 'automatic';
-      if (params.authType === 'automatic' || !params.authType) {
+
+      if (params.authType !== 'manual') {
         body.mandate = {
           method: 'emandate',
-          frequency: params.totalCount === 12 ? 'monthly' : 'yearly',
+          frequency: params.totalCount <= 12 ? 'monthly' : 'yearly',
           max_amount: params.maxAmount || 0,
         };
       }
+
       if (params.expireBy) {
         body.expire_by = params.expireBy;
       }
-      if (params.customerContact) {
-        body.notify_info.notify_phone = params.customerContact;
-      }
+
       if (params.addonAmount) {
-        body.addons = [
-          {
-            item: {
-              name: 'Subscription (Current Period)',
-              amount: params.addonAmount,
-              currency: 'INR',
-            },
+        body.addons = [{
+          item: {
+            name: 'Subscription (Current Period)',
+            amount: params.addonAmount,
+            currency: 'INR',
           },
-        ];
+        }];
       }
+
       const subscription: any = await this.getClient().subscriptions.create(body);
       return subscription;
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to create Razorpay subscription';
+      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay subscription';
       this.logger.error(`createSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -122,8 +135,11 @@ export class RazorpayService {
     try {
       await this.getClient().subscriptions.cancel(subscriptionId);
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to cancel Razorpay subscription';
+      if (err?.statusCode === 400) {
+        this.logger.warn(`Cannot cancel subscription ${subscriptionId}: already completed or cancelled`);
+        return;
+      }
+      const desc = err?.error?.description || err?.message || 'Failed to cancel Razorpay subscription';
       this.logger.error(`cancelSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -133,8 +149,7 @@ export class RazorpayService {
     try {
       await this.getClient().subscriptions.pause(subscriptionId);
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to pause Razorpay subscription';
+      const desc = err?.error?.description || err?.message || 'Failed to pause Razorpay subscription';
       this.logger.error(`pauseSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -144,8 +159,7 @@ export class RazorpayService {
     try {
       await this.getClient().subscriptions.resume(subscriptionId);
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to resume Razorpay subscription';
+      const desc = err?.error?.description || err?.message || 'Failed to resume Razorpay subscription';
       this.logger.error(`resumeSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -153,12 +167,10 @@ export class RazorpayService {
 
   async retrySubscription(subscriptionId: string): Promise<any> {
     try {
-      const client = this.getClient();
-      const result: any = await (client as any).subscriptions.retry(subscriptionId);
+      const result: any = await (this.getClient() as any).subscriptions.retry(subscriptionId);
       return result;
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to retry Razorpay subscription';
+      const desc = err?.error?.description || err?.message || 'Failed to retry Razorpay subscription';
       this.logger.error(`retrySubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -175,11 +187,10 @@ export class RazorpayService {
     },
   ): Promise<any> {
     try {
-      const result: any = await this.getClient().subscriptions.update(subscriptionId, params);
+      const result: any = await this.getClient().subscriptions.update(subscriptionId, params as any);
       return result;
     } catch (err: any) {
-      const desc =
-        err?.error?.description || err?.message || 'Failed to update Razorpay subscription';
+      const desc = err?.error?.description || err?.message || 'Failed to update Razorpay subscription';
       this.logger.error(`updateSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
@@ -216,15 +227,9 @@ export class RazorpayService {
     }
   }
 
-  async createCustomer(params: {
-    name: string;
-    email: string;
-    contact: string;
-    fail_existing?: string;
-    notes?: Record<string, string>;
-  }): Promise<any> {
+  async createCustomer(params: RazorpayCustomerParams): Promise<any> {
     try {
-      const customer: any = await this.getClient().customers.create(params);
+      const customer: any = await this.getClient().customers.create(params as any);
       return customer;
     } catch (err: any) {
       const desc = err?.error?.description || err?.message || 'Failed to create Razorpay customer';
@@ -243,14 +248,67 @@ export class RazorpayService {
     }
   }
 
+  async upgradeSubscription(
+    currentSubscriptionId: string,
+    newPlanId: string,
+    newPlanAmount: number,
+    customerEmail: string,
+    customerContact?: string,
+    notes?: Record<string, string>,
+  ) {
+    const currentSub = await this.fetchSubscription(currentSubscriptionId);
+    if (!currentSub) {
+      throw new BadRequestException('Current subscription not found on Razorpay');
+    }
+
+    if (currentSub.status === 'active' || currentSub.status === 'created') {
+      await this.cancelSubscription(currentSubscriptionId);
+    }
+
+    const remainingCount = Math.max(
+      1,
+      (currentSub.total_count || 12) - (currentSub.paid_count || 0),
+    );
+
+    return this.createSubscription({
+      planId: newPlanId,
+      totalCount: remainingCount,
+      customerEmail,
+      customerContact,
+      notes,
+      addonAmount: newPlanAmount,
+    });
+  }
+
+  async downgradeSubscription(
+    currentSubscriptionId: string,
+    newPlanId: string,
+    customerEmail: string,
+    customerContact?: string,
+  ) {
+    const currentSub = await this.fetchSubscription(currentSubscriptionId);
+    if (!currentSub) {
+      throw new BadRequestException('Current subscription not found on Razorpay');
+    }
+
+    const remainingCount = Math.max(
+      1,
+      (currentSub.total_count || 12) - (currentSub.paid_count || 0),
+    );
+
+    return this.createSubscription({
+      planId: newPlanId,
+      totalCount: remainingCount,
+      customerEmail,
+      customerContact,
+      notes: { downgraded_from: currentSubscriptionId },
+    });
+  }
+
   verifyPaymentSignature(orderId: string, paymentId: string, signature: string): boolean {
     try {
-      return Razorpay.validatePaymentSignature(
-        JSON.stringify({
-          razorpay_order_id: orderId,
-          razorpay_payment_id: paymentId,
-          razorpay_signature: signature,
-        }),
+      return validatePaymentVerification(
+        { order_id: orderId, payment_id: paymentId },
         signature,
         process.env.RAZORPAY_KEY_SECRET || '',
       );

@@ -47,12 +47,20 @@ export function FamilySpaceScreen() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [aiReview, setAiReview] = useState<any>(null);
+  const [aiSavings, setAiSavings] = useState<any>(null);
 
   const loadData = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true); else setLoading(true);
     try {
-      const res = await api.get('/family/dashboard');
-      setData((res as any)?.data || res);
+      const [famRes, reviewRes, savingsRes] = await Promise.all([
+        api.get('/family/dashboard'),
+        api.get('/ai/family-advisor/review').catch(() => null),
+        api.get('/ai/family-advisor/savings').catch(() => null),
+      ]);
+      setData((famRes as any)?.data || famRes);
+      setAiReview((reviewRes as any)?.data || reviewRes);
+      setAiSavings((savingsRes as any)?.data || savingsRes);
     } catch {} finally {
       setLoading(false); setRefreshing(false);
     }
@@ -175,6 +183,31 @@ export function FamilySpaceScreen() {
             </View>
           </View>
 
+          {/* AI Family Review */}
+          {(aiReview || aiSavings) && (
+            <View style={[styles.aiSection, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <AntDesign name="bulb1" size={18} color="#FBBF24" />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>AI Family Insights</Text>
+              </View>
+              {aiReview?.summary && (
+                <Text style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 18, marginBottom: 8 }}>{aiReview.summary}</Text>
+              )}
+              {aiReview?.highlights && Array.isArray(aiReview.highlights) && aiReview.highlights.slice(0, 3).map((h: string, i: number) => (
+                <View key={i} style={{ flexDirection: 'row', gap: 6, marginBottom: 4 }}>
+                  <Text style={{ color: colors.status.success }}>✓</Text>
+                  <Text style={{ fontSize: 12, color: colors.text.secondary, flex: 1 }}>{h}</Text>
+                </View>
+              ))}
+              {aiSavings?.recommendations && Array.isArray(aiSavings.recommendations) && aiSavings.recommendations.slice(0, 2).map((r: string, i: number) => (
+                <View key={i} style={{ flexDirection: 'row', gap: 6, marginBottom: 4 }}>
+                  <Text style={{ color: colors.status.warning }}>💡</Text>
+                  <Text style={{ fontSize: 12, color: colors.text.secondary, flex: 1 }}>{r}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           <View style={styles.grid}>
             {FAMILY_MODULES.map((mod) => (
               <TouchableOpacity
@@ -239,4 +272,5 @@ const styles = StyleSheet.create({
   },
   moduleIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   moduleLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center', lineHeight: 15 },
+  aiSection: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16 },
 });

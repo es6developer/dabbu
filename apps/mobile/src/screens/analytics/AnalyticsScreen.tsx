@@ -46,6 +46,7 @@ export function AnalyticsScreen() {
   const [exporting, setExporting] = useState<'file1' | 'excel' | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'reports'>('overview');
   const [reportTab, setReportTab] = useState<'wallet' | 'arrowdown' | 'savings'>('wallet');
+  const [aiReview, setAiReview] = useState<any>(null);
 
   const chartConfig = {
     backgroundColor: 'transparent',
@@ -104,6 +105,7 @@ export function AnalyticsScreen() {
         api.get<any>(
           `/analytics/reports/savings?startDate=${range.startDate}&endDate=${range.endDate}`,
         ),
+        api.get('/ai/review').catch(() => null),
       ]);
       if (results[0].status === 'fulfilled') {
         setDashData(results[0].value?.data || results[0].value);
@@ -122,6 +124,10 @@ export function AnalyticsScreen() {
       }
       if (results[5].status === 'fulfilled') {
         setSavingsReport(results[5].value?.data || results[5].value);
+      }
+      if (results[6] && (results[6] as any).status === 'fulfilled') {
+        const r = (results[6] as any).value;
+        setAiReview(r?.data || r);
       }
     } catch {
       /* ignore */
@@ -378,6 +384,37 @@ export function AnalyticsScreen() {
                 </View>
               ))}
             </View>
+
+            {/* AI Review */}
+            {aiReview && (
+              <View style={[styles.chartCard, { backgroundColor: colors.accent.primary + '12', borderWidth: 1, borderColor: colors.accent.primary + '25' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.accent.primary + '20', alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
+                  </View>
+                  <Text style={[styles.chartTitle, { color: colors.text.primary, marginBottom: 0, flex: 1 }]}>
+                    AI Monthly Review
+                  </Text>
+                </View>
+                {aiReview.summary && (
+                  <Text style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 20, marginBottom: 12 }}>
+                    {aiReview.summary}
+                  </Text>
+                )}
+                {(aiReview.highlights || []).slice(0, 3).map((h: any, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                    <AntDesign name="checkcircle" size={14} color={colors.status.success} style={{ marginTop: 2 }} />
+                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>{h.text || h}</Text>
+                  </View>
+                ))}
+                {(aiReview.recommendations || []).slice(0, 2).map((r: any, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                    <AntDesign name="bulb1" size={14} color={colors.status.warning} style={{ marginTop: 2 }} />
+                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>{r.text || r}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/* Income vs Expense Trend (Line Chart) */}
             {cashFlow.length > 1 && (

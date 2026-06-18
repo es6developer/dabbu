@@ -14,10 +14,11 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { usePremium } from '../../store/PremiumContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { useAppLock } from '../../store/LockContext';
-import { api, setAccessToken, getAccessToken } from '../../services/api';
+
 import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
@@ -109,16 +110,15 @@ export function SettingsScreen() {
   const {
     user,
     logout,
-    refreshPremiumStatus,
     fetchCoupleRequests,
     approveCoupleRequest,
     rejectCoupleRequest,
   } = useAuth();
+  const { isPremium, subscription, loading, refresh } = usePremium();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [subscription, setSubscription] = useState<any | null>(undefined);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
@@ -156,22 +156,9 @@ export function SettingsScreen() {
   );
 
   useEffect(() => {
-    loadSubscription();
+    refresh();
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
-
-  async function loadSubscription() {
-    try {
-      setAccessToken(getAccessToken());
-      const res = await api.get<any>('/premium/current');
-      setSubscription(res);
-    } catch {
-      setSubscription(null);
-    }
-    refreshPremiumStatus();
-  }
-
-  const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
     if (action === 'lock') {
@@ -196,6 +183,10 @@ export function SettingsScreen() {
       'FavoriteContacts',
       'Referral',
       'CoupleSpace',
+      'Streaks',
+      'DataExport',
+      'Support',
+      'YearlySummary',
     ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);
@@ -204,7 +195,7 @@ export function SettingsScreen() {
     if (premium && !isPremium) {
       Alert.alert('Premium Feature', 'This feature is available on Premium plan.', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
+        { text: 'View Plans', onPress: () => navigation.navigate('SubscriptionCenter') },
       ]);
       return;
     }
@@ -512,7 +503,7 @@ export function SettingsScreen() {
           )}
 
           {/* Upgrade Banner */}
-          {subscription !== undefined && !isPremium && (
+          {!loading && !isPremium && (
             <TouchableOpacity
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}

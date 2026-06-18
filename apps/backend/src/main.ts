@@ -9,6 +9,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { SentryFilter } from './common/sentry/sentry.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { PerformanceInterceptor } from './common/interceptors/performance.interceptor';
 import { CacheInterceptor } from './common/cache/cache.interceptor';
 import { CacheService } from './common/cache/cache.service';
 import { SecurityConfig } from './common/security/security.config';
@@ -23,9 +24,37 @@ async function bootstrap(): Promise<void> {
     bodyParser: false,
   });
 
-  app.use(compression({ level: 6, threshold: 512 }));
-  app.use(json({ limit: '50mb' }));
-  app.use(urlencoded({ extended: true, limit: '50mb' }));
+  app.use(compression({ level: 6, threshold: 512, filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }}));
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
+
+  // ─── Request Logging Middleware ──────────────────────
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      logger.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
+    });
+    next();
+  });
+
+  // ─── Response Time Header ────────────────────────────
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
+    });
+    next();
+  });
+
+  // ─── Cache-Control for static assets ─────────────────
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    next();
+  });
 
   const configService = app.get(ConfigService);
   const securityConfig = app.get(SecurityConfig);
@@ -96,7 +125,12 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter(), new SentryFilter());
 
   // ─── Global Interceptors ────────────────────────────
-  app.useGlobalInterceptors(new CacheInterceptor(app.get(CacheService)), new LoggingInterceptor(), new TransformInterceptor());
+  app.useGlobalInterceptors(
+    new PerformanceInterceptor(),
+    new CacheInterceptor(app.get(CacheService)),
+    new LoggingInterceptor(),
+    new TransformInterceptor(),
+  );
 
   // ─── Swagger ────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()

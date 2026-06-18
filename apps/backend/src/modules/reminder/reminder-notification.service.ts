@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { NotificationEventsService } from '../notification/notification-events.service';
 
 @Injectable()
 export class ReminderNotificationService {
@@ -9,6 +10,7 @@ export class ReminderNotificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationService,
+    private readonly notificationEvents: NotificationEventsService,
   ) {}
 
   async sendDueReminderNotification(reminderId: string, userId: string) {
@@ -44,8 +46,18 @@ export class ReminderNotificationService {
       ? `${reminder.title} overdue${reminder.type === 'bill' || reminder.type === 'subscription' ? ' — payment required' : ''}`
       : `${reminder.title} is due ${timingLabel}`;
 
-    const notification = await this.prisma.notification.create({
-      data: {
+    if (reminder.type === 'subscription' && !isOverdue) {
+      this.notificationEvents
+        .subscriptionRenewal(userId, {
+          reminderId,
+          name: reminder.title,
+          amount: 0,
+          renewalDate: dueDate?.toISOString() || '',
+          daysUntilRenewal: Math.max(0, diffDays),
+        })
+        .catch((err) => this.logger.warn(`Subscription notification failed: ${err.message}`));
+    } else {
+      await this.notificationService.create({
         userId,
         type: isOverdue ? 'reminder_overdue' : 'reminder_upcoming',
         title,
@@ -61,15 +73,8 @@ export class ReminderNotificationService {
           diffDays,
           type: reminder.type,
         },
-      },
-    });
-
-    await this.notificationService.sendPush(userId, title, message, {
-      notificationId: notification.id,
-      type: isOverdue ? 'reminder_overdue' : 'reminder_upcoming',
-      reminderId,
-      action: 'open_reminder',
-    }).catch((err) => this.logger.warn(`Push send failed for user ${userId}: ${err.message}`));
+      }).catch((err) => this.logger.warn(`Notification failed for user ${userId}: ${err.message}`));
+    }
 
     if (isOverdue) {
       await this.prisma.reminder.update({
@@ -79,7 +84,6 @@ export class ReminderNotificationService {
     }
 
     this.logger.log(`Notification sent for reminder "${reminder.title}" (${diffDays}d -> ${timingLabel})`);
-    return notification;
   }
 
   async sendOverdueFollowUp(reminderId: string, userId: string) {
@@ -94,26 +98,17 @@ export class ReminderNotificationService {
       ? `Reminder: ${reminder.title} is overdue — please make payment to avoid late fees`
       : `Reminder: ${reminder.title} is still pending`;
 
-    const notification = await this.prisma.notification.create({
-      data: {
-        userId,
-        type: 'reminder_overdue',
-        title,
-        message,
-        actionUrl: `/reminders/${reminderId}`,
-        reminderId,
-        priority: 'urgent',
-        category: reminder.type,
-        overdue: true,
-        data: { reminderId, dueDate: reminder.dueDate?.toISOString(), followUp: true },
-      },
-    });
-
-    await this.notificationService.sendPush(userId, title, message, {
-      notificationId: notification.id,
+    await this.notificationService.create({
+      userId,
       type: 'reminder_overdue',
+      title,
+      message,
+      actionUrl: `/reminders/${reminderId}`,
       reminderId,
-      action: 'open_reminder',
+      priority: 'urgent',
+      category: reminder.type,
+      overdue: true,
+      data: { reminderId, dueDate: reminder.dueDate?.toISOString(), followUp: true },
     }).catch(() => {});
   }
 
@@ -141,30 +136,23 @@ export class ReminderNotificationService {
     const title = 'Monthly Reminder Summary';
     const message = `${completedReminders} completed · ${overdueReminders} overdue · ${upcomingReminders} upcoming · ${unpaidBills} unpaid bills`;
 
-    const notification = await this.prisma.notification.create({
-      data: {
-        userId,
-        type: 'monthly_report',
-        title,
-        message,
-        priority: 'medium',
-        category: 'summary',
-        data: {
-          totalReminders,
-          completedReminders,
-          overdueReminders,
-          upcomingReminders,
-          totalBills,
-          unpaidBills,
-          month: now.getMonth() + 1,
-          year: now.getFullYear(),
-        },
-      },
-    });
-
-    await this.notificationService.sendPush(userId, title, message, {
-      notificationId: notification.id,
+    await this.notificationService.create({
+      userId,
       type: 'monthly_report',
+      title,
+      message,
+      priority: 'medium',
+      category: 'summary',
+      data: {
+        totalReminders,
+        completedReminders,
+        overdueReminders,
+        upcomingReminders,
+        totalBills,
+        unpaidBills,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      },
     }).catch(() => {});
   }
 

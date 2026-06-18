@@ -37,3 +37,39 @@ export function timeAgo(date: string | Date): string {
   }
   return 'just now';
 }
+
+export type AdminRole = 'super_admin' | 'admin' | 'support' | 'analyst';
+
+const ROLE_HIERARCHY: Record<AdminRole, number> = {
+  super_admin: 100,
+  admin: 80,
+  support: 60,
+  analyst: 40,
+};
+
+export function getAdminRole(): AdminRole | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('admin_user');
+    if (!raw) return null;
+    return JSON.parse(raw).role || null;
+  } catch { return null; }
+}
+
+export function hasRole(minimumRole: AdminRole): boolean {
+  const role = getAdminRole();
+  if (!role) return false;
+  return (ROLE_HIERARCHY[role] || 0) >= (ROLE_HIERARCHY[minimumRole] || 0);
+}
+
+export function canManageAdmins(): boolean {
+  return hasRole('super_admin');
+}
+
+export function canManageSettings(): boolean {
+  return hasRole('admin');
+}
+
+export function canViewAnalytics(): boolean {
+  return hasRole('analyst');
+}

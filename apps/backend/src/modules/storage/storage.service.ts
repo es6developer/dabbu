@@ -1,5 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import * as sharp from 'sharp';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import sharp from 'sharp';
 
 type StorageProvider = 'local' | 's3' | 'r2' | 'supabase';
 
@@ -19,14 +20,14 @@ export class StorageService {
   private readonly cdnUrl: string;
   private readonly basePath: string;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.provider = (process.env.STORAGE_PROVIDER as StorageProvider) || 'local';
     this.cdnUrl = process.env.CDN_URL || '';
     this.basePath = process.env.STORAGE_BASE_PATH || 'uploads';
   }
 
   async upload(
-    file: Express.Multer.File,
+    file: any,
     folder: string,
     options?: {
       optimize?: boolean;
@@ -78,6 +79,9 @@ export class StorageService {
     }
 
     const buffer = optimizedBuffer || file.buffer;
+    const thumbExt = 'jpg';
+    const thumbFilename = `thumb_${filename.replace(/\.[^.]+$/, '')}.${thumbExt}`;
+    const thumbPath = `${this.basePath}/${folder}/${thumbFilename}`;
 
     let url: string;
     let path: string;
@@ -86,15 +90,21 @@ export class StorageService {
       case 's3':
       case 'r2':
         url = await this._uploadToS3(buffer, filePath, file.mimetype);
+        if (thumbnailBuffer) {
+          thumbnailUrl = await this._uploadToS3(thumbnailBuffer, thumbPath, 'image/jpeg');
+        }
         path = filePath;
         if (this.cdnUrl) {
           url = `${this.cdnUrl}/${filePath}`;
-          if (optimizedUrl) optimizedUrl = `${this.cdnUrl}/${filePath}`;
-          if (thumbnailUrl) thumbnailUrl = `${this.cdnUrl}/thumb_${filePath}`;
+          optimizedUrl = `${this.cdnUrl}/${filePath}`;
+          if (thumbnailUrl) thumbnailUrl = `${this.cdnUrl}/${thumbPath}`;
         }
         break;
       case 'supabase':
         url = await this._uploadToSupabase(buffer, filePath, file.mimetype);
+        if (thumbnailBuffer) {
+          thumbnailUrl = await this._uploadToSupabase(thumbnailBuffer, thumbPath, 'image/jpeg');
+        }
         path = filePath;
         break;
       case 'local':
@@ -205,6 +215,44 @@ export class StorageService {
       process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     );
     await supabase.storage.from(process.env.SUPABASE_STORAGE_BUCKET || 'dabbu-uploads').remove([path]);
+  }
+
+  async getStorageUsage(userId: string): Promise<{ used: number; limit: number; files: number }> {
+    const userDocuments = await this.prisma.userDocument.aggregate({
+      where: { userId, deletedAt: null },
+      _sum: { fileSize: true },
+      _count: true,
+    });
+
+    return {
+      used: Number(userDocuments._sum?.fileSize || 0),
+      limit: 500 * 1024 * 1024,
+      files: userDocuments._count || 0,
+    };
+  }
+
+  async getPresignedUrl(key: string, expiresIn = 3600): Promise<string | null> {
+    if (this.provider !== 's3' && this.provider !== 'r2') return null;
+
+    const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+    const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+    const client = new S3Client({
+      region: process.env.AWS_REGION || 'auto',
+      endpoint: process.env.S3_ENDPOINT || undefined,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || '',
+      },
+      forcePathStyle: this.provider === 'r2',
+    });
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.S3_BUCKET || 'dabbu-uploads',
+      Key: key,
+    });
+
+    return getSignedUrl(client, command, { expiresIn });
   }
 
   getProvider(): StorageProvider { return this.provider; }

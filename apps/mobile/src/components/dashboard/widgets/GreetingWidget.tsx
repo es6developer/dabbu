@@ -44,8 +44,8 @@ export function GreetingWidget({ data }: { data: any }) {
         </Text>
       </View>
       {change !== undefined && (
-        <View style={[styles.changeBadge, { backgroundColor: change >= 0 ? '#DCFCE7' : '#FEE2E2' }]}>
-          <AntDesign name={change >= 0 ? 'caretup' : 'caretdown'} size={12} color={change >= 0 ? '#16A34A' : '#DC2626'} />
+        <View style={[styles.changeBadge, { backgroundColor: change >= 0 ? '#052E16' : '#2D0A0A' }]}>
+          <AntDesign name={change >= 0 ? 'caretup' : 'caretdown'} size={12} color={change >= 0 ? '#4ADE80' : '#F87171'} />
           <Text style={[styles.changeText, { color: change >= 0 ? '#16A34A' : '#DC2626' }]}>
             {getChangeLabel(change)} this month
           </Text>

@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards, Res, Header } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { AuditService } from './audit.service';
@@ -31,6 +32,23 @@ export class AuditController {
       limit: limit ? parseInt(limit) : 50,
       offset: offset ? parseInt(offset) : 0,
     });
+  }
+
+  @Get('export')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Export audit logs as CSV or JSON' })
+  @ApiQuery({ name: 'format', required: false, enum: ['csv', 'json'] })
+  async export(
+    @CurrentUser('id') userId: string,
+    @Query('format') format: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.auditService.exportLogs(userId, (format as 'csv' | 'json') || 'json');
+    res.set({
+      'Content-Type': result.contentType,
+      'Content-Disposition': `attachment; filename="${result.filename}"`,
+    });
+    res.send(result.data);
   }
 
   @Get('user/:userId')

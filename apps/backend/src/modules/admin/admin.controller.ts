@@ -13,10 +13,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
+import { ComplianceService } from '../compliance/compliance.service';
 import { AdminGuard, Roles } from './guards';
 import { CurrentAdmin } from './decorators/current-admin.decorator';
 import {
   AdminLoginDto,
+  AdminLoginMfaDto,
+  MfaVerifyDto,
   AdminCreateDto,
   ListUsersQueryDto,
   UpdateUserStatusDto,
@@ -39,13 +42,66 @@ import {
 @ApiTags('Admin')
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly complianceService: ComplianceService,
+  ) {}
 
   @Post('auth/login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Admin login' })
   async login(@Body() dto: AdminLoginDto) {
     const result = await this.adminService.login(dto);
+    return { data: result };
+  }
+
+  @Post('auth/login-mfa')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Admin login with MFA code' })
+  async loginWithMfa(@Body() dto: AdminLoginMfaDto) {
+    const result = await this.adminService.loginWithMfa(dto);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('mfa/status')
+  @ApiOperation({ summary: 'Get MFA status for the current admin' })
+  async getMfaStatus(@CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.getMfaStatus(adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('mfa/setup')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate MFA secret and QR code URL' })
+  async setupMfa(@CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.setupMfa(adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('mfa/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify MFA setup with TOTP code' })
+  async verifyMfaSetup(
+    @Body() dto: MfaVerifyDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const result = await this.adminService.verifyMfaSetup(adminId, dto);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('mfa/disable')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Disable MFA' })
+  async disableMfa(@CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.disableMfa(adminId);
     return { data: result };
   }
 
@@ -523,6 +579,36 @@ export class AdminController {
   @ApiOperation({ summary: 'Wipe all user data, preserving admin, categories, and plans' })
   async cleanupDatabase() {
     const result = await this.adminService.cleanupDatabase();
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('compliance/enforce-retention')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Enforce data retention policy - purge expired data' })
+  async enforceRetention() {
+    const result = await this.complianceService.enforceDataRetention();
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Delete('compliance/delete-inactive')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete users inactive for 365+ days' })
+  async deleteInactiveUsers(@Query('days') days?: string) {
+    const result = await this.complianceService.deleteInactiveUsers(days ? parseInt(days) : 365);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('compliance/export-all-users')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Export all user data for admin review' })
+  async exportAllUsers(@CurrentAdmin('id') adminId: string) {
+    const result = await this.complianceService.exportAllUserData(adminId);
     return { data: result };
   }
 }
