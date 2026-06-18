@@ -177,6 +177,20 @@ export class CouponValidationResponse {
   message?: string;
 }
 
+export class CancellationOfferResponse {
+  @ApiProperty()
+  offerType: string;
+
+  @ApiProperty()
+  offerData: any;
+
+  @ApiProperty()
+  expiresAt: Date;
+
+  @ApiProperty()
+  description: string;
+}
+
 export class CancelSubscriptionResponse {
   @ApiProperty()
   success: boolean;
@@ -195,20 +209,6 @@ export class CancelSubscriptionResponse {
 
   @ApiPropertyOptional()
   message?: string;
-}
-
-export class CancellationOfferResponse {
-  @ApiProperty()
-  offerType: string;
-
-  @ApiProperty()
-  offerData: any;
-
-  @ApiProperty()
-  expiresAt: Date;
-
-  @ApiProperty()
-  description: string;
 }
 
 export class CancellationRecoveryDto {
