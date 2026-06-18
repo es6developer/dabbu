@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -55,7 +55,7 @@ export function EmergencyFundScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary}  />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Emergency Fund</Text>
         <View style={{ width: 24 }} />
@@ -112,7 +112,7 @@ export function EmergencyFundScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]} onPress={() => setEditing(true)}>
-              <Ionicons name="pencil" size={16} color="#FFF" />
+              <AntDesign name="edit" size={16} color="#FFF"  />
               <Text style={styles.actionBtnText}>Update Savings</Text>
             </TouchableOpacity>
           )}
@@ -120,7 +120,7 @@ export function EmergencyFundScreen() {
 
         {remaining > 0 && (
           <View style={[styles.suggestionCard, { backgroundColor: colors.card.income }]}>
-            <Ionicons name="bulb-outline" size={20} color={colors.status.success} />
+            <AntDesign name="bulb1" size={20} color={colors.status.success}  />
             <View style={styles.suggestionContent}>
               <Text style={[styles.suggestionTitle, { color: colors.text.primary }]}>AI Suggestion</Text>
               <Text style={[styles.suggestionText, { color: colors.text.secondary }]}>

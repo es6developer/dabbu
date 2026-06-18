@@ -30,13 +30,13 @@ const categoryIcons: Record<string, string> = {
   Entertainment: 'film',
   Health: 'fitness',
   Education: 'school',
-  Travel: 'airplane',
-  Groceries: 'cart',
+  Travel: 'planner',
+  Groceries: 'shoppingcart',
   Rent: 'home',
-  Utilities: 'flash',
+  Utilities: 'bulb1',
   Insurance: 'shield',
-  Dining: 'restaurant',
-  Other: 'ellipsis-horizontal',
+  Dining: 'rest',
+  Other: 'ellipsis1',
 };
 
 export function BudgetDetailScreen() {

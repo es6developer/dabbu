@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -26,11 +26,11 @@ const MODULE_API_MAP: Record<string, string> = {
 };
 
 const MODULE_ICONS: Record<string, string> = {
-  members: 'people-outline', goals: 'flag-outline', bills: 'receipt-outline',
-  contributions: 'trending-up-outline', budget: 'pricetag-outline', investments: 'bar-chart-outline',
-  insurance: 'shield-outline', 'emergency-fund': 'warning-outline', tasks: 'checkmark-circle-outline',
-  calendar: 'calendar-outline', documents: 'folder-outline', 'ai-advisor': 'bulb-outline',
-  reports: 'document-text-outline', vault: 'lock-closed-outline', dashboard: 'grid-outline',
+  members: 'team', goals: 'flag', bills: 'filetext1',
+  contributions: 'caretup', budget: 'tago', investments: 'barschart',
+  insurance: 'Safety', 'emergency-fund': 'warning', tasks: 'checkcircle',
+  calendar: 'calendar', documents: 'folder1', 'ai-advisor': 'bulb1',
+  reports: 'filetext1', vault: 'lock', dashboard: 'grid-outline',
 };
 
 const MODULE_COLORS: Record<string, string> = {
@@ -47,7 +47,7 @@ function fmt(v: number) {
 
 function RenderMembers({ data }: { data: any[] }) {
   const { colors } = useTheme();
-  if (!data?.length) return <EmptyState icon="people-outline" title="No members" />;
+  if (!data?.length) return <EmptyState icon='team' title="No members" />;
   return (
     <>
       {data.map((m: any, i: number) => (
@@ -75,7 +75,7 @@ function RenderMembers({ data }: { data: any[] }) {
 function RenderGoals({ data }: { data: any[] }) {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  if (!data?.length) return <EmptyState icon="flag-outline" title="No goals yet" subtitle="Create a family goal" />;
+  if (!data?.length) return <EmptyState icon="flag" title="No goals yet" subtitle="Create a family goal" />;
   return (
     <>
       {data.map((g: any, i: number) => {
@@ -102,7 +102,7 @@ function RenderGoals({ data }: { data: any[] }) {
         style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateGoal')}
       >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
+        <AntDesign name="plus" size={18} color="#FFFFFF"  />
         <Text style={styles.createBtnText}>Create Goal</Text>
       </TouchableOpacity>
     </>
@@ -112,7 +112,7 @@ function RenderGoals({ data }: { data: any[] }) {
 function RenderBills({ data }: { data: any[] }) {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  if (!data?.length) return <EmptyState icon="receipt-outline" title="No bills" subtitle="Add your first family bill" />;
+  if (!data?.length) return <EmptyState icon="filetext1" title="No bills" subtitle="Add your first family bill" />;
   const upcoming = data.filter((b: any) => !b.isPaid);
   const paid = data.filter((b: any) => b.isPaid);
   return (
@@ -148,7 +148,7 @@ function RenderBills({ data }: { data: any[] }) {
         style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateBill')}
       >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
+        <AntDesign name="plus" size={18} color="#FFFFFF"  />
         <Text style={styles.createBtnText}>Create Bill</Text>
       </TouchableOpacity>
     </>
@@ -160,7 +160,7 @@ function RenderContributions({ data }: { data: any }) {
   const navigation = useNavigation<any>();
   const contributions = Array.isArray(data) ? data : data?.contributions || [];
   const periodTotal = data?.total || 0;
-  if (!contributions.length) return <EmptyState icon="trending-up-outline" title="No contributions yet" />;
+  if (!contributions.length) return <EmptyState icon='caretup' title="No contributions yet" />;
   return (
     <>
       {periodTotal > 0 && (
@@ -179,7 +179,7 @@ function RenderContributions({ data }: { data: any }) {
         style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateContribution')}
       >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
+        <AntDesign name="plus" size={18} color="#FFFFFF"  />
         <Text style={styles.createBtnText}>Record Contribution</Text>
       </TouchableOpacity>
     </>
@@ -188,14 +188,14 @@ function RenderContributions({ data }: { data: any }) {
 
 function RenderInvestments({ data }: { data: any[] }) {
   const { colors } = useTheme();
-  if (!data?.length) return <EmptyState icon="bar-chart-outline" title="No investments tracked" />;
+  if (!data?.length) return <EmptyState icon='barschart' title="No investments tracked" />;
   return (
     <>
       {data.map((inv: any, i: number) => (
         <View key={inv.id || i} style={invStyles.card}>
           <View style={invStyles.row}>
             <View style={[invStyles.iconBox, { backgroundColor: MODULE_COLORS.investments + '20' }]}>
-              <Ionicons name="trending-up-outline" size={16} color={MODULE_COLORS.investments} />
+              <AntDesign name="caretup" size={16} color={MODULE_COLORS.investments}  />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[invStyles.name, { color: colors.text.primary }]}>{inv.name}</Text>
@@ -218,13 +218,13 @@ function RenderInvestments({ data }: { data: any[] }) {
 
 function RenderDocuments({ data }: { data: any[] }) {
   const { colors } = useTheme();
-  if (!data?.length) return <EmptyState icon="folder-outline" title="No documents" subtitle="Upload family documents" />;
+  if (!data?.length) return <EmptyState icon="folder1" title="No documents" subtitle="Upload family documents" />;
   return (
     <>
       {data.map((d: any, i: number) => (
         <View key={d.id || i} style={docStyles.card}>
           <View style={[docStyles.icon, { backgroundColor: MODULE_COLORS.documents + '20' }]}>
-            <Ionicons name="document-outline" size={20} color={MODULE_COLORS.documents} />
+            <AntDesign name="file1" size={20} color={MODULE_COLORS.documents}  />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[docStyles.name, { color: colors.text.primary }]}>{d.name}</Text>
@@ -239,7 +239,7 @@ function RenderDocuments({ data }: { data: any[] }) {
 function RenderAIAdvisor({ data }: { data: any }) {
   const { colors } = useTheme();
   const insights = Array.isArray(data) ? data : data?.insights || data?.recommendations || [];
-  if (!insights.length) return <EmptyState icon="bulb-outline" title="No insights yet" subtitle="AI will analyze your family finances" />;
+  if (!insights.length) return <EmptyState icon='bulb1' title="No insights yet" subtitle="AI will analyze your family finances" />;
   return (
     <>
       {data?.score !== undefined && (
@@ -269,9 +269,9 @@ function RenderTasks({ data }: { data: any[] }) {
     <>
       {data.map((t: any, i: number) => (
         <View key={t.id || i} style={taskStyles.card}>
-          <Ionicons name={t.status === 'completed' ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={t.status === 'completed' ? '#10B981' : colors.text.tertiary} />
+          <AntDesign name={t.status === 'checkcircle' ? 'checkcircle' : 'minuscircleo'} size={20} color={t.status === 'checkcircle' ? '#10B981' : colors.text.tertiary} />
           <View style={{ flex: 1 }}>
-            <Text style={[taskStyles.title, { color: colors.text.primary, textDecorationLine: t.status === 'completed' ? 'line-through' : 'none' }]}>{t.title}</Text>
+            <Text style={[taskStyles.title, { color: colors.text.primary, textDecorationLine: t.status === 'checkcircle' ? 'line-through' : 'none' }]}>{t.title}</Text>
             {t.assignedTo && <Text style={[taskStyles.assigned, { color: colors.text.tertiary }]}>Assigned to {t.assignedTo?.firstName || 'someone'}</Text>}
           </View>
           {t.dueDate && <Text style={[taskStyles.due, { color: colors.text.tertiary }]}>{new Date(t.dueDate).toLocaleDateString('en-IN')}</Text>}
@@ -281,7 +281,7 @@ function RenderTasks({ data }: { data: any[] }) {
         style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateTask')}
       >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
+        <AntDesign name="plus" size={18} color="#FFFFFF"  />
         <Text style={styles.createBtnText}>Create Task</Text>
       </TouchableOpacity>
     </>
@@ -291,7 +291,7 @@ function RenderTasks({ data }: { data: any[] }) {
 function RenderCalendar({ data }: { data: any[] }) {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  if (!data?.length) return <EmptyState icon="calendar-outline" title="No events" subtitle="Add family events" />;
+  if (!data?.length) return <EmptyState icon='calendar' title="No events" subtitle="Add family events" />;
   return (
     <>
       {data.map((e: any, i: number) => (
@@ -310,7 +310,7 @@ function RenderCalendar({ data }: { data: any[] }) {
         style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateCalendarEvent')}
       >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
+        <AntDesign name="plus" size={18} color="#FFFFFF"  />
         <Text style={styles.createBtnText}>Create Event</Text>
       </TouchableOpacity>
     </>
@@ -336,7 +336,7 @@ function RenderEmergencyFund({ data }: { data: any }) {
       </View>
       {data?.recommendations?.map((r: any, i: number) => (
         <View key={i} style={[efStyles.recoCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
-          <Ionicons name="bulb-outline" size={16} color={MODULE_COLORS['emergency-fund']} />
+          <AntDesign name="bulb1" size={16} color={MODULE_COLORS['emergency-fund']}  />
           <Text style={[efStyles.recoText, { color: colors.text.primary }]}>{r.title || r}</Text>
         </View>
       ))}
@@ -348,7 +348,7 @@ function EmptyState({ icon, title, subtitle }: { icon: string; title: string; su
   const { colors } = useTheme();
   return (
     <View style={emptyStyles.container}>
-      <Ionicons name={icon as any} size={40} color={colors.text.tertiary} />
+      <AntDesign name={icon as any} size={40} color={colors.text.tertiary} />
       <Text style={[emptyStyles.title, { color: colors.text.primary }]}>{title}</Text>
       {subtitle && <Text style={[emptyStyles.subtitle, { color: colors.text.tertiary }]}>{subtitle}</Text>}
     </View>
@@ -420,16 +420,16 @@ export function FamilyModuleScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
       <View style={[styles.header, { borderBottomColor: colors.border.subtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+          <AntDesign name="arrowleft" size={22} color={colors.text.primary}  />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <View style={[styles.headerIcon, { backgroundColor: `${color}15` }]}>
-            <Ionicons name={icon as any} size={20} color={color} />
+            <AntDesign name={icon as any} size={20} color={color} />
           </View>
           <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{title || module}</Text>
         </View>
         <TouchableOpacity onPress={() => loadData(true)} style={styles.refreshBtn}>
-          <Ionicons name="refresh-outline" size={20} color={colors.text.secondary} />
+          <AntDesign name="reload1" size={20} color={colors.text.secondary}  />
         </TouchableOpacity>
       </View>
 

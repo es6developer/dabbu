@@ -102,28 +102,28 @@ registerWidget({
   type: 'netWorth',
   component: NetWorthWidget,
   defaultLabel: 'Net Worth',
-  defaultIcon: 'wallet-outline',
+  defaultIcon: 'wallet',
   defaultHeight: 220,
 });
 registerWidget({
   type: 'monthlySnapshot',
   component: MonthlySnapshotWidget,
   defaultLabel: 'This Month',
-  defaultIcon: 'calendar-outline',
+  defaultIcon: 'calendar',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'healthScore',
   component: HealthScoreWidget,
   defaultLabel: 'Health Score',
-  defaultIcon: 'heart-outline',
+  defaultIcon: 'hearto',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'aiInsight',
   component: AIInsightWidget,
   defaultLabel: 'AI Insight',
-  defaultIcon: 'bulb-outline',
+  defaultIcon: 'bulb1',
   defaultHeight: 140,
 });
 registerWidget({
@@ -144,49 +144,49 @@ registerWidget({
   type: 'recentTransactions',
   component: RecentTransactionsWidget,
   defaultLabel: 'Recent Transactions',
-  defaultIcon: 'swap-horizontal-outline',
+  defaultIcon: 'swap',
   defaultHeight: 260,
 });
 registerWidget({
   type: 'budgetsOverview',
   component: BudgetsOverviewWidget,
   defaultLabel: 'Budgets',
-  defaultIcon: 'pricetag-outline',
+  defaultIcon: 'tago',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'quickActions',
   component: QuickActionsWidget,
   defaultLabel: 'Quick Actions',
-  defaultIcon: 'flash-outline',
+  defaultIcon: 'thunderbolt',
   defaultHeight: 140,
 });
 registerWidget({
   type: 'coupleHero',
   component: CoupleHeroWidget,
   defaultLabel: 'Couple Hero',
-  defaultIcon: 'heart-outline',
+  defaultIcon: 'hearto',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'combinedWealth',
   component: CombinedWealthWidget,
   defaultLabel: 'Combined Wealth',
-  defaultIcon: 'wallet-outline',
+  defaultIcon: 'wallet',
   defaultHeight: 240,
 });
 registerWidget({
   type: 'coupleSnapshot',
   component: CoupleSnapshotWidget,
   defaultLabel: 'Monthly Snapshot',
-  defaultIcon: 'calendar-outline',
+  defaultIcon: 'calendar',
   defaultHeight: 220,
 });
 registerWidget({
   type: 'sharedSavings',
   component: SharedSavingsWidget,
   defaultLabel: 'Shared Savings',
-  defaultIcon: 'save-outline',
+  defaultIcon: 'save',
   defaultHeight: 180,
 });
 registerWidget({
@@ -200,14 +200,14 @@ registerWidget({
   type: 'sharedExpenses',
   component: SharedExpensesWidget,
   defaultLabel: 'Shared Expenses',
-  defaultIcon: 'cart-outline',
+  defaultIcon: 'shoppingcart',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'coupleAI',
   component: CoupleAIWidget,
   defaultLabel: 'Couple AI',
-  defaultIcon: 'bulb-outline',
+  defaultIcon: 'bulb1',
   defaultHeight: 160,
 });
 registerWidget({
@@ -221,42 +221,42 @@ registerWidget({
   type: 'coupleTimeline',
   component: CoupleTimelineWidget,
   defaultLabel: 'Timeline',
-  defaultIcon: 'time-outline',
+  defaultIcon: 'clockcircleo',
   defaultHeight: 240,
 });
 registerWidget({
   type: 'familyHero',
   component: FamilyHeroWidget,
   defaultLabel: 'Family Hero',
-  defaultIcon: 'people-outline',
+  defaultIcon: 'team',
   defaultHeight: 200,
 });
 registerWidget({
   type: 'familyWealth',
   component: FamilyWealthWidget,
   defaultLabel: 'Family Wealth',
-  defaultIcon: 'wallet-outline',
+  defaultIcon: 'wallet',
   defaultHeight: 240,
 });
 registerWidget({
   type: 'familySnapshot',
   component: FamilySnapshotWidget,
   defaultLabel: 'Family Snapshot',
-  defaultIcon: 'calendar-outline',
+  defaultIcon: 'calendar',
   defaultHeight: 220,
 });
 registerWidget({
   type: 'familyContributions',
   component: FamilyContributionsWidget,
   defaultLabel: 'Contributions',
-  defaultIcon: 'trending-up-outline',
+  defaultIcon: 'rise',
   defaultHeight: 240,
 });
 registerWidget({
   type: 'familyExpenses',
   component: FamilyExpensesWidget,
   defaultLabel: 'Family Expenses',
-  defaultIcon: 'cart-outline',
+  defaultIcon: 'shoppingcart',
   defaultHeight: 220,
 });
 registerWidget({
@@ -277,14 +277,14 @@ registerWidget({
   type: 'familyInsights',
   component: FamilyInsightsWidget,
   defaultLabel: 'Family Insights',
-  defaultIcon: 'bulb-outline',
+  defaultIcon: 'bulb1',
   defaultHeight: 180,
 });
 registerWidget({
   type: 'familyTimeline',
   component: FamilyTimelineWidget,
   defaultLabel: 'Family Timeline',
-  defaultIcon: 'time-outline',
+  defaultIcon: 'clockcircleo',
   defaultHeight: 240,
 });
 registerWidget({

@@ -27,9 +27,9 @@ export function CategorySelectionScreen() {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
 
-  const transactionType: 'expense' | 'income' = route.params?.type || 'expense';
-  const currentCats = transactionType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-  const isExpense = transactionType === 'expense';
+  const transactionType: 'wallet' | 'arrowdown' = route.params?.type || 'wallet';
+  const currentCats = transactionType === 'arrowdown' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const isExpense = transactionType === 'wallet';
 
   const filtered = currentCats.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
   const data = [{ isAdd: true }, ...filtered.map((c) => ({ isAdd: false, ...c }))];

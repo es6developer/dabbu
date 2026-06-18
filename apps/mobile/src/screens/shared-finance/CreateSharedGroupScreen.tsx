@@ -17,7 +17,7 @@ import {
 
 const GROUP_TYPES = [
   { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
-  { label: 'Trip', value: 'trip', icon: 'airplane', color: '#14B8A6' },
+  { label: 'Trip', value: 'trip', icon: 'planner', color: '#14B8A6' },
   { label: 'Family', value: 'family', icon: 'home', color: '#14B8A6' },
   { label: 'Couple', value: 'couple', icon: 'heart', color: '#FF6B9D' },
   { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },
@@ -100,7 +100,7 @@ export function CreateSharedGroupScreen() {
     <FormScreen
       title="Create Space"
       subtitle="Split expenses with friends, family, and more"
-      icon="planet"
+      icon="earth"
       footer={
         <FormFooter title="Create Space" icon="people" loading={saving} onPress={handleCreate} />
       }

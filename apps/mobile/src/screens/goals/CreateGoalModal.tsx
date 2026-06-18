@@ -28,13 +28,13 @@ import {
 const GOAL_CONFIGS: Record<string, { label: string; icon: string; color: string }> = {
   custom: { label: 'Custom', icon: 'star', color: '#8B5CF6' },
   emergency: { label: 'Emergency', icon: 'shield', color: '#EF4444' },
-  travel: { label: 'Travel', icon: 'airplane', color: '#3B82F6' },
+  travel: { label: 'Travel', icon: 'planner', color: '#3B82F6' },
   education: { label: 'Education', icon: 'book', color: '#F59E0B' },
   wedding: { label: 'Wedding', icon: 'heart', color: '#EC4899' },
   home: { label: 'Home', icon: 'home', color: '#14B8A6' },
   car: { label: 'Car', icon: 'car', color: '#4F6EF7' },
   retirement: { label: 'Retirement', icon: 'dashboard', color: '#6366F1' },
-  investment: { label: 'Investment', icon: 'trending-up', color: '#10B981' },
+  investment: { label: 'Investment', icon: 'caretup', color: '#10B981' },
   debt: { label: 'Debt Free', icon: 'wallet', color: '#F97316' },
 };
 
@@ -188,7 +188,7 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
                     <View style={{ flex: 1 }}>
                       <FormField
                         label="Monthly"
-                        icon="trending-up"
+                        icon='caretup'
                         value={monthly}
                         onChangeText={setMonthly}
                         placeholder="₹/mo"

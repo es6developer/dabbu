@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function GoalsWidget({ data }: { data: any }) {
@@ -12,7 +12,7 @@ export function GoalsWidget({ data }: { data: any }) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="flag-outline" size={18} color={colors.accent.primary} />
+          <AntDesign name="flag" size={18} color={colors.accent.primary}  />
           <Text style={[styles.title, { color: colors.text.primary }]}>Goals</Text>
         </View>
         <Text style={[styles.empty, { color: colors.text.secondary }]}>-</Text>
@@ -23,7 +23,7 @@ export function GoalsWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="flag-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="flag" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Goals</Text>
       </View>
       {items.slice(0, 3).map((goal: any, i: number) => {

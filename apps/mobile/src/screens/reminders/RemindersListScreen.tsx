@@ -68,10 +68,10 @@ export function RemindersListScreen() {
       case 'upcoming':
         return reminders.filter(
           (r) =>
-            r.dueDate && r.dueDate > today && r.dueDate <= weekLater && r.status !== 'completed',
+            r.dueDate && r.dueDate > today && r.dueDate <= weekLater && r.status !== 'checkcircle',
         );
       case 'overdue':
-        return reminders.filter((r) => r.dueDate && r.dueDate < today && r.status !== 'completed');
+        return reminders.filter((r) => r.dueDate && r.dueDate < today && r.status !== 'checkcircle');
       default:
         return reminders;
     }
@@ -96,7 +96,7 @@ export function RemindersListScreen() {
         return 'creditcard';
       case 'bill':
         return 'profile';
-      case 'subscription':
+      case 'reload1':
         return 'sync';
       case 'goal':
         return 'flag';
@@ -170,7 +170,7 @@ export function RemindersListScreen() {
                   {item.priority}
                 </Text>
               </View>
-              {item.status === 'completed' && (
+              {item.status === 'checkcircle' && (
                 <Text style={[styles.completedBadge, { color: colors.status.success }]}>✓</Text>
               )}
             </View>

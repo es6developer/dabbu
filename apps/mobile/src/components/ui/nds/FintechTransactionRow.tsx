@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 
 export interface TransactionEntry {
   id: string;
@@ -8,8 +8,8 @@ export interface TransactionEntry {
   subtitle?: string;
   timestamp: string;
   amount: number;
-  type: 'expense' | 'income';
-  icon?: keyof typeof Ionicons.glyphMap;
+  type: 'wallet' | 'arrowdown';
+  icon?: keyof typeof AntDesign.glyphMap;
   iconColor?: string;
   onPress?: () => void;
 }
@@ -39,8 +39,8 @@ export const FintechTransactionRow: React.FC<FintechTransactionRowProps> = ({
   transaction,
   className = '',
 }) => {
-  const isExpense = transaction.type === 'expense';
-  const icon = transaction.icon ?? (isExpense ? 'arrow-up-circle' : 'arrow-down-circle');
+  const isExpense = transaction.type === 'wallet';
+  const icon = transaction.icon ?? (isExpense ? 'upcircle' : 'downcircle');
   const iconBgColor = transaction.iconColor ?? (isExpense ? '#FB7185' : '#00E676');
 
   return (
@@ -54,7 +54,7 @@ export const FintechTransactionRow: React.FC<FintechTransactionRowProps> = ({
         className="w-11 h-11 rounded-full items-center justify-center mr-4"
         style={{ backgroundColor: isExpense ? '#FB718520' : '#00E67620' }}
       >
-        <Ionicons
+        <AntDesign
           name={icon as any}
           size={22}
           color={iconBgColor}

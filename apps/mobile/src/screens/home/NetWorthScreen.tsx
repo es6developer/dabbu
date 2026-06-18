@@ -18,11 +18,13 @@ import { useToast } from '../../store/ToastContext';
 
 const ASSET_CATEGORIES = [
   { key: 'bank', label: 'Bank Balance', icon: 'wallet' },
-  { key: 'cash', label: 'Cash', icon: 'wallet' },
+  { key: 'wallet', label: 'Cash', icon: 'wallet' },
   { key: 'gold', label: 'Gold', icon: 'star' },
   { key: 'property', label: 'Property', icon: 'home' },
-  { key: 'investments', label: 'Investments', icon: 'linechart' },
+  { key: 'investments', label: 'Stocks & Mutual Funds', icon: 'linechart' },
   { key: 'fixedDeposits', label: 'Fixed Deposits', icon: 'lock' },
+  { key: 'epf', label: 'EPF / NPS', icon: 'safety' },
+  { key: 'crypto', label: 'Crypto', icon: 'rocket1' },
 ];
 
 const LIABILITY_CATEGORIES = [
@@ -49,6 +51,8 @@ export function NetWorthScreen() {
     property: '',
     investments: '',
     fixedDeposits: '',
+    epf: '',
+    crypto: '',
   });
   const [liabilities, setLiabilities] = useState<Record<string, string>>({
     homeLoan: '',
@@ -90,6 +94,8 @@ export function NetWorthScreen() {
               property: String(data.property ?? ''),
               investments: String(data.investments ?? ''),
               fixedDeposits: String(data.fixedDeposits ?? ''),
+              epf: String(data.epf ?? ''),
+              crypto: String(data.crypto ?? ''),
             });
             setLiabilities({
               homeLoan: String(data.homeLoan ?? ''),

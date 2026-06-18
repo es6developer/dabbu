@@ -8,7 +8,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <Ionicons  name="finger-print" size={22} color="#14B8A6" />
+          <AntDesign name="Safety" size={22} color="#14B8A6"  />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>

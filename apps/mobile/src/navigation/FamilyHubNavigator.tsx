@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useNavigation } from '@react-navigation/native';
 import { iosTransitionOptions } from './animations';
@@ -55,9 +55,9 @@ function PlaceholderScreen({ routeName }: { routeName: string }) {
   return (
     <View style={[phs.placeholder, { backgroundColor: colors.bg.primary }]}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={phs.backBtn}>
-        <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+        <AntDesign name="arrowleft" size={22} color={colors.text.primary}  />
       </TouchableOpacity>
-      <Ionicons name="construct-outline" size={48} color={colors.text.tertiary} />
+      <AntDesign name="tool" size={48} color={colors.text.tertiary}  />
       <Text style={[phs.title, { color: colors.text.primary }]}>{label} Detail</Text>
       <Text style={[phs.subtitle, { color: colors.text.tertiary }]}>Coming soon</Text>
     </View>

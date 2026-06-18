@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -198,7 +198,7 @@ export function SharedCirclesScreen() {
               style={[s.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
               onPress={() => navigation.navigate('Analytics')}
             >
-              <Ionicons name="bar-chart-outline" size={20} color={colors.accent.primary} />
+              <AntDesign name="barschart" size={20} color={colors.accent.primary}  />
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
@@ -216,7 +216,7 @@ export function SharedCirclesScreen() {
           <View style={s.statsRow}>
             <StatCard icon="people" value={String(totalMembers)} label="Members" color={colors.accent.primary} />
             <StatCard icon="layers" value={String(groups.length)} label="Circles" color={colors.status.success} />
-            <StatCard icon="trending-up" value={String(activeCount)} label="Active" color={colors.status.warning} />
+            <StatCard icon='caretup' value={String(activeCount)} label="Active" color={colors.status.warning} />
           </View>
         </View>
       )}

@@ -32,10 +32,10 @@ const CATEGORIES = [
 
 const CATEGORY_ICONS: Record<string, string> = {
   aadhaar: 'id-card',
-  pan: 'card',
+  pan: 'creditcard',
   passport: 'globe',
   driving_license: 'car',
-  insurance: 'shield-checkmark',
+  insurance: 'checkcircle',
   vehicle_rc: 'document-text',
   warranty: 'receipt',
   medical: 'medkit',
@@ -116,8 +116,8 @@ export function DocumentVaultScreen() {
       }
 
       const asset = result.assets[0];
-      const ext = asset.name?.split('.').pop() || 'pdf';
-      const mimeType = asset.mimeType || `application/${ext === 'pdf' ? 'pdf' : 'octet-stream'}`;
+      const ext = asset.name?.split('.').pop() || 'file1';
+      const mimeType = asset.mimeType || `application/${ext === 'file1' ? 'file1' : 'octet-stream'}`;
 
       navigation.navigate('DocumentDetail', {
         mode: 'upload',
@@ -240,7 +240,7 @@ export function DocumentVaultScreen() {
                       style={[s.categoryIcon, { backgroundColor: `${colors.accent.primary}18` }]}
                     >
                       <AntDesign
-                        name={(CATEGORY_ICONS[cat.key] || 'document') as any}
+                        name={(CATEGORY_ICONS[cat.key] || 'file1') as any}
                         size={18}
                         color={colors.accent.primary}
                       />
@@ -303,9 +303,9 @@ export function DocumentVaultScreen() {
               <View style={[s.docIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
                 <AntDesign
                   name={
-                    ext === 'pdf'
-                      ? 'document'
-                      : ((CATEGORY_ICONS[item.category] || 'document') as any)
+                    ext === 'file1'
+                      ? 'file1'
+                      : ((CATEGORY_ICONS[item.category] || 'file1') as any)
                   }
                   size={18}
                   color={colors.accent.primary}

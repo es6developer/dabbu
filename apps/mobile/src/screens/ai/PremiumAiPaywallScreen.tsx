@@ -9,7 +9,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeIn } from 'react-native-reanimated';
@@ -182,7 +182,7 @@ export function PremiumAiPaywallScreen() {
       color: AI_COLORS.primary,
     },
     {
-      icon: 'trending-up' as const,
+      icon: 'caretup' as const,
       title: 'Predictions',
       desc: 'Month-end: ₹24,500',
       color: AI_COLORS.success,
@@ -219,7 +219,7 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
-            <Ionicons  name="diamond" size={40} color={AI_COLORS.primary} />
+            <AntDesign name="star" size={40} color={AI_COLORS.primary}  />
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -32,7 +32,7 @@ export function AccountDetailScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary}  />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text.primary }]}>{account.name || 'Account'}</Text>
         <View style={{ width: 24 }} />
@@ -49,8 +49,8 @@ export function AccountDetailScreen() {
               <Text style={[styles.txnDesc, { color: colors.text.primary }]}>{txn.description}</Text>
               <Text style={[styles.txnDate, { color: colors.text.tertiary }]}>{txn.date}</Text>
             </View>
-            <Text style={[styles.txnAmount, { color: txn.type === 'income' ? colors.status.success : colors.text.primary }]}>
-              {txn.type === 'income' ? '+' : '-'}{fmt(txn.amount || 0)}
+            <Text style={[styles.txnAmount, { color: txn.type === 'arrowdown' ? colors.status.success : colors.text.primary }]}>
+              {txn.type === 'arrowdown' ? '+' : '-'}{fmt(txn.amount || 0)}
             </Text>
           </View>
         ))}

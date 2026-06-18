@@ -239,7 +239,7 @@ function ComparisonCard({
       </View>
       <View style={[styles.comparisonFooter, { borderTopColor: colors.border.subtle }]}>
         <AntDesign
-          name={(isUp ? 'arrow-up' : 'arrow-down') as any}
+          name={(isUp ? 'arrowup' : 'arrowdown') as any}
           size={14}
           color={isUp ? colors.status.error : colors.status.success}
         />

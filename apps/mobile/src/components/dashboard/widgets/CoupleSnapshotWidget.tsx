@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function CoupleSnapshotWidget({ data }: { data: any }) {
@@ -15,7 +15,7 @@ export function CoupleSnapshotWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="people-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="team" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Couple Snapshot</Text>
       </View>
       <View style={styles.row}>

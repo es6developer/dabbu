@@ -9,7 +9,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
@@ -303,7 +303,7 @@ export function SmsPermissionScreen() {
                     style={[styles.secondaryBtn, { borderColor: colors.accent.primary }]}
                     onPress={() => navigation.navigate('SmsDashboard')}
                   >
-                    <Ionicons  name="list" size={18} color={colors.accent.primary} />
+                    <AntDesign name="menufold" size={18} color={colors.accent.primary}  />
                     <Text style={[styles.secondaryBtnText, { color: colors.accent.primary }]}>
                       View Detections
                     </Text>
@@ -451,12 +451,12 @@ export function SmsPermissionScreen() {
               style={[styles.troubleToggle, { borderColor: colors.border.subtle }]}
               onPress={() => setShowTrouble(!showTrouble)}
             >
-              <Ionicons  name="bug" size={16} color={colors.text.tertiary} />
+              <AntDesign name="tool" size={16} color={colors.text.tertiary}  />
               <Text style={[styles.troubleToggleText, { color: colors.text.tertiary }]}>
                 Troubleshooting
               </Text>
-              <Ionicons
-                name={showTrouble ? 'chevron-up-outline' : 'chevron-down-outline'}
+              <AntDesign
+                name={showTrouble ? 'up' : 'down'}
                 size={14}
                 color={colors.text.tertiary}
               />

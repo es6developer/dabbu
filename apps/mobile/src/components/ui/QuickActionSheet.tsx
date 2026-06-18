@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 

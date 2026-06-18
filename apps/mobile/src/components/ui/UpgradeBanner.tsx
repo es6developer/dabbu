@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
@@ -65,7 +65,7 @@ export function UpgradeBanner({
       >
         <View style={styles.content}>
           <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="diamond" size={18} color="#FFFFFF" />
+            <AntDesign name="star" size={18} color="#FFFFFF"  />
           </View>
           <View style={styles.textWrap}>
             <Text style={styles.title}>Go Premium</Text>

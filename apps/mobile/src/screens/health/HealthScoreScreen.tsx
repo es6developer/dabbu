@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -8,12 +8,12 @@ import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
 const COMPONENT_META: Record<string, { label: string; icon: string; desc: string }> = {
-  savingsRate: { label: 'Savings Rate', icon: 'trending-up', desc: 'Percentage of income saved each month' },
-  debtRatio: { label: 'Debt Ratio', icon: 'card', desc: 'Debt compared to total income' },
+  savingsRate: { label: 'Savings Rate', icon: 'caretup', desc: 'Percentage of income saved each month' },
+  debtRatio: { label: 'Debt Ratio', icon: 'creditcard', desc: 'Debt compared to total income' },
   budgetDiscipline: { label: 'Budget Discipline', icon: 'calculator', desc: 'How well you stick to budgets' },
   goalProgress: { label: 'Goal Progress', icon: 'flag', desc: 'Progress towards financial goals' },
   billConsistency: { label: 'Bill Consistency', icon: 'document-text', desc: 'On-time bill payment record' },
-  emergencyFund: { label: 'Emergency Fund', icon: 'shield-checkmark', desc: 'Months of expenses covered' },
+  emergencyFund: { label: 'Emergency Fund', icon: 'checkcircle', desc: 'Months of expenses covered' },
 };
 
 const LEVEL_META: Record<string, { label: string; color: string }> = {
@@ -53,7 +53,7 @@ export function HealthScoreScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary}  />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Dabbu Health Score</Text>
         <View style={{ width: 24 }} />
@@ -83,7 +83,7 @@ export function HealthScoreScreen() {
 
         {!loading && !hasScore ? (
           <View style={styles.noDataContainer}>
-            <Ionicons name="analytics-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign name="barschart" size={48} color={colors.text.tertiary}  />
             <Text style={[styles.noDataTitle, { color: colors.text.primary }]}>No data yet</Text>
             <Text style={[styles.noDataDesc, { color: colors.text.tertiary }]}>
               Start adding income, expenses, and accounts to track your financial health
@@ -99,7 +99,7 @@ export function HealthScoreScreen() {
               return (
                 <View key={key} style={[styles.componentRow, { borderBottomColor: colors.border.subtle }]}>
                   <View style={styles.compLeft}>
-                    <Ionicons name={meta.icon as any} size={16} color={barColor} />
+                    <AntDesign name={meta.icon as any} size={16} color={barColor} />
                     <View style={styles.compInfo}>
                       <Text style={[styles.compLabel, { color: colors.text.primary }]}>{meta.label}</Text>
                       <Text style={[styles.compDesc, { color: colors.text.tertiary }]}>{meta.desc}</Text>

@@ -153,7 +153,7 @@ export function ReminderDetailScreen() {
                 styles.badge,
                 {
                   backgroundColor:
-                    reminder.status === 'completed'
+                    reminder.status === 'checkcircle'
                       ? `${colors.status.success}18`
                       : `${colors.status.warning}18`,
                 },
@@ -164,7 +164,7 @@ export function ReminderDetailScreen() {
                   styles.badgeText,
                   {
                     color:
-                      reminder.status === 'completed'
+                      reminder.status === 'checkcircle'
                         ? colors.status.success
                         : colors.status.warning,
                   },

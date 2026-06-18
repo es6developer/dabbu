@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -22,10 +22,10 @@ import { useToast } from '../../store/ToastContext';
 const GROUP_TYPES = ['friends', 'couple', 'trip', 'family', 'roommates'] as const;
 const ICONS = [
   'documents',
-  'card',
-  'cash',
-  'cart',
-  'airplane',
+  'creditcard',
+  'wallet',
+  'shoppingcart',
+  'planner',
   'home',
   'car',
   'fitness',
@@ -185,7 +185,7 @@ export function SplitTemplatesScreen() {
             }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-                <Ionicons  name="documents" size={48} color={colors.text.tertiary} />
+                <AntDesign name="file1" size={48} color={colors.text.tertiary}  />
                 <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
                   No templates yet. Create one!
                 </Text>

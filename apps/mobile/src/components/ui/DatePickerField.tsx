@@ -10,7 +10,7 @@ interface DatePickerFieldProps {
   onChange: (dateString: string) => void;
   placeholder?: string;
   optional?: boolean;
-  mode?: 'date' | 'time' | 'datetime';
+  mode?: 'date' | 'clockcircleo' | 'datetime';
 }
 
 function toDateInput(dateStr: string): Date {
@@ -29,7 +29,7 @@ function formatDisplayDate(dateStr: string, mode: string): string {
   if (isNaN(d.getTime())) {
     return dateStr;
   }
-  if (mode === 'time') {
+  if (mode === 'clockcircleo') {
     return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
   }
   if (mode === 'datetime') {
@@ -84,7 +84,7 @@ export function DatePickerField({
       if (selectedDate) {
         if (mode === 'date') {
           onChange(formatDateValue(selectedDate));
-        } else if (mode === 'time') {
+        } else if (mode === 'clockcircleo') {
           onChange(formatTimeValue(selectedDate));
         } else {
           onChange(formatDateTimeValue(selectedDate));
@@ -97,7 +97,7 @@ export function DatePickerField({
       pendingRef.current = selectedDate;
       if (mode === 'date') {
         onChange(formatDateValue(selectedDate));
-      } else if (mode === 'time') {
+      } else if (mode === 'clockcircleo') {
         onChange(formatTimeValue(selectedDate));
       } else {
         onChange(formatDateTimeValue(selectedDate));
@@ -113,7 +113,7 @@ export function DatePickerField({
     const original = toDateInput(value);
     if (mode === 'date') {
       onChange(formatDateValue(original));
-    } else if (mode === 'time') {
+    } else if (mode === 'clockcircleo') {
       onChange(formatTimeValue(original));
     } else {
       onChange(formatDateTimeValue(original));
@@ -144,7 +144,7 @@ export function DatePickerField({
         activeOpacity={0.7}
       >
         <AntDesign
-          name={mode === 'time' ? 'clockcircleo' : 'calendar'}
+          name={mode === 'clockcircleo' ? 'clockcircleo' : 'calendar'}
           size={18}
           color={value ? colors.text.primary : colors.text.tertiary}
           style={styles.icon}

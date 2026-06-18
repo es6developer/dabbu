@@ -32,19 +32,19 @@ const categoryIcons: Record<string, string> = {
   Entertainment: 'film',
   Health: 'fitness',
   Education: 'school',
-  Travel: 'airplane',
-  Groceries: 'cart',
+  Travel: 'planner',
+  Groceries: 'shoppingcart',
   Rent: 'home',
-  Salary: 'cash',
-  Investment: 'trending-up',
-  Utilities: 'flash',
+  Salary: 'wallet',
+  Investment: 'caretup',
+  Utilities: 'bulb1',
   Insurance: 'shield',
-  Dining: 'restaurant',
-  Other: 'ellipsis-horizontal',
+  Dining: 'rest',
+  Other: 'ellipsis1',
 };
 
 function getIcon(cat: string): string {
-  return categoryIcons[cat] || 'ellipsis-horizontal';
+  return categoryIcons[cat] || 'ellipsis1';
 }
 
 function fmt(v: number) {
@@ -116,8 +116,8 @@ function groupByDate(txs: any[]): { title: string; data: any[] }[] {
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'income', label: 'Income' },
-  { key: 'expense', label: 'Expense' },
+  { key: 'arrowdown', label: 'Income' },
+  { key: 'wallet', label: 'Expense' },
 ] as const;
 
 export function TransactionsListScreen() {
@@ -192,11 +192,11 @@ export function TransactionsListScreen() {
 
   const filtered = useMemo(() => {
     let txs = transactions;
-    if (activeFilter === 'income') {
-      txs = txs.filter((t: any) => t.type === 'income');
+    if (activeFilter === 'arrowdown') {
+      txs = txs.filter((t: any) => t.type === 'arrowdown');
     }
-    if (activeFilter === 'expense') {
-      txs = txs.filter((t: any) => t.type === 'expense');
+    if (activeFilter === 'wallet') {
+      txs = txs.filter((t: any) => t.type === 'wallet');
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -211,7 +211,7 @@ export function TransactionsListScreen() {
 
   const renderTx = useCallback(
     ({ item }: any) => {
-      const isIncome = item.type === 'income';
+      const isIncome = item.type === 'arrowdown';
       const amount = Number(item.amount || 0);
       const txColor = isIncome ? colors.status.success : colors.status.error;
       const catName = item.category || item.categoryName || 'Other';
@@ -537,9 +537,9 @@ export function TransactionsListScreen() {
           ListEmptyComponent={
             <PremiumEmptyState
               icon={
-                activeFilter === 'income'
+                activeFilter === 'arrowdown'
                   ? 'wallet'
-                  : activeFilter === 'expense'
+                  : activeFilter === 'wallet'
                     ? 'filetext1'
                     : 'filetext1'
               }

@@ -190,7 +190,7 @@ export function CoupleIncomeScreen() {
           <TouchableOpacity
             style={styles.addBtn}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('CoupleTransactionForm', { prefill: { groupId: groupInfo?.id, type: 'income' } })}
+            onPress={() => navigation.navigate('CoupleTransactionForm', { prefill: { groupId: groupInfo?.id, type: 'arrowdown' } })}
           >
             <AntDesign  name="pluscircleo" size={20} color="#FFF" />
             <Text style={styles.addBtnText}>Add Income</Text>

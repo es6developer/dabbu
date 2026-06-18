@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 const defaultActionColors: Record<string, string> = {
@@ -14,7 +14,7 @@ const actionIcons = {
   'Add Expense': 'remove-circle-outline',
   'Add Income': 'add-circle-outline',
   'Create Goal': 'flag-outline',
-  'Create Budget': 'pie-chart-outline',
+  'Create Budget': 'piechart',
 } as const;
 
 export function QuickActionsWidget({ data }: { data: any }) {
@@ -27,7 +27,7 @@ export function QuickActionsWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="flash-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="bulb1" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Quick Actions</Text>
       </View>
       <View style={styles.grid}>
@@ -37,7 +37,7 @@ export function QuickActionsWidget({ data }: { data: any }) {
           const color = defaultActionColors[lbl] || label?.color || '#6366F1';
           return (
             <View key={i} style={[styles.btn, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name={icon} size={18} color={color} />
+              <AntDesign name={icon} size={18} color={color} />
               <Text style={[styles.btnLabel, { color: colors.text.primary }]}>{lbl}</Text>
             </View>
           );

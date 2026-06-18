@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -38,7 +38,7 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       chipColor: palette.brand.primary,
       icon: 'people',
     },
-    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'airplane' },
+    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'planner' },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
@@ -368,7 +368,7 @@ export function SharedGroupDetailScreen() {
       detail: `${tx.description || tx.category?.name || tx.category || 'Expense'} · ${fmt(Number(tx.amount || 0))}`,
       date: tx.createdAt || tx.date,
       icon: 'filetext1' as const,
-      type: 'expense' as const,
+      type: 'wallet' as const,
     }));
     const memberActivity = members.slice(0, 10).map((member: any) => ({
       id: `member-${member.id}`,
@@ -506,7 +506,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons  name="airplane" size={20} color={colors.accent.primary} />
+                <AntDesign name="calendar" size={20} color={colors.accent.primary}  />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -589,8 +589,8 @@ export function SharedGroupDetailScreen() {
               AI Insights
             </Text>
           </View>
-          <Ionicons
-            name={insightsOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
+          <AntDesign
+            name={insightsOpen ? 'up' : 'down'}
             size={18}
             color={colors.text.tertiary}
           />
@@ -661,7 +661,7 @@ export function SharedGroupDetailScreen() {
             </Text>
             {recentActivity.map((item) => {
               const typeColor =
-                item.type === 'expense' || item.type === 'expense_added'
+                item.type === 'wallet' || item.type === 'expense_added'
                   ? '#60A5FA'
                   : item.type === 'member' || item.type === 'member_joined'
                     ? '#34C759'
@@ -960,7 +960,7 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
-                  <Ionicons  name="logo-whatsapp" size={18} color="#34C759" />
+                  <AntDesign name="message1" size={18} color="#34C759"  />
                   <Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -1143,7 +1143,7 @@ export function SharedGroupDetailScreen() {
                       <>
                         <Text style={s.groupMeta}>·</Text>
                         <AntDesign
-                          name={(myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up') as any}
+                          name={(myBalanceRow.balance >= 0 ? 'arrowdown' : 'arrowup') as any}
                           size={10}
                           color="rgba(255,255,255,0.6)"
                         />

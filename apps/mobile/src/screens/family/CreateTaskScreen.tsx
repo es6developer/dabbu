@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -53,7 +53,7 @@ export function CreateTaskScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
       <View style={[styles.header, { borderBottomColor: colors.border.subtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+          <AntDesign name="arrowleft" size={22} color={colors.text.primary}  />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Create Task</Text>
         <View style={styles.backBtn} />

@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -29,7 +29,7 @@ interface NotificationItem {
   createdAt: string;
 }
 
-type FilterKey = 'all' | 'overdue' | 'upcoming' | 'paid' | 'bill' | 'subscription';
+type FilterKey = 'all' | 'overdue' | 'upcoming' | 'paid' | 'bill' | 'reload1';
 
 const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
   { key: 'all', label: 'All', icon: 'bells' },
@@ -37,7 +37,7 @@ const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
   { key: 'upcoming', label: 'Upcoming', icon: 'calendar' },
   { key: 'paid', label: 'Completed', icon: 'checkcircleo' },
   { key: 'bill', label: 'Bills', icon: 'filetext1' },
-  { key: 'subscription', label: 'Subscriptions', icon: 'retweet' },
+  { key: 'reload1', label: 'Subscriptions', icon: 'retweet' },
 ];
 
 export function NotificationCenterScreen() {
@@ -76,7 +76,7 @@ export function NotificationCenterScreen() {
         url += '&type=reminder_upcoming';
       } else if (activeFilter === 'paid') {
         url += '&type=goal_milestone,completed';
-      } else if (activeFilter === 'bill' || activeFilter === 'subscription') {
+      } else if (activeFilter === 'bill' || activeFilter === 'reload1') {
         url += `&category=${activeFilter}`;
       }
 
@@ -181,14 +181,14 @@ export function NotificationCenterScreen() {
     switch (category) {
       case 'bill':
         return 'filetext1';
-      case 'subscription':
+      case 'reload1':
         return 'retweet';
       case 'payment':
         return 'creditcard';
       case 'task':
         return 'check';
       case 'goal':
-        return 'trophy';
+        return 'Trophy';
       default:
         return 'bells';
     }
@@ -289,7 +289,7 @@ export function NotificationCenterScreen() {
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handlePress(item)}
           >
-            <Ionicons  name="open" size={14} color={colors.accent.primary} />
+            <AntDesign name="export" size={14} color={colors.accent.primary}  />
             <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity

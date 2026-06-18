@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -249,8 +249,8 @@ export function GroupExpensesScreen() {
   }, [userTotals, currentUser]);
 
   const stats = useMemo(() => {
-    const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
-    const totalExpense = transactions.filter((t: any) => t.type !== 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    const totalIncome = transactions.filter((t: any) => t.type === 'arrowdown').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    const totalExpense = transactions.filter((t: any) => t.type !== 'arrowdown').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
     return { totalIncome, totalExpense, remaining: totalIncome - totalExpense };
   }, [transactions]);
 
@@ -335,7 +335,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="bar-chart-outline" size={22} color={colors.text.primary} />
+                <AntDesign name="barschart" size={22} color={colors.text.primary}  />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -578,7 +578,7 @@ export function GroupExpensesScreen() {
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={[s.txAmount, { color: item.type === 'income' ? colors.status.success : colors.text.primary }]}>
+                <Text style={[s.txAmount, { color: item.type === 'arrowdown' ? colors.status.success : colors.text.primary }]}>
                   ₹{Math.abs(Number(item.amount)).toLocaleString('en-IN')}
                 </Text>
                 {!isNaN(date.getTime()) && (

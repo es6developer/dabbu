@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -64,13 +64,13 @@ interface ProjectionScenario {
 const LOAN_TYPES = [
   { type: 'home', name: 'Home Loan', icon: 'home', color: '#F97316' },
   { type: 'car', name: 'Car Loan', icon: 'car', color: '#14B8A6' },
-  { type: 'personal', name: 'Personal Loan', icon: 'person', color: '#4F6EF7' },
+  { type: 'personal', name: 'Personal Loan', icon: 'user', color: '#4F6EF7' },
   { type: 'education', name: 'Education Loan', icon: 'school', color: '#8B5CF6' },
-  { type: 'other', name: 'Other Loan', icon: 'trending-down', color: '#6B7280' },
+  { type: 'other', name: 'Other Loan', icon: 'caretdown', color: '#6B7280' },
 ];
 
 const LOAN_ICONS: Record<string, string> = {
-  home: 'home', car: 'car', personal: 'person', education: 'school', other: 'trending-down',
+  home: 'home', car: 'car', personal: 'user', education: 'school', other: 'caretdown',
 };
 
 function fmt(v: number) {
@@ -324,7 +324,7 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
           <TouchableOpacity onPress={() => setShowAmort(!showAmort)} style={{ backgroundColor: colors.bg.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border.default, padding: 16, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>Amortization Schedule</Text>
-              <Ionicons name={showAmort ? 'chevron-up-outline' : 'chevron-down-outline'} size={18} color={colors.text.tertiary} />
+              <AntDesign name={showAmort ? 'up' : 'down'} size={18} color={colors.text.tertiary} />
             </View>
             {showAmort && (
               <View style={{ marginTop: 12 }}>

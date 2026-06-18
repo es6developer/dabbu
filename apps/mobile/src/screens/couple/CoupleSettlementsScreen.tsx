@@ -35,7 +35,7 @@ interface Settlement {
   amount: number;
   from: string;
   to: string;
-  status: 'completed' | 'pending';
+  status: 'checkcircle' | 'pending';
   method: string;
 }
 
@@ -330,7 +330,7 @@ export function CoupleSettlementsScreen() {
                       <View
                         style={[
                           styles.statusDot,
-                          { backgroundColor: item.status === 'completed' ? '#34C759' : '#F59E0B' },
+                          { backgroundColor: item.status === 'checkcircle' ? '#34C759' : '#F59E0B' },
                         ]}
                       />
                       <View>
@@ -352,7 +352,7 @@ export function CoupleSettlementsScreen() {
                         styles.statusBadge,
                         {
                           backgroundColor:
-                            item.status === 'completed'
+                            item.status === 'checkcircle'
                               ? 'rgba(52,199,89,0.12)'
                               : 'rgba(245,158,11,0.12)',
                         },
@@ -361,10 +361,10 @@ export function CoupleSettlementsScreen() {
                       <Text
                         style={[
                           styles.statusBadgeText,
-                          { color: item.status === 'completed' ? '#34C759' : '#F59E0B' },
+                          { color: item.status === 'checkcircle' ? '#34C759' : '#F59E0B' },
                         ]}
                       >
-                        {item.status === 'completed' ? 'Completed' : 'Pending'}
+                        {item.status === 'checkcircle' ? 'Completed' : 'Pending'}
                       </Text>
                     </View>
                     <Text style={[styles.methodText, { color: colors.text.tertiary }]}>

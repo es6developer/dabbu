@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { spacing } from '../../theme/design';
 import { api } from '../../services/api';
@@ -100,7 +100,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
         <View style={styles.headerActions}>
           {saving && <ActivityIndicator size="small" color={colors.text.tertiary} style={{ marginRight: 4 }} />}
           <TouchableOpacity onPress={() => setEditMode(!editMode)} style={[styles.editBtn, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name={editMode ? 'checkmark' : 'settings-outline'} size={18} color={colors.text.secondary} />
+            <AntDesign name={editMode ? 'check' : 'setting'} size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -117,7 +117,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
                 disabled={index === 0}
                 style={[styles.moveBtn, { opacity: index === 0 ? 0.3 : 1 }]}
               >
-                <Ionicons name="chevron-up" size={16} color={colors.text.secondary} />
+                <AntDesign name="up" size={16} color={colors.text.secondary}  />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -127,7 +127,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
                 disabled={index === visibleWidgets.length - 1}
                 style={[styles.moveBtn, { opacity: index === visibleWidgets.length - 1 ? 0.3 : 1 }]}
               >
-                <Ionicons name="chevron-down" size={16} color={colors.text.secondary} />
+                <AntDesign name="down" size={16} color={colors.text.secondary}  />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -138,7 +138,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
                 }}
                 style={styles.removeBtn}
               >
-                <Ionicons name="eye-off-outline" size={16} color="#EF4444" />
+                <AntDesign name="eyeo" size={16} color="#EF4444"  />
               </TouchableOpacity>
             </View>
           )}
@@ -153,7 +153,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
 
       {editMode && (
         <TouchableOpacity style={[styles.doneBtn, { backgroundColor: colors.accent.primary }]} onPress={() => setEditMode(false)}>
-          <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+          <AntDesign name="checkcircle" size={18} color="#FFF"  />
           <Text style={styles.doneText}>Done Editing</Text>
         </TouchableOpacity>
       )}

@@ -40,7 +40,7 @@ export function CreateChatScreen() {
       icon="message1"
       accent={[colors.status.info, colors.accent.primary]}
       footer={
-        <FormFooter title="Create Chat" icon="add" loading={saving} onPress={handleCreate} />
+        <FormFooter title="Create Chat" icon='plus' loading={saving} onPress={handleCreate} />
       }
     >
       <FormSection title="Chat Details">

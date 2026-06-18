@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 're
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+ import { AntDesign } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
@@ -472,36 +472,36 @@ export function MainTabNavigator() {
       icon: 'add-circle-outline',
       color: '#DC2626',
       onPress: () =>
-        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'expense' } }),
+        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'wallet' } }),
     },
     {
       label: 'Add Income',
-      icon: 'trending-up-outline',
+      icon: 'caretup',
       color: '#16A34A',
       onPress: () =>
-        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'income' } }),
+        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'arrowdown' } }),
     },
     {
       label: 'Wallet',
-      icon: 'wallet-outline',
+      icon: 'wallet',
       color: '#2563EB',
       onPress: () => navigation.navigate('Expense', { screen: 'MyWallet' }),
     },
     {
       label: 'Net Worth',
-      icon: 'bar-chart-outline',
+      icon: 'barschart',
       color: '#7C3AED',
       onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
     },
     {
       label: 'Create Goal',
-      icon: 'flag-outline',
+      icon: 'flag',
       color: '#F59E0B',
       onPress: () => navigation.navigate('Goals'),
     },
     {
       label: 'Expense Group',
-      icon: 'people-outline',
+      icon: 'team',
       color: '#14B8A6',
       onPress: () => navigation.navigate('Expense', { screen: 'SharedCircles' }),
     },
@@ -514,9 +514,9 @@ export function MainTabNavigator() {
       {showCoupleFeatures && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <Ionicons
+            <AntDesign
               key={i}
-              name="heart-outline"
+              name="hearto"
               size={24 + i * 8}
               color={`${COUPLE_COLORS.heart}08`}
               style={{
@@ -558,7 +558,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Home',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+              <AntDesign name={focused ? 'home' : 'home'} size={22} color={color} />
             ),
           }}
         />
@@ -578,7 +578,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'planet' : 'earth') as any} size={22} color={color} />
+              <AntDesign name={(focused ? 'earth' : 'earth') as any} size={22} color={color} />
             ),
           }}
         />
@@ -588,7 +588,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Goals',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'trophy' : 'trophy') as any} size={22} color={color} />
+              <AntDesign name={(focused ? 'Trophy' : 'Trophy') as any} size={22} color={color} />
             ),
           }}
         />
@@ -607,7 +607,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'person' : 'user') as any} size={22} color={color} />
+              <AntDesign name={(focused ? 'user' : 'user') as any} size={22} color={color} />
             ),
           }}
         />
@@ -791,7 +791,7 @@ function IOSTabBar({
                     },
                   ]}
                 >
-                  <Ionicons name="add" size={20} color="#FFF" />
+                  <AntDesign name="plus" size={20} color="#FFF" />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF', marginTop: 1 }}>
                     Add
                   </Text>

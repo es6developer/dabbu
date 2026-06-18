@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -14,7 +14,7 @@ const HUB_CATEGORIES = [
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#F43F5E' },
   { key: 'family', label: 'Family', icon: 'home', color: '#2563EB' },
   { key: 'friends', label: 'Friends', icon: 'people', color: '#16A34A' },
-  { key: 'trip', label: 'Trips', icon: 'airplane', color: '#0D9488' },
+  { key: 'trip', label: 'Trips', icon: 'planner', color: '#0D9488' },
 ] as const;
 
 function fmtCompact(v: number) {
@@ -107,7 +107,7 @@ export function FamilyHubScreen() {
       >
         <View style={styles.groupHeader}>
           <View style={[styles.groupIcon, { backgroundColor: cat.color + '20' }]}>
-            <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+            <AntDesign name={cat.icon as any} size={20} color={cat.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.groupName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -174,7 +174,7 @@ export function FamilyHubScreen() {
             style={[styles.createBtn, { backgroundColor: colors.accent.primary + '15' }]}
             onPress={() => navigation.navigate('CreateSharedGroup')}
           >
-            <Ionicons name="add" size={22} color={colors.accent.primary} />
+            <AntDesign name="plus" size={22} color={colors.accent.primary}  />
           </TouchableOpacity>
         </View>
 
@@ -183,11 +183,11 @@ export function FamilyHubScreen() {
             style={[styles.coupleBanner, { backgroundColor: COUPLE_COLORS.bg }]}
             onPress={() => navigation.navigate('CoupleSplash')}
           >
-            <Ionicons name="heart" size={18} color={COUPLE_COLORS.primary} />
+            <AntDesign name="heart" size={18} color={COUPLE_COLORS.primary}  />
             <Text style={[styles.coupleText, { color: COUPLE_COLORS.primary }]}>
               {couple.isInCouple ? 'View Couple Dashboard' : 'Connect with Partner'}
             </Text>
-            <Ionicons name="chevron-forward" size={16} color={COUPLE_COLORS.primary} />
+            <AntDesign name="right" size={16} color={COUPLE_COLORS.primary}  />
           </TouchableOpacity>
         )}
 
@@ -216,7 +216,7 @@ export function FamilyHubScreen() {
               }]}
               onPress={() => setActiveFilter(activeFilter === cat.key ? null : cat.key)}
             >
-              <Ionicons name={cat.icon as any} size={14} color={activeFilter === cat.key ? '#FFF' : cat.color} />
+              <AntDesign name={cat.icon as any} size={14} color={activeFilter === cat.key ? '#FFF' : cat.color} />
               <Text style={[styles.filterText, {
                 color: activeFilter === cat.key ? '#FFF' : colors.text.secondary,
                 marginLeft: 4,
@@ -241,7 +241,7 @@ export function FamilyHubScreen() {
         ) : filteredGroups.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="people-outline" size={40} color={colors.text.tertiary} />
+              <AntDesign name="team" size={40} color={colors.text.tertiary}  />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No groups yet</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
@@ -251,7 +251,7 @@ export function FamilyHubScreen() {
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
               onPress={() => navigation.navigate('CreateSharedGroup')}
             >
-              <Ionicons name="add" size={18} color="#FFF" />
+              <AntDesign name="plus" size={18} color="#FFF"  />
               <Text style={styles.emptyBtnText}>Create Your First Group</Text>
             </TouchableOpacity>
           </View>

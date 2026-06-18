@@ -13,7 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
-type AmountType = 'expense' | 'income';
+type AmountType = 'wallet' | 'arrowdown';
 
 interface FormAmountFieldProps {
   value: string;
@@ -46,13 +46,13 @@ export function FormAmountField({
   const [focused, setFocused] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const isExpense = type !== 'income';
+  const isExpense = type !== 'arrowdown';
   const hasValue = value.length > 0;
   const fieldState = error ? 'error' : focused ? 'focused' : hasValue ? 'filled' : 'idle';
 
   const accentColor = fieldState === 'error'
     ? colors.status.error
-    : type === 'income'
+    : type === 'arrowdown'
       ? colors.status.success
       : colors.accent.primary;
 
@@ -89,7 +89,7 @@ export function FormAmountField({
 
       {type !== undefined && onTypeChange ? (
         <View style={[styles.toggleRow, { backgroundColor: colors.bg.tertiary }]}>
-          {(['expense', 'income'] as const).map((t) => (
+          {(['wallet', 'arrowdown'] as const).map((t) => (
             <TouchableOpacity
               key={t}
               activeOpacity={0.8}
@@ -99,7 +99,7 @@ export function FormAmountField({
                 {
                   backgroundColor:
                     type === t
-                      ? t === 'income'
+                      ? t === 'arrowdown'
                         ? colors.status.success
                         : colors.accent.primary
                       : 'transparent',
@@ -107,7 +107,7 @@ export function FormAmountField({
               ]}
             >
               <AntDesign
-                name={(t === 'expense' ? 'shoppingcart' : 'trending-up') as any}
+                name={(t === 'wallet' ? 'shoppingcart' : 'caretup') as any}
                 size={13}
                 color={type === t ? '#FFF' : colors.text.secondary}
               />
@@ -117,7 +117,7 @@ export function FormAmountField({
                   { color: type === t ? '#FFF' : colors.text.secondary },
                 ]}
               >
-                {t === 'expense' ? 'Expense' : 'Income'}
+                {t === 'wallet' ? 'Expense' : 'Income'}
               </Text>
             </TouchableOpacity>
           ))}

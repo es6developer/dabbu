@@ -299,8 +299,8 @@ export function CoupleSpaceScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {[
-            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'expense' as const } } },
-            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'income' as const } } },
+            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'wallet' as const } } },
+            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'arrowdown' as const } } },
             { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
             { icon: 'barchart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
             { icon: 'flag', label: 'Goals', color: '#F59E0B', screen: 'Goals', params: {} },

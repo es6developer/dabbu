@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 function getGreeting() {
@@ -45,7 +45,7 @@ export function GreetingWidget({ data }: { data: any }) {
       </View>
       {change !== undefined && (
         <View style={[styles.changeBadge, { backgroundColor: change >= 0 ? '#DCFCE7' : '#FEE2E2' }]}>
-          <Ionicons name={change >= 0 ? 'trending-up' : 'trending-down'} size={12} color={change >= 0 ? '#16A34A' : '#DC2626'} />
+          <AntDesign name={change >= 0 ? 'caretup' : 'caretdown'} size={12} color={change >= 0 ? '#16A34A' : '#DC2626'} />
           <Text style={[styles.changeText, { color: change >= 0 ? '#16A34A' : '#DC2626' }]}>
             {getChangeLabel(change)} this month
           </Text>

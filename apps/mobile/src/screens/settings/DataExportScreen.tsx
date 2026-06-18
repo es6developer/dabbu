@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -74,7 +74,7 @@ export function DataExportScreen() {
 
       <View style={[styles.card, { backgroundColor: theme.card }]}>
         <View style={[styles.iconWrap, { backgroundColor: '#6366f120' }]}>
-          <Ionicons name="download-outline" size={28} color="#6366f1" />
+          <AntDesign name="download" size={28} color="#6366f1"  />
         </View>
         <Text style={[styles.cardTitle, { color: theme.text }]}>Export Your Data</Text>
         <Text style={[styles.cardDesc, { color: theme.subtext }]}>
@@ -98,12 +98,12 @@ export function DataExportScreen() {
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Export History</Text>
           {history.map((h: any) => (
             <View key={h.id} style={styles.historyRow}>
-              <Ionicons name="document-text-outline" size={18} color={theme.subtext} />
+              <AntDesign name="filetext1" size={18} color={theme.subtext}  />
               <Text style={[styles.historyText, { color: theme.subtext }]}>
                 {h.format?.toUpperCase()} - {new Date(h.createdAt).toLocaleDateString()}
               </Text>
               <View style={[styles.statusDot, {
-                backgroundColor: h.status === 'completed' ? '#22c55e' : h.status === 'failed' ? '#ef4444' : '#f97316',
+                backgroundColor: h.status === 'checkcircle' ? '#22c55e' : h.status === 'failed' ? '#ef4444' : '#f97316',
               }]} />
             </View>
           ))}
@@ -112,7 +112,7 @@ export function DataExportScreen() {
 
       <View style={[styles.card, { backgroundColor: theme.card, borderWidth: 1, borderColor: '#ef444430' }]}>
         <View style={[styles.iconWrap, { backgroundColor: '#ef444120' }]}>
-          <Ionicons name="trash-outline" size={28} color="#ef4444" />
+          <AntDesign name="delete" size={28} color="#ef4444"  />
         </View>
         <Text style={[styles.cardTitle, { color: '#ef4444' }]}>Delete Account</Text>
         <Text style={[styles.cardDesc, { color: theme.subtext }]}>
@@ -129,19 +129,19 @@ export function DataExportScreen() {
       <View style={[styles.card, { backgroundColor: theme.card }]}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Data Retention Policy</Text>
         <View style={styles.policyRow}>
-          <Ionicons name="time-outline" size={16} color={theme.subtext} />
+          <AntDesign name="clockcircleo" size={16} color={theme.subtext}  />
           <Text style={[styles.policyText, { color: theme.subtext }]}>Transactions: Retained until account deletion</Text>
         </View>
         <View style={styles.policyRow}>
-          <Ionicons name="time-outline" size={16} color={theme.subtext} />
+          <AntDesign name="clockcircleo" size={16} color={theme.subtext}  />
           <Text style={[styles.policyText, { color: theme.subtext }]}>Analytics events: 90 days</Text>
         </View>
         <View style={styles.policyRow}>
-          <Ionicons name="time-outline" size={16} color={theme.subtext} />
+          <AntDesign name="clockcircleo" size={16} color={theme.subtext}  />
           <Text style={[styles.policyText, { color: theme.subtext }]}>Audit logs: 3 years</Text>
         </View>
         <View style={styles.policyRow}>
-          <Ionicons name="time-outline" size={16} color={theme.subtext} />
+          <AntDesign name="clockcircleo" size={16} color={theme.subtext}  />
           <Text style={[styles.policyText, { color: theme.subtext }]}>Login activity: 90 days</Text>
         </View>
       </View>

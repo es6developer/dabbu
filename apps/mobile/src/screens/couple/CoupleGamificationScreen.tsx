@@ -102,7 +102,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
         }}
       >
         <AntDesign
-          name={unlocked ? (meta.icon as any) : 'lock-closed'}
+          name={unlocked ? (meta.icon as any) : 'lock'}
           size={18}
           color={unlocked ? colors.accent.primary : colors.text.tertiary}
         />

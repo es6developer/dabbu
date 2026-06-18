@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function RecentTransactionsWidget({ data }: { data: any }) {
@@ -12,7 +12,7 @@ export function RecentTransactionsWidget({ data }: { data: any }) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
+          <AntDesign name="swap" size={18} color={colors.accent.primary}  />
           <Text style={[styles.title, { color: colors.text.primary }]}>Recent Transactions</Text>
         </View>
         <Text style={[styles.empty, { color: colors.text.secondary }]}>-</Text>
@@ -23,11 +23,11 @@ export function RecentTransactionsWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="swap" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Recent Transactions</Text>
       </View>
       {txs.slice(0, 5).map((tx: any, i: number) => {
-        const isIncome = tx.type === 'income' || tx.type === 'credit';
+        const isIncome = tx.type === 'arrowdown' || tx.type === 'credit';
         const color = isIncome ? '#16A34A' : '#DC2626';
         const sign = isIncome ? '+' : '-';
         return (

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -132,12 +132,12 @@ export function WalletHomeScreen() {
           recentTxns.map((txn: any) => (
             <View key={txn.id} style={[styles.txnRow, { borderBottomColor: colors.border.subtle }]}>
               <View style={[styles.txnIcon, {
-                backgroundColor: txn.type === 'income' ? colors.status.successLight : colors.status.errorLight
+                backgroundColor: txn.type === 'arrowdown' ? colors.status.successLight : colors.status.errorLight
               }]}>
-                <Ionicons
-                  name={txn.type === 'income' ? 'trending-up' : 'trending-down'}
+                <AntDesign
+                  name={txn.type === 'arrowdown' ? 'caretup' : 'caretdown'}
                   size={16}
-                  color={txn.type === 'income' ? colors.status.success : colors.status.error}
+                  color={txn.type === 'arrowdown' ? colors.status.success : colors.status.error}
                 />
               </View>
               <View style={styles.txnInfo}>
@@ -147,9 +147,9 @@ export function WalletHomeScreen() {
                 <Text style={[styles.txnCat, { color: colors.text.tertiary }]}>{txn.category?.name || (typeof txn.category === 'string' ? txn.category : '')}</Text>
               </View>
               <Text style={[styles.txnAmount, {
-                color: txn.type === 'income' ? colors.status.success : colors.text.primary
+                color: txn.type === 'arrowdown' ? colors.status.success : colors.text.primary
               }]}>
-                {txn.type === 'income' ? '+' : '-'}{fmt(txn.amount || 0)}
+                {txn.type === 'arrowdown' ? '+' : '-'}{fmt(txn.amount || 0)}
               </Text>
             </View>
           ))

@@ -22,10 +22,10 @@ import { useToast } from '../../store/ToastContext';
 
 const CATEGORIES = [
   { key: 'aadhaar', label: 'Aadhaar', icon: 'id-card' },
-  { key: 'pan', label: 'PAN', icon: 'card' },
+  { key: 'pan', label: 'PAN', icon: 'creditcard' },
   { key: 'passport', label: 'Passport', icon: 'globe' },
   { key: 'driving_license', label: 'Driving License', icon: 'car' },
-  { key: 'insurance', label: 'Insurance', icon: 'shield-checkmark' },
+  { key: 'insurance', label: 'Insurance', icon: 'checkcircle' },
   { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'document-text' },
   { key: 'warranty', label: 'Warranty', icon: 'receipt' },
   { key: 'medical', label: 'Medical', icon: 'medkit' },
@@ -167,7 +167,7 @@ export function DocumentDetailScreen() {
       }
       const url = `${API_URL}/documents/${id}/download`;
       const ext = (document?.mimeType || '').split('/')[1] || 'bin';
-      const fileUri = `${FileSystem.cacheDirectory}${document?.name || 'document'}.${ext}`;
+      const fileUri = `${FileSystem.cacheDirectory}${document?.name || 'file1'}.${ext}`;
 
       const download = await FileSystem.downloadAsync(url, fileUri, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -344,7 +344,7 @@ export function DocumentDetailScreen() {
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <>
-              <AntDesign name={(isUpload ? 'cloud-upload' : 'checkmark') as any} size={18} color="#FFF" />
+              <AntDesign name={(isUpload ? 'cloudupload' : 'check') as any} size={18} color="#FFF" />
               <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
             </>
           )}

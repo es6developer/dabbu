@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -117,7 +117,7 @@ export function DabbuAIScreen() {
 
             {insights.length === 0 && !loading && (
               <View style={styles.emptyState}>
-                <Ionicons name="bulb-outline" size={32} color={colors.text.tertiary} />
+                <AntDesign name="bulb1" size={32} color={colors.text.tertiary}  />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   Add more transactions to get personalized insights.
                 </Text>
@@ -140,7 +140,7 @@ export function DabbuAIScreen() {
           <>
             {predictions?.endOfMonthBalance && (
               <View style={[styles.predictCard, { backgroundColor: colors.card.income }]}>
-                <Ionicons name="trending-up" size={20} color={colors.status.success} />
+                <AntDesign name="caretup" size={20} color={colors.status.success}  />
                 <View style={styles.predictInfo}>
                   <Text style={[styles.predictLabel, { color: colors.text.secondary }]}>Projected Month End</Text>
                   <Text style={[styles.predictValue, { color: colors.status.success }]}>
@@ -152,7 +152,7 @@ export function DabbuAIScreen() {
 
             {savingsOpps.length === 0 && !loading && (
               <View style={styles.emptyState}>
-                <Ionicons name="wallet-outline" size={32} color={colors.text.tertiary} />
+                <AntDesign name="wallet" size={32} color={colors.text.tertiary}  />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No savings opportunities found yet. Keep tracking expenses!
                 </Text>
@@ -161,7 +161,7 @@ export function DabbuAIScreen() {
 
             {savingsOpps.map((opp: any, i: number) => (
               <View key={i} style={[styles.savingCard, { backgroundColor: colors.bg.card }]}>
-                <Ionicons name="pricetag-outline" size={18} color={colors.status.success} />
+                <AntDesign name="tago" size={18} color={colors.status.success}  />
                 <View style={styles.savingInfo}>
                   <Text style={[styles.savingTitle, { color: colors.text.primary }]}>{opp.title || opp.category || 'Opportunity'}</Text>
                   <Text style={[styles.savingDesc, { color: colors.text.secondary }]}>
@@ -175,7 +175,7 @@ export function DabbuAIScreen() {
 
         {activeTab === 'Goals' && (
           <View style={styles.emptyState}>
-            <Ionicons name="flag-outline" size={32} color={colors.text.tertiary} />
+            <AntDesign name="flag" size={32} color={colors.text.tertiary}  />
             <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
               AI-powered goal coaching coming soon. Set a goal to get started.
             </Text>
@@ -187,7 +187,7 @@ export function DabbuAIScreen() {
             <ScrollView style={styles.chatScroll} contentContainerStyle={styles.chatScrollInner}>
               {chatMessages.length === 0 && (
                 <View style={styles.chatEmpty}>
-                  <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.text.tertiary} />
+                  <AntDesign name="message1" size={40} color={colors.text.tertiary}  />
                   <Text style={[styles.chatEmptyTitle, { color: colors.text.primary }]}>Ask Dabbu anything</Text>
                   <Text style={[styles.chatEmptyDesc, { color: colors.text.tertiary }]}>
                     Try: "How much did I spend on food this month?" or "Create a budget for groceries"
@@ -224,7 +224,7 @@ export function DabbuAIScreen() {
                 returnKeyType="send"
               />
               <TouchableOpacity onPress={sendMessage} disabled={chatLoading || !chatInput.trim()}>
-                <Ionicons name="send" size={20} color={chatInput.trim() ? colors.accent.primary : colors.text.tertiary} />
+                <AntDesign name="arrowright" size={20} color={chatInput.trim() ? colors.accent.primary : colors.text.tertiary}  />
               </TouchableOpacity>
             </View>
           </View>

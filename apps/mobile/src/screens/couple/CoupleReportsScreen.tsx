@@ -9,7 +9,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -136,10 +136,10 @@ export function CoupleReportsScreen() {
         : '#14B8A6';
   const statusIcon =
     budgetStatus.status === 'On Track'
-      ? 'checkmark-circle'
+      ? 'checkcircle'
       : budgetStatus.status === 'Over Budget'
-        ? 'alert-circle'
-        : 'trending-down';
+        ? 'exclamationcircle'
+        : 'caretdown';
 
   if (loading) {
     return <LoadingScreen />;
@@ -156,7 +156,7 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
-          <Ionicons name="bar-chart-outline" size={48} color={colors.accent.primary} />
+          <AntDesign name="barschart" size={48} color={colors.accent.primary}  />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
           </Text>

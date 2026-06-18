@@ -67,7 +67,7 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
               </Text>
               {member.isPaid !== undefined && (
                 <AntDesign
-                  name={(member.isPaid ? 'checkmark-circle' : 'clockcircleo') as any}
+                  name={(member.isPaid ? 'checkcircle' : 'clockcircleo') as any}
                   size={14}
                   color={member.isPaid ? '#34C759' : '#F59E0B'}
                 />

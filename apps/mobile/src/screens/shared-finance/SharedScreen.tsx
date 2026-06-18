@@ -33,7 +33,7 @@ const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPer
 
 const SPACE_ICONS: Record<string, string> = {
   friends: 'people',
-  trip: 'airplane',
+  trip: 'planner',
   family: 'home',
   couple: 'heart',
   roommates: 'business',
@@ -232,7 +232,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
             }}
           >
             <AntDesign
-              name={(isPositive ? 'arrow-down-circle' : 'arrow-up-circle') as any}
+              name={(isPositive ? 'downcircle' : 'upcircle') as any}
               size={24}
               color={statusColor}
             />
@@ -697,7 +697,7 @@ export function SharedScreen() {
             }}
           >
             <AntDesign
-              name={(isAtLimit ? 'lock-closed' : 'add') as any}
+              name={(isAtLimit ? 'lock' : 'plus') as any}
               size={16}
               color={isAtLimit ? colors.status.error : colors.accent.primary}
             />

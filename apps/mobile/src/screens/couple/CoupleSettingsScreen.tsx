@@ -32,7 +32,7 @@ const NOTIFICATION_ITEMS: NotificationPref[] = [
   { key: 'newExpenses', label: 'New Expenses', icon: 'creditcard' },
   { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'exclamationcircle' },
   { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar' },
-  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy' },
+  { key: 'goalProgress', label: 'Goal Progress', icon: 'Trophy' },
 ];
 
 function daysSince(date: string): number {

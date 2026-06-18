@@ -200,7 +200,7 @@ export function CoupleAiScreen() {
                     {m.label}
                   </Text>
                   <AntDesign
-                    name={(m.value >= 60 ? 'checkmark-circle' : 'alert-circle') as any}
+                    name={(m.value >= 60 ? 'checkcircle' : 'exclamationcircle') as any}
                     size={20}
                     color={m.color}
                   />

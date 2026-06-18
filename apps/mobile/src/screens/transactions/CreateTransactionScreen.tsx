@@ -24,13 +24,13 @@ const QUICK_AMOUNTS_INCOME = ['500', '1000', '5000', '10000', '25000', '50000'];
 
 const DEFAULT_CATEGORIES = [
   { name: 'Food', icon: 'fast-food', color: '#F97316' },
-  { name: 'Travel', icon: 'airplane', color: '#3B82F6' },
+  { name: 'Travel', icon: 'planner', color: '#3B82F6' },
   { name: 'Bills', icon: 'receipt', color: '#14B8A6' },
-  { name: 'Shopping', icon: 'cart', color: '#EC4899' },
+  { name: 'Shopping', icon: 'shoppingcart', color: '#EC4899' },
   { name: 'Groceries', icon: 'basket', color: '#22C55E' },
   { name: 'Entertainment', icon: 'film', color: '#8B5CF6' },
   { name: 'Salary', icon: 'wallet', color: '#10B981' },
-  { name: 'Other', icon: 'ellipsis-horizontal', color: '#6B7280' },
+  { name: 'Other', icon: 'ellipsis1', color: '#6B7280' },
 ];
 
 type PrefillParams = {
@@ -41,7 +41,7 @@ type PrefillParams = {
     date?: string;
     groupId?: string;
     returnTo?: string;
-    type?: 'expense' | 'income';
+    type?: 'wallet' | 'arrowdown';
   };
   transaction?: any;
 };
@@ -69,7 +69,7 @@ export function CreateTransactionScreen() {
   const [amount, setAmount] = useState(
     editingTransaction?.amount ? String(editingTransaction.amount) : prefill?.amount ? String(prefill.amount) : '',
   );
-  const [type, setType] = useState<'expense' | 'income'>(prefill?.type || 'expense');
+  const [type, setType] = useState<'wallet' | 'arrowdown'>(prefill?.type || 'wallet');
   const [category, setCategory] = useState(
     editingTransaction?.category?.name || prefill?.categoryName || '',
   );
@@ -155,7 +155,7 @@ export function CreateTransactionScreen() {
     }
   }
 
-  const quickAmounts = type === 'income' ? QUICK_AMOUNTS_INCOME : QUICK_AMOUNTS_EXPENSE;
+  const quickAmounts = type === 'arrowdown' ? QUICK_AMOUNTS_INCOME : QUICK_AMOUNTS_EXPENSE;
   const catList = categories.length > 0
     ? categories.map((c: any) => ({ name: c.name || c, icon: c.icon || 'tag', color: c.color || colors.accent.primary }))
     : DEFAULT_CATEGORIES;
@@ -228,7 +228,7 @@ export function CreateTransactionScreen() {
 
           <View style={{ paddingTop: 8 }}>
             <FormFooter
-              title={isEditing ? 'Update Transaction' : type === 'expense' ? 'Add Expense' : 'Add Income'}
+              title={isEditing ? 'Update Transaction' : type === 'wallet' ? 'Add Expense' : 'Add Income'}
               icon={saving ? 'hourglass' : 'checkcircleo'}
               loading={saving}
               onPress={handleSave}

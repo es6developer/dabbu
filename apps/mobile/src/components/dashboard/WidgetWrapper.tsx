@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, PanResponder } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { WidgetType, getWidgetDef } from './WidgetRegistry';
 
@@ -54,7 +54,7 @@ export function WidgetWrapper({ type, data, onPress, onToggle, onLongPress, enab
           onPress={onToggle}
           style={[styles.toggleBtn, { backgroundColor: colors.bg.tertiary }]}
         >
-          <Ionicons name="ellipsis-vertical" size={14} color={colors.text.tertiary} />
+          <AntDesign name="ellipsis1" size={14} color={colors.text.tertiary}  />
         </TouchableOpacity>
       )}
     </Animated.View>

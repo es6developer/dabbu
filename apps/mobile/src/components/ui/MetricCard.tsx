@@ -55,7 +55,7 @@ export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }
             }}
           >
             <AntDesign
-              name={(trend.positive ? 'trending-up' : 'trending-down') as any}
+              name={(trend.positive ? 'caretup' : 'caretdown') as any}
               size={12}
               color={trend.positive ? colors.status.success : colors.status.error}
             />

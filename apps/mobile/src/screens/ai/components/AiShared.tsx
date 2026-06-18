@@ -171,7 +171,7 @@ export function HealthScoreCard({ score, trend, title, subtitle, onPress }: Heal
         {trend !== undefined && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: sp.xs }}>
             <AntDesign
-              name={(trend >= 0 ? 'trending-up' : 'trending-down') as any}
+              name={(trend >= 0 ? 'caretup' : 'caretdown') as any}
               size={14}
               color={trend >= 0 ? c.success : c.danger}
             />
@@ -566,7 +566,7 @@ export function PremiumBadge({ premium = false }: { premium?: boolean }) {
       style={[localStyles.premiumBadge, { backgroundColor: premium ? c.primaryLight : c.border }]}
     >
       <AntDesign
-        name={(premium ? 'diamond' : 'sparkles') as any}
+        name={(premium ? 'star' : 'star') as any}
         size={10}
         color={premium ? c.primary : c.textTertiary}
       />

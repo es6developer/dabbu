@@ -56,11 +56,11 @@ export function CreateCategoryScreen() {
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
 
-  const transactionType: 'expense' | 'income' = route.params?.type || 'expense';
-  const isExpense = transactionType === 'expense';
+  const transactionType: 'wallet' | 'arrowdown' = route.params?.type || 'wallet';
+  const isExpense = transactionType === 'wallet';
 
   const [name, setName] = useState('');
-  const [type, setType] = useState<'expense' | 'income'>(transactionType);
+  const [type, setType] = useState<'wallet' | 'arrowdown'>(transactionType);
   const [selectedIcon, setSelectedIcon] = useState<(typeof ICON_SET)[0] | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -152,24 +152,24 @@ export function CreateCategoryScreen() {
         <View style={s.fieldBlock}>
           <Text style={[s.label, { color: colors.text.secondary }]}>Type</Text>
           <View style={[s.toggleRow, { backgroundColor: colors.bg.tertiary }]}>
-            {(['expense', 'income'] as const).map((t) => (
+            {(['wallet', 'arrowdown'] as const).map((t) => (
               <TouchableOpacity
                 key={t}
                 style={[
                   s.toggle,
-                  type === t && { backgroundColor: t === 'expense' ? PURPLE : '#10B981' },
+                  type === t && { backgroundColor: t === 'wallet' ? PURPLE : '#10B981' },
                 ]}
                 onPress={() => setType(t)}
               >
                 <AntDesign
-                  name={(t === 'expense' ? 'arrow-up-circle' : 'arrow-down-circle') as any}
+                  name={(t === 'wallet' ? 'upcircle' : 'downcircle') as any}
                   size={16}
                   color={type === t ? '#FFF' : colors.text.tertiary}
                 />
                 <Text
                   style={[s.toggleText, { color: type === t ? '#FFF' : colors.text.secondary }]}
                 >
-                  {t === 'expense' ? 'Expense' : 'Income'}
+                  {t === 'wallet' ? 'Expense' : 'Income'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -226,22 +226,22 @@ export function CreateCategoryScreen() {
         >
           <LinearGradient
             colors={[
-              type === 'expense' ? PURPLE : '#10B981',
-              type === 'expense' ? PURPLE_DARK : '#059669',
+              type === 'wallet' ? PURPLE : '#10B981',
+              type === 'wallet' ? PURPLE_DARK : '#059669',
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={s.saveGrad}
           >
             <AntDesign
-              name={(saving ? 'hourglass' : 'checkmark-circle') as any}
+              name={(saving ? 'hourglass' : 'checkcircle') as any}
               size={18}
               color="#FFF"
             />
             <Text style={s.saveText}>
               {saving
                 ? 'Saving...'
-                : `Create ${type === 'expense' ? 'Expense' : 'Income'} Category`}
+                : `Create ${type === 'wallet' ? 'Expense' : 'Income'} Category`}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

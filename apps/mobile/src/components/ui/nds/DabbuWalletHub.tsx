@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface WalletBalance {
@@ -59,7 +59,7 @@ export const DabbuWalletHub: React.FC<DabbuWalletHubProps> = ({
             activeOpacity={0.7}
             className="w-9 h-9 rounded-full bg-white/15 items-center justify-center"
           >
-            <Ionicons name="swap-horizontal" size={18} color="#FFFFFF" />
+            <AntDesign name="swap" size={18} color="#FFFFFF"  />
           </TouchableOpacity>
         </View>
 
@@ -90,7 +90,7 @@ export const DabbuWalletHub: React.FC<DabbuWalletHubProps> = ({
       )}
 
       <View className="flex-row items-center mt-4 px-4 py-3 rounded-xl bg-dark-surface-raised border border-dark-border-default">
-        <Ionicons name="search-outline" size={18} color="#64748B" />
+        <AntDesign name="search1" size={18} color="#64748B"  />
         <TextInput
           placeholder="Search transactions..."
           placeholderTextColor="#64748B"

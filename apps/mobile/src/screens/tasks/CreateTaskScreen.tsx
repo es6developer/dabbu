@@ -19,14 +19,14 @@ import {
 const PRIORITIES = [
   { label: 'Low', value: 'low', icon: 'flag' },
   { label: 'Medium', value: 'medium', icon: 'flag' },
-  { label: 'High', value: 'high', icon: 'alert-circle' },
-  { label: 'Urgent', value: 'urgent', icon: 'flame' },
+  { label: 'High', value: 'high', icon: 'exclamationcircle' },
+  { label: 'Urgent', value: 'urgent', icon: 'like2' },
 ];
 
 const TASK_CATEGORIES = [
   { label: 'General', value: 'General', icon: 'appstore-o' },
   { label: 'Grocery', value: 'Grocery', icon: 'basket' },
-  { label: 'Shopping', value: 'Shopping', icon: 'cart' },
+  { label: 'Shopping', value: 'Shopping', icon: 'shoppingcart' },
   { label: 'Custom', value: 'Custom', icon: 'tag' },
 ];
 
@@ -94,7 +94,7 @@ export function CreateTaskScreen() {
       icon="checkbox"
       accent={[colors.accent.primary, colors.status.info]}
       footer={
-        <FormFooter title="Create Task" icon="add" loading={saving} onPress={handleSave} />
+        <FormFooter title="Create Task" icon='plus' loading={saving} onPress={handleSave} />
       }
     >
       <FormError message={error} />

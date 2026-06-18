@@ -4,7 +4,7 @@ import {
   ActivityIndicator, ScrollView, Platform, Animated, Vibration,
   KeyboardAvoidingView, Keyboard, Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -14,10 +14,10 @@ import { useToast } from '../../store/ToastContext';
 
 const PRIMARY = '#6366F1';
 const CATEGORIES = [
-  { key: 'Housing', icon: 'home-outline' },
-  { key: 'Groceries', icon: 'cart-outline' },
+  { key: 'Housing', icon: 'home' },
+  { key: 'Groceries', icon: 'shoppingcart' },
   { key: 'Food', icon: 'restaurant-outline' },
-  { key: 'Utilities', icon: 'flash-outline' },
+  { key: 'Utilities', icon: 'thunderbolt' },
   { key: 'Transport', icon: 'car-outline' },
   { key: 'Healthcare', icon: 'medical-outline' },
   { key: 'Entertainment', icon: 'film-outline' },
@@ -207,7 +207,7 @@ export function PremiumExpenseFormScreen() {
       >
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={handleBack} style={s.headerBtn}>
-            <Ionicons name="arrow-back-outline" size={22} color="#0F172A" />
+            <AntDesign name="arrowleft" size={22} color="#0F172A"  />
           </TouchableOpacity>
           <Text style={s.headerTitle}>{step === 'details' ? 'New Expense' : 'Split'}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -268,7 +268,7 @@ export function PremiumExpenseFormScreen() {
                 <Text style={s.fieldLabel}>Date</Text>
                 <View style={s.rowBetween}>
                   <Text style={s.valueText}>{formatDate(expenseDate)}</Text>
-                  <Ionicons name="chevron-down-outline" size={16} color="#94A3B8" />
+                  <AntDesign name="down" size={16} color="#94A3B8"  />
                 </View>
               </TouchableOpacity>
 
@@ -308,7 +308,7 @@ export function PremiumExpenseFormScreen() {
                         onPress={() => setCategory(c.key)}
                         style={[s.catCard, sel && { backgroundColor: PRIMARY, borderColor: PRIMARY }]}
                       >
-                        <Ionicons name={c.icon as any} size={20} color={sel ? '#FFF' : '#64748B'} />
+                        <AntDesign name={c.icon as any} size={20} color={sel ? '#FFF' : '#64748B'} />
                         <Text style={[s.catLabel, { color: sel ? '#FFF' : '#64748B' }]}>{c.key}</Text>
                       </TouchableOpacity>
                     );

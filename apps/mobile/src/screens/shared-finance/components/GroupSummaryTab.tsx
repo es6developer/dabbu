@@ -236,7 +236,7 @@ export function GroupSummaryTab({
         <View style={[tabStyles.card, { backgroundColor: colors.bg.card }]}>
           <Text style={tabStyles.sectionTitle}>Recent Activity</Text>
           {recentActivity.map((item: any) => {
-            const typeColor = item.type === 'expense' || item.type === 'expense_added' ? '#60A5FA'
+            const typeColor = item.type === 'wallet' || item.type === 'expense_added' ? '#60A5FA'
               : item.type === 'member' || item.type === 'member_joined' ? '#34C759'
               : item.type?.includes('settlement') ? colors.status.warning
               : item.type === 'payment_completed' || item.type === 'settlement_confirmed' ? '#34C759'

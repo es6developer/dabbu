@@ -139,7 +139,7 @@ function PriceChangeRow({ item, colors }: { item: PriceChange; colors: any }) {
           ]}
         >
           <AntDesign
-            name={(isIncrease ? 'arrow-up' : 'arrow-down') as any}
+            name={(isIncrease ? 'arrowup' : 'arrowdown') as any}
             size={14}
             color={isIncrease ? colors.status.error : colors.status.success}
           />

@@ -45,7 +45,7 @@ export function CreateFamilyScreen() {
       icon="people"
       accent={[colors.status.success, colors.accent.primary]}
       footer={
-        <FormFooter title="Create Family" icon="add" loading={saving} onPress={handleCreate} />
+        <FormFooter title="Create Family" icon='plus' loading={saving} onPress={handleCreate} />
       }
     >
       <FormError message={error} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 const FAQS = [
@@ -59,8 +59,8 @@ export function HelpCenterScreen() {
         >
           <View style={styles.faqHeader}>
             <Text style={[styles.faqQ, { color: colors.text.primary }]}>{faq.q}</Text>
-            <Ionicons
-              name={expanded === i ? 'chevron-up-outline' : 'chevron-down-outline'}
+            <AntDesign
+              name={expanded === i ? 'up' : 'down'}
               size={18}
               color={colors.text.tertiary}
             />

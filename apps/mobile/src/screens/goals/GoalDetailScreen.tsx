@@ -539,7 +539,7 @@ export function GoalDetailScreen() {
             </View>
             <View style={s.headerContent}>
               <View style={[s.goalIconCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <AntDesign name={(config.icon || 'trophy') as any} size={36} color="#FFF" />
+                <AntDesign name={(config.icon || 'Trophy') as any} size={36} color="#FFF" />
               </View>
               <Text style={[typography.h1, { color: '#FFF', marginTop: sp.md }]}>{goal.name}</Text>
               <View style={[s.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>

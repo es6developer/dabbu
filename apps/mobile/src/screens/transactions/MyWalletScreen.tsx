@@ -75,7 +75,7 @@ export function MyWalletScreen() {
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [reportData, setReportData] = useState<any>(null);
-  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [exporting, setExporting] = useState<'file1' | 'excel' | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
@@ -119,7 +119,7 @@ export function MyWalletScreen() {
   const monthlyReport = useMemo(() => {
     const now = new Date();
     const m = transactions.filter(t => { const d = new Date(t.date || t.createdAt); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
-    return { income: m.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0), expense: m.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0), count: m.length };
+    return { income: m.filter(t => t.type === 'arrowdown').reduce((s, t) => s + Number(t.amount), 0), expense: m.filter(t => t.type === 'wallet').reduce((s, t) => s + Number(t.amount), 0), count: m.length };
   }, [transactions]);
 
   const buildReport = useCallback((month: number, year: number) => {
@@ -127,8 +127,8 @@ export function MyWalletScreen() {
       const d = new Date(t.date || t.createdAt);
       return !isNaN(d.getTime()) && d.getMonth() + 1 === month && d.getFullYear() === year;
     });
-    const totalIncome = monthly.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount || 0), 0);
-    const totalExpense = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const totalIncome = monthly.filter(t => t.type === 'arrowdown').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const totalExpense = monthly.filter(t => t.type === 'wallet').reduce((s, t) => s + Number(t.amount || 0), 0);
     const catMap: Record<string, number> = {};
     monthly.forEach(t => {
       const cat = typeof t.category === 'string' ? t.category : t.category?.name || 'Other';
@@ -147,12 +147,12 @@ export function MyWalletScreen() {
     if (reportOpen) setReportData(buildReport(reportMonth, reportYear));
   }, [reportOpen, reportMonth, reportYear, buildReport]);
 
-  const handleExport = useCallback(async (format: 'pdf' | 'excel') => {
+  const handleExport = useCallback(async (format: 'file1' | 'excel') => {
     setExporting(format);
     try {
-      const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+      const ext = format === 'file1' ? 'file1' : 'xlsx';
       const filename = `report-${reportYear}-${reportMonth}.${ext}`;
-      const mimeType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const mimeType = format === 'file1' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const downloadUrl = `${API_URL}/transactions/export/${format}?year=${reportYear}&month=${reportMonth}`;
       const headers: Record<string, string> = {};
       if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
@@ -218,10 +218,10 @@ export function MyWalletScreen() {
             </View>
 
             <View style={st.addRow}>
-              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'expense' } })} activeOpacity={0.85}>
+              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'wallet' } })} activeOpacity={0.85}>
                 <Text style={st.addBtnText}>+ Add Expense</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'income' } })} activeOpacity={0.85}>
+              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'arrowdown' } })} activeOpacity={0.85}>
                 <Text style={[st.addBtnSecondaryText, { color: colors.text.primary }]}>+ Add Income</Text>
               </TouchableOpacity>
             </View>
@@ -261,7 +261,7 @@ export function MyWalletScreen() {
           <Text style={[st.sectionHeader, { color: colors.text.secondary, backgroundColor: colors.bg.primary }]}>{section.title}</Text>
         )}
         renderItem={({ item }: any) => {
-          const isExpense = item.type === 'expense';
+          const isExpense = item.type === 'wallet';
           return (
             <TouchableOpacity
               style={[st.txCard, { backgroundColor: colors.bg.tertiary }]}
@@ -273,7 +273,7 @@ export function MyWalletScreen() {
                   style={[st.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
                 >
                   <AntDesign
-                    name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
+                    name={(isExpense ? 'arrowup' : 'arrowdown') as any}
                     size={16}
                     color={isExpense ? RED : GREEN}
                   />
@@ -361,10 +361,10 @@ export function MyWalletScreen() {
                   <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 20 }}>
                     <TouchableOpacity
                       style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: '#FF4D4F' }}
-                      onPress={() => handleExport('pdf')}
+                      onPress={() => handleExport('file1')}
                       disabled={exporting !== null}
                     >
-                      {exporting === 'pdf' ? <ActivityIndicator size="small" color="#FFF" /> : <AntDesign name="filetext1" size={16} color="#FFF" />}
+                      {exporting === 'file1' ? <ActivityIndicator size="small" color="#FFF" /> : <AntDesign name="filetext1" size={16} color="#FFF" />}
                       <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>PDF</Text>
                     </TouchableOpacity>
                     <TouchableOpacity

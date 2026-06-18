@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -56,7 +56,7 @@ export function ArchiveNotificationsScreen() {
           </Text>
         </View>
         <TouchableOpacity onPress={() => handleUnarchive(item.id)} style={styles.unarchiveBtn}>
-          <Ionicons name="archive-outline" size={20} color={theme.primary} />
+          <AntDesign name="folder1" size={20} color={theme.primary}  />
         </TouchableOpacity>
       </View>
       {item.message ? <Text style={[styles.notifMsg, { color: theme.subtext }]}>{item.message}</Text> : null}
@@ -81,7 +81,7 @@ export function ArchiveNotificationsScreen() {
         <View style={styles.centered}><ActivityIndicator size="large" color={theme.primary} /></View>
       ) : notifications.length === 0 ? (
         <View style={styles.centered}>
-          <Ionicons name="archive-outline" size={64} color={theme.muted} />
+          <AntDesign name="folder1" size={64} color={theme.muted}  />
           <Text style={[styles.emptyText, { color: theme.muted }]}>No archived notifications</Text>
         </View>
       ) : (

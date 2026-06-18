@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 const subLabels = ['Savings', 'Debt', 'Budget', 'Emergency Fund', 'Goal Progress'];
@@ -20,7 +20,7 @@ export function HealthScoreWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="heart-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="hearto" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Financial Health</Text>
       </View>
       <View style={styles.scoreRow}>

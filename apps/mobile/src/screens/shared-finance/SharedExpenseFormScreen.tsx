@@ -11,7 +11,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -30,7 +30,7 @@ const GREEN = '#10B981';
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'arrow-redo', desc: 'Everyone pays the same' },
   { key: 'percentage', label: 'Percentage', icon: 'percent', desc: 'Custom percentages' },
-  { key: 'exact', label: 'Exact', icon: 'cash', desc: 'Custom amounts' },
+  { key: 'exact', label: 'Exact', icon: 'wallet', desc: 'Custom amounts' },
   { key: 'shares', label: 'Shares', icon: 'layers', desc: 'Split by shares' },
 ] as const;
 
@@ -720,8 +720,8 @@ export function SharedExpenseFormScreen() {
                   {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
                 </Text>
               </View>
-              <Ionicons
-                name={showNotes ? 'chevron-up-outline' : 'chevron-down-outline'}
+              <AntDesign
+                name={showNotes ? 'up' : 'down'}
                 size={16}
                 color={colors.text.tertiary}
               />

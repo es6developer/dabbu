@@ -146,7 +146,7 @@ export function TransactionsScreen() {
       >
         <View style={[styles.txIcon, { backgroundColor: isIncome ? '#00B89418' : '#FF6B6B18' }]}>
           <AntDesign
-            name={(isIncome ? 'arrow-down' : 'arrow-up') as any}
+            name={(isIncome ? 'arrowdown' : 'arrowup') as any}
             size={16}
             color={isIncome ? '#00B894' : '#FF6B6B'}
           />

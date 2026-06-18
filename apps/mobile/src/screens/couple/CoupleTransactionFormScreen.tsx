@@ -11,7 +11,7 @@ import {
   Animated,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -28,7 +28,7 @@ interface PrefillParams {
     groupId?: string;
     groupName?: string;
     returnTo?: string;
-    type?: 'expense' | 'income';
+    type?: 'wallet' | 'arrowdown';
     amount?: number;
     description?: string;
     categoryName?: string;
@@ -37,8 +37,8 @@ interface PrefillParams {
 }
 
 const SPLIT_OPTIONS = [
-  { key: 'personal', icon: 'person-outline', label: 'Personal' },
-  { key: 'shared', icon: 'people-outline', label: 'Shared' },
+  { key: 'personal', icon: 'user', label: 'Personal' },
+  { key: 'shared', icon: 'team', label: 'Shared' },
   { key: 'split', icon: 'git-branch-outline', label: 'Split' },
 ];
 
@@ -51,7 +51,7 @@ export function CoupleTransactionFormScreen() {
   const prefill = route.params?.prefill;
   const { showToast } = useToast();
 
-  const [type, setType] = useState<'expense' | 'income'>(prefill?.type || 'expense');
+  const [type, setType] = useState<'wallet' | 'arrowdown'>(prefill?.type || 'wallet');
   const [amount, setAmount] = useState(prefill?.amount ? String(prefill.amount) : '');
   const [description, setDescription] = useState(prefill?.description || '');
   const [category, setCategory] = useState(prefill?.categoryName || '');
@@ -63,7 +63,7 @@ export function CoupleTransactionFormScreen() {
   const [loadingGroup, setLoadingGroup] = useState(false);
 
   const inputRef = useRef<TextInput>(null);
-  const isExpense = type === 'expense';
+  const isExpense = type === 'wallet';
   const resolvedGroupId = prefill?.groupId;
 
   useEffect(() => {
@@ -167,7 +167,7 @@ export function CoupleTransactionFormScreen() {
           <View style={[s.hero, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingTop: insets.top + spacing.md }]}>
             <View style={s.heroTop}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn} activeOpacity={0.7}>
-                <Ionicons name="close" size={24} color={colors.text.secondary} />
+                <AntDesign name="close" size={24} color={colors.text.secondary}  />
               </TouchableOpacity>
               <Text style={[s.heroTitle, { color: colors.text.primary }]}>
                 {isExpense ? 'Add Expense' : 'Add Income'}
@@ -176,9 +176,9 @@ export function CoupleTransactionFormScreen() {
             </View>
 
             <View style={[s.typeToggle, { backgroundColor: colors.bg.tertiary }]}>
-              {(['expense', 'income'] as const).map((t) => {
+              {(['wallet', 'arrowdown'] as const).map((t) => {
                 const active = type === t;
-                const tColor = t === 'expense' ? '#DC2626' : '#22C55E';
+                const tColor = t === 'wallet' ? '#DC2626' : '#22C55E';
                 return (
                   <TouchableOpacity
                     key={t}
@@ -186,13 +186,13 @@ export function CoupleTransactionFormScreen() {
                     onPress={() => { setType(t); setError(''); }}
                     style={[s.typeBtn, active && { backgroundColor: tColor }]}
                   >
-                    <Ionicons
-                      name={t === 'expense' ? 'cart-outline' : 'trending-up-outline'}
+                    <AntDesign
+                      name={t === 'wallet' ? 'shoppingcart' : 'caretup'}
                       size={16}
                       color={active ? '#FFF' : colors.text.secondary}
                     />
                     <Text style={[s.typeLabel, { color: active ? '#FFF' : colors.text.secondary }]}>
-                      {t === 'expense' ? 'Expense' : 'Income'}
+                      {t === 'wallet' ? 'Expense' : 'Income'}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -220,7 +220,7 @@ export function CoupleTransactionFormScreen() {
               </Text>
               {error ? (
                 <View style={s.errorBox}>
-                  <Ionicons name="alert-circle" size={14} color={colors.status.error} />
+                  <AntDesign name="exclamationcircle" size={14} color={colors.status.error}  />
                   <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
                 </View>
               ) : null}
@@ -289,7 +289,7 @@ export function CoupleTransactionFormScreen() {
                       onPress={() => setSplitType(opt.key as typeof splitType)}
                       style={[s.splitBtn, active && { backgroundColor: isExpense ? '#DC2626' : '#22C55E' }]}
                     >
-                      <Ionicons name={opt.icon as any} size={15} color={active ? '#FFF' : colors.text.tertiary} />
+                      <AntDesign name={opt.icon as any} size={15} color={active ? '#FFF' : colors.text.tertiary} />
                       <Text style={[s.splitLabel, { color: active ? '#FFF' : colors.text.secondary }]}>{opt.label}</Text>
                     </TouchableOpacity>
                   );
@@ -310,7 +310,7 @@ export function CoupleTransactionFormScreen() {
               <Text style={s.saveText}>Saving...</Text>
             ) : (
               <>
-                <Ionicons name={isExpense ? 'cart-outline' : 'trending-up-outline'} size={18} color="#FFF" />
+                <AntDesign name={isExpense ? 'shoppingcart' : 'caretup'} size={18} color="#FFF" />
                 <Text style={s.saveText}>{isExpense ? 'Add Expense' : 'Add Income'}</Text>
               </>
             )}

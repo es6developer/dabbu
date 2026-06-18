@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 
 export interface ParsedSms {
   id: string;
@@ -44,7 +44,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
       >
         <View className="flex-row items-center">
           <View className="w-10 h-10 rounded-full bg-dark-surface-raised items-center justify-center mr-4">
-            <Ionicons name="scan-outline" size={20} color="#7C3AED" />
+            <AntDesign name="scan1" size={20} color="#7C3AED"  />
           </View>
           <View className="flex-1">
             <Text className="text-dark-ink text-body-bold">No new SMS detected</Text>
@@ -64,7 +64,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
     >
       <View className="flex-row items-start">
         <View className="w-10 h-10 rounded-full bg-dark-surface-raised items-center justify-center mr-4">
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color="#7C3AED" />
+          <AntDesign name="message1" size={20} color="#7C3AED"  />
         </View>
 
         <View className="flex-1">
@@ -99,7 +99,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           activeOpacity={0.7}
           className="px-4 py-2 rounded-pill border border-dark-border-default flex-row items-center"
         >
-          <Ionicons name="create-outline" size={14} color="#94A3B8" />
+          <AntDesign name="edit" size={14} color="#94A3B8"  />
           <Text className="text-dark-ink-muted text-caption-bold ml-1.5">Recategorize</Text>
         </TouchableOpacity>
 
@@ -108,7 +108,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           activeOpacity={0.7}
           className="px-4 py-2 rounded-pill bg-dark-success flex-row items-center"
         >
-          <Ionicons name="checkmark" size={14} color="#000000" />
+          <AntDesign name="check" size={14} color="#000000"  />
           <Text className="text-black text-caption-bold ml-1.5">Approve</Text>
         </TouchableOpacity>
       </View>

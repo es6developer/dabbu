@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -147,7 +147,7 @@ export function SmartGoalCoachScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons  name="trophy" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign name="Trophy" size={48} color={AI_COLORS.textTertiary}  />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No goals yet
           </Text>

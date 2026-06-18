@@ -115,7 +115,7 @@ export function TransactionDetailScreen() {
     );
   }
 
-  const isCredit = txn.type === 'income';
+  const isCredit = txn.type === 'arrowdown';
   const sign = isCredit ? '+' : '-';
   const fmtVal = (val: number) => '₹' + val.toLocaleString('en-IN');
   const cat = txn.category?.name || txn.category || 'Other';

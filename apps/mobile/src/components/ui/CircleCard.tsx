@@ -71,7 +71,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
 
         <View style={[styles.balanceRow, { backgroundColor: isPositive ? colors.status.successLight : colors.status.errorLight }]}>
           <AntDesign
-            name={(isPositive ? 'arrow-down' : 'arrow-up') as any}
+            name={(isPositive ? 'arrowdown' : 'arrowup') as any}
             size={12}
             color={isPositive ? colors.status.success : colors.status.error}
           />

@@ -83,7 +83,7 @@ export function CreateBudgetScreen() {
       footer={
         <FormFooter
           title="Create Budget"
-          icon="add"
+          icon='plus'
           loading={saving}
           onPress={handleSave}
         />

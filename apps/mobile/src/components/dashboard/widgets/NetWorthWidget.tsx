@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function NetWorthWidget({ data }: { data: any }) {
@@ -14,7 +14,7 @@ export function NetWorthWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="wallet" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Net Worth</Text>
       </View>
       <Text style={[styles.netWorth, { color: total >= 0 ? '#16A34A' : '#DC2626' }]}>
@@ -33,7 +33,7 @@ export function NetWorthWidget({ data }: { data: any }) {
       </View>
       {snapshots && snapshots.length > 0 && (
         <View style={[styles.trendBadge, { backgroundColor: colors.bg.tertiary }]}>
-          <Ionicons name="trending-up" size={12} color={colors.accent.primary} />
+          <AntDesign name="caretup" size={12} color={colors.accent.primary}  />
           <Text style={[styles.trendText, { color: colors.text.secondary }]}>
             Last 6 months trend
           </Text>

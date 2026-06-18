@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function MonthlySnapshotWidget({ data }: { data: any }) {
@@ -14,7 +14,7 @@ export function MonthlySnapshotWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="calendar-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="calendar" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Monthly Snapshot</Text>
       </View>
       <View style={styles.row}>

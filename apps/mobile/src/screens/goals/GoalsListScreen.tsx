@@ -41,7 +41,7 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   savings: { icon: 'piggy-bank', color: '#8B5CF6' },
   investment: { icon: 'trending-up', color: '#10B981' },
   baby: { icon: 'happy', color: '#FF69B4' },
-  custom: { icon: 'trophy', color: '#14B8A6' },
+  custom: { icon: 'Trophy', color: '#14B8A6' },
 };
 
 const SUGGESTED_GOALS = [

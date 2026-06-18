@@ -87,7 +87,7 @@ export function SettlementScreen() {
   );
 
   const visibleSettlements = settlements.filter(
-    (s: any) => s.status !== 'completed' && !completedSettlementIds.has(s.settlementId || s.id),
+    (s: any) => s.status !== 'checkcircle' && !completedSettlementIds.has(s.settlementId || s.id),
   );
 
   async function handlePayNowUpi(settlement: any) {
@@ -113,7 +113,7 @@ export function SettlementScreen() {
     try {
       if (accessToken) setAccessToken(accessToken);
       const settlementId = settlement.settlementId || settlement.id;
-      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'cash' });
+      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'wallet' });
       setCompletedSettlementIds(prev => new Set(prev).add(settlementId));
       showToast(`${fmt(settlement.amount || 0)} settled in cash`);
       await loadData(true);
@@ -143,7 +143,7 @@ export function SettlementScreen() {
       for (const s of myPending) {
         const settlementId = s.settlementId || s.id;
         try {
-      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'cash' });
+      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'wallet' });
           setCompletedSettlementIds(prev => new Set(prev).add(settlementId));
           settled++;
         } catch { /* skip failed ones */ }
@@ -157,7 +157,7 @@ export function SettlementScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap-horizontal-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon='swap' />
     );
   }
 
@@ -349,7 +349,7 @@ export function SettlementScreen() {
                           s.statusBadge,
                           {
                             backgroundColor:
-                              h.status === 'completed'
+                              h.status === 'checkcircle'
                                 ? `${colors.status.success}20`
                                 : `${colors.status.warning}20`,
                           },
@@ -360,13 +360,13 @@ export function SettlementScreen() {
                             s.statusText,
                             {
                               color:
-                                h.status === 'completed'
+                                h.status === 'checkcircle'
                                   ? colors.status.success
                                   : colors.status.warning,
                             },
                           ]}
                         >
-                          {h.status === 'completed' ? 'Completed' : 'Pending'}
+                          {h.status === 'checkcircle' ? 'Completed' : 'Pending'}
                         </Text>
                       </View>
                     </View>

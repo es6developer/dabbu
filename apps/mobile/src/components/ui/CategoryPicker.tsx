@@ -15,13 +15,13 @@ interface CategoryConfig {
 interface CategoryPickerProps {
   value: string;
   onChange: (name: string) => void;
-  type?: 'expense' | 'income';
+  type?: 'wallet' | 'arrowdown';
   showLabel?: boolean;
 }
 
-export function CategoryPicker({ value, onChange, type = 'expense', showLabel = true }: CategoryPickerProps) {
+export function CategoryPicker({ value, onChange, type = 'wallet', showLabel = true }: CategoryPickerProps) {
   const { colors } = useTheme();
-  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const cats = type === 'arrowdown' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <View>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -75,7 +75,7 @@ export function SupportScreen() {
               >
                 <View style={styles.faqHeader}>
                   <Text style={[styles.faqQuestion, { color: theme.text }]}>{faq.question}</Text>
-                  <Ionicons name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={20} color={theme.subtext} />
+                  <AntDesign name={expandedFaq === faq.id ? 'up' : 'down'} size={20} color={theme.subtext} />
                 </View>
                 {expandedFaq === faq.id && (
                   <Text style={[styles.faqAnswer, { color: theme.subtext }]}>{faq.answer}</Text>
@@ -88,7 +88,7 @@ export function SupportScreen() {
         {activeTab === 'tickets' && (
           tickets.length === 0 ? (
             <View style={styles.centered}>
-              <Ionicons name="ticket-outline" size={64} color={theme.muted} />
+              <AntDesign name="tago" size={64} color={theme.muted}  />
               <Text style={[styles.emptyText, { color: theme.muted }]}>No tickets yet</Text>
             </View>
           ) : (

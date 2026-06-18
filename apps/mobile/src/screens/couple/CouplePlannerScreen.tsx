@@ -36,12 +36,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORY_ICONS: Record<string, string> = {
   home: 'home',
-  travel: 'airplane',
+  travel: 'planner',
   wedding: 'heart',
   car: 'car',
   baby: 'happy',
   emergency: 'shield',
-  investment: 'trending-up',
+  investment: 'caretup',
   education: 'school',
   other: 'flag',
 };

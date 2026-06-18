@@ -218,7 +218,7 @@ export function CoupleExpensesScreen() {
                     groupId,
                     groupName: 'Couple',
                     returnTo: 'CoupleExpenses',
-                    type: 'expense',
+                    type: 'wallet',
                   },
                 })
               }

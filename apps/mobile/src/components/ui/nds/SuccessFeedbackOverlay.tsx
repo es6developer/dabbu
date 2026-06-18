@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 
 interface SuccessFeedbackOverlayProps {
   visible: boolean;
@@ -45,7 +45,7 @@ export const SuccessFeedbackOverlay: React.FC<SuccessFeedbackOverlayProps> = ({
         style={shadowStyle}
       >
         <View className="w-20 h-20 rounded-full bg-dark-success-light items-center justify-center mb-5">
-          <Ionicons name="checkmark-circle" size={48} color="#00E676" />
+          <AntDesign name="checkcircle" size={48} color="#00E676"  />
         </View>
 
         <Text className="text-white text-title text-center font-bold mb-2">{title}</Text>

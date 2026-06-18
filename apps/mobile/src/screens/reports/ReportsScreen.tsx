@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -162,9 +162,9 @@ export function ReportsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
-  const [exporting, setExporting] = useState<'pdf' | 'excel' | 'csv' | null>(null);
+  const [exporting, setExporting] = useState<'file1' | 'excel' | 'csv' | null>(null);
 
-  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+  const handleExport = async (format: 'file1' | 'excel' | 'csv') => {
     setExporting(format);
     try {
       const { downloadAndShareFile } = await import('../../utils/exportFile');
@@ -754,13 +754,13 @@ export function ReportsScreen() {
                 gap: 8,
                 borderWidth: 1,
                 borderColor: colors.border.subtle,
-                opacity: exporting === 'pdf' ? 0.6 : 1,
+                opacity: exporting === 'file1' ? 0.6 : 1,
               }}
               activeOpacity={0.7}
               disabled={!!exporting}
-              onPress={() => handleExport('pdf')}
+              onPress={() => handleExport('file1')}
             >
-              {exporting === 'pdf' ? (
+              {exporting === 'file1' ? (
                 <ActivityIndicator size="small" color={colors.accent.primary} />
               ) : (
                 <AntDesign name="filetext1" size={24} color={colors.accent.primary} />
@@ -813,7 +813,7 @@ export function ReportsScreen() {
               {exporting === 'csv' ? (
                 <ActivityIndicator size="small" color={colors.status.warning} />
               ) : (
-                <Ionicons name="code-slash-outline" size={24} color={colors.status.warning} />
+                <AntDesign name="codesquare" size={24} color={colors.status.warning}  />
               )}
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 CSV

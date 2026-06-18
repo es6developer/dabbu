@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 const CONTACT_OPTIONS = [
@@ -37,7 +37,7 @@ export function ContactUsScreen() {
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.value, { color: colors.text.tertiary }]}>{opt.value}</Text>
           </View>
-          <Ionicons  name="open" size={18} color={colors.text.tertiary} />
+          <AntDesign name="export" size={18} color={colors.text.tertiary}  />
         </TouchableOpacity>
       ))}
 

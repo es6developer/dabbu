@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function CombinedWealthWidget({ data }: { data: any }) {
@@ -14,7 +14,7 @@ export function CombinedWealthWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="wallet" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Combined Wealth</Text>
       </View>
       <Text style={[styles.netWorth, { color: netWorth >= 0 ? '#16A34A' : '#DC2626' }]}>

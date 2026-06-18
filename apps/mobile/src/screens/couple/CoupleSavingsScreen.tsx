@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -171,7 +171,7 @@ export function CoupleSavingsScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
-              <Ionicons name="trophy" size={22} color={colors.accent.primary} />
+              <AntDesign name="Trophy" size={22} color={colors.accent.primary}  />
               <Text style={styles.goalTitle}>Savings Goal</Text>
             </View>
             <View style={styles.goalRow}>

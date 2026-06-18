@@ -27,8 +27,8 @@ const REMINDER_TYPES = [
 const PRIORITIES = [
   { label: 'Low', value: 'low', icon: 'flag' },
   { label: 'Medium', value: 'medium', icon: 'flag' },
-  { label: 'High', value: 'high', icon: 'alert-circle' },
-  { label: 'Urgent', value: 'urgent', icon: 'flame' },
+  { label: 'High', value: 'high', icon: 'exclamationcircle' },
+  { label: 'Urgent', value: 'urgent', icon: 'like2' },
 ];
 
 const FREQUENCIES = [
@@ -103,10 +103,10 @@ export function CreateReminderScreen() {
     <FormScreen
       title="New Reminder"
       subtitle="Design the reminder rhythm once, then let Dabbu keep it visible"
-      icon="notifications"
+      icon='bells'
       accent={[colors.status.warning, colors.accent.primary]}
       footer={
-        <FormFooter title="Create Reminder" icon="add" loading={saving} onPress={handleSave} />
+        <FormFooter title="Create Reminder" icon='plus' loading={saving} onPress={handleSave} />
       }
     >
       <FormError message={error} />

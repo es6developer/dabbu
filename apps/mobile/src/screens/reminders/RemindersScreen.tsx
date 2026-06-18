@@ -83,10 +83,10 @@ export function RemindersScreen() {
         return 'creditcard';
       case 'bill':
         return 'filetext1';
-      case 'subscription':
+      case 'reload1':
         return 'retweet';
       case 'goal':
-        return 'trophy';
+        return 'Trophy';
       default:
         return 'clockcircleo';
     }

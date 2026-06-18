@@ -196,7 +196,7 @@ export function AiSavingsScreen() {
             const typeColor =
               opp.type.includes('duplicate') || opp.type.includes('unused')
                 ? AI_COLORS.warning
-                : opp.type.includes('food') || opp.type.includes('delivery')
+                : opp.type.includes('rest') || opp.type.includes('delivery')
                   ? AI_COLORS.success
                   : AI_COLORS.info;
             return (
@@ -212,10 +212,10 @@ export function AiSavingsScreen() {
                       <View style={[s.oppIcon, { backgroundColor: `${typeColor}20` }]}>
                         <AntDesign
                           name={
-                            (opp.type.includes('subscription')
+                            (opp.type.includes('reload1')
                               ? 'creditcard'
-                              : opp.type.includes('food')
-                                ? 'restaurant'
+                              : opp.type.includes('rest')
+                                ? 'rest'
                                 : 'wallet') as any
                           }
                           size={22}

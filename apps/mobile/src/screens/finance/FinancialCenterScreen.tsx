@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -85,8 +85,8 @@ export function FinancialCenterScreen() {
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: 'overview', label: 'Overview', icon: 'eye-outline' },
-    { key: 'reports', label: 'Reports', icon: 'document-text-outline' },
-    { key: 'ai', label: 'AI Insights', icon: 'bulb-outline' },
+    { key: 'reports', label: 'Reports', icon: 'filetext1' },
+    { key: 'ai', label: 'AI Insights', icon: 'bulb1' },
   ];
 
   const renderOverview = () => {
@@ -114,12 +114,12 @@ export function FinancialCenterScreen() {
       <ScrollView contentContainerStyle={styles.tabContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <View style={styles.summaryRow}>
           {[
-            { label: 'Income', value: fmt(inc), color: '#22C55E', icon: 'trending-up' },
-            { label: 'Expenses', value: fmt(exp), color: '#EF4444', icon: 'trending-down' },
+            { label: 'Income', value: fmt(inc), color: '#22C55E', icon: 'caretup' },
+            { label: 'Expenses', value: fmt(exp), color: '#EF4444', icon: 'caretdown' },
             { label: 'Savings', value: fmt(Math.max(sav, 0)), color: '#7C3AED', icon: 'wallet' },
           ].map(s => (
             <View key={s.label} style={[styles.summaryCard, { backgroundColor: colors.bg.card }]}>
-              <Ionicons name={s.icon as any} size={18} color={s.color} />
+              <AntDesign name={s.icon as any} size={18} color={s.color} />
               <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{s.value}</Text>
               <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>{s.label}</Text>
             </View>
@@ -255,7 +255,7 @@ export function FinancialCenterScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary}  />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Financial Center</Text>
         <View style={{ width: 24 }} />
@@ -264,7 +264,7 @@ export function FinancialCenterScreen() {
       <View style={[styles.tabBar, { backgroundColor: colors.bg.secondary }]}>
         {tabs.map(t => (
           <TouchableOpacity key={t.key} style={[styles.tab, t.key === tab && { borderBottomColor: colors.accent.primary, borderBottomWidth: 2 }]} onPress={() => setTab(t.key)}>
-            <Ionicons name={t.icon as any} size={16} color={t.key === tab ? colors.accent.primary : colors.text.tertiary} />
+            <AntDesign name={t.icon as any} size={16} color={t.key === tab ? colors.accent.primary : colors.text.tertiary} />
             <Text style={[styles.tabLabel, { color: t.key === tab ? colors.accent.primary : colors.text.tertiary, fontWeight: t.key === tab ? '700' : '500' }]}>{t.label}</Text>
           </TouchableOpacity>
         ))}

@@ -97,7 +97,7 @@ export function AdminDashboardScreen() {
               { icon: 'team', label: 'Users', value: stats.totalUsers.toString(), color: '#7C3AED' },
               { icon: 'adduser', label: 'New Today', value: stats.newUsersToday.toString(), color: '#22C55E' },
               { icon: 'Safety', label: 'Admins', value: stats.totalAdmins.toString(), color: '#3B82F6' },
-              { icon: 'diamond', label: 'Premium', value: stats.activeSubscriptions.toString(), color: '#F59E0B' },
+              { icon: 'star', label: 'Premium', value: stats.activeSubscriptions.toString(), color: '#F59E0B' },
               { icon: 'wallet', label: 'Transactions', value: stats.totalTransactions.toLocaleString(), color: '#14B8A6' },
               { icon: 'linechart', label: 'Revenue (Mo)', value: `₹${stats.revenueThisMonth.toLocaleString()}`, color: '#EC4899' },
             ].map((item, i) => (

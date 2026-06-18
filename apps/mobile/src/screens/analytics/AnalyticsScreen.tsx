@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { AnalyticsSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -43,9 +43,9 @@ export function AnalyticsScreen() {
   const [expenseReport, setExpenseReport] = useState<any>(null);
   const [incomeReport, setIncomeReport] = useState<any>(null);
   const [savingsReport, setSavingsReport] = useState<any>(null);
-  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [exporting, setExporting] = useState<'file1' | 'excel' | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'reports'>('overview');
-  const [reportTab, setReportTab] = useState<'expense' | 'income' | 'savings'>('expense');
+  const [reportTab, setReportTab] = useState<'wallet' | 'arrowdown' | 'savings'>('wallet');
 
   const chartConfig = {
     backgroundColor: 'transparent',
@@ -140,7 +140,7 @@ export function AnalyticsScreen() {
     loadData();
   }, [loadData]);
 
-  const handleExport = async (type: 'pdf' | 'excel') => {
+  const handleExport = async (type: 'file1' | 'excel') => {
     setExporting(type);
     try {
       const range = getDateRange();
@@ -153,7 +153,7 @@ export function AnalyticsScreen() {
         body: JSON.stringify({
           ...range,
           reportType:
-            reportTab === 'expense' ? 'Expense' : reportTab === 'income' ? 'Income' : 'Savings',
+            reportTab === 'wallet' ? 'Expense' : reportTab === 'arrowdown' ? 'Income' : 'Savings',
         }),
       });
       if (!res.ok) {
@@ -289,8 +289,8 @@ export function AnalyticsScreen() {
             {/* Summary cards */}
             <View style={styles.summaryRow}>
               {[
-                { label: 'Income', value: mi, color: colors.status.success, icon: 'trending-up' },
-                { label: 'Expenses', value: me, color: colors.status.error, icon: 'trending-down' },
+                { label: 'Income', value: mi, color: colors.status.success, icon: 'caretup' },
+                { label: 'Expenses', value: me, color: colors.status.error, icon: 'caretdown' },
               ].map((item, i) => (
                 <View
                   key={i}
@@ -309,11 +309,11 @@ export function AnalyticsScreen() {
                     <AntDesign
                       name={(i === 0
                           ? incomeTrend >= 0
-                            ? 'arrow-up'
-                            : 'arrow-down'
+                            ? 'arrowup'
+                            : 'arrowdown'
                           : expenseTrend <= 0
-                            ? 'arrow-down'
-                            : 'arrow-up') as any}
+                            ? 'arrowdown'
+                            : 'arrowup') as any}
                       size={12}
                       color={
                         i === 0
@@ -497,7 +497,7 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
-                <Ionicons name="bar-chart-outline" size={48} color={colors.text.tertiary} />
+                <AntDesign name="barschart" size={48} color={colors.text.tertiary}  />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>
@@ -511,7 +511,7 @@ export function AnalyticsScreen() {
           <>
             {/* Report tabs */}
             <View style={styles.reportTabRow}>
-              {(['expense', 'income', 'savings'] as const).map((t) => (
+              {(['wallet', 'arrowdown', 'savings'] as const).map((t) => (
                 <TouchableOpacity
                   key={t}
                   style={[
@@ -526,7 +526,7 @@ export function AnalyticsScreen() {
                       { color: reportTab === t ? '#FFF' : colors.text.tertiary },
                     ]}
                   >
-                    {t === 'expense' ? 'Expense' : t === 'income' ? 'Income' : 'Savings'}
+                    {t === 'wallet' ? 'Expense' : t === 'arrowdown' ? 'Income' : 'Savings'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -536,10 +536,10 @@ export function AnalyticsScreen() {
             <View style={styles.exportRow}>
               <TouchableOpacity
                 style={[styles.exportBtn, { backgroundColor: colors.status.errorLight }]}
-                onPress={() => handleExport('pdf')}
+                onPress={() => handleExport('file1')}
                 disabled={exporting !== null}
               >
-                {exporting === 'pdf' ? (
+                {exporting === 'file1' ? (
                   <ActivityIndicator size="small" color={colors.status.error} />
                 ) : (
                   <>
@@ -565,7 +565,7 @@ export function AnalyticsScreen() {
             </View>
 
             {/* Expense Report */}
-            {reportTab === 'expense' && expenseReport && (
+            {reportTab === 'wallet' && expenseReport && (
               <View style={[styles.reportCard, { backgroundColor: colors.bg.secondary }]}>
                 <Text style={[styles.reportTitle, { color: colors.text.primary }]}>
                   Expense Report
@@ -604,7 +604,7 @@ export function AnalyticsScreen() {
             )}
 
             {/* Income Report */}
-            {reportTab === 'income' && incomeReport && (
+            {reportTab === 'arrowdown' && incomeReport && (
               <View style={[styles.reportCard, { backgroundColor: colors.bg.secondary }]}>
                 <Text style={[styles.reportTitle, { color: colors.text.primary }]}>
                   Income Report
@@ -712,14 +712,14 @@ export function AnalyticsScreen() {
             )}
 
             {/* Empty reports */}
-            {reportTab === 'expense' && !expenseReport && (
+            {reportTab === 'wallet' && !expenseReport && (
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No expense data for this period
                 </Text>
               </View>
             )}
-            {reportTab === 'income' && !incomeReport && (
+            {reportTab === 'arrowdown' && !incomeReport && (
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No income data for this period

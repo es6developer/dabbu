@@ -180,7 +180,7 @@ export function SmsDashboardScreen() {
 
   function renderDetection({ item }: { item: Detection }) {
     const catName = item.category?.name || 'Expense';
-    const isIncome = item.detectedType === 'income';
+    const isIncome = item.detectedType === 'arrowdown';
     const iconName = getCatIcon(catName);
     const catColors: Record<string, string> = {
       'Food & Dining': '#FF6B6B',

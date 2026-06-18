@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -25,30 +25,38 @@ import { useAuth } from '../../store/AuthContext';
 const { width } = Dimensions.get('window');
 
 const PLANS = [
-  { code: 'MONTHLY_89', label: 'Monthly', price: '\u20B989', period: '/mo', badge: null },
-  { code: 'QUARTERLY_219', label: 'Quarterly', price: '\u20B9219', period: '/qtr', badge: null },
-  { code: 'HALFYEARLY_389', label: 'Half-Yearly', price: '\u20B9389', period: '/6mo', badge: null },
-  { code: 'YEARLY_699', label: 'Yearly', price: '\u20B9699', period: '/yr', badge: 'BEST VALUE' },
+  { code: 'FREE', label: 'Free', price: '\u20B90', period: '/mo', badge: null, tagline: 'Basic tracking for everyone' },
+  { code: 'PREMIUM_199', label: 'Premium', price: '\u20B9199', period: '/mo', badge: 'POPULAR', tagline: 'Full financial superpowers', trial: '7-day free trial' },
+  { code: 'FAMILY_299', label: 'Family Plan', price: '\u20B9299', period: '/mo', badge: 'BEST VALUE', tagline: 'Up to 6 family members', trial: '7-day free trial' },
 ];
 
 const FALLBACK_PLANS = PLANS;
 
 const PREMIUM_FEATURES = [
-  { icon: 'analytics', label: 'Financial Health Score' },
-  { icon: 'trending-up', label: 'Spending Analysis & Insights' },
-  { icon: 'cash', label: 'Savings Opportunities' },
-  { icon: 'stats-chart', label: 'Expense Pattern Analysis' },
-  { icon: 'options', label: 'Budget Optimization Suggestions' },
-  { icon: 'calendar', label: 'Cash Flow Forecasting' },
-  { icon: 'trending-up', label: 'Monthly Predictions' },
-  { icon: 'flag', label: 'Savings Forecast' },
-  { icon: 'timer', label: 'Goal Completion Forecast' },
-  { icon: 'card', label: 'Loan Payoff Forecast' },
-  { icon: 'people', label: 'Couple Financial Compatibility' },
+  { icon: 'analytics', label: 'Financial Health Score', plan: 'premium' },
+  { icon: 'caretup', label: 'Spending Analysis & Insights', plan: 'premium' },
+  { icon: 'wallet', label: 'Savings Opportunities', plan: 'premium' },
+  { icon: 'stats-chart', label: 'Expense Pattern Analysis', plan: 'premium' },
+  { icon: 'options', label: 'Budget Optimization Suggestions', plan: 'premium' },
+  { icon: 'calendar', label: 'Cash Flow Forecasting', plan: 'premium' },
+  { icon: 'caretup', label: 'Monthly Predictions', plan: 'premium' },
+  { icon: 'flag', label: 'Savings Forecast', plan: 'premium' },
+  { icon: 'timer', label: 'Goal Completion Forecast', plan: 'premium' },
+  { icon: 'creditcard', label: 'Loan Payoff Forecast', plan: 'premium' },
+  { icon: 'people', label: 'Couple Financial Compatibility', plan: 'family' },
+  { icon: 'home', label: 'Family Wealth Dashboard', plan: 'family' },
+  { icon: 'grid', label: 'Unlimited Custom Dashboards', plan: 'premium' },
+  { icon: 'layers', label: 'Dashboard Widgets', plan: 'premium' },
+  { icon: 'funnel', label: 'Advanced Filters', plan: 'premium' },
+  { icon: 'chatbubbles', label: 'Priority Support', plan: 'family' },
+];
+
+const FAMILY_FEATURES = [
+  { icon: 'people', label: 'Up to 6 family members' },
   { icon: 'home', label: 'Family Wealth Dashboard' },
-  { icon: 'grid', label: 'Unlimited Custom Dashboards' },
-  { icon: 'layers', label: 'Dashboard Widgets' },
-  { icon: 'funnel', label: 'Advanced Filters' },
+  { icon: 'gift', label: 'Allowance & kid tracking' },
+  { icon: 'calendar', label: 'Shared family calendar' },
+  { icon: 'team', label: 'Family goals & budgets' },
   { icon: 'chatbubbles', label: 'Priority Support' },
 ];
 
@@ -290,7 +298,7 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
-              <Ionicons  name="diamond" size={24} color="#FFD700" />
+              <AntDesign name="star" size={24} color="#FFD700"  />
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
@@ -348,14 +356,13 @@ export function PremiumScreen() {
         >
           <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
-              <Ionicons name="diamond" size={14} color="#FFD700" />
+              <AntDesign name="star" size={14} color="#FFD700"  />
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
             </View>
-            <Text style={styles.heroTitle}>Unlock the Full</Text>
-            <Text style={styles.heroTitleAccent}>Dabbu Experience</Text>
+            <Text style={styles.heroTitle}>Choose Your Plan</Text>
+            <Text style={styles.heroTitleAccent}>Free • Premium • Family</Text>
             <Text style={styles.heroSubtitle}>
-              Premium unlocks financial intelligence, forecasts, and advanced insights. All basic
-              features are free forever.
+              Start free forever. Upgrade to Premium for financial intelligence and forecasts, or get the Family Plan for up to 6 members.
             </Text>
           </View>
         </Animated.View>
@@ -382,13 +389,31 @@ export function PremiumScreen() {
             </View>
             <View style={styles.premiumCol}>
               <View style={styles.mostPopularBadge}>
-                <Text style={styles.mostPopularText}>MOST POPULAR</Text>
+                <Text style={styles.mostPopularText}>POPULAR</Text>
               </View>
               <Text style={[styles.colTitle, { color: '#FFD700' }]}>Premium</Text>
-              <Text style={[styles.colPrice, { color: '#FFD700' }]}>₹89</Text>
+              <Text style={[styles.colPrice, { color: '#FFD700' }]}>₹199</Text>
               <Text style={[styles.colPeriod, { color: '#FFD700' }]}>per month</Text>
+              <Text style={[styles.colTrial, { color: '#00A86B' }]}>7 days free</Text>
               <View style={styles.featureList}>
-                {PREMIUM_FEATURES.map((f, i) => (
+                {PREMIUM_FEATURES.filter(f => f.plan === 'premium').map((f, i) => (
+                  <View key={i} style={styles.featureRow}>
+                    <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
+                    <Text style={styles.featureText}>{f.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View style={styles.familyCol}>
+              <View style={styles.bestValueBadge}>
+                <Text style={styles.bestValueText}>BEST VALUE</Text>
+              </View>
+              <Text style={[styles.colTitle, { color: '#C084FC' }]}>Family</Text>
+              <Text style={[styles.colPrice, { color: '#C084FC' }]}>₹299</Text>
+              <Text style={[styles.colPeriod, { color: '#C084FC' }]}>per month</Text>
+              <Text style={[styles.colTrial, { color: '#00A86B' }]}>7 days free</Text>
+              <View style={styles.featureList}>
+                {[...PREMIUM_FEATURES.filter(f => f.plan === 'premium'), ...FAMILY_FEATURES].map((f, i) => (
                   <View key={i} style={styles.featureRow}>
                     <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
                     <Text style={styles.featureText}>{f.label}</Text>
@@ -466,8 +491,8 @@ export function PremiumScreen() {
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
-              <Ionicons name="diamond" size={18} color="#000" style={{ marginRight: 8 }} />
-              <Text style={styles.upgradeText}>Go Premium • {plans[selectedPlan].price}</Text>
+              <AntDesign name="star" size={18} color="#000" style={{ marginRight: 8 }}  />
+              <Text style={styles.upgradeText}>Start {plans[selectedPlan].label} • 7 days free</Text>
             </>
           )}
         </TouchableOpacity>
@@ -538,6 +563,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD700',
   },
   mostPopularText: { color: '#000', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  bestValueBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: '#C084FC',
+  },
+  bestValueText: { color: '#FFF', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  familyCol: {
+    flex: 1,
+    backgroundColor: 'rgba(192,132,252,0.08)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(192,132,252,0.3)',
+    position: 'relative',
+    overflow: 'visible',
+  },
+  colTrial: { fontSize: 11, fontWeight: '700', marginBottom: 12, marginTop: -6 },
   colTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
   colPrice: { fontSize: 28, fontWeight: '900', color: '#FFFFFF' },
   colPeriod: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 12 },
@@ -559,7 +605,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   plansGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  planCardWrap: { width: (width - 44) / 2 },
+  planCardWrap: { width: (width - 56) / 3 },
   planCard: {
     borderRadius: 16,
     padding: 18,

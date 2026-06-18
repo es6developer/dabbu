@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -33,7 +33,7 @@ const SPACE_TYPE_CONFIG: Record<
   { label: string; icon: string; gradient: [string, string] }
 > = {
   friends: { label: 'Friends', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
-  trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'] },
+  trip: { label: 'Trip', icon: 'planner', gradient: ['#00B894', '#00D9A6'] },
   family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'] },
   couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
   roommates: { label: 'Roommates', icon: 'business', gradient: ['#14B8A6', '#14B8A6'] },
@@ -582,7 +582,7 @@ export function SharedFinanceHomeScreen() {
                   style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
                   onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
                 >
-                  <Ionicons  name="diamond" size={18} color={colors.status.warning} />
+                  <AntDesign name="star" size={18} color={colors.status.warning}  />
                 </TouchableOpacity>
               </View>
             </View>

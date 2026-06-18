@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -160,28 +160,28 @@ export function YearlySummaryScreen() {
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Achievements</Text>
             <View style={styles.achievementGrid}>
               <View style={styles.achievementItem}>
-                <Ionicons name="flag" size={24} color="#14b8a6" />
+                <AntDesign name="flag" size={24} color="#14b8a6"  />
                 <Text style={[styles.achievementValue, { color: theme.text }]}>
                   {summary.goalsCompleted}/{summary.goalsCreated}
                 </Text>
                 <Text style={[styles.achievementLabel, { color: theme.muted }]}>Goals</Text>
               </View>
               <View style={styles.achievementItem}>
-                <Ionicons name="receipt" size={24} color="#eab308" />
+                <AntDesign name="filetext1" size={24} color="#eab308"  />
                 <Text style={[styles.achievementValue, { color: theme.text }]}>
                   {summary.billsPaid || 0}
                 </Text>
                 <Text style={[styles.achievementLabel, { color: theme.muted }]}>Bills Paid</Text>
               </View>
               <View style={styles.achievementItem}>
-                <Ionicons name="flame" size={24} color="#f97316" />
+                <AntDesign name="like2" size={24} color="#f97316"  />
                 <Text style={[styles.achievementValue, { color: theme.text }]}>
                   {summary.longestStreak || 0}d
                 </Text>
                 <Text style={[styles.achievementLabel, { color: theme.muted }]}>Best Streak</Text>
               </View>
               <View style={styles.achievementItem}>
-                <Ionicons name="trophy" size={24} color="#8b5cf6" />
+                <AntDesign name="Trophy" size={24} color="#8b5cf6"  />
                 <Text style={[styles.achievementValue, { color: theme.text }]}>
                   {summary.badgesEarned || 0}
                 </Text>
@@ -197,7 +197,7 @@ export function YearlySummaryScreen() {
               </Text>
               <View style={styles.topCategoryRow}>
                 <View style={[styles.categoryIcon, { backgroundColor: '#ef444420' }]}>
-                  <Ionicons name="pricetag" size={20} color="#ef4444" />
+                  <AntDesign name="tag" size={20} color="#ef4444"  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.categoryName, { color: theme.text }]}>
@@ -234,7 +234,7 @@ export function YearlySummaryScreen() {
 
       {!summary && !loading && (
         <View style={styles.centered}>
-          <Ionicons name="calendar-outline" size={64} color={theme.muted} />
+          <AntDesign name="calendar" size={64} color={theme.muted}  />
           <Text style={[styles.emptyText, { color: theme.muted }]}>No data for {selectedYear}</Text>
         </View>
       )}

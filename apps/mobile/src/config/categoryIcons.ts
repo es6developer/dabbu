@@ -44,9 +44,9 @@ for (const c of ALL_ENTRIES) {
 
 // Legacy aliases for backward compatibility with existing transaction data
 const LEGACY_ALIASES: [string, string, string][] = [
-  ['Food', 'restaurant', '#FF6B6B'],
+  ['Food', 'rest', '#FF6B6B'],
   ['Grocery', 'shoppingcart', '#00CEC9'],
-  ['Dining', 'restaurant', '#FDCB6E'],
+  ['Dining', 'rest', '#FDCB6E'],
   ['Transport', 'car', '#38BDF8'],
   ['Gym', 'hearto', '#14B8A6'],
   ['Fitness', 'hearto', '#14B8A6'],

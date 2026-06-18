@@ -12,7 +12,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -24,6 +24,10 @@ import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
+import { HomeHeader } from '../../components/dashboard/HomeHeader';
+import { NetWorthCard } from '../../components/dashboard/NetWorthCard';
+import { AICoachCarousel } from '../../components/dashboard/AICoachCarousel';
+import { QuickAddBar } from '../../components/dashboard/QuickAddBar';
 
 const W = Dimensions.get('window').width;
 
@@ -123,8 +127,8 @@ function deriveGroupBalance(group: any, currentUserId: string | undefined) {
 
 const INSIGHT_ICONS: Record<string, string> = {
   'Net Worth': 'wallet',
-  Subscriptions: 'card',
-  Loans: 'trending-down',
+  Subscriptions: 'creditcard',
+  Loans: 'caretdown',
   'Active Goals': 'flag',
   'Upcoming Bills': 'receipt',
   'Budget Health': 'pie-chart',
@@ -138,10 +142,10 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
-  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
-  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Dashboard', screen: 'NetWorth' },
-  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Goals', screen: 'GoalsList' },
+  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Wallet', screen: 'CategorySelection' },
+  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Wallet', screen: 'CategorySelection', params: { type: 'arrowdown' } },
+  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Home', screen: 'NetWorth' },
+  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Home', screen: 'GoalsList' },
 ];
 
 const COMMON_INDIAN_SUGGESTIONS = [
@@ -202,7 +206,7 @@ export function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
   const [quickEntryLoading, setQuickEntryLoading] = useState(false);
-  const [quickType, setQuickType] = useState<'expense' | 'income'>('expense');
+  const [quickType, setQuickType] = useState<'wallet' | 'arrowdown'>('wallet');
   const [quickSuccess, setQuickSuccess] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -229,7 +233,7 @@ export function HomeScreen() {
       if (parsed) {
         setQuickType(parsed.type);
       } else {
-        setQuickType('expense');
+        setQuickType('wallet');
       }
       if (quickEntry.length < 1) {
         setShowSuggestions(false);
@@ -291,15 +295,15 @@ export function HomeScreen() {
 
   const hasData = totalBalance !== null && totalBalance > 0 && monthlyIncome > 0;
   const sampleGoals = (!hasData || goals.length === 0) ? [
-    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'shield-checkmark', targetDate: null },
-    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'airplane', targetDate: null },
+    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'checkcircle', targetDate: null },
+    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'planner', targetDate: null },
   ] : [];
   const demoGoals = goals.length > 0 ? goals : sampleGoals;
   const sampleTxns: any[] = (!hasData || recentTxns.length === 0) ? [
-    { id: 'sample-t1', description: 'Morning Coffee', amount: 45, type: 'expense', category: 'Food', date: new Date().toISOString().split('T')[0] },
-    { id: 'sample-t2', description: 'Metro Recharge', amount: 200, type: 'expense', category: 'Transport', date: new Date().toISOString().split('T')[0] },
-    { id: 'sample-t3', description: 'Salary Credit', amount: 75000, type: 'income', category: 'Salary', date: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
-    { id: 'sample-t4', description: 'Grocery Store', amount: 1250, type: 'expense', category: 'Groceries', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
+    { id: 'sample-t1', description: 'Morning Coffee', amount: 45, type: 'wallet', category: 'Food', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t2', description: 'Metro Recharge', amount: 200, type: 'wallet', category: 'Transport', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t3', description: 'Salary Credit', amount: 75000, type: 'arrowdown', category: 'Salary', date: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+    { id: 'sample-t4', description: 'Grocery Store', amount: 1250, type: 'wallet', category: 'Groceries', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
   ] : [];
   const displayTxns = recentTxns.length > 0 ? recentTxns : sampleTxns;
 
@@ -344,7 +348,7 @@ export function HomeScreen() {
       items.push('Your ' + goals[0].name + ' goal is ahead of schedule');
     }
     const foodCat = categories.find(
-      (c) => c.name.toLowerCase().includes('food') || c.name.toLowerCase().includes('grocery'),
+      (c) => c.name.toLowerCase().includes('rest') || c.name.toLowerCase().includes('grocery'),
     );
     if (foodCat && foodCat.amount > 0) {
       items.push('You can reduce food spending');
@@ -509,7 +513,7 @@ export function HomeScreen() {
     'refund',
     'cashback',
     'gift',
-    'income',
+    'arrowdown',
     'profit',
     'bonus',
     'commission',
@@ -521,14 +525,14 @@ export function HomeScreen() {
 
   function parseQuickEntry(
     text: string,
-  ): { desc: string; amt: number; type: 'expense' | 'income'; cat: string } | null {
+  ): { desc: string; amt: number; type: 'wallet' | 'arrowdown'; cat: string } | null {
     let input = text.trim();
-    let forcedType: 'expense' | 'income' | null = null;
+    let forcedType: 'wallet' | 'arrowdown' | null = null;
     if (input.startsWith('+')) {
-      forcedType = 'income';
+      forcedType = 'arrowdown';
       input = input.slice(1).trim();
     } else if (input.startsWith('-')) {
-      forcedType = 'expense';
+      forcedType = 'wallet';
       input = input.slice(1).trim();
     }
     const match = input.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
@@ -542,12 +546,12 @@ export function HomeScreen() {
     }
     const lower = desc.toLowerCase();
     let cat = 'Other';
-    let detectedType: 'expense' | 'income' = 'expense';
+    let detectedType: 'wallet' | 'arrowdown' = 'wallet';
     for (const [keyword, category] of Object.entries(KEYWORD_CATEGORIES)) {
       if (lower.includes(keyword)) {
         cat = category;
         if (INCOME_KEYWORDS.has(keyword)) {
-          detectedType = 'income';
+          detectedType = 'arrowdown';
         }
         break;
       }
@@ -721,231 +725,39 @@ export function HomeScreen() {
           />
         }
       >
-        {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
+        {/* ─── SECTION 1: HEADER + HERO FINANCIAL SUMMARY ─── */}
         <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
-          {/* Header row */}
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-          >
-            <View>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-                {getGreeting()}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  color: colors.text.primary,
-                  marginTop: 1,
-                }}
-              >
-                {userName}
-              </Text>
-            </View>
-            {streak > 0 && (
-              <View style={{ backgroundColor: '#FF6B6B20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <AntDesign name="heart" size={13} color="#FF6B6B" />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FF6B6B' }}>{streak} days</Text>
-              </View>
-            )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Notifications')}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: `${colors.brand.primary}10`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AntDesign  name="bells" size={18} color={colors.brand.primary} />
-                {unreadCount > 0 && (
-                  <View style={page.badge}>
-                    <Text style={page.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                <Avatar
-                  uri={user?.avatarUrl}
-                  name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                  size={36}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <HomeHeader
+            userName={userName}
+            streak={streak}
+            unreadCount={unreadCount}
+            userAvatar={user?.avatarUrl}
+            userFullName={`${user?.firstName || ''} ${user?.lastName || ''}`}
+          />
 
-          {/* Hero Card */}
-          <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
-            {/* Net Worth */}
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: colors.text.tertiary,
-                letterSpacing: 0.3,
-              }}
-            >
-              Net Worth
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>₹</Text>
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: '800',
-                  color: colors.text.primary,
-                  letterSpacing: -1.5,
-                }}
-              >
-                {(netWorth ?? totalBalance ?? 0).toLocaleString('en-IN')}
-              </Text>
-            </View>
-            {/* Monthly Growth */}
-            {monthlyIncome > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                <AntDesign
-                  name={(savings > 0 ? 'trending-up' : 'trending-down') as any}
-                  size={14}
-                  color={savings > 0 ? '#10B981' : '#EF4444'}
-                />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: savings > 0 ? '#10B981' : '#EF4444' }}>
-                  {savings > 0 ? '+' : ''}{(monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0).toFixed(1)}% this month
-                </Text>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                  · Saved {fmtShort(savings)}
-                </Text>
-              </View>
-            )}
-
-            {/* This Month breakdown */}
-            <View style={[page.heroMonth, { backgroundColor: colors.bg.primary }]}>
-              <HeroMonthRow
-                label="Income"
-                value={fmtShort(monthlyIncome)}
-                color="#10B981"
-                pct={monthlyIncome > 0 ? 100 : 0}
-              />
-              <HeroMonthRow
-                label="Spent"
-                value={fmtShort(monthlySpent)}
-                color="#EF4444"
-                pct={monthlyIncome > 0 ? (monthlySpent / monthlyIncome) * 100 : 0}
-              />
-              <HeroMonthRow
-                label="Saved"
-                value={fmtShort(savings)}
-                color="#10B981"
-                pct={monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0}
-                badge={savingsRate > 0 ? `${savingsRate.toFixed(0)}%` : undefined}
-              />
-            </View>
-
-            {/* Divider */}
-            <View
-              style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 14 }}
+          <View style={{ marginTop: 16 }}>
+            <NetWorthCard
+              netWorth={netWorth ?? 0}
+              totalBalance={totalBalance ?? 0}
+              monthlyIncome={monthlyIncome}
+              monthlySpent={monthlySpent}
+              savings={savings}
+              savingsRate={savingsRate}
+              upcomingBillsTotal={upcomingBillsTotal}
+              subscriptionTotal={subscriptionTotal}
+              safeToSpend={safeToSpend}
+              healthScore={healthScore}
             />
-
-            {/* Obligations */}
-            <View style={{ gap: 8 }}>
-              <ObligationRow
-                icon="filetext1"
-                label="Upcoming Bills"
-                value={fmt(upcomingBillsTotal)}
-                valueColor={colors.text.primary}
-              />
-              <ObligationRow
-                icon="creditcard"
-                label="Subscriptions"
-                value={fmt(subscriptionTotal)}
-                valueColor={colors.text.primary}
-              />
-            </View>
-
-            {/* Safe to Spend */}
-            {totalBalance !== null && (
-              <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}12` }]}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-                    Safe to Spend
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      fontWeight: '800',
-                      color: colors.brand.primary,
-                      letterSpacing: -0.5,
-                      marginTop: 1,
-                    }}
-                  >
-                    {fmt(safeToSpend)}
-                  </Text>
-                </View>
-                <AntDesign  name="checkcircle" size={22} color={colors.brand.primary} />
-              </View>
-            )}
-
-            {/* Health Score */}
-            <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}08`, marginTop: 14 }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-                  Health Score
-                </Text>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.brand.primary, letterSpacing: -0.5, marginTop: 1 }}>
-                  {healthScore}/100
-                </Text>
-              </View>
-              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: `${colors.brand.primary}15`, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.brand.primary }}>{healthScore}</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                const scoreLabel = healthScore > 70 ? 'Great shape' : healthScore > 40 ? 'Room for improvement' : 'Needs attention';
-                Alert.alert(
-                  'Health Score Breakdown',
-                  'Your score is calculated from 5 factors:\n\n' +
-                  'Savings Rate (30%): Income saved\n' +
-                  'Budget Compliance (20%): Budget adherence\n' +
-                  'Goal Progress (20%): Goal completion\n' +
-                  'Emergency Fund (20%): Months saved\n' +
-                  'Debt Ratio (10%): Debt vs assets\n\n' +
-                  'Score: ' + healthScore + '/100 - ' + scoreLabel,
-                );
-              }}
-              style={{ marginTop: 4, alignSelf: 'flex-end' }}
-            >
-              <Text style={{ fontSize: 10, fontWeight: '600', color: colors.text.tertiary }}>
-                How calculated? →
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 
         {/* ─── AI COACH ─── */}
         {coachInsights.length > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-            <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, borderLeftWidth: 3, borderLeftColor: colors.brand.primary }}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.brand.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
-                  <AntDesign  name="message1" size={16} color={colors.brand.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }} numberOfLines={2}>
-                    {coachInsights[coachIndex % coachInsights.length]}
-                  </Text>
-                  <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
-                    {coachInsights.map((_: string, idx: number) => (
-                      <View key={idx} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: idx === (coachIndex % coachInsights.length) ? colors.brand.primary : colors.border.default }} />
-                    ))}
-                  </View>
-                </View>
-                <AntDesign  name="star" size={16} color={colors.brand.primary} />
-              </View>
-            </View>
+            <AICoachCarousel
+              insights={coachInsights}
+              onTap={() => navigation.navigate('DabbuAI')}
+            />
           </View>
         )}
 
@@ -953,7 +765,7 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons  name="flash" size={16} color={colors.accent.primary} />
+              <AntDesign name="bulb1" size={16} color={colors.accent.primary}  />
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -1019,7 +831,7 @@ export function HomeScreen() {
               if (!parsed) {
                 return null;
               }
-              const catIcon = (CATEGORY_ICONS as any)[parsed.cat] || 'ellipsis-horizontal';
+              const catIcon = (CATEGORY_ICONS as any)[parsed.cat] || 'ellipsis1';
               const catColor = (CATEGORY_COLORS as any)[parsed.cat] || '#636E72';
               return (
                 <View
@@ -1063,19 +875,19 @@ export function HomeScreen() {
                       style={{
                         fontSize: 16,
                         fontWeight: '700',
-                        color: quickType === 'expense' ? colors.status.error : colors.status.success,
+                        color: quickType === 'wallet' ? colors.status.error : colors.status.success,
                       }}
                     >
-                      {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
+                      {quickType === 'wallet' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() => setQuickType(quickType === 'expense' ? 'income' : 'expense')}
+                      onPress={() => setQuickType(quickType === 'wallet' ? 'arrowdown' : 'wallet')}
                       style={[
                         {
                           paddingHorizontal: 8,
                           paddingVertical: 4,
                           borderRadius: 6,
-                          backgroundColor: quickType === 'expense' ? colors.status.error + '18' : colors.status.success + '18',
+                          backgroundColor: quickType === 'wallet' ? colors.status.error + '18' : colors.status.success + '18',
                         },
                       ]}
                     >
@@ -1083,10 +895,10 @@ export function HomeScreen() {
                         style={{
                           fontSize: 10,
                           fontWeight: '700',
-                          color: quickType === 'expense' ? colors.status.error : colors.status.success,
+                          color: quickType === 'wallet' ? colors.status.error : colors.status.success,
                         }}
                       >
-                        {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
+                        {quickType === 'wallet' ? 'EXPENSE' : 'INCOME'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -1102,7 +914,7 @@ export function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
               {goals.length > 0 && (
-                <TouchableOpacity onPress={() => navigation.navigate('Goals', { screen: 'GoalsList' })}>
+                <TouchableOpacity onPress={() => navigation.navigate('GoalsList')}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
                 </TouchableOpacity>
               )}
@@ -1123,7 +935,7 @@ export function HomeScreen() {
                   activeOpacity={0.7}
                   onPress={() => {
                     if (g.id && !g.id.startsWith('sample-')) {
-                      navigation.navigate('Goals', { screen: 'GoalDetail', params: { goalId: g.id, goalName: g.name } });
+                      navigation.navigate('GoalDetail', { goalId: g.id, goalName: g.name });
                     }
                   }}
                   style={{ backgroundColor: colors.bg.card, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border.default }}
@@ -1188,7 +1000,7 @@ export function HomeScreen() {
               </Text>
               {recentTxns.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
+                  onPress={() => navigation.navigate('Wallet', { screen: 'MyWallet' })}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                     See All
@@ -1205,13 +1017,13 @@ export function HomeScreen() {
               }}
             >
               {displayTxns.slice(0, 5).map((tx: any, i: number) => {
-                const isExpense = tx.type === 'expense' || tx.amount < 0;
+                const isExpense = tx.type === 'wallet' || tx.amount < 0;
                 const amt = Math.abs(Number(tx.amount || 0));
                 return (
                   <TouchableOpacity
                     key={tx.id || i}
                     activeOpacity={0.7}
-                    onPress={() => navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
+                    onPress={() => navigation.navigate('Wallet', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
                   >
                     <View
                       style={{
@@ -1233,7 +1045,7 @@ export function HomeScreen() {
                         }}
                       >
                         <AntDesign
-                          name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
+                          name={(isExpense ? 'arrowup' : 'arrowdown') as any}
                           size={18}
                           color={isExpense ? colors.status.error : colors.status.success}
                         />
@@ -1308,7 +1120,7 @@ export function HomeScreen() {
               >
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
                   <AntDesign
-                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal') as any}
+                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis1') as any}
                     size={18}
                     color={ins.color}
                   />
@@ -1443,7 +1255,7 @@ export function HomeScreen() {
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Spaces
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}>
+              <TouchableOpacity onPress={() => navigation.navigate('Family', { screen: 'FamilyHome' })}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
               </TouchableOpacity>
             </View>

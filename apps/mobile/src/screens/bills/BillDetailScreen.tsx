@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -475,8 +475,8 @@ export function BillDetailScreen() {
                 <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>
                   Raw OCR Text
                 </Text>
-                <Ionicons
-                  name={showOcr ? 'chevron-up-outline' : 'chevron-down-outline'}
+                <AntDesign
+                  name={showOcr ? 'up' : 'down'}
                   size={16}
                   color={colors.text.tertiary}
                 />

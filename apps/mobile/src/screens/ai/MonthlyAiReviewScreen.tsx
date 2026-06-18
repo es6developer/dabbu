@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -240,7 +240,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={14}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <Ionicons  name="trophy" size={20} color={AI_COLORS.warning} />
+                      <AntDesign name="Trophy" size={20} color={AI_COLORS.warning}  />
                       <Text style={{ fontSize: 13, color: AI_COLORS.text, flex: 1 }}>{a}</Text>
                     </View>
                   </AiCard>
@@ -272,9 +272,9 @@ export function MonthlyAiReviewScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <AntDesign
-                        name={(b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle') as any}
+                        name={(b.status === 'exclamationcircle' ? 'exclamationcircle' : 'checkcircle') as any}
                         size={18}
-                        color={b.status === 'exceeded' ? AI_COLORS.danger : AI_COLORS.success}
+                        color={b.status === 'exclamationcircle' ? AI_COLORS.danger : AI_COLORS.success}
                       />
                       <Text style={{ flex: 1, fontSize: 13, color: AI_COLORS.text }}>{b.name}</Text>
                       <Text style={{ fontSize: 13, fontWeight: '600', color: AI_COLORS.text }}>
@@ -398,14 +398,14 @@ export function MonthlyAiReviewScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <AntDesign
-                        name={(g.status === 'completed' ? 'checkmark-circle' : 'clockcircleo') as any}
+                        name={(g.status === 'checkcircle' ? 'checkcircle' : 'clockcircleo') as any}
                         size={18}
-                        color={g.status === 'completed' ? AI_COLORS.success : AI_COLORS.warning}
+                        color={g.status === 'checkcircle' ? AI_COLORS.success : AI_COLORS.warning}
                       />
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 13, color: AI_COLORS.text }}>{g.name}</Text>
                         <View style={{ height: 4, backgroundColor: AI_COLORS.card, borderRadius: 2, marginTop: 4 }}>
-                          <View style={{ width: `${Math.min(g.progress, 100)}%`, height: '100%', backgroundColor: g.status === 'completed' ? AI_COLORS.success : AI_COLORS.primary, borderRadius: 2 }} />
+                          <View style={{ width: `${Math.min(g.progress, 100)}%`, height: '100%', backgroundColor: g.status === 'checkcircle' ? AI_COLORS.success : AI_COLORS.primary, borderRadius: 2 }} />
                         </View>
                       </View>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.text }}>{g.progress}%</Text>

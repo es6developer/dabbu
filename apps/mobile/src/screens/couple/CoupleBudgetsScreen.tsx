@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -41,12 +41,12 @@ function pctColor(pct: number, colors: any): string {
 
 function statusBadge(pct: number): { label: string; bg: string; text: string; icon: string } {
   if (pct > 90) {
-    return { label: 'Exceeded', bg: '#FFE5E5', text: '#CC3B3B', icon: 'alert-circle' };
+    return { label: 'Exceeded', bg: '#FFE5E5', text: '#CC3B3B', icon: 'exclamationcircle' };
   }
   if (pct > 70) {
     return { label: 'Warning', bg: '#FFF4D9', text: '#B8860B', icon: 'warning' };
   }
-  return { label: 'Normal', bg: '#E5F9E5', text: '#2E7D32', icon: 'checkmark-circle' };
+  return { label: 'Normal', bg: '#E5F9E5', text: '#2E7D32', icon: 'checkcircle' };
 }
 
 export function CoupleBudgetsScreen() {
@@ -229,7 +229,7 @@ export function CoupleBudgetsScreen() {
 
           {categories.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
-              <Ionicons  name="layers" size={32} color={colors.text.tertiary} />
+              <AntDesign name="switcher" size={32} color={colors.text.tertiary}  />
               <Text style={[styles.emptyCardText, { color: colors.text.secondary }]}>
                 No categories set up yet
               </Text>

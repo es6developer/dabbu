@@ -9,7 +9,7 @@ import {
   Animated,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -36,9 +36,16 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
     title: 'Wealth Tools',
     items: [
-      { label: 'Financial Reports', icon: 'stats-chart-outline', screen: 'Reports', premium: true },
-      { label: 'Export Data', icon: 'download-outline', screen: 'Analytics', premium: true },
-      { label: 'Budgets', icon: 'pie-chart-outline', screen: 'BudgetsList' },
+      { label: 'Financial Reports', icon: 'barschart', screen: 'Reports', premium: true },
+      { label: 'Export Data', icon: 'download', screen: 'DataExport' },
+      { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
+    ],
+  },
+  {
+    title: 'Your Progress',
+    items: [
+      { label: 'Streaks & Achievements', icon: 'star', screen: 'Streaks' },
+      { label: 'Year in Review', icon: 'calendar', screen: 'YearlySummary' },
     ],
   },
   {
@@ -46,53 +53,55 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     items: [
       { label: 'Profile', icon: 'person-circle-outline', screen: 'Profile' },
       { label: 'Partner Management', icon: 'heart-circle-outline', screen: 'AddPartner' },
-      { label: 'Favorite Contacts', icon: 'star-outline', screen: 'FavoriteContacts' },
-      { label: 'Refer & Earn', icon: 'gift-outline', screen: 'Referral' },
+      { label: 'Favorite Contacts', icon: 'staro', screen: 'FavoriteContacts' },
+      { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
     ],
   },
   {
     title: 'Premium',
     items: [
-      { label: 'Premium Plan', icon: 'diamond-outline', screen: 'Premium' },
-      { label: 'Couple Space', icon: 'heart-outline', screen: 'CoupleSpace' },
+      { label: 'Premium Plan', icon: 'star', screen: 'Premium' },
+      { label: 'Couple Space', icon: 'hearto', screen: 'CoupleSpace' },
     ],
   },
   {
     title: 'Preferences',
     items: [
       { label: 'Theme', icon: 'color-palette-outline', screen: 'Theme' },
-      { label: 'Notifications', icon: 'notifications-outline', screen: 'NotificationSettings' },
+      { label: 'Notifications', icon: 'bells', screen: 'NotificationSettings' },
       { label: 'Security', icon: 'shield-checkmark-outline', screen: 'Security' },
-      { label: 'Lock App', icon: 'lock-closed-outline', screen: 'Security', action: 'lock' },
+      { label: 'Lock App', icon: 'lock', screen: 'Security', action: 'lock' },
     ],
   },
   {
     title: 'Support',
     items: [
-      { label: 'Help Center', icon: 'help-circle-outline', screen: 'Help' },
-      { label: 'Contact Us', icon: 'chatbubble-ellipses-outline', screen: 'Contact' },
-      { label: 'Privacy Policy', icon: 'document-text-outline', screen: 'Privacy' },
+      { label: 'Help Center', icon: 'questioncircleo', screen: 'Help' },
+      { label: 'Contact Us', icon: 'message1', screen: 'Support' },
+      { label: 'Privacy Policy', icon: 'filetext1', screen: 'Privacy' },
     ],
   },
 ];
 
 const ROW_META: Record<string, { icon: IconName }> = {
-  Profile: { icon: 'person-outline' },
+  Profile: { icon: 'user' },
   'Partner Management': { icon: 'heart-circle-outline' },
-  'Premium Plan': { icon: 'diamond-outline' },
-  'Favorite Contacts': { icon: 'star-outline' },
-  'Refer & Earn': { icon: 'gift-outline' },
+  'Premium Plan': { icon: 'star' },
+  'Favorite Contacts': { icon: 'staro' },
+  'Refer & Earn': { icon: 'gift' },
   Security: { icon: 'shield-checkmark-outline' },
-  'Lock App': { icon: 'lock-closed-outline' },
-  'Financial Reports': { icon: 'stats-chart-outline' },
-  'Export Data': { icon: 'download-outline' },
-  Budgets: { icon: 'pie-chart-outline' },
-  'Couple Space': { icon: 'heart-outline' },
+  'Lock App': { icon: 'lock' },
+  'Financial Reports': { icon: 'barschart' },
+  'Export Data': { icon: 'download' },
+  Budgets: { icon: 'piechart' },
+  'Couple Space': { icon: 'hearto' },
   Theme: { icon: 'color-palette-outline' },
-  Notifications: { icon: 'notifications-outline' },
-  'Help Center': { icon: 'help-circle-outline' },
-  'Contact Us': { icon: 'chatbubble-ellipses-outline' },
-  'Privacy Policy': { icon: 'document-text-outline' },
+  Notifications: { icon: 'bells' },
+  'Help Center': { icon: 'questioncircleo' },
+  'Contact Us': { icon: 'message1' },
+  'Privacy Policy': { icon: 'filetext1' },
+  'Streaks & Achievements': { icon: 'star' },
+  'Year in Review': { icon: 'calendar' },
 };
 
 export function SettingsScreen() {
@@ -259,7 +268,7 @@ export function SettingsScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons  name="chevron-forward-outline" size={18} color={colors.accent.primary} />
+                <AntDesign name="right" size={18} color={colors.accent.primary}  />
               </TouchableOpacity>
             </View>
             <View
@@ -283,8 +292,8 @@ export function SettingsScreen() {
                   backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary,
                 }}
               >
-                <Ionicons
-                  name={isPremium ? 'diamond-outline' : 'person-outline'}
+                <AntDesign
+                  name={isPremium ? 'star' : 'user'}
                   size={14}
                   color={isPremium ? colors.accent.primary : colors.text.tertiary}
                 />
@@ -310,7 +319,7 @@ export function SettingsScreen() {
                   backgroundColor: colors.bg.tertiary,
                 }}
               >
-                <Ionicons  name="checkmark-circle-outline" size={14} color={colors.text.tertiary} />
+                <AntDesign name="checkcircle" size={14} color={colors.text.tertiary}  />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
                   Security
                 </Text>
@@ -343,7 +352,7 @@ export function SettingsScreen() {
                     gap: 8,
                   }}
                 >
-                  <Ionicons  name="heart-outline" size={18} color={COUPLE_COLORS.primary} />
+                  <AntDesign name="hearto" size={18} color={COUPLE_COLORS.primary}  />
                   <Text
                     style={{
                       fontSize: 14,
@@ -387,7 +396,7 @@ export function SettingsScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Ionicons  name="person-outline" size={18} color={COUPLE_COLORS.primary} />
+                      <AntDesign name="user" size={18} color={COUPLE_COLORS.primary}  />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text
@@ -448,7 +457,7 @@ export function SettingsScreen() {
                         {processingReqId === req.id ? (
                           <ActivityIndicator size="small" color="#FFF" />
                         ) : (
-                          <Ionicons  name="checkmark-outline" size={16} color="#FFF" />
+                          <AntDesign name="check" size={16} color="#FFF"  />
                         )}
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -471,7 +480,7 @@ export function SettingsScreen() {
                           }
                         }}
                       >
-                        <Ionicons  name="close-outline" size={16} color="#FF4757" />
+                        <AntDesign name="close" size={16} color="#FF4757"  />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -496,7 +505,7 @@ export function SettingsScreen() {
                   >
                     View All
                   </Text>
-                  <Ionicons  name="chevron-forward-outline" size={14} color={COUPLE_COLORS.primary} />
+                  <AntDesign name="right" size={14} color={COUPLE_COLORS.primary}  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -541,7 +550,7 @@ export function SettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons  name="diamond-outline" size={24} color="#0A0A0A" />
+                  <AntDesign name="star" size={24} color="#0A0A0A"  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -641,7 +650,7 @@ export function SettingsScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={(meta?.icon as any) || item.icon}
                           size={18}
                           color={colors.accent.primary}
@@ -670,7 +679,7 @@ export function SettingsScreen() {
                               backgroundColor: `${colors.accent.primary}10`,
                             }}
                           >
-                            <Ionicons  name="lock-closed-outline" size={10} color={colors.accent.primary} />
+                            <AntDesign name="lock" size={10} color={colors.accent.primary}  />
                             <Text
                               style={{
                                 fontSize: 10,
@@ -682,7 +691,7 @@ export function SettingsScreen() {
                             </Text>
                           </View>
                         )}
-                        <Ionicons  name="chevron-forward-outline" size={16} color={colors.text.tertiary} />
+                        <AntDesign name="right" size={16} color={colors.text.tertiary}  />
                       </View>
                     </TouchableOpacity>
                   );
@@ -716,12 +725,12 @@ export function SettingsScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons  name="log-out-outline" size={18} color={colors.status.error} />
+              <AntDesign name="logout" size={18} color={colors.status.error}  />
             </View>
             <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.status.error }}>
               Sign Out
             </Text>
-            <Ionicons  name="chevron-forward-outline" size={16} color={colors.text.tertiary} />
+            <AntDesign name="right" size={16} color={colors.text.tertiary}  />
           </TouchableOpacity>
 
           <Text

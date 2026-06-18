@@ -150,7 +150,7 @@ export function DashboardHub() {
                     }}
                   >
                     <AntDesign
-                      name={(tx.amount < 0 ? 'remove' : 'add') as any}
+                      name={(tx.amount < 0 ? 'close' : 'plus') as any}
                       size={18}
                       color={tx.amount < 0 ? '#EF4444' : '#10B981'}
                     />

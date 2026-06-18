@@ -24,8 +24,8 @@ function fmt(v: number) {
 }
 
 const ROLE_ICONS: Record<string, string> = {
-  admin: 'shield-checkmark',
-  member: 'person',
+  admin: 'checkcircle',
+  member: 'user',
   viewer: 'eye',
 };
 const ROLE_COLORS: Record<string, string> = {
@@ -97,7 +97,7 @@ export function FamilyDashboardScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="people-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon='team' />
     );
   }
 
@@ -194,7 +194,7 @@ export function FamilyDashboardScreen() {
                 <View style={{ flex: 1 }}>
                   <View style={s.memberNameRow}>
                     <Text style={[s.memberName, { color: colors.text.primary }]}>{member.name}</Text>
-                    <AntDesign name={(ROLE_ICONS[member.role] || 'person') as any} size={12} color={ROLE_COLORS[member.role] || '#666'} />
+                    <AntDesign name={(ROLE_ICONS[member.role] || 'user') as any} size={12} color={ROLE_COLORS[member.role] || '#666'} />
                   </View>
                   <Text style={[s.memberMeta, { color: colors.text.tertiary }]}>
                     Paid {fmt(member.totalPaid)} · {member.expenseCount} expenses

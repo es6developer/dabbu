@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 const defaultGoals = [
@@ -26,7 +26,7 @@ export function CoupleGoalsWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="flag-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="flag" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Couple Goals</Text>
       </View>
       <View style={styles.grid}>

@@ -27,17 +27,17 @@ function getCategoryIcon(cat: string): string {
     Entertainment: 'film',
     Health: 'fitness',
     Education: 'school',
-    Travel: 'airplane',
-    Groceries: 'cart',
+    Travel: 'planner',
+    Groceries: 'shoppingcart',
     Rent: 'home',
-    Salary: 'cash',
-    Investment: 'trending-up',
-    Utilities: 'flash',
+    Salary: 'wallet',
+    Investment: 'caretup',
+    Utilities: 'bulb1',
     Insurance: 'shield',
-    Dining: 'restaurant',
-    Other: 'ellipsis-horizontal',
+    Dining: 'rest',
+    Other: 'ellipsis1',
   };
-  return map[cat] || ('ellipsis-horizontal' as any);
+  return map[cat] || ('ellipsis1' as any);
 }
 
 export function GlobalSearchScreen() {
@@ -238,7 +238,7 @@ export function GlobalSearchScreen() {
 
         {!searching &&
           renderSection('Transactions', 'filetext1', results.transactions, (tx: any, i) => {
-            const isIncome = tx.type === 'income';
+            const isIncome = tx.type === 'arrowdown';
             const txColor = isIncome ? colors.status.success : colors.status.error;
             const amount = Number(tx.amount || 0);
             return (

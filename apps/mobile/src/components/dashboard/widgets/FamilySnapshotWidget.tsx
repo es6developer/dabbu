@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function FamilySnapshotWidget({ data }: { data: any }) {
@@ -14,7 +14,7 @@ export function FamilySnapshotWidget({ data }: { data: any }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="stats-chart-outline" size={18} color={colors.accent.primary} />
+        <AntDesign name="barschart" size={18} color={colors.accent.primary}  />
         <Text style={[styles.title, { color: colors.text.primary }]}>Family Snapshot</Text>
       </View>
       <View style={styles.row}>

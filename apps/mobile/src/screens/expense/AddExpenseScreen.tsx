@@ -15,13 +15,13 @@ import {
 
 const CATEGORIES = [
   { name: 'Food', icon: 'fast-food', color: '#F97316' },
-  { name: 'Travel', icon: 'airplane', color: '#3B82F6' },
+  { name: 'Travel', icon: 'planner', color: '#3B82F6' },
   { name: 'Bills', icon: 'receipt', color: '#14B8A6' },
-  { name: 'Shopping', icon: 'cart', color: '#EC4899' },
+  { name: 'Shopping', icon: 'shoppingcart', color: '#EC4899' },
   { name: 'Groceries', icon: 'basket', color: '#22C55E' },
   { name: 'Entertainment', icon: 'film', color: '#8B5CF6' },
   { name: 'Sports', icon: 'football', color: '#F59E0B' },
-  { name: 'Other', icon: 'ellipsis-horizontal', color: '#6B7280' },
+  { name: 'Other', icon: 'ellipsis1', color: '#6B7280' },
 ];
 
 const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000', '2000'];

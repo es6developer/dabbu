@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -8,9 +8,9 @@ import { api } from '../../services/api';
 import { spacing, borderRadius } from '../../theme/design';
 
 const STREAK_ICONS: Record<string, { icon: string; color: string; label: string }> = {
-  daily: { icon: 'flame', color: '#f97316', label: 'Daily Tracking' },
+  daily: { icon: 'like2', color: '#f97316', label: 'Daily Tracking' },
   weekly: { icon: 'calendar', color: '#6366f1', label: 'Weekly Activity' },
-  monthly: { icon: 'trending-up', color: '#22c55e', label: 'Monthly Consistency' },
+  monthly: { icon: 'caretup', color: '#22c55e', label: 'Monthly Consistency' },
   financial: { icon: 'wallet', color: '#8b5cf6', label: 'Financial Activity' },
   savings: { icon: 'piggy-bank', color: '#ec4899', label: 'Savings Streak' },
   goal_progress: { icon: 'flag', color: '#14b8a6', label: 'Goal Progress' },

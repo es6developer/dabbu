@@ -360,7 +360,7 @@ export function CreateExpenseGroupScreen() {
               end={{ x: 1, y: 0 }}
               style={s.saveGrad}
             >
-              <AntDesign name={(saving ? 'hourglass' : 'add') as any} size={18} color="#FFF" />
+              <AntDesign name={(saving ? 'hourglass' : 'plus') as any} size={18} color="#FFF" />
               <Text style={s.saveText}>{saving ? 'Creating...' : 'Create Split Group'}</Text>
             </LinearGradient>
           </TouchableOpacity>

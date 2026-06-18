@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -9,20 +9,20 @@ import { useAuth } from '../../store/AuthContext';
 
 const FAMILY_MODULES = [
   { key: 'dashboard', icon: 'grid-outline', label: 'Dashboard', color: '#7C3AED' },
-  { key: 'members', icon: 'people-outline', label: 'Members', color: '#3B82F6' },
-  { key: 'goals', icon: 'flag-outline', label: 'Goals', color: '#F59E0B' },
-  { key: 'bills', icon: 'receipt-outline', label: 'Bills', color: '#EF4444' },
-  { key: 'contributions', icon: 'trending-up-outline', label: 'Contributions', color: '#10B981' },
-  { key: 'budget', icon: 'pie-chart-outline', label: 'Budget', color: '#8B5CF6' },
-  { key: 'investments', icon: 'trending-up-outline', label: 'Investments', color: '#06B6D4' },
+  { key: 'members', icon: 'team', label: 'Members', color: '#3B82F6' },
+  { key: 'goals', icon: 'flag', label: 'Goals', color: '#F59E0B' },
+  { key: 'bills', icon: 'filetext1', label: 'Bills', color: '#EF4444' },
+  { key: 'contributions', icon: 'caretup', label: 'Contributions', color: '#10B981' },
+  { key: 'budget', icon: 'piechart', label: 'Budget', color: '#8B5CF6' },
+  { key: 'investments', icon: 'caretup', label: 'Investments', color: '#06B6D4' },
   { key: 'insurance', icon: 'shield-checkmark-outline', label: 'Insurance', color: '#EC4899' },
   { key: 'emergency', icon: 'umbrella-outline', label: 'Emergency Fund', color: '#F97316' },
   { key: 'tasks', icon: 'checkbox-outline', label: 'Tasks', color: '#14B8A6' },
-  { key: 'calendar', icon: 'calendar-outline', label: 'Calendar', color: '#6366F1' },
-  { key: 'documents', icon: 'folder-outline', label: 'Documents', color: '#A855F7' },
-  { key: 'ai-advisor', icon: 'bulb-outline', label: 'AI Advisor', color: '#FBBF24' },
-  { key: 'reports', icon: 'bar-chart-outline', label: 'Reports', color: '#64748B' },
-  { key: 'vault', icon: 'lock-closed-outline', label: 'Family Vault', color: '#1E293B' },
+  { key: 'calendar', icon: 'calendar', label: 'Calendar', color: '#6366F1' },
+  { key: 'documents', icon: 'folder1', label: 'Documents', color: '#A855F7' },
+  { key: 'ai-advisor', icon: 'bulb1', label: 'AI Advisor', color: '#FBBF24' },
+  { key: 'reports', icon: 'barschart', label: 'Reports', color: '#64748B' },
+  { key: 'vault', icon: 'lock', label: 'Family Vault', color: '#1E293B' },
 ];
 
 function getInitials(name: string): string {
@@ -130,7 +130,7 @@ export function FamilySpaceScreen() {
                 </Text>
               </View>
               <View style={styles.heroIconWrap}>
-                <Ionicons name="people" size={32} color={colors.accent.primary} />
+                <AntDesign name="team" size={32} color={colors.accent.primary}  />
               </View>
             </View>
             {members.length > 0 && (
@@ -184,7 +184,7 @@ export function FamilySpaceScreen() {
                 onPress={() => handleModulePress(mod)}
               >
                 <View style={[styles.moduleIcon, { backgroundColor: `${mod.color}15` }]}>
-                  <Ionicons name={mod.icon as any} size={22} color={mod.color} />
+                  <AntDesign name={mod.icon as any} size={22} color={mod.color} />
                 </View>
                 <Text style={[styles.moduleLabel, { color: colors.text.primary }]} numberOfLines={2}>
                   {mod.label}

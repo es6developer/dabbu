@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 export function CoupleAIWidget({ data }: { data: any }) {
@@ -11,7 +11,7 @@ export function CoupleAIWidget({ data }: { data: any }) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="bulb-outline" size={18} color={colors.accent.primary} />
+          <AntDesign name="bulb1" size={18} color={colors.accent.primary}  />
           <Text style={[styles.title, { color: colors.text.primary }]}>Couple AI Insight</Text>
         </View>
         <Text style={[styles.empty, { color: colors.text.secondary }]}>-</Text>
@@ -23,7 +23,7 @@ export function CoupleAIWidget({ data }: { data: any }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={[styles.iconWrap, { backgroundColor: colors.accent.primary + '20' }]}>
-          <Ionicons name="bulb-outline" size={16} color={colors.accent.primary} />
+          <AntDesign name="bulb1" size={16} color={colors.accent.primary}  />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Couple AI Insight</Text>
       </View>

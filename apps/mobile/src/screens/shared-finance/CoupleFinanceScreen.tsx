@@ -15,7 +15,7 @@ import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -44,9 +44,9 @@ function fmtDate(dateStr: string) {
 
 function getCategoryIcon(cat: string): { icon: string; color: string } {
   const map: Record<string, { icon: string; color: string }> = {
-    Food: { icon: 'restaurant', color: '#FF6B6B' },
+    Food: { icon: 'rest', color: '#FF6B6B' },
     Groceries: { icon: 'shoppingcart', color: '#34C759' },
-    Travel: { icon: 'airplane', color: '#60A5FA' },
+    Travel: { icon: 'planner', color: '#60A5FA' },
     Rent: { icon: 'home', color: '#FB923C' },
     Bills: { icon: 'filetext1', color: '#F59E0B' },
     Shopping: { icon: 'shoppingcart', color: '#F472B6' },
@@ -187,10 +187,10 @@ export function CoupleFinanceScreen() {
   const p2Pct = totalPaid > 0 ? Math.round((partner2Paid / totalPaid) * 100) : 0;
 
   const allActivity = [
-    ...expenses.map((e: any) => ({ ...e, _type: 'expense' as const })),
+    ...expenses.map((e: any) => ({ ...e, _type: 'wallet' as const })),
     ...incomes.map((i: any) => ({
       ...i,
-      _type: 'income' as const,
+      _type: 'arrowdown' as const,
       description: i.source || 'Income',
       paidBy: i.createdBy,
     })),
@@ -316,7 +316,7 @@ export function CoupleFinanceScreen() {
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
-              <Ionicons name="bar-chart-outline" size={20} color="#FFF" />
+              <AntDesign name="barschart" size={20} color="#FFF"  />
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -391,7 +391,7 @@ export function CoupleFinanceScreen() {
                 ]}
               >
                 <AntDesign
-                  name={(totalIncome >= totalExpenses ? 'trending-up' : 'trending-down') as any}
+                  name={(totalIncome >= totalExpenses ? 'caretup' : 'caretdown') as any}
                   size={14}
                   color={totalIncome >= totalExpenses ? '#34C759' : '#FF4D4F'}
                 />
@@ -627,8 +627,8 @@ export function CoupleFinanceScreen() {
             ) : (
               allActivity.slice(0, 30).map((item: any, i: number) => {
                 const cat = getCategoryIcon(item.category || item.type || 'other');
-                const isExpense = item._type === 'expense';
-                const isIncome = item._type === 'income';
+                const isExpense = item._type === 'wallet';
+                const isIncome = item._type === 'arrowdown';
                 const actorName =
                   item.paidBy === partner1?.id
                     ? partner1Name
@@ -651,7 +651,7 @@ export function CoupleFinanceScreen() {
                   >
                     <View style={s.activityIcon}>
                       <AntDesign
-                        name={isIncome ? 'trending-up' : (cat.icon as any)}
+                        name={isIncome ? 'caretup' : (cat.icon as any)}
                         size={18}
                         color="#FFF"
                       />

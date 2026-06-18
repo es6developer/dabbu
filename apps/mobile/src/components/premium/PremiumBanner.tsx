@@ -15,7 +15,7 @@ import { spacing, borderRadius } from '../../theme/design';
 interface PremiumBannerProps {
   feature?: string;
   dismissible?: boolean;
-  variant?: 'default' | 'compact' | 'card';
+  variant?: 'default' | 'compact' | 'creditcard';
 }
 
 export function PremiumBanner({
@@ -84,7 +84,7 @@ export function PremiumBanner({
     );
   }
 
-  if (variant === 'card') {
+  if (variant === 'creditcard') {
     return (
       <Animated.View
         style={[

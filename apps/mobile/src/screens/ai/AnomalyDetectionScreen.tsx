@@ -203,12 +203,12 @@ export function AnomalyDetectionScreen() {
                       <View style={[s.aIcon, { backgroundColor: `${clr}20` }]}>
                         <AntDesign
                           name={
-                            (a.type === 'spending_spike'
-                              ? 'trending-up'
-                              : a.type === 'large_transaction'
-                                ? 'cart'
-                                : a.type === 'income_drop'
-                                  ? 'trending-down'
+                            (a.type === 'linechart'
+                              ? 'caretup'
+                              : a.type === 'shoppingcart'
+                                ? 'shoppingcart'
+                                : a.type === 'arrowdown'
+                                  ? 'caretdown'
                                   : 'warning') as any
                           }
                           size={20}
