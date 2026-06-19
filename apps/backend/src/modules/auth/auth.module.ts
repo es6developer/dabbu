@@ -10,6 +10,7 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 import { ReferralModule } from '../referral/referral.module';
 import { NotificationModule } from '../notification/notification.module';
+import { SpacesModule } from '../spaces/spaces.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NotificationModule } from '../notification/notification.module';
     EmailModule,
     ReferralModule,
     NotificationModule,
+    SpacesModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
