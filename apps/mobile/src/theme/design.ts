@@ -27,6 +27,8 @@ export const borderRadius = {
   '4xl': 24,
   '5xl': 28,
   '6xl': 32,
+  '7xl': 36,
+  '8xl': 40,
   full: 9999,
 } as const;
 
@@ -37,7 +39,7 @@ export const buttonHeight = {
   lg: 56,
 } as const;
 
-// ─── SUBTLE APPLE SHADOWS ───────────────────────────────────
+// ─── PREMIUM SHADOWS ────────────────────────────────────────
 export const shadows = {
   none: {} as ViewStyle,
   sm: {
@@ -49,17 +51,31 @@ export const shadows = {
   } as ViewStyle,
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   } as ViewStyle,
   lg: {
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  } as ViewStyle,
+  premium: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  } as ViewStyle,
+  glass: {
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   } as ViewStyle,
 } as const;
 
@@ -68,8 +84,23 @@ export const animation = {
   fast: 200,
   normal: 300,
   slow: 400,
-  spring: { damping: 15, stiffness: 200 } as const,
-  springSnappy: { damping: 20, stiffness: 300 } as const,
+  // Apple-spring: low damping + stiffness for natural iOS feel
+  spring: { damping: 12, stiffness: 200, mass: 1 } as const,
+  springSnappy: { damping: 16, stiffness: 300, mass: 0.8 } as const,
+  springGentle: { damping: 14, stiffness: 150, mass: 1 } as const,
+  springBouncy: { damping: 10, stiffness: 250, mass: 0.7 } as const,
+  easing: {
+    // iOS-style bezier curves
+    easeInOut: [0.4, 0, 0.2, 1] as [number, number, number, number],
+    easeOut: [0.0, 0.0, 0.2, 1] as [number, number, number, number],
+    easeIn: [0.4, 0, 1, 1] as [number, number, number, number],
+    spring: [0.34, 1.56, 0.64, 1] as [number, number, number, number],
+  },
+  stagger: {
+    fast: 60,
+    normal: 80,
+    slow: 120,
+  },
 } as const;
 
 // ─── HIT SLOP ───────────────────────────────────────────────
@@ -82,11 +113,11 @@ export const hitSlop = {
 
 // ─── FAB SHADOW ─────────────────────────────────────────────
 export const fabShadow = {
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 6,
-  elevation: 3,
+  shadowColor: '#7C3AED',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 12,
+  elevation: 6,
 } as ViewStyle;
 
 // ─── LAYOUT CONSTANTS ───────────────────────────────────────
@@ -107,15 +138,15 @@ export const iconSizes = {
 // ─── DESIGN SYSTEM PRESETS ──────────────────────────────────
 
 type Colors = {
-  bg: { card: string; primary: string; secondary: string };
+  bg: { card: string; primary: string; secondary: string; glass: string; tertiary: string };
   border: { subtle: string; default: string };
-  accent: { primary: string };
+  accent: { primary: string; secondary: string; tertiary: string; hover: string };
   text: { primary: string; secondary: string; tertiary: string; inverse: string };
   status: { success: string; error: string; successLight: string; errorLight: string };
 };
 
-/** Standard iOS-style card with subtle shadow */
-export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'elevated' | 'highlight' = 'default'): ViewStyle {
+/** Premium card with depth */
+export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'elevated' | 'highlight' | 'premium' | 'glass' = 'default'): ViewStyle {
   const presets: Record<string, ViewStyle> = {
     default: {
       borderRadius: borderRadius['3xl'],
@@ -143,6 +174,22 @@ export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'eleva
       borderLeftColor: colors.accent.primary,
       ...shadows.md,
     },
+    premium: {
+      borderRadius: borderRadius['4xl'],
+      padding: spacing['2xl'],
+      backgroundColor: colors.bg.card,
+      ...shadows.premium,
+      borderWidth: 1,
+      borderColor: colors.accent.primary + '20',
+    },
+    glass: {
+      borderRadius: borderRadius['4xl'],
+      padding: spacing['2xl'],
+      backgroundColor: colors.bg.glass,
+      ...shadows.glass,
+      borderWidth: 1,
+      borderColor: colors.border.subtle,
+    },
   };
   return presets[level];
 }
@@ -159,16 +206,19 @@ export function listRow(colors: Colors): ViewStyle {
   } as ViewStyle;
 }
 
-/** Section header style */
-export const sectionHeader: TextStyle = {
-  fontSize: 13,
-  fontWeight: '600',
-  letterSpacing: 0.5,
-  textTransform: 'uppercase',
-  paddingHorizontal: spacing.xl,
-  paddingTop: spacing.lg,
-  paddingBottom: spacing.sm,
-};
+/** Section header style - pass colors.text.tertiary for color */
+export function sectionHeader(textColor?: string): TextStyle {
+  return {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+    color: textColor || undefined,
+  } as TextStyle;
+}
 
 /** Apple-style hairline separator */
 export function separator(colors: Colors, inset = false): ViewStyle {

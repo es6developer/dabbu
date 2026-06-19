@@ -51,42 +51,89 @@ const MERCHANT_CATEGORY_MAP: Record<string, string> = {
   faasos: 'food',
   box8: 'food',
   freshmenu: 'food',
+  dominos: 'food',
+  pizza: 'food',
+  burger: 'food',
+  mcdonald: 'food',
+  kfc: 'food',
+  subway: 'food',
+  starbucks: 'food',
+  dunkin: 'food',
   blinkit: 'groceries',
   zepto: 'groceries',
   bigbasket: 'groceries',
   instamart: 'groceries',
   jiomart: 'groceries',
   grofers: 'groceries',
+  walmart: 'groceries',
+  target: 'groceries',
+  costco: 'groceries',
+  'whole foods': 'groceries',
+  kroger: 'groceries',
+  aldi: 'groceries',
+  trader: 'groceries',
+  safeway: 'groceries',
   uber: 'transport',
   ola: 'transport',
   rapido: 'transport',
   meru: 'transport',
+  lyft: 'transport',
   makemytrip: 'travel',
   goibibo: 'travel',
   ixigo: 'travel',
   yatra: 'travel',
   irctc: 'travel',
+  expedia: 'travel',
+  booking: 'travel',
+  airbnb: 'travel',
   amazon: 'shopping',
   flipkart: 'shopping',
   myntra: 'shopping',
   ajio: 'shopping',
   nykaa: 'shopping',
   meesho: 'shopping',
+  ebay: 'shopping',
+  etsy: 'shopping',
+  bestbuy: 'shopping',
+  homedepot: 'shopping',
+  ikea: 'shopping',
   netflix: 'entertainment',
   'amazon prime': 'entertainment',
   hotstar: 'entertainment',
+  disney: 'entertainment',
+  hulu: 'entertainment',
+  hbo: 'entertainment',
   zee5: 'entertainment',
   'sony liv': 'entertainment',
   spotify: 'entertainment',
+  apple: 'entertainment',
+  youtube: 'entertainment',
+  twitch: 'entertainment',
   jio: 'utilities',
   airtel: 'utilities',
   vi: 'utilities',
   bsnl: 'utilities',
+  verizon: 'utilities',
+  atnt: 'utilities',
+  tmoble: 'utilities',
+  comcast: 'utilities',
   shell: 'fuel',
   hp: 'fuel',
   'indian oil': 'fuel',
   bp: 'fuel',
   iocl: 'fuel',
+  exxon: 'fuel',
+  '7 eleven': 'groceries',
+  vercel: 'utilities',
+  github: 'utilities',
+  digitalocean: 'utilities',
+  aws: 'utilities',
+  google: 'utilities',
+  microsoft: 'utilities',
+  adobe: 'utilities',
+  slack: 'utilities',
+  notion: 'utilities',
+  zoom: 'utilities',
 };
 
 const RECURRING_MERCHANTS = new Set([
@@ -106,6 +153,7 @@ const CATEGORY_BUDGET_MAP: Record<string, string> = {
   education: 'Education',
   fuel: 'Fuel',
   travel: 'Travel',
+  income: 'Income',
   other: 'Other',
 };
 
@@ -127,8 +175,9 @@ export class SmartOcrEngine {
           return aiResult;
         }
       } catch (err) {
-        const warnings = [`AI analysis failed, falling back to rule-based: ${err}`];
-        return { ...this.fallbackExtract(rawText), warnings: [...warnings, ...this.fallbackExtract(rawText).warnings] };
+        const fallback = this.fallbackExtract(rawText);
+        fallback.warnings = [`AI analysis failed, falling back to rule-based: ${err}`, ...fallback.warnings];
+        return fallback;
       }
     }
 
@@ -297,11 +346,11 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
 
     const category = merchantCategory || 'other';
 
-    if (!merchant) warnings.push('Could not identify merchant');
-    if (totalAmount === 0) warnings.push('Could not extract total amount');
-    if (!date) warnings.push('Could not extract date');
-    if (items.length === 0) warnings.push('No items found');
-    if (itemLines.length > items.length) warnings.push('Some lines could not be parsed as items');
+    if (!merchant) { warnings.push('Could not identify merchant'); }
+    if (totalAmount === 0) { warnings.push('Could not extract total amount'); }
+    if (!date) { warnings.push('Could not extract date'); }
+    if (items.length === 0) { warnings.push('No items found'); }
+    if (itemLines.length > items.length) { warnings.push('Some lines could not be parsed as items'); }
 
     const confidence = this.calculateConfidence({
       hasMerchant: !!merchant,
@@ -327,23 +376,30 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   }
 
   private extractMerchant(lines: string[]): string {
-    const skipPatterns = [
-      /^(total|grand total|sub total|subtotal|amount|tax|gst|cgst|sgst|vat|igst|₹|rs\.?|invoice|receipt|bill|date|time|phone|email|gstin|thank you|visit again|www\.)/i,
-      /^\d+[\.\s]/,
-      /^[\d\s\/\-:]+$/,
-      /^(?:grand\s+)?total/i,
-      /^(?:net\s+)?amount/i,
-      /(?:gst|cgst|sgst|igst|vat|tax)/i,
-    ];
+    const skipExact = new Set([
+      'total', 'grand total', 'sub total', 'subtotal', 'amount', 'tax',
+      'gst', 'cgst', 'sgst', 'vat', 'igst',
+      'invoice', 'receipt', 'bill', 'date', 'time',
+      'phone', 'email', 'gstin',
+      'thank you', 'thank', 'visit again', 'visit',
+    ]);
 
     for (const line of lines) {
       const trimmed = line.replace(/^[*#>\-\d.\s]+/, '').trim();
-      if (!trimmed || trimmed.length < 3) continue;
+      if (!trimmed || trimmed.length < 3) { continue; }
 
-      const isSkippable = skipPatterns.some(p => p.test(trimmed));
-      if (isSkippable) continue;
+      const lower = trimmed.toLowerCase();
 
-      if (/\d/.test(trimmed)) continue;
+      if (skipExact.has(lower)) { continue; }
+      if (/^(?:www\.|http|upi|gstin|gst|cgst|sgst|igst|vat|tax|invoice|receipt|bill no)/i.test(trimmed)) { continue; }
+      if (/^(?:grand\s+)?total/i.test(trimmed)) { continue; }
+      if (/^(?:net\s+)?amount/i.test(trimmed)) { continue; }
+      if (/^\d{10,}$/.test(trimmed.replace(/\s/g, ''))) { continue; }
+      if (/^[\d\s/\-:,.\s]+$/.test(trimmed)) { continue; }
+      if (/\b(gstin|gst no|invoice no|receipt no|bill no|order no|serial no|phone|email|thank you|visit again|www\.)\b/i.test(lower)) { continue; }
+
+      const alphaCount = (trimmed.match(/[a-zA-Z]/g) || []).length;
+      if (alphaCount === 0) { continue; }
 
       if (trimmed.length > 2 && trimmed.length < 60) {
         return trimmed;
@@ -352,7 +408,7 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.length > 2 && trimmed.length < 60 && !/^\d/.test(trimmed)) {
+      if (trimmed.length > 2 && trimmed.length < 60 && (/[a-zA-Z]/.test(trimmed)) && !/^[\d\s/\-:]+$/.test(trimmed)) {
         return trimmed;
       }
     }
@@ -361,38 +417,54 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   }
 
   private extractTotal(lines: string[]): number {
+    const C = '[\\u20B9\\u20A8$€£rs.]';
     const totalKeywords = [
-      /(?:grand\s+)?total\s*(?:due|payable|amount)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /(?:net\s+)?amount\s*(?:payable)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /(?:to\s+)?pay\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /(?:bill|invoice)\s*(?:amount|total)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /due\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
+      new RegExp(`(?:grand\\s+)?total\\s*(?:due|payable|amount)?\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`(?:net\\s+)?amount\\s*(?:payable)?\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`(?:to\\s+)?pay\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`(?:bill|invoice)\\s*(?:amount|total)?\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`due\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`(?:you\\s+)?pay\\s*[:.]?\\s*${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'i'),
+      new RegExp(`^total\\s+${C}*\\s*([\\d,]+(?:\\.\\d*)?)`, 'im'),
     ];
 
     for (const line of lines) {
+      const lower = line.toLowerCase();
+      if (/\b(tax|gst|cgst|sgst|igst|vat|discount|round)\b/i.test(lower)) {continue;}
       for (const pattern of totalKeywords) {
         const match = line.match(pattern);
         if (match) {
           const num = parseFloat(match[1].replace(/,/g, ''));
-          if (!isNaN(num)) return num;
+          if (!isNaN(num)) {return num;}
         }
       }
     }
 
-    const amountPattern = /^[₹rs.]*\s*([\d,]+\.\d{2})\s*$/;
+    const C2 = '[\\u20B9\\u20A8$€£rs.]';
+    const amountPattern = new RegExp(`^${C2}*\\s*(\\d{1,3}(?:,\\d{3})*(?:\\.\\d{2})?)\\s*$`);
+
+    const taxLines = new Set<number>();
+    for (const [i, line] of lines.entries()) {
+      if (/\b(tax|gst|cgst|sgst|igst|vat|discount|round\s*off)\b/i.test(line)) {
+        taxLines.add(i);
+      }
+    }
+
     let lastAmount = 0;
-    for (const line of lines) {
+    for (const [i, line] of lines.entries()) {
+      if (taxLines.has(i) || taxLines.has(i - 1) || taxLines.has(i + 1)) { continue; }
       const match = line.match(amountPattern);
       if (match) {
         const num = parseFloat(match[1].replace(/,/g, ''));
-        if (!isNaN(num)) lastAmount = num;
+        if (!isNaN(num)) { lastAmount = num; }
       }
     }
-    if (lastAmount > 0) return lastAmount;
+    if (lastAmount > 0) { return lastAmount; }
 
     const allNumbers = lines
-      .map(l => {
-        const m = l.match(/[₹rs.]*\s*([\d,]+\.?\d*)/);
+      .map((l, i) => {
+        if (taxLines.has(i) || taxLines.has(i - 1) || taxLines.has(i + 1)) { return NaN; }
+        const m = l.match(new RegExp(`${C2}*\\s*([\\d,]+(?:\\.\\d*)?)`));
         return m ? parseFloat(m[1].replace(/,/g, '')) : NaN;
       })
       .filter(n => !isNaN(n) && n > 0);
@@ -401,57 +473,106 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   }
 
   private extractDate(lines: string[]): string {
-    const datePatterns = [
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
-      /(\d{1,2})-(\d{1,2})-(\d{4})/,
-      /(\d{4})\/(\d{1,2})\/(\d{1,2})/,
-      /(\d{4})-(\d{1,2})-(\d{1,2})/,
-      /(\d{1,2})\/(\d{1,2})\/(\d{2})/,
-      /(\d{1,2})-(\d{1,2})-(\d{2})/,
-      /(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/i,
-      /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})/i,
+    const MONTH_NAMES: Record<string, number> = {
+      jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+      apr: 4, april: 4, may: 5, jun: 6, june: 6,
+      jul: 7, july: 7, aug: 8, august: 8, sep: 9, september: 9,
+      oct: 9, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+    };
+
+    const is12HourTime = /\d{1,2}:\d{2}\s*(?:AM|PM)/i;
+    const isUSContext = (line: string): boolean =>
+      /(?:AM|PM)\s*$/m.test(line) || /\b(GROCERY|STORE|SUPERMARKET|WALMART|TARGET|COSTCO|WALGREENS|CVS)\b/i.test(line);
+
+    const disambiguateDMY = (a: number, b: number, y: number, ctxLine: string): [number, number, number] | null => {
+      if (y < 100) { y += 2000; }
+      if (y < 1900 || y > 2100) { return null; }
+
+      const couldBeDayMonth = a >= 1 && a <= 31 && b >= 1 && b <= 12;
+      const couldBeMonthDay = a >= 1 && a <= 12 && b >= 1 && b <= 31;
+
+      if (!couldBeDayMonth && !couldBeMonthDay) { return null; }
+      if (couldBeDayMonth && !couldBeMonthDay) { return [y, b, a]; }
+      if (couldBeMonthDay && !couldBeDayMonth) { return [y, a, b]; }
+
+      if (a > 12 && couldBeDayMonth) { return [y, b, a]; }
+      if (b > 12 && couldBeMonthDay) { return [y, a, b]; }
+
+      if (isUSContext(ctxLine)) { return [y, a, b]; }
+      if (is12HourTime.test(ctxLine)) { return [y, a, b]; }
+      if (/\b(TAX|GST|VAT|TOTAL|SUB.?TOTAL|AMOUNT|PAY|DUE|RECEIPT|INVOICE|BILL)\b/i.test(ctxLine)) { return null; }
+      if (/^\d/.test(ctxLine)) { return null; }
+
+      return [y, b, a];
+    };
+
+    const datePatterns: { pattern: RegExp; parse: (m: RegExpMatchArray, ctxLine: string) => [number, number, number] | null }[] = [
+      {
+        pattern: /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), ctx),
+      },
+      {
+        pattern: /(\d{1,2})-(\d{1,2})-(\d{4})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), ctx),
+      },
+      {
+        pattern: /(\d{1,2})[.](\d{1,2})[.](\d{4})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), ctx),
+      },
+      {
+        pattern: /(\d{4})\/(\d{1,2})\/(\d{1,2})/,
+        parse: (m, _ctx) => {
+          const y = parseInt(m[1]), mo = parseInt(m[2]), d = parseInt(m[3]);
+          return (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) ? [y, mo, d] : null;
+        },
+      },
+      {
+        pattern: /(\d{4})-(\d{1,2})-(\d{1,2})/,
+        parse: (m, _ctx) => {
+          const y = parseInt(m[1]), mo = parseInt(m[2]), d = parseInt(m[3]);
+          return (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) ? [y, mo, d] : null;
+        },
+      },
+      {
+        pattern: /(\d{1,2})\/(\d{1,2})\/(\d{2})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), 2000 + parseInt(m[3]), ctx),
+      },
+      {
+        pattern: /(\d{1,2})-(\d{1,2})-(\d{2})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), 2000 + parseInt(m[3]), ctx),
+      },
+      {
+        pattern: /(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})/i,
+        parse: (m, _ctx) => {
+          const d = parseInt(m[1]), mo = MONTH_NAMES[m[2].toLowerCase().slice(0, 3)], y = parseInt(m[3]);
+          return (d >= 1 && d <= 31) ? [y, mo, d] : null;
+        },
+      },
+      {
+        pattern: /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})/i,
+        parse: (m, _ctx) => {
+          const mo = MONTH_NAMES[m[1].toLowerCase().slice(0, 3)], d = parseInt(m[2]), y = parseInt(m[3]);
+          return (d >= 1 && d <= 31) ? [y, mo, d] : null;
+        },
+      },
+      {
+        pattern: /(\d{1,2})[.](\d{1,2})[.](\d{2})/,
+        parse: (m, ctx) => disambiguateDMY(parseInt(m[1]), parseInt(m[2]), 2000 + parseInt(m[3]), ctx),
+      },
     ];
 
     for (const line of lines) {
-      for (const pattern of datePatterns) {
+      for (const { pattern, parse } of datePatterns) {
         const match = line.match(pattern);
         if (match) {
           try {
-            let year: number, month: number, day: number;
-            const groups = match.slice(1);
-
-            if (/^[a-z]/i.test(groups[0])) {
-              const months: Record<string, number> = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
-              month = months[groups[0].toLowerCase().slice(0, 3)] || 1;
-              day = parseInt(groups[1], 10);
-              year = parseInt(groups[2], 10);
-            } else if (/^[a-z]/i.test(groups[1])) {
-              const months: Record<string, number> = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
-              day = parseInt(groups[0], 10);
-              month = months[groups[1].toLowerCase().slice(0, 3)] || 1;
-              year = parseInt(groups[2], 10);
-            } else if (groups[0].length === 4) {
-              year = parseInt(groups[0], 10);
-              month = parseInt(groups[1], 10);
-              day = parseInt(groups[2], 10);
-            } else if (groups[2].length === 2) {
-              day = parseInt(groups[0], 10);
-              month = parseInt(groups[1], 10);
-              year = 2000 + parseInt(groups[2], 10);
-            } else {
-              day = parseInt(groups[0], 10);
-              month = parseInt(groups[1], 10);
-              year = parseInt(groups[2], 10);
-            }
-
-            if (year < 100) year += 2000;
-            if (year < 2000 || year > 2100) continue;
-            if (month < 1 || month > 12) continue;
-            if (day < 1 || day > 31) continue;
-
+            const result = parse(match, line);
+            if (!result) {continue;}
+            const [year, month, day] = result;
+            if (month < 1 || month > 12 || day < 1 || day > 31) {continue;}
             const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const d = new Date(iso);
-            if (!isNaN(d.getTime())) return iso;
+            if (!isNaN(d.getTime())) {return iso;}
           } catch {
             continue;
           }
@@ -463,24 +584,25 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   }
 
   private extractTax(lines: string[]): number {
-    const taxPatterns = [
-      /(?:gst|cgst|sgst|igst|vat|tax)\s*(?:@\s*[\d.]+%)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /tax\s*(?:amount)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
-      /(?:total\s+)?tax\s*(?:inclusive|exclusive)?\s*[:.]?\s*[₹rs.]*\s*([\d,]+\.?\d*)/i,
+    const taxPatterns: { pattern: RegExp; extractIdx: number }[] = [
+      { pattern: /(?:gst|cgst|sgst|igst|vat)\s*(?:@\s*[\d.]+%)?\s*[:.]?\s*[₹rs.₨]*\s*([\d,]+\.?\d*)/i, extractIdx: 1 },
+      { pattern: /tax\s*(?:amount)?\s*[:.]?\s*[₹rs.₨]*\s*([\d,]+\.?\d*)/i, extractIdx: 1 },
+      { pattern: /(?:total\s+)?tax\s*(?:inclusive|exclusive)?\s*[:.]?\s*[₹rs.₨]*\s*([\d,]+\.?\d*)/i, extractIdx: 1 },
+      { pattern: /(?:gst|cgst|sgst|igst|vat|tax)\s+[\d.]+%\s+[₹rs.₨]*\s*([\d,]+\.?\d*)/i, extractIdx: 1 },
     ];
 
     let totalTax = 0;
     for (const line of lines) {
-      for (const pattern of taxPatterns) {
+      for (const { pattern, extractIdx } of taxPatterns) {
         const match = line.match(pattern);
         if (match) {
-          const num = parseFloat(match[1].replace(/,/g, ''));
-          if (!isNaN(num)) totalTax += num;
+          const num = parseFloat(match[extractIdx].replace(/,/g, ''));
+          if (!isNaN(num)) {totalTax += num;}
         }
       }
     }
 
-    return totalTax;
+    return Math.round(totalTax * 100) / 100;
   }
 
   private extractItems(lines: string[], totalAmount: number): { items: OcrExtractedItem[]; itemLines: string[] } {
@@ -495,18 +617,18 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) continue;
-      if (skipPatterns.some(p => p.test(trimmed))) continue;
+      if (!trimmed) {continue;}
+      if (skipPatterns.some(p => p.test(trimmed))) {continue;}
 
       const numbers = trimmed.match(pricePattern);
-      if (!numbers) continue;
+      if (!numbers) {continue;}
 
       const price = parseFloat(numbers[1].replace(/,/g, ''));
-      if (isNaN(price) || price <= 0) continue;
-      if (price === totalAmount) continue;
+      if (isNaN(price) || price <= 0) {continue;}
+      if (price === totalAmount) {continue;}
 
       const name = trimmed.replace(pricePattern, '').replace(/[×x*]\s*\d+/, '').replace(/@\s*[\d.]+/, '').trim();
-      if (!name || name.length < 2) continue;
+      if (!name || name.length < 2) {continue;}
 
       let quantity = 1;
       let unitPrice = price;
@@ -546,7 +668,7 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
 
     for (const line of lines) {
       for (const [pattern, method] of paymentPatterns) {
-        if (pattern.test(line)) return method;
+        if (pattern.test(line)) {return method;}
       }
     }
 
@@ -554,11 +676,11 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   }
 
   private classifyByMerchant(merchant: string): string | null {
-    if (!merchant) return null;
+    if (!merchant) {return null;}
     const m = merchant.toLowerCase();
 
     for (const [key, category] of Object.entries(MERCHANT_CATEGORY_MAP)) {
-      if (m.includes(key)) return category;
+      if (m.includes(key)) {return category;}
     }
 
     return null;
@@ -567,18 +689,23 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
   private normalizeCategory(cat: string): string {
     const valid = ['food', 'groceries', 'transport', 'utilities', 'shopping', 'entertainment', 'healthcare', 'education', 'fuel', 'travel', 'other'];
     const c = cat.toLowerCase().trim();
-    if (valid.includes(c)) return c;
-    if (c === 'grocery') return 'groceries';
-    if (c === 'fuel' || c === 'petrol' || c === 'gas') return 'fuel';
-    if (c === 'medical' || c === 'health' || c === 'pharmacy') return 'healthcare';
-    if (c === 'eating_out' || c === 'dining' || c === 'restaurant') return 'food';
-    if (c === 'transportation' || c === 'travel' || c === 'fuel') return c;
-    if (c === 'subscription') return 'entertainment';
+    if (valid.includes(c)) {return c;}
+    if (['grocery', 'supermarket', 'mart', 'kirana', 'provisions'].includes(c)) {return 'groceries';}
+    if (['fuel', 'petrol', 'gas', 'diesel'].includes(c)) {return 'fuel';}
+    if (['medical', 'health', 'pharmacy', 'doctor', 'hospital', 'clinic', 'medicine'].includes(c)) {return 'healthcare';}
+    if (['dining', 'restaurant', 'eating_out', 'cafe', 'hotel', 'fast food', 'takeout', 'delivery', 'pizza', 'burger'].includes(c)) {return 'food';}
+    if (['transportation', 'taxi', 'cab', 'ride', 'parking', 'toll'].includes(c)) {return 'transport';}
+    if (['subscription', 'streaming', 'movies', 'games'].includes(c)) {return 'entertainment';}
+    if (['clothing', 'apparel', 'electronics', 'retail', 'mall', 'departmental'].includes(c)) {return 'shopping';}
+    if (['bills', 'bill', 'recharge', 'broadband', 'internet', 'telephone', 'electricity', 'water', 'maintenance'].includes(c)) {return 'utilities';}
+    if (['tuition', 'school', 'college', 'university', 'course', 'books'].includes(c)) {return 'education';}
+    if (['flight', 'train', 'bus', 'hotel', 'vacation', 'trip'].includes(c)) {return 'travel';}
+    if (['income', 'salary', 'refund', 'deposit', 'credit', 'reimbursement'].includes(c)) {return 'other';}
     return 'other';
   }
 
   private normalizeDate(dateStr: string): string {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
     try {
       const d = new Date(dateStr);
       if (!isNaN(d.getTime())) {
@@ -600,12 +727,18 @@ Respond with ONLY the JSON object. No explanation, no markdown, no code fences.`
     totalFields: number;
   }): number {
     let score = 0;
-    if (params.hasMerchant) score += 20;
-    if (params.hasCategory) score += 10;
-    if (params.hasDate) score += 20;
-    if (params.hasTotal) score += 25;
-    if (params.hasItems) score += 15;
-    if (params.hasTax) score += 10;
+    if (params.hasMerchant) {score += 20;}
+    if (params.hasCategory) {score += 10;}
+    if (params.hasDate) {score += 20;}
+    if (params.hasTotal) {score += 30;}
+    if (params.hasItems) {score += 10;}
+    if (params.hasTax) {score += 10;}
+
+    const present = [params.hasMerchant, params.hasCategory, params.hasDate, params.hasTotal, params.hasItems, params.hasTax].filter(Boolean).length;
+    if (present <= 1) {score = Math.min(score, 20);}
+    if (present === 2) {score = Math.min(score, 40);}
+    if (params.hasTotal && !params.hasMerchant) {score -= 10;}
+    if (params.hasTotal && !params.hasDate) {score -= 5;}
 
     return Math.min(100, Math.max(0, Math.round(score)));
   }

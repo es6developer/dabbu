@@ -136,7 +136,7 @@ export function CouplePlannerDetailScreen() {
           <TouchableOpacity
             style={{ backgroundColor: meta.color, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14, marginTop: 8 }}
             onPress={() => {
-              navigation.navigate('CouplePlannerForm', { plannerType });
+              navigation.navigate('LifePlanForm', { plannerType });
             }}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>Get Started</Text>
@@ -201,7 +201,7 @@ export function CouplePlannerDetailScreen() {
               alignItems: 'center', marginTop: 8,
             }}
             onPress={() => {
-              navigation.navigate('CouplePlannerForm', { plannerType });
+              navigation.navigate('LifePlanForm', { plannerType });
             }}
           >
             <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>

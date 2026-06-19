@@ -129,7 +129,7 @@ export function CoupleExpensesScreen() {
         key={item.id || Math.random().toString()}
         activeOpacity={0.7}
         style={[styles.expenseRow, { backgroundColor: colors.bg.card }]}
-        onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
+        onPress={() => navigation.navigate('WalletTab', { screen: 'TransactionDetail', params: { transactionId: item.id } })}
       >
         <View style={[styles.catIconCircle, { backgroundColor: `${catInfo.color}18` }]}>
           <AntDesign name={catInfo.icon as any} size={20} color={catInfo.color} />

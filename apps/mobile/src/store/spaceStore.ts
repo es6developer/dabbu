@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api, setAccessToken } from '../services/api';
+import { api, setAccessToken, setActiveSpaceId } from '../services/api';
 
 export interface Space {
   id: string;
@@ -65,6 +65,10 @@ interface SpaceStore {
   deleteSpaceTask: (spaceId: string, taskId: string) => void;
 }
 
+function syncActiveSpaceId(id: string | null) {
+  setActiveSpaceId(id);
+}
+
 export const useSpaceStore = create<SpaceStore>()(
   persist(
     (set, get) => ({
@@ -87,7 +91,11 @@ export const useSpaceStore = create<SpaceStore>()(
       const spaces = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       set({ spaces, loading: false });
       if (spaces.length > 0 && !get().activeSpaceId) {
-        set({ activeSpaceId: spaces[0].id });
+        const id = spaces[0].id;
+        set({ activeSpaceId: id });
+        syncActiveSpaceId(id);
+      } else {
+        syncActiveSpaceId(get().activeSpaceId);
       }
     } catch (e: any) {
       set({ error: e?.message || 'Failed to load spaces', loading: false });
@@ -96,6 +104,7 @@ export const useSpaceStore = create<SpaceStore>()(
 
   setActiveSpace: (spaceId) => {
     set({ activeSpaceId: spaceId, activeSpace: null, dashboard: null });
+    syncActiveSpaceId(spaceId);
   },
 
   fetchSpaceDetail: async (accessToken) => {
@@ -131,6 +140,7 @@ export const useSpaceStore = create<SpaceStore>()(
       const space = res?.data ?? res;
       if (space?.id) {
         set((s) => ({ spaces: [space, ...s.spaces], activeSpaceId: space.id }));
+        syncActiveSpaceId(space.id);
       }
       return space;
     } catch (e: any) {
@@ -197,7 +207,12 @@ export const useSpaceStore = create<SpaceStore>()(
     {
       name: 'dabbu-space-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ pinnedSpaceIds: state.pinnedSpaceIds, spaceTasks: state.spaceTasks }),
+      partialize: (state) => ({ activeSpaceId: state.activeSpaceId, pinnedSpaceIds: state.pinnedSpaceIds, spaceTasks: state.spaceTasks }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.activeSpaceId) {
+          syncActiveSpaceId(state.activeSpaceId);
+        }
+      },
     },
   ),
 );

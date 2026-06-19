@@ -1,4 +1,5 @@
 import { PlanTier } from './entitlements';
+import { API_URL } from './api';
 
 export type FeatureKey =
   | 'add_expense'
@@ -45,8 +46,6 @@ const DEFAULT_FEATURES: FeatureFlag[] = [
 ];
 
 let features: FeatureFlag[] = [...DEFAULT_FEATURES];
-
-import { API_URL } from './api';
 
 export async function loadFeatures(): Promise<void> {
   try {

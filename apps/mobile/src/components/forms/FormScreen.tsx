@@ -18,6 +18,7 @@ interface FormScreenProps {
   onClose?: () => void;
   contentStyle?: ViewStyle;
   hideClose?: boolean;
+  hideHero?: boolean;
 }
 
 export function FormScreen({
@@ -30,6 +31,7 @@ export function FormScreen({
   onClose,
   contentStyle,
   hideClose,
+  hideHero,
 }: FormScreenProps) {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
@@ -68,32 +70,34 @@ export function FormScreen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[
-              styles.hero,
-              {
-                backgroundColor: `${grad1}10`,
-                borderColor: `${grad1}20`,
-              },
-            ]}
-          >
-            <View style={styles.heroTop}>
-              {icon ? (
-                <View style={[styles.heroIcon, { backgroundColor: `${grad1}20` }]}>
-                  <AntDesign name={icon as any} size={24} color={colors.text.primary} />
+          {hideHero ? null : (
+            <View
+              style={[
+                styles.hero,
+                {
+                  backgroundColor: `${grad1}10`,
+                  borderColor: `${grad1}20`,
+                },
+              ]}
+            >
+              <View style={styles.heroTop}>
+                {icon ? (
+                  <View style={[styles.heroIcon, { backgroundColor: `${grad1}20` }]}>
+                    <AntDesign name={icon as any} size={24} color={colors.text.primary} />
+                  </View>
+                ) : <View />}
+                <View style={[styles.heroPill, { backgroundColor: `${grad1}15` }]}>
+                  <Text style={[styles.heroPillText, { color: grad1 }]}>Dabbu</Text>
                 </View>
-              ) : <View />}
-              <View style={[styles.heroPill, { backgroundColor: `${grad1}15` }]}>
-                <Text style={[styles.heroPillText, { color: grad1 }]}>Dabbu</Text>
               </View>
+              <Text style={[styles.heroTitle, { color: colors.text.primary }]}>{title}</Text>
+              {subtitle && (
+                <Text style={[styles.heroSubtitle, { color: colors.text.secondary }]}>
+                  {subtitle}
+                </Text>
+              )}
             </View>
-            <Text style={[styles.heroTitle, { color: colors.text.primary }]}>{title}</Text>
-            {subtitle && (
-              <Text style={[styles.heroSubtitle, { color: colors.text.secondary }]}>
-                {subtitle}
-              </Text>
-            )}
-          </View>
+          )}
 
           {children}
         </ScrollView>

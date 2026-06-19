@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { GlobalLoading } from './loading-events';
-import { useSpaceStore } from '../store/spaceStore';
 
 const CACHE_STORAGE_KEY = 'api_cache_v2';
 
@@ -36,13 +35,14 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
+let _activeSpaceId: string | null = null;
+
+export function setActiveSpaceId(id: string | null) {
+  _activeSpaceId = id;
+}
+
 export function getActiveSpaceId(): string | null {
-  try {
-    const state = useSpaceStore.getState();
-    return state.activeSpaceId || null;
-  } catch {
-    return null;
-  }
+  return _activeSpaceId;
 }
 
 // ─── Offline Queue ──────────────────────────────────
@@ -247,9 +247,6 @@ function startKeepAlive(): void {
     fetch(`${API_URL}/health`, { headers, signal: ctrl.signal }).catch(() => {});
   }, 240_000);
 }
-
-warmupBackend();
-hydrateCache();
 
 const REQUEST_TIMEOUT = 20_000;
 

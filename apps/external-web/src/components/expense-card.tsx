@@ -54,9 +54,10 @@ export function ExpenseCard({ expense, currentUserId, onClick }: ExpenseCardProp
     <div
       onClick={onClick}
       className={cn(
-        'group relative p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent hover:border-dabbu-accent/30 hover:shadow-lg hover:shadow-dabbu-accent/5 transition-all duration-300 cursor-pointer',
+        'group relative p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent hover:border-dabbu-accent/30 hover:shadow-lg hover:shadow-dabbu-accent/5 cursor-pointer animate-fade-in-up',
         isSettled && 'opacity-60',
       )}
+      style={{ animationDelay: '0ms', willChange: 'transform, opacity' }}
     >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-dabbu-surface2 flex items-center justify-center text-lg shrink-0">

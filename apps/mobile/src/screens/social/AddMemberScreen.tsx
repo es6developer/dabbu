@@ -47,7 +47,8 @@ export function AddMemberScreen() {
   const { favorites, isFavorite, addFavorite, refresh } = useFavorites();
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
-  const groupType: 'shared-finance' | 'expense-group' = route.params?.type || 'shared-finance';
+  const spaceId = route.params?.spaceId;
+  const groupType: 'shared-finance' | 'expense-group' | 'space' = route.params?.type || 'shared-finance';
   const existingMemberIds: string[] = route.params?.existingMemberIds || [];
 
   const [query, setQuery] = useState('');
@@ -158,17 +159,22 @@ export function AddMemberScreen() {
   }, [matchedContacts, deviceContacts]);
 
   async function handleAddToGroup(userId: string, userName: string) {
-    if (!groupId) {
+    const targetId = groupId || spaceId;
+    if (!targetId) {
       return;
     }
     setAddingId(userId);
     try {
-      if (groupType === 'expense-group') {
-        await api.post(`/expense-groups/${groupId}/members/add-by-user-id`, { userId });
+      if (groupType === 'space') {
+        await api.post(`/spaces/${targetId}/members`, { userId });
+        navigation.goBack();
+      } else if (groupType === 'expense-group') {
+        await api.post(`/expense-groups/${targetId}/members/add-by-user-id`, { userId });
+        Alert.alert('Added', `${userName} added to group`);
       } else {
-        await api.post(`/shared-finance/groups/${groupId}/members`, { userId });
+        await api.post(`/shared-finance/groups/${targetId}/members`, { userId });
+        Alert.alert('Added', `${userName} added to group`);
       }
-      Alert.alert('Added', `${userName} added to group`);
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to add member');
     } finally {
@@ -194,7 +200,7 @@ export function AddMemberScreen() {
 
   function handleFavPress(fav: (typeof favorites)[0]) {
     setSelectedFavId(fav.userId);
-    if (groupId) {
+    if (groupId || spaceId) {
       handleAddToGroup(fav.userId, fav.name);
     }
     setTimeout(() => setSelectedFavId(null), 300);
@@ -508,7 +514,7 @@ export function AddMemberScreen() {
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: `${colors.accent.primary}18` }]}
                     onPress={() =>
-                      groupId ? handleAddToGroup(userId, name) : addFavorite(userId, name, phone)
+                      groupId || spaceId ? handleAddToGroup(userId, name) : addFavorite(userId, name, phone)
                     }
                     disabled={addingId === userId}
                   >

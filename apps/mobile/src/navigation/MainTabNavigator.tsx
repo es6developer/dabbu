@@ -1,18 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme';
+import { usePreferences } from '../store/PreferencesContext';
 import { HomeNavigator } from './HomeNavigator';
 import { WalletNavigator } from './WalletNavigator';
 import { SpacesNavigator } from './SpacesNavigator';
 import { LifeHubNavigator } from './LifeHubNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
-import { useTheme } from '../theme';
-import { usePreferences } from '../store/PreferencesContext';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
+import { PRESS_SPRING } from './animations';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +22,6 @@ const TAB_CONFIG = [
   { name: 'WalletTab', label: 'Wallet', icon: 'wallet', activeIcon: 'wallet', component: WalletNavigator },
   { name: 'LifeHubTab', label: 'LifeHub', icon: 'calendar', activeIcon: 'calendar', component: LifeHubNavigator },
   { name: 'SpacesTab', label: 'Spaces', icon: 'team', activeIcon: 'team', component: SpacesNavigator },
-  { name: 'ProfileTab', label: 'Profile', icon: 'user', activeIcon: 'user', component: SettingsNavigator },
 ];
 
 const HIDDEN_TABS: { name: string; label?: string; icon?: string; activeIcon?: string; component: React.ComponentType<any> }[] = [
@@ -111,10 +111,11 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
 
   const scaleAnims = useRef<Record<string, Animated.Value>>({}).current;
   const fabScale = useRef(new Animated.Value(1)).current;
+  const fabRotate = useRef(new Animated.Value(0)).current;
 
   function springTap(routeName: string, toValue: number) {
     if (!scaleAnims[routeName]) {scaleAnims[routeName] = new Animated.Value(1);}
-    Animated.spring(scaleAnims[routeName], { toValue, tension: 120, friction: 8, useNativeDriver: true }).start();
+    Animated.spring(scaleAnims[routeName], { toValue, ...PRESS_SPRING }).start();
   }
 
   function renderTab(route: any) {
@@ -150,7 +151,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
     return (
       <TouchableOpacity key={route.key} activeOpacity={0.7} style={tabStyles.tabItem} onPress={onPress}>
         <Animated.View style={{ transform: [{ scale: scaleAnims[route.name] }] }}>{icon}</Animated.View>
-        <Text style={[tabStyles.label, { color: isFocused ? focusedColor : unfocusedColor, fontWeight: isFocused ? '600' : '400' }]}>
+        <Text style={[tabStyles.label, { color: isFocused ? focusedColor : unfocusedColor, fontWeight: isFocused ? '700' : '500' }]}>
           {options.tabBarLabel || route.name}
         </Text>
       </TouchableOpacity>
@@ -161,12 +162,22 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
   const visibleRoutes = state.routes.filter((r: any) => visibleRouteNames.includes(r.name));
   const midIndex = Math.floor(visibleRoutes.length / 2);
 
+  const fabRotation = fabRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '45deg'],
+  });
+
   return (
-    <View style={[tabStyles.container, { paddingBottom: insets.bottom, backgroundColor: isDark ? 'rgba(17,17,17,0.92)' : 'rgba(248,248,250,0.92)' }]}>
-      <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+    <View style={[tabStyles.container, { paddingBottom: insets.bottom + 4, backgroundColor: isDark ? 'rgba(12,12,14,0.95)' : 'rgba(245,245,248,0.95)' }]}>
+      <BlurView intensity={90} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
       <View style={[tabStyles.outerWrapper, {
-        backgroundColor: isDark ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.85)',
-        borderColor: isDark ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.1)',
+        backgroundColor: isDark ? 'rgba(22,22,26,0.9)' : 'rgba(255,255,255,0.9)',
+        borderColor: isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.12)',
+        shadowColor: isDark ? '#7C3AED' : '#7C3AED',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isDark ? 0.2 : 0.08,
+        shadowRadius: 12,
+        elevation: 4,
       }]}>
         <View style={tabStyles.innerRow}>
           <View style={tabStyles.sideGroup}>
@@ -174,12 +185,26 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
           </View>
           {showCenterButton && (
             <TouchableOpacity activeOpacity={0.85} style={tabStyles.centerFab}
-              onPressIn={() => Animated.spring(fabScale, { toValue: 0.9, tension: 120, friction: 8, useNativeDriver: true }).start()}
-              onPressOut={() => Animated.spring(fabScale, { toValue: 1, tension: 120, friction: 8, useNativeDriver: true }).start()}
-              onPress={onCenterPress}
+              onPressIn={() => {
+                Animated.spring(fabScale, { toValue: 0.88, ...PRESS_SPRING }).start();
+                Animated.spring(fabRotate, { toValue: 1, tension: 140, friction: 14, useNativeDriver: true }).start();
+              }}
+              onPressOut={() => {
+                Animated.spring(fabScale, { toValue: 1, ...PRESS_SPRING }).start();
+                setTimeout(() => Animated.spring(fabRotate, { toValue: 0, tension: 140, friction: 14, useNativeDriver: true }).start(), 200);
+              }}
+              onPress={() => { onCenterPress(); }}
               onLongPress={onCenterLongPress}
               delayLongPress={400}>
-              <Animated.View style={[tabStyles.centerFabInner, { backgroundColor: colors.accent.primary, transform: [{ scale: fabScale }] }]}>
+              <Animated.View style={[tabStyles.centerFabInner, {
+                backgroundColor: colors.accent.primary,
+                transform: [{ scale: fabScale }, { rotate: fabRotation }],
+                shadowColor: colors.accent.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.4,
+                shadowRadius: 12,
+                elevation: 6,
+              }]}>
                 <AntDesign name="plus" size={26} color="#FFF" />
               </Animated.View>
             </TouchableOpacity>
@@ -195,13 +220,13 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
 
 const tabStyles = StyleSheet.create({
   container: { overflow: 'hidden' },
-  outerWrapper: { marginHorizontal: 12, borderRadius: 26, borderWidth: 1, minHeight: 56, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
-  innerRow: { flexDirection: 'row', alignItems: 'center', minHeight: 56 },
+  outerWrapper: { marginHorizontal: 12, borderRadius: 30, borderWidth: 1, minHeight: 60 },
+  innerRow: { flexDirection: 'row', alignItems: 'center', minHeight: 60 },
   sideGroup: { flex: 1, flexDirection: 'row' },
-  tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
-  label: { fontSize: 10, letterSpacing: 0.1, marginTop: 2 },
-  centerFab: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
-  centerFabInner: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+  label: { fontSize: 10, letterSpacing: 0.2, marginTop: 2 },
+  centerFab: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
+  centerFabInner: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
 });
 
 const styles = StyleSheet.create({

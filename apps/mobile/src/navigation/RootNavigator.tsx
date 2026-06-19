@@ -2,10 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { SplashScreen } from '../screens/auth/SplashScreen';
-
-ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
-import { AuthNavigator } from './AuthNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
+import { AuthNavigator } from './AuthNavigator';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { PhoneScreen } from '../screens/auth/PhoneScreen';
 import { AppLockScreen } from '../screens/auth/AppLockScreen';
@@ -16,6 +14,7 @@ import { useToast } from '../store/ToastContext';
 import { setAccessToken } from '../services/api';
 import { API_URL } from '../config/api';
 import { startPreloading } from '../services/preload';
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 export function RootNavigator(): React.ReactElement | null {
   const { isAuthenticated, isLoading, isNewUser, needsPhone, accessToken, logout } = useAuth();
@@ -155,7 +154,9 @@ export function RootNavigator(): React.ReactElement | null {
   if (needsPhone) {
     return <PhoneScreen />;
   }
-  return <MainTabNavigator key="auth" />;
+  return (
+    <MainTabNavigator />
+  );
 }
 
 const splashStyles = StyleSheet.create({

@@ -7,6 +7,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, spacing } from '../../theme';
 
@@ -20,6 +21,8 @@ interface BaseScreenProps {
   flatList?: boolean;
   flatListProps?: any;
   contentContainerStyle?: ViewStyle;
+  gradient?: boolean;
+  gradientColors?: string[];
 }
 
 export function BaseScreen({
@@ -32,24 +35,22 @@ export function BaseScreen({
   flatList = false,
   flatListProps,
   contentContainerStyle,
+  gradient = false,
+  gradientColors,
 }: BaseScreenProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const containerStyle = [
-    styles.root,
-    {
-      backgroundColor: colors.bg.primary,
-      paddingTop: insets.top,
-      paddingBottom: insets.bottom,
-    },
-    !noPadding && styles.padding,
-    style,
-  ];
+  const safeAreaStyle = {
+    paddingTop: insets.top,
+    paddingBottom: insets.bottom,
+  };
 
-  if (flatList) {
-    return (
-      <View style={containerStyle}>
+  const containerPadding = !noPadding ? { paddingHorizontal: spacing.xl } : undefined;
+
+  const renderContent = () => {
+    if (flatList) {
+      return (
         <FlatList
           {...flatListProps}
           refreshControl={
@@ -62,17 +63,15 @@ export function BaseScreen({
             ) : undefined
           }
           contentContainerStyle={[
-            !noPadding && { paddingHorizontal: spacing.lg },
+            containerPadding,
             contentContainerStyle,
           ]}
         />
-      </View>
-    );
-  }
+      );
+    }
 
-  if (scrollable) {
-    return (
-      <View style={containerStyle}>
+    if (scrollable) {
+      return (
         <ScrollView
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -85,25 +84,44 @@ export function BaseScreen({
             ) : undefined
           }
           contentContainerStyle={[
-            !noPadding && { paddingHorizontal: spacing.lg },
+            containerPadding,
             { flexGrow: 1 },
             contentContainerStyle,
           ]}
         >
           {children}
         </ScrollView>
-      </View>
+      );
+    }
+
+    return !noPadding ? <View style={{ paddingHorizontal: spacing.xl }}>{children}</View> : children;
+  };
+
+  if (gradient) {
+    const gColors = gradientColors || (isDark
+      ? ['#1A0A2E', '#0C0C0E']
+      : ['#F0E6FF', '#F5F5F8']);
+    return (
+      <LinearGradient
+        colors={gColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.root, safeAreaStyle, style]}
+      >
+        {renderContent()}
+      </LinearGradient>
     );
   }
 
-  return <View style={containerStyle}>{children}</View>;
+  return (
+    <View style={[styles.root, { backgroundColor: colors.bg.primary }, safeAreaStyle, style]}>
+      {renderContent()}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  padding: {
-    paddingHorizontal: spacing.lg,
   },
 });

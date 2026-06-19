@@ -55,13 +55,13 @@ export function noAnimationOptions(theme: Theme): NativeStackNavigationOptions {
 
 /**
  * Apple-style spring animation config for Animated API.
- * tension: 120 (responsive but not bouncy)
- * friction: 10 (smooth settle)
+ * tension: 150 (responsive)
+ * friction: 12 (smooth settle, less bounce)
  * useNativeDriver: true
  */
 export const APPLE_SPRING = {
-  tension: 120,
-  friction: 10,
+  tension: 150,
+  friction: 12,
   useNativeDriver: true,
 } as const;
 
@@ -69,7 +69,16 @@ export const APPLE_SPRING = {
  * Softer spring for cards/UI elements appearing.
  */
 export const CARD_SPRING = {
-  tension: 80,
-  friction: 12,
+  tension: 100,
+  friction: 14,
+  useNativeDriver: true,
+} as const;
+
+/**
+ * Snappy press feedback spring.
+ */
+export const PRESS_SPRING = {
+  tension: 200,
+  friction: 16,
   useNativeDriver: true,
 } as const;

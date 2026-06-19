@@ -300,7 +300,7 @@ export function CoupleBudgetsScreen() {
           <TouchableOpacity
             style={[styles.adjustBtn, { backgroundColor: colors.accent.primary }]}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate('CoupleBudgetAdjust')}
+            onPress={() => navigation.navigate('BudgetAdjust')}
           >
             <AntDesign  name="setting" size={18} color="#FFF" />
             <Text style={styles.adjustBtnText}>Adjust Budget</Text>

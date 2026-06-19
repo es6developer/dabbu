@@ -260,7 +260,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
 
           {/* Combined Wealth */}
           <View style={styles.section}>
-            <SectionHeader title="Combined Wealth" action="Details" onAction={() => navigation?.navigate('CoupleFinance')} />
+            <SectionHeader title="Combined Wealth" action="Details" onAction={() => navigation?.navigate('Money')} />
             <View style={[styles.wealthCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={styles.wealthTop}>
                 <Text style={[styles.wealthTitle, { color: colors.text.tertiary }]}>Net Worth</Text>
@@ -288,7 +288,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
 
           {/* Monthly Snapshot */}
           <View style={styles.section}>
-            <SectionHeader title="This Month" action="Full Report" onAction={() => navigation?.navigate('CoupleCoach')} />
+            <SectionHeader title="This Month" action="Full Report" onAction={() => navigation?.navigate('Reports')} />
             <View style={[styles.snapshotRow]}>
               <MiniStat icon="caretup" label="Income" value={fmtShort(snapshot.combinedIncome || 0)} color="#22C55E" />
               <MiniStat icon="shoppingcart" label="Expenses" value={fmtShort(snapshot.combinedExpense || 0)} color="#EF4444" />
@@ -300,7 +300,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="Upcoming" action="Calendar" onAction={() => navigation?.navigate('CoupleTimeline')} />
+              <SectionHeader title="Upcoming" action="Calendar" onAction={() => navigation?.navigate('Timeline')} />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
                 {upcomingEvents.map((ev, i) => (
                   <EventBadge key={i} icon={ev.icon} label={ev.label} date={ev.date} color={ev.color} />

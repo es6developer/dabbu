@@ -43,18 +43,18 @@ const PLANNER_BADGES = [
 ];
 
 const QUICK_ACTIONS = [
-  { key: 'CoupleSpaceHome', icon: 'wallet', label: 'Wallet', color: '#F97316' },
-  { key: 'CoupleIncome', icon: 'linechart', label: 'Income', color: '#34C759' },
-  { key: 'CoupleExpenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
-  { key: 'CoupleBudgets', icon: 'wallet', label: 'Budgets', color: '#F59E0B' },
-  { key: 'CoupleSavings', icon: 'save', label: 'Savings', color: '#60A5FA' },
-  { key: 'CoupleGoals', icon: 'Trophy', label: 'Goals', color: '#A78BFA' },
-  { key: 'CoupleBills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
-  { key: 'CoupleSettlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
-  { key: 'CoupleReports', icon: 'bar-chart', label: 'Reports', color: '#4F46E5' },
-  { key: 'CouplePlanners', icon: 'find', label: 'Planners', color: '#60A5FA' },
-  { key: 'CoupleTimeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
-  { key: 'CoupleCoach', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
+  { key: 'Money', icon: 'wallet', label: 'Wallet', color: '#F97316' },
+  { key: 'Income', icon: 'linechart', label: 'Income', color: '#34C759' },
+  { key: 'Expenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
+  { key: 'Budgets', icon: 'wallet', label: 'Budgets', color: '#F59E0B' },
+  { key: 'Savings', icon: 'save', label: 'Savings', color: '#60A5FA' },
+  { key: 'Goals', icon: 'Trophy', label: 'Goals', color: '#A78BFA' },
+  { key: 'Bills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
+  { key: 'Settlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
+  { key: 'Reports', icon: 'bar-chart', label: 'Reports', color: '#4F46E5' },
+  { key: 'LifePlans', icon: 'find', label: 'Planners', color: '#60A5FA' },
+  { key: 'Timeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
+  { key: 'AI', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
 ];
 
 function HealthRing({ score, size = 88, strokeWidth = 6 }: { score: number; size?: number; strokeWidth?: number }) {
@@ -192,7 +192,7 @@ export function CoupleHomeScreen() {
               )}
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity onPress={() => navigation.navigate('CoupleCoach')} style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <TouchableOpacity onPress={() => navigation.navigate('AI')} style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
                 <AntDesign  name="bulb1" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('CoupleSettings')} style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
@@ -235,7 +235,7 @@ export function CoupleHomeScreen() {
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity style={{ marginTop: 12 }} onPress={() => navigation.navigate('CoupleReports')}>
+                    <TouchableOpacity style={{ marginTop: 12 }} onPress={() => navigation.navigate('Reports')}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Text style={{ fontSize: 12, color: colors.accent.primary, fontWeight: '600' }}>View Breakdown</Text>
                         <AntDesign  name="right" size={12} color={colors.accent.primary} />
@@ -272,7 +272,7 @@ export function CoupleHomeScreen() {
             <View style={{ paddingHorizontal: 20, marginTop: CARD_GAP }}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate('CoupleSettlements')}
+                onPress={() => navigation.navigate('Settlements')}
                 style={{
                   backgroundColor: colors.bg.card, borderRadius: 16, padding: 16,
                   flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -306,7 +306,7 @@ export function CoupleHomeScreen() {
             <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Monthly Snapshot</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('CoupleReports')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
                   <Text style={{ fontSize: 12, color: colors.accent.primary }}>Details</Text>
                 </TouchableOpacity>
               </View>
@@ -336,7 +336,7 @@ export function CoupleHomeScreen() {
               <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => navigation.navigate('CoupleCoach')}
+                  onPress={() => navigation.navigate('AI')}
                   style={{
                     backgroundColor: colors.bg.highlight, borderRadius: 16, padding: 16,
                     borderLeftWidth: 3, borderLeftColor: colors.accent.primary,
@@ -372,7 +372,7 @@ export function CoupleHomeScreen() {
               <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('CoupleGoals')}>
+                  <TouchableOpacity onPress={() => navigation.navigate('Goals')}>
                     <Text style={{ fontSize: 12, color: colors.accent.primary }}>See All</Text>
                   </TouchableOpacity>
                 </View>
@@ -415,7 +415,7 @@ export function CoupleHomeScreen() {
               <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Life Planners</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('CouplePlanners')}>
+                  <TouchableOpacity onPress={() => navigation.navigate('LifePlans')}>
                     <Text style={{ fontSize: 12, color: colors.accent.primary }}>Manage</Text>
                   </TouchableOpacity>
                 </View>

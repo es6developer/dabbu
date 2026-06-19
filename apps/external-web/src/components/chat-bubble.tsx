@@ -13,7 +13,7 @@ interface ChatBubbleProps {
 export function ChatBubble({ message, isOwn, showSender = true }: ChatBubbleProps) {
   if (message.type === "system") {
     return (
-      <div className="flex justify-center my-3">
+      <div className="flex justify-center my-3 animate-fade-in-scale" style={{ willChange: 'transform, opacity' }}>
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-dabbu-surface2 border border-dabbu-border">
           <svg className="w-3.5 h-3.5 text-dabbu-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -59,7 +59,7 @@ export function ChatBubble({ message, isOwn, showSender = true }: ChatBubbleProp
   }
 
   return (
-    <div className={cn("flex my-1.5 gap-2", isOwn ? "flex-row-reverse" : "flex-row")}>
+    <div className={cn("flex my-1.5 gap-2 animate-fade-in-up", isOwn ? "flex-row-reverse" : "flex-row")} style={{ animationDelay: '50ms', willChange: 'transform, opacity' }}>
       {showSender && !isOwn && (
         <div className="flex-shrink-0 self-end">
           <MemberAvatar name={message.sender.name} size="sm" />

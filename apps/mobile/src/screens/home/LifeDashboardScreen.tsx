@@ -9,10 +9,12 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { shadows } from '../../theme/design';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSpaceStore } from '../../store/spaceStore';
@@ -83,7 +85,7 @@ const QUICK_ACTIONS: {
 export function LifeDashboardScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user, accessToken } = useAuth();
   const { spaces } = useSpaceStore();
   const lifeEvents = useLifeEventStore((s) => s.events);
@@ -651,7 +653,14 @@ export function LifeDashboardScreen() {
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+    <View style={styles.screen}>
+      <LinearGradient
+        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3]}
+        style={{ flex: 1 }}
+      >
       {/* ─── HEADER: GREETING + ACTIONS (shared across all tabs) ─── */}
       <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
         <View style={styles.headerRow}>
@@ -776,6 +785,7 @@ export function LifeDashboardScreen() {
           </View>
         )
       )}
+      </LinearGradient>
     </View>
   );
 }

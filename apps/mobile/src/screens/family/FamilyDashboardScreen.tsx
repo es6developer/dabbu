@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { DashboardGrid } from '../../components/dashboard/DashboardGrid';
 import { mapFamilyDashboard } from '../../utils/dashboardMapper';
 
 export function FamilyDashboardScreen({ navigation }: any) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const [families, setFamilies] = useState<any[]>([]);
@@ -84,10 +86,20 @@ export function FamilyDashboardScreen({ navigation }: any) {
 
   if (mode === 'list') {
     return (
-      <View style={[s.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      <View style={s.root}>
+        <LinearGradient
+          colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          locations={[0, 0.3]}
+          style={{ flex: 1 }}
+        >
         <ScrollView contentContainerStyle={s.listContent}>
           <View style={s.header}>
-            <Text style={[s.headerTitle, { color: colors.text.primary }]}>Family Dashboard</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 4, height: 24, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+              <Text style={[s.headerTitle, { color: colors.text.primary }]}>Family Dashboard</Text>
+            </View>
             <Text style={[s.headerSub, { color: colors.text.tertiary }]}>
               {families.length} {families.length === 1 ? 'family' : 'families'}
             </Text>
@@ -95,7 +107,7 @@ export function FamilyDashboardScreen({ navigation }: any) {
           {families.map((f) => (
             <TouchableOpacity
               key={f.id}
-              style={[s.card, { backgroundColor: colors.bg.secondary }]}
+              style={[s.card, { backgroundColor: colors.bg.card, ...shadows.md }]}
               onPress={() => selectFamily(f)}
               activeOpacity={0.7}
             >
@@ -123,12 +135,20 @@ export function FamilyDashboardScreen({ navigation }: any) {
             </View>
           )}
         </ScrollView>
+        </LinearGradient>
       </View>
     );
   }
 
   return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+    <View style={s.root}>
+      <LinearGradient
+        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3]}
+        style={{ flex: 1 }}
+      >
       <View style={[s.topBar, { borderBottomColor: colors.border.subtle }]}>
         <TouchableOpacity onPress={backToList} style={s.backBtn}>
           <AntDesign name="arrowleft" size={22} color={colors.text.primary} />
@@ -152,6 +172,7 @@ export function FamilyDashboardScreen({ navigation }: any) {
         }}
         onNavigate={(screen, params) => navigation?.navigate(screen, params)}
       />
+      </LinearGradient>
     </View>
   );
 }

@@ -3888,21 +3888,56 @@ export class SharedFinanceService {
   // ─── Auto-OCR Expense Creation ─────────────────────────────
 
   async createExpenseFromOcr(groupId: string, userId: string, ocrText: string) {
-    // Simple inline OCR parser
-    const lines = ocrText.split('\n').filter(Boolean);
+    const lines = ocrText.split('\n').map(l => l.trim()).filter(Boolean);
+    const C = /[₹$€£]/;
     let description = '';
     let amount = 0;
-    const category = 'Other';
-    const merchant = '';
+    let merchant = '';
 
-    const amountMatch = ocrText.match(/[₹$€£]\s*([0-9,]+\.?\d*)/);
-    if (amountMatch) {
-      amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+    const totalKeywordPatterns = [
+      /(?:grand\s+)?total\s*(?:due|payable|amount)?\s*[:.]?\s*[₹$€£]*\s*([\d,]+\.?\d*)/i,
+      /(?:net\s+)?amount\s*(?:payable)?\s*[:.]?\s*[₹$€£]*\s*([\d,]+\.?\d*)/i,
+      /(?:to\s+)?pay\s*[:.]?\s*[₹$€£]*\s*([\d,]+\.?\d*)/i,
+      /due\s*[:.]?\s*[₹$€£]*\s*([\d,]+\.?\d*)/i,
+    ];
+    for (const p of totalKeywordPatterns) {
+      const m = ocrText.match(p);
+      if (m) {
+        const val = parseFloat(m[1].replace(/,/g, ''));
+        if (!isNaN(val) && val > 0) { amount = val; break; }
+      }
+    }
+    if (!amount) {
+      const amountMatch = ocrText.match(/[₹$€£]\s*(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/);
+      if (amountMatch) {
+        amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+      }
+    }
+    if (!amount) {
+      const fallback = [...ocrText.matchAll(/([\d,]+\.\d{2})/g)];
+      if (fallback.length > 0) {
+        const vals = fallback.map(m => parseFloat(m[1].replace(/,/g, ''))).filter(v => v > 0 && v < 1e7);
+        if (vals.length > 0) amount = Math.max(...vals);
+      }
     }
 
-    if (lines.length > 0) {
-      description = lines[0].trim().substring(0, 200);
+    const skipWords = new Set([
+      'total', 'grand total', 'sub total', 'subtotal', 'amount', 'tax',
+      'gst', 'cgst', 'sgst', 'vat', 'invoice', 'receipt', 'bill',
+      'date', 'time', 'phone', 'email',
+    ]);
+    for (const line of lines) {
+      const lower = line.toLowerCase().replace(/[^a-z0-9&.\-'/\s]/g, '').trim();
+      if (!lower || lower.length < 3) continue;
+      if (skipWords.has(lower)) continue;
+      if (/^(?:www\.|http|\d{10,})/i.test(lower)) continue;
+      if (/gstin|invoice|receipt|tax total|subtotal|grand total|net amount/i.test(lower)) continue;
+      if (!/[a-zA-Z]/.test(lower)) continue;
+      merchant = line.replace(/[^a-zA-Z0-9\s&.\-']/g, '').trim().substring(0, 100);
+      break;
     }
+
+    description = merchant || (lines.length > 0 ? lines[0].trim().substring(0, 200) : 'OCR Expense');
 
     if (!description || !amount) {
       throw new BadRequestException('Could not extract expense details from OCR text');
@@ -3914,10 +3949,13 @@ export class SharedFinanceService {
     });
 
     const splitAmount = members.length > 0 ? amount / members.length : amount;
-    const splits = members.map((m) => ({
+    const amountError = splitAmount * members.length - amount;
+    const splits = members.map((m, i) => ({
       userId: m.userId,
-      amount: Math.round(splitAmount * 100) / 100,
+      amount: Math.round((i === members.length - 1 ? amount - splitAmount * (members.length - 1) : splitAmount) * 100) / 100,
     }));
+
+    const category = 'Other';
 
     const expense = await this.prisma.sharedExpense.create({
       data: {
@@ -3925,7 +3963,7 @@ export class SharedFinanceService {
         description,
         amount,
         paidBy: userId,
-        category: category || 'Other',
+        category,
         date: new Date(),
         splitType: 'equal',
         notes: `Auto-created from OCR: ${merchant || ''}`,

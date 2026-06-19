@@ -28,7 +28,7 @@ export function CoupleSplashScreen() {
     try {
       const res = await api.get<any>('/couple/status');
       if (res?.isCouple) {
-        navigation.replace('CoupleSpaceHome');
+        navigation.replace('CoupleHome');
         return;
       }
     } catch { /* ignore */ }
@@ -55,7 +55,7 @@ export function CoupleSplashScreen() {
     setError('');
     try {
       await api.post('/couple/join', { code: inviteCode.trim().toUpperCase() });
-      navigation.replace('CoupleSpaceHome');
+      navigation.replace('CoupleHome');
     } catch (e: any) {
       setError(e?.message || 'Invalid or expired invite code');
     } finally {
@@ -162,7 +162,7 @@ export function CoupleSplashScreen() {
                 width: '100%', backgroundColor: colors.accent.primary, padding: 16, borderRadius: 16,
                 alignItems: 'center', marginTop: 10,
               }}
-              onPress={() => navigation.replace('CoupleSpaceHome')}
+              onPress={() => navigation.replace('CoupleHome')}
             >
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.inverse }}>
                 Enter Couple Space

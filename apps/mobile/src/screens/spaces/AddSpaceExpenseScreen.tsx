@@ -59,11 +59,12 @@ function fmtDate(date: Date): string {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function AddExpenseScreen() {
+export function AddSpaceExpenseScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { colors } = useTheme();
 
+  const spaceId: string = route.params?.spaceId;
   const initialType = route.params?.type || 'expense';
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'expense' | 'income'>(initialType);
@@ -98,6 +99,10 @@ export function AddExpenseScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
       return;
     }
+    if (!spaceId) {
+      setError('Space not found');
+      return;
+    }
     setError('');
     setSaving(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -108,6 +113,7 @@ export function AddExpenseScreen() {
         type,
         category,
         date: date.toISOString(),
+        spaceId,
       };
 
       if (description) payload.description = description;
@@ -125,7 +131,7 @@ export function AddExpenseScreen() {
     } finally {
       setSaving(false);
     }
-  }, [amount, type, category, date, description, paymentMethod, isRecurring, navigation]);
+  }, [amount, type, category, date, description, paymentMethod, isRecurring, spaceId, navigation]);
 
   return (
     <FormScreen

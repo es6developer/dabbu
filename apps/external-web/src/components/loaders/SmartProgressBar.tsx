@@ -82,7 +82,7 @@ function RingBar({
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
-        className="transition-all duration-500 ease-out"
+        className="transition-[stroke-dashoffset] duration-500 ease-out"
       />
       {premium && (
         <defs>
@@ -135,7 +135,7 @@ function ShieldBar({
             strokeWidth="2"
             strokeDasharray="140"
             strokeDashoffset={140 - (progress / 100) * 140}
-            className="transition-all duration-500"
+            className="transition-[stroke-dashoffset] duration-500 ease-out"
           />
         </svg>
         <div
@@ -150,7 +150,7 @@ function ShieldBar({
         style={{ backgroundColor: 'var(--dabbu-surface2)' }}
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ${
+          className={`h-full rounded-full transition-[width] duration-500 ease-out ${
             premium
               ? 'bg-gradient-to-r from-violet-500 via-purple-400 to-indigo-500'
               : 'bg-[#8B5CF6]'

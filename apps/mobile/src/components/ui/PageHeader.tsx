@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, spacing } from '../../theme';
 
 interface PageHeaderProps {
@@ -7,12 +8,14 @@ interface PageHeaderProps {
   subtitle?: string;
   rightAction?: React.ReactNode;
   style?: ViewStyle;
+  gradient?: boolean;
+  noPadding?: boolean;
 }
 
-export function PageHeader({ title, subtitle, rightAction, style }: PageHeaderProps) {
-  const { colors, typography } = useTheme();
+export function PageHeader({ title, subtitle, rightAction, style, gradient, noPadding }: PageHeaderProps) {
+  const { colors, isDark } = useTheme();
 
-  return (
+  const headerContent = (
     <View style={[styles.container, style]}>
       <View style={styles.row}>
         <View style={styles.textWrap}>
@@ -25,13 +28,29 @@ export function PageHeader({ title, subtitle, rightAction, style }: PageHeaderPr
       </View>
     </View>
   );
+
+  if (gradient) {
+    return (
+      <LinearGradient
+        colors={isDark ? [colors.accent.primary + '1A', 'transparent'] : [colors.accent.primary + '0F', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ paddingHorizontal: noPadding ? 0 : spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['2xl'] }}
+      >
+        {headerContent}
+      </LinearGradient>
+    );
+  }
+
+  return (
+    <View style={{ paddingHorizontal: noPadding ? 0 : spacing.xl }}>
+      {headerContent}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
+  container: {},
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -41,11 +60,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eyebrow: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '700',
     marginBottom: 2,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   title: {
     fontSize: 28,

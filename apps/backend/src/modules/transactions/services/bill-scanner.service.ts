@@ -83,7 +83,7 @@ const MONTH_MAP: Record<string, number> = {
 };
 
 const CURRENCY_PATTERN =
-  /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|total\s*:?\s*(?:rs\.?\s*|inr\s*|₹\s*)?)(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+\.?\d{0,2})/i;
+  /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|€\s*|£\s*|total\s*:?\s*(?:rs\.?\s*|inr\s*|₹\s*|\$\s*)?)(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+\.?\d{0,2})/i;
 
 @Injectable()
 export class BillScannerService implements OnModuleInit, OnModuleDestroy {
@@ -226,13 +226,17 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     s = s.replace(/\|/g, ' ');
     s = s.replace(/(?<=\d)\s*[lI!|]\s*(?=\d)/g, '1');
     s = s.replace(/(?<=\d)\s*O\s*(?=\d)/g, '0');
-    s = s.replace(/(?<=\d)\s*S\s*(?=\d)/g, '5');
+    s = s.replace(/(?<=\d)\s*[S$]\s*(?=\d)/g, '5');
+    s = s.replace(/(?<!\w)\s*0\s*(?=[1-9])/g, '');
+    s = s.replace(/(?<=[a-zA-Z])0(?=[a-zA-Z])/g, 'O');
     s = s.replace(/\\n/g, '\n');
     s = s.replace(/[^\S\n]{2,}/g, ' ');
     s = s.replace(/\n{3,}/g, '\n\n');
     s = s.replace(/\s*,\s*/g, ', ');
-    s = s.replace(/(?<=[a-zA-Z])0(?=[a-zA-Z])/g, 'O');
     s = s.replace(/(?<=\d)\s*\.\s*(?=\d{2}\b)/g, '.');
+    s = s.replace(/(?<=\d)\s*[.,;:]\s*(?=\d{2}\b)/g, '.');
+    s = s.replace(/(\d)\.(\d{2})[.,;:](\d+)/g, '$1.$2.$3');
+    s = s.replace(/[<>{}[\]\\]/g, ' ');
 
     const rawLines = s.split('\n').map((l) => l.trim()).filter(Boolean);
     if (rawLines.length <= 3) {return rawLines.join('\n');}
@@ -298,15 +302,18 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       'mrp', 'cgst', 'sgst', 'igst', 'cess',
     ]);
     for (const line of lines) {
-      const clean = line.replace(/[^a-zA-Z\s&.'\-/]/g, '').trim();
+      const clean = line.replace(/[^a-zA-Z0-9\s&.'/#-]/g, '').trim();
       if (clean.length < 3 || clean.length > 60) {continue;}
-      if (firstWordSkip.has(clean.toLowerCase().split(/\s+/)[0])) {continue;}
-      if (/^\d/.test(clean)) {continue;}
-      if (/^(?:www\.|http|\d{10,}|\d{6,})/i.test(clean)) {continue;}
-      if (/gstin|invoice|receipt|tax total|sub.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|saving/i.test(clean)) {continue;}
       const lower = clean.toLowerCase();
+      if (firstWordSkip.has(lower.split(/\s+/)[0])) {continue;}
+      if (/^(?:www\.|http)/i.test(clean)) {continue;}
+      if (/^\d{10,}$/.test(clean.replace(/\s/g, ''))) {continue;}
+      const alphaCount = (clean.match(/[a-zA-Z]/g) || []).length;
+      if (alphaCount === 0) {continue;}
+      if (/gstin|invoice|receipt|tax total|sub.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|saving/i.test(clean)) {continue;}
       if (lower.includes('visa') || lower.includes('mastercard') || lower.includes('rupay') || lower.includes('upi') || lower.includes('cashier')) {continue;}
       if (/^(?:thank|have a|please|for|visit)/i.test(lower)) {continue;}
+      if (/^[\d\s/\-:.]+$/.test(clean)) {continue;}
       return clean;
     }
     return 'Unknown Merchant';
@@ -400,31 +407,47 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
 
   private looksLikePhone(val: number): boolean {
     const s = String(Math.round(val));
-    return s.length >= 10 || (s.length === 6 && /^\d{6}$/.test(s));
+    return s.length >= 10;
   }
 
   private extractDate(text: string): string {
+    const isUSContext = (ctx: string): boolean =>
+      /(?:AM|PM)\s*$/m.test(ctx) || /\b(GROCERY|STORE|SUPERMARKET|WALMART|TARGET|COSTCO|WALGREENS|CVS)\b/i.test(ctx);
+
+    const disambiguateDMY = (a: number, b: number, y: number, ctx: string): [number, number, number] | null => {
+      const couldBeDayMonth = a >= 1 && a <= 31 && b >= 1 && b <= 12;
+      const couldBeMonthDay = a >= 1 && a <= 12 && b >= 1 && b <= 31;
+      if (!couldBeDayMonth && !couldBeMonthDay) {return null;}
+      if (couldBeDayMonth && !couldBeMonthDay) {return [y, b, a];}
+      if (couldBeMonthDay && !couldBeDayMonth) {return [y, a, b];}
+      if (a > 12 && couldBeDayMonth) {return [y, b, a];}
+      if (b > 12 && couldBeMonthDay) {return [y, a, b];}
+      if (isUSContext(ctx)) {return [y, a, b];}
+      if (/\b(AM|PM)\b/i.test(ctx)) {return [y, a, b];}
+      return [y, b, a];
+    };
+
     for (const pattern of DATE_PATTERNS) {
       const match = text.match(pattern);
       if (match) {
-        if (match.length === 4 && /^\d+$/.test(match[3])) {
-          if (pattern.source.includes('\\d{4}.*\\d{1,2}.*\\d{1,2}')) {
-            const y = parseInt(match[1]), m = parseInt(match[2]), d = parseInt(match[3]);
-            if (y > 1900 && y < 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31)
-              {return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
+        try {
+          if (match.length === 4 && /^\d+$/.test(match[3])) {
+            const a = parseInt(match[1]), b = parseInt(match[2]), y = parseInt(match[3]);
+            if (y < 100) {continue;}
+            if (y < 1900 || y > 2100) {continue;}
+            const result = disambiguateDMY(a, b, y, text);
+            if (!result) {continue;}
+            const [yr, mo, d] = result;
+            if (mo < 1 || mo > 12 || d < 1 || d > 31) {continue;}
+            return `${yr}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
           }
-          const d2 = parseInt(match[1]), m2 = parseInt(match[2]), y = parseInt(match[3]);
-          if (y > 1900 && y < 2100 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31)
-            {return `${y}-${String(m2).padStart(2, '0')}-${String(d2).padStart(2, '0')}`;}
-        } else if (match[2] && MONTH_MAP[match[2].toLowerCase().slice(0, 3)] !== undefined) {
-          const d = parseInt(match[1]), monthIdx = MONTH_MAP[match[2].toLowerCase().slice(0, 3)], y = parseInt(match[3]);
-          if (y > 1900 && y < 2100)
-            {return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
-        } else if (match[2] && MONTH_MAP[match[2].toLowerCase()] !== undefined) {
-          const d = parseInt(match[1]), monthIdx = MONTH_MAP[match[2].toLowerCase()], y = parseInt(match[3]);
-          if (y > 1900 && y < 2100)
-            {return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
-        }
+          const textMonth = match[2]?.toLowerCase().slice(0, 3) || '';
+          if (textMonth && MONTH_MAP[textMonth] !== undefined) {
+            const d = parseInt(match[1]), monthIdx = MONTH_MAP[textMonth], y = parseInt(match[3]);
+            if (y > 1900 && y < 2100 && d >= 1 && d <= 31)
+              {return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
+          }
+        } catch { continue; }
       }
     }
     return new Date().toISOString().split('T')[0];

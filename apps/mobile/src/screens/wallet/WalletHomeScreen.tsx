@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
@@ -15,7 +16,7 @@ function fmt(v: number) {
 export function WalletHomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
@@ -57,8 +58,18 @@ export function WalletHomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Wallet</Text>
+      <LinearGradient
+        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3]}
+        style={{ flex: 1 }}
+      >
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, paddingHorizontal: spacing.xl }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ width: 4, height: 24, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+          <Text style={[styles.title, { color: colors.text.primary }]}>Wallet</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -66,7 +77,7 @@ export function WalletHomeScreen() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={[styles.balanceCard, { backgroundColor: colors.card.balance }]}>
+        <View style={[styles.balanceCard, { backgroundColor: colors.card.balance, ...shadows.md }]}>
           <Text style={[styles.balanceLabel, { color: colors.text.secondary }]}>Total Balance</Text>
           <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>
             {loading ? '...' : fmt(totalBalance)}
@@ -89,7 +100,7 @@ export function WalletHomeScreen() {
 
         <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.status.error + '14' }]}
+            style={[styles.actionBtn, { backgroundColor: colors.status.error + '15', borderWidth: 1, borderColor: colors.status.error + '30' }]}
             onPress={() => navigation.navigate('AddExpense', { type: 'expense' })}
           >
             <View style={[styles.actionIcon, { backgroundColor: colors.status.error }]}>
@@ -98,7 +109,7 @@ export function WalletHomeScreen() {
             <Text style={[styles.actionLabel, { color: colors.status.error }]}>Add Expense</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.status.success + '14' }]}
+            style={[styles.actionBtn, { backgroundColor: colors.status.success + '15', borderWidth: 1, borderColor: colors.status.success + '30' }]}
             onPress={() => navigation.navigate('AddExpense', { type: 'income' })}
           >
             <View style={[styles.actionIcon, { backgroundColor: colors.status.success }]}>
@@ -108,7 +119,10 @@ export function WalletHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Your Accounts</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md, marginTop: spacing.md }}>
+          <View style={{ width: 4, height: 14, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+          <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Your Accounts</Text>
+        </View>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.bg.card }]} />
@@ -138,7 +152,10 @@ export function WalletHomeScreen() {
           ))
         )}
 
-        <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Recent Transactions</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md, marginTop: spacing.md }}>
+          <View style={{ width: 4, height: 14, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+          <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Recent Transactions</Text>
+        </View>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.bg.card }]} />
@@ -176,6 +193,7 @@ export function WalletHomeScreen() {
           ))
         )}
       </ScrollView>
+      </LinearGradient>
     </View>
   );
 }

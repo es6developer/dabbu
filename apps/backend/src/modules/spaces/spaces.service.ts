@@ -1,8 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SpacesService {
+  private readonly logger = new Logger(SpacesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async list(userId: string) {
@@ -113,6 +116,39 @@ export class SpacesService {
         },
       },
     });
+
+    if (data.type === 'FAMILY') {
+      const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+      await this.prisma.family.create({
+        data: {
+          name: data.name,
+          code,
+          ownerId: userId,
+          members: { create: { userId, role: 'owner' } },
+        },
+      }).catch((err) => {
+        this.logger.warn(`Failed to create legacy Family for space ${space.id}: ${err.message}`);
+      });
+    }
+
+    if (data.type === 'COUPLE') {
+      await this.prisma.sharedGroup.create({
+        data: {
+          name: data.name,
+          type: 'couple',
+          icon: data.icon || 'heart',
+          coverColor: data.coverColor || '#f7892c',
+          status: 'ACTIVE',
+          statusChangedAt: new Date(),
+          statusChangedBy: userId,
+          createdBy: userId,
+          members: { create: { userId, role: 'admin' } },
+        },
+      }).catch((err) => {
+        this.logger.warn(`Failed to create legacy SharedGroup for space ${space.id}: ${err.message}`);
+      });
+    }
+
     return space;
   }
 

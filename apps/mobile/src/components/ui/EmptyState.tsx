@@ -1,79 +1,74 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 interface EmptyStateProps {
   title?: string;
   message?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   actionLabel?: string;
   onAction?: () => void;
+  compact?: boolean;
 }
 
-export function EmptyState({ title = 'No activity yet', message, icon, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({
+  title = 'No activity yet',
+  message,
+  icon,
+  actionLabel = '+ Add',
+  onAction,
+  compact = false,
+}: EmptyStateProps) {
   const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <AntDesign
-           name="filetext1"
-          size={56}
-          color={colors.accent.primary}
-          style={{ opacity: 0.2, position: 'absolute', transform: [{ rotate: '-5deg' }] }}
-        />
-        <AntDesign  name="filetext1" size={72} color={colors.text.tertiary} />
+    <View style={{
+      alignItems: 'center',
+      paddingHorizontal: spacing['2xl'],
+      paddingVertical: compact ? spacing['2xl'] : spacing['5xl'],
+    }}>
+      <View style={{
+        height: compact ? 80 : 120,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: spacing.lg,
+      }}>
+        {icon || (
+          <>
+            <AntDesign name="filetext1" size={compact ? 40 : 56} color={colors.accent.primary} style={{ opacity: 0.15, position: 'absolute', transform: [{ rotate: '-5deg' }] }} />
+            <AntDesign name="filetext1" size={compact ? 52 : 72} color={colors.text.tertiary} />
+          </>
+        )}
       </View>
-      <Text style={[styles.title, { color: colors.text.secondary }]}>{title}</Text>
+      <Text style={{ fontSize: compact ? 15 : 17, fontWeight: '600', textAlign: 'center', marginBottom: spacing.xs, color: colors.text.secondary }}>
+        {title}
+      </Text>
       {message && (
-        <Text style={[styles.message, { color: colors.text.tertiary }]}>{message}</Text>
+        <Text style={{ fontSize: 13, textAlign: 'center', lineHeight: 18, color: colors.text.tertiary, paddingHorizontal: spacing.xl }}>
+          {message}
+        </Text>
       )}
       {onAction && (
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
+          style={{
+            marginTop: spacing.xl,
+            paddingHorizontal: spacing['2xl'],
+            paddingVertical: spacing.md,
+            borderRadius: borderRadius.xl,
+            backgroundColor: colors.accent.primary,
+          }}
           onPress={onAction}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
         >
-          <Text style={styles.actionText}>{actionLabel || '+ Log First Expense'}</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>
+            {actionLabel}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  iconContainer: {
-    height: 140,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  message: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  actionBtn: {
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  actionText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});

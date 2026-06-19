@@ -56,7 +56,7 @@ export function CouplePlannerFormScreen() {
         source: 'planner_created',
       });
       Alert.alert(`${plannerType} Plan Created`, 'Your Space, Goal, and Life Event are ready!', [
-        { text: 'View', onPress: () => navigation.replace('LifeEventsList') },
+        { text: 'View', onPress: () => navigation.replace('LifePlans') },
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {

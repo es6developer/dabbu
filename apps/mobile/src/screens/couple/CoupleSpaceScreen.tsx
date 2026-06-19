@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
@@ -146,7 +147,7 @@ export function CoupleSpaceScreen() {
           <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}>Not Connected</Text>
           <Text style={{ fontSize: 13, color: colors.text.tertiary, textAlign: 'center', marginTop: 4 }}>Connect with your partner to see shared finances</Text>
           <TouchableOpacity
-            onPress={() => (navigation as any).navigate('Settings', { screen: 'AddPartner' })}
+            onPress={() => (navigation as any).navigate('ProfileTab', { screen: 'AddPartner' })}
             style={{ marginTop: 20, backgroundColor: colors.accent.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
           >
             <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Connect Partner</Text>
@@ -159,13 +160,20 @@ export function CoupleSpaceScreen() {
   const { user, partner, couple, totalMonthlySpent, sharedMonthlyExpenses, sharedMonthlyIncome, recentExpenses, recentIncomes, goalsProgress, goalsTarget, upcomingBills, partnerSince } = data;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={isDark ? ['#1A0A12', colors.bg.primary] : ['#FFE4E8', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3]}
+        style={{ flex: 1 }}
+      >
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Couple Space</Text>
-        <TouchableOpacity onPress={() => (navigation as any).navigate('Settings', { screen: 'AddPartner' })}>
+        <TouchableOpacity onPress={() => (navigation as any).navigate('ProfileTab', { screen: 'AddPartner' })}>
           <AntDesign  name="setting" size={22} color={colors.text.tertiary} />
         </TouchableOpacity>
       </View>
@@ -287,7 +295,7 @@ export function CoupleSpaceScreen() {
           <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
-              <TouchableOpacity onPress={() => (navigation as any).navigate('Couple', { screen: 'Bills' })}>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('Bills')}>
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -367,6 +375,7 @@ export function CoupleSpaceScreen() {
           ))}
         </View>
       </ScrollView>
+      </LinearGradient>
     </View>
   );
 }

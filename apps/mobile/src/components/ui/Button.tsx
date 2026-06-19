@@ -1,14 +1,15 @@
 import React, { useRef } from 'react';
-import { Animated, TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { Animated, TouchableOpacity, Text, ActivityIndicator, ViewStyle, TextStyle, GestureResponderEvent } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, buttonHeight, animation } from '../../theme/design';
+import { spacing, borderRadius, buttonHeight, hitSlop } from '../../theme/design';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'premium';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
   title: string;
-  onPress: () => void;
+  onPress: (event: GestureResponderEvent) => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
   disabled?: boolean;
@@ -18,6 +19,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  accessibilityLabel?: string;
 }
 
 export const AppButton: React.FC<ButtonProps> = ({
@@ -32,6 +34,7 @@ export const AppButton: React.FC<ButtonProps> = ({
   style,
   textStyle,
   fullWidth = false,
+  accessibilityLabel,
 }) => {
   const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -61,8 +64,8 @@ export const AppButton: React.FC<ButtonProps> = ({
   };
 
   const fontSizeMap: Record<ButtonSize, number> = {
-    sm: 15,
-    md: 17,
+    sm: 14,
+    md: 16,
     lg: 17,
   };
 
@@ -72,47 +75,78 @@ export const AppButton: React.FC<ButtonProps> = ({
     outline: { bg: 'transparent', text: colors.accent.primary, border: colors.accent.primary },
     ghost: { bg: 'transparent', text: colors.accent.primary, border: 'transparent' },
     danger: { bg: colors.status.error, text: '#FFFFFF', border: colors.status.error },
-  } as const;
+    premium: { bg: colors.accent.primary, text: '#FFFFFF', border: colors.accent.primary },
+  };
 
   const v = variantStyles[variant];
   const height = sizeMap[size];
 
+  const buttonContent = (
+    <>
+      {loading ? (
+        <ActivityIndicator size="small" color={v.text} />
+      ) : (
+        <>
+          {icon && iconPosition === 'left' && icon}
+          <Text style={[{ fontSize: fontSizeMap[size], fontWeight: '700', color: v.text, letterSpacing: -0.3 }, textStyle]}>
+            {title}
+          </Text>
+          {icon && iconPosition === 'right' && icon}
+        </>
+      )}
+    </>
+  );
+
+  const commonStyle: ViewStyle = {
+    height,
+    borderRadius: borderRadius['2xl'],
+    borderWidth: variant === 'outline' ? 1.5 : 0,
+    borderColor: v.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing['2xl'],
+    columnGap: spacing.sm,
+    opacity: disabled ? 0.4 : 1,
+  };
+
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, fullWidth && { width: '100%' }]}>
+    <Animated.View style={[{
+      transform: [{ scale: scaleAnim }],
+      shadowColor: variant === 'premium' ? colors.accent.primary : '#000',
+      shadowOffset: { width: 0, height: variant === 'premium' ? 4 : 0 },
+      shadowOpacity: variant === 'premium' ? 0.3 : 0,
+      shadowRadius: variant === 'premium' ? 12 : 0,
+      elevation: variant === 'premium' ? 6 : 0,
+    }, fullWidth && { width: '100%' }]}>
       <TouchableOpacity
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
+        hitSlop={hitSlop}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel || title}
+        accessibilityState={{ disabled: disabled || loading }}
         style={[
-          {
-            height,
-            borderRadius: borderRadius['2xl'],
-            backgroundColor: v.bg,
-            borderWidth: variant === 'outline' ? 1.5 : 0,
-            borderColor: v.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingHorizontal: spacing['2xl'],
-            gap: spacing.sm,
-            opacity: disabled ? 0.4 : 1,
-          },
+          commonStyle,
+          variant === 'premium' ? { backgroundColor: 'transparent', overflow: 'hidden' } : { backgroundColor: v.bg },
           fullWidth && { width: '100%' },
           style,
         ]}
       >
-        {loading ? (
-          <ActivityIndicator size="small" color={v.text} />
+        {variant === 'premium' ? (
+          <LinearGradient
+            colors={[colors.accent.primary, colors.accent.hover || colors.accent.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ flex: 1, height: '100%', borderRadius: borderRadius['2xl'], flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['2xl'], columnGap: spacing.sm }}
+          >
+            {buttonContent}
+          </LinearGradient>
         ) : (
-          <>
-            {icon && iconPosition === 'left' && icon}
-            <Text style={[{ fontSize: fontSizeMap[size], fontWeight: '600', color: v.text, letterSpacing: -0.05 }, textStyle]}>
-              {title}
-            </Text>
-            {icon && iconPosition === 'right' && icon}
-          </>
+          buttonContent
         )}
       </TouchableOpacity>
     </Animated.View>

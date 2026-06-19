@@ -10,12 +10,13 @@ import {
   RefreshControl,
   Keyboard,
   Dimensions,
-  Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
@@ -183,7 +184,7 @@ const COMMON_INDIAN_SUGGESTIONS = [
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user, accessToken } = useAuth();
   const { isOnline, pendingCount } = useOffline();
   const couple = useCoupleMode();
@@ -717,7 +718,14 @@ export function HomeScreen() {
   }
 
   return (
-    <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
+    <View style={page.screen}>
+      <LinearGradient
+        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        locations={[0, 0.3]}
+        style={{ flex: 1 }}
+      >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
@@ -923,8 +931,11 @@ export function HomeScreen() {
         {/* ─── GOALS PREVIEW ─── */}
         {demoGoals.length > 0 && (
           <View style={{ marginTop: 26, paddingHorizontal: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>Goals</Text>
+              </View>
               {goals.length > 0 && (
                 <TouchableOpacity onPress={() => navigation.navigate('GoalsList')}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
@@ -1008,22 +1019,25 @@ export function HomeScreen() {
 
         {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>Quick Actions</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>Quick Actions</Text>
+          </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {QUICK_ACTIONS.map((a) => (
               <TouchableOpacity
                 key={a.label}
                 onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
-                style={[page.actionCard, { backgroundColor: colors.bg.card }]}
+                style={[page.actionCard, { backgroundColor: colors.bg.card, ...shadows.md, borderWidth: 1, borderColor: colors.border.subtle }]}
                 activeOpacity={0.7}
               >
-                <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
+                <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}15` }]}>
                   <AntDesign name={a.icon as any} size={22} color={colors.brand.primary} />
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
                   {a.label}
                 </Text>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
                   {a.desc}
                 </Text>
               </TouchableOpacity>
@@ -1144,17 +1158,12 @@ export function HomeScreen() {
 
         {/* ─── SECTION 6: INSIGHTS CAROUSEL ─── */}
         <View style={{ marginTop: 26 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: colors.text.primary,
-              paddingHorizontal: 20,
-              marginBottom: 12,
-            }}
-          >
-            Insights
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginBottom: 12 }}>
+            <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>
+              Insights
+            </Text>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -1200,16 +1209,12 @@ export function HomeScreen() {
 
         {/* ─── SECTION 7: THIS MONTH ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: colors.text.primary,
-              marginBottom: 14,
-            }}
-          >
-            This Month
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>
+              This Month
+            </Text>
+          </View>
           <View style={[page.monthCard, { backgroundColor: colors.bg.card }]}>
             <MonthBar
               label="Income"
@@ -1300,9 +1305,12 @@ export function HomeScreen() {
                 marginBottom: 12,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
-                Spaces
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>
+                  Spaces
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => navigation.navigate('FamilyHub', { screen: 'FamilyHome' })}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
               </TouchableOpacity>
@@ -1405,16 +1413,12 @@ export function HomeScreen() {
         {/* ─── SECTION 9: UPCOMING ─── */}
         {reminders.length > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: colors.text.primary,
-                marginBottom: 12,
-              }}
-            >
-              Upcoming
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>
+                Upcoming
+              </Text>
+            </View>
             <View style={[page.upcomingCard, { backgroundColor: colors.bg.card }]}>
               {reminders.slice(0, 4).map((r, i) => {
                 const due = daysUntil(r.dueDate || r.date);
@@ -1494,9 +1498,12 @@ export function HomeScreen() {
         {/* Achievements */}
         <View style={{ paddingHorizontal: 20, marginTop: 24, marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
-              Achievements
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: colors.accent.primary }} />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3 }}>
+                Achievements
+              </Text>
+            </View>
             <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
               {achievements.earnedCount}/{achievements.totalCount || 0}
             </Text>
@@ -1515,6 +1522,7 @@ export function HomeScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      </LinearGradient>
     </View>
   );
 }
@@ -1706,17 +1714,12 @@ const page = StyleSheet.create({
   },
   actionCard: {
     width: (W - 20 * 2 - 10) / 2,
-    borderRadius: 18,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 20,
+    padding: 18,
   },
   actionIconWrap: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',

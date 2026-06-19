@@ -230,7 +230,7 @@ export function CoupleCoachScreen({ navigation }: any) {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => nav.navigate('CoupleReports')}
+            onPress={() => nav.navigate('Reports')}
             style={[styles.reportBtn, { backgroundColor: `${colors.accent.primary}18` }]}
           >
             <Text style={[styles.reportBtnText, { color: colors.accent.primary }]}>Full Report</Text>

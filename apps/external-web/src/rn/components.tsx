@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View as RNView,
   Text as RNText,
   ScrollView as RNScrollView,
   TouchableOpacity as RNTouchableOpacity,
   TextInput as RNTextInput,
+  Animated,
   StyleSheet,
   ViewStyle,
   TextStyle,
@@ -16,6 +17,20 @@ import {
   UIManager,
 } from 'react-native';
 import { typography, spacing, radii } from './theme';
+
+const SPRING_CONFIG = { tension: 180, friction: 12, useNativeDriver: true };
+const PRESS_SCALE = 0.96;
+
+function usePressAnimation() {
+  const scale = useRef(new Animated.Value(1)).current;
+  const onPressIn = useCallback(() => {
+    Animated.spring(scale, { toValue: PRESS_SCALE, ...SPRING_CONFIG }).start();
+  }, [scale]);
+  const onPressOut = useCallback(() => {
+    Animated.spring(scale, { toValue: 1, ...SPRING_CONFIG }).start();
+  }, [scale]);
+  return { scale, onPressIn, onPressOut };
+}
 
 export function SafeView({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
   return (
@@ -64,7 +79,11 @@ export function Card({
         : ('var(--dabbu-surface)' as any);
   const borderColor = 'var(--dabbu-border)' as any;
   return (
-    <RNView style={[styles.card, { backgroundColor: bg, borderColor }, style]}>{children}</RNView>
+    <Animated.View
+      style={[{ backgroundColor: bg, borderColor }, styles.card, style]}
+    >
+      {children}
+    </Animated.View>
   );
 }
 
@@ -99,26 +118,35 @@ export function AccentText({ children, style }: TextProps) {
 }
 
 export function PrimaryButton({ children, style, ...props }: TouchableOpacityProps) {
+  const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
-    <RNTouchableOpacity activeOpacity={0.85} style={[styles.primaryBtn, style]} {...props}>
-      <RNText style={styles.primaryBtnText}>{children}</RNText>
-    </RNTouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale }] }]}>
+      <RNTouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.primaryBtn, style]} {...props}>
+        <RNText style={styles.primaryBtnText}>{children}</RNText>
+      </RNTouchableOpacity>
+    </Animated.View>
   );
 }
 
 export function SecondaryButton({ children, style, ...props }: TouchableOpacityProps) {
+  const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
-    <RNTouchableOpacity activeOpacity={0.85} style={[styles.secondaryBtn, style]} {...props}>
-      <RNText style={styles.secondaryBtnText}>{children}</RNText>
-    </RNTouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale }] }]}>
+      <RNTouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.secondaryBtn, style]} {...props}>
+        <RNText style={styles.secondaryBtnText}>{children}</RNText>
+      </RNTouchableOpacity>
+    </Animated.View>
   );
 }
 
 export function GhostButton({ children, style, ...props }: TouchableOpacityProps) {
+  const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
-    <RNTouchableOpacity activeOpacity={0.7} style={[styles.ghostBtn, style]} {...props}>
-      <RNText style={styles.ghostBtnText}>{children}</RNText>
-    </RNTouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale }] }]}>
+      <RNTouchableOpacity activeOpacity={0.8} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.ghostBtn, style]} {...props}>
+        <RNText style={styles.ghostBtnText}>{children}</RNText>
+      </RNTouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -127,14 +155,19 @@ export function Chip({
   active = false,
   ...props
 }: TouchableOpacityProps & { active?: boolean }) {
+  const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
-    <RNTouchableOpacity
-      activeOpacity={0.7}
-      style={[styles.chip, active && styles.chipActive]}
-      {...props}
-    >
-      <RNText style={[styles.chipText, active && styles.chipTextActive]}>{children}</RNText>
-    </RNTouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale }] }]}>
+      <RNTouchableOpacity
+        activeOpacity={0.85}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={[styles.chip, active && styles.chipActive]}
+        {...props}
+      >
+        <RNText style={[styles.chipText, active && styles.chipTextActive]}>{children}</RNText>
+      </RNTouchableOpacity>
+    </Animated.View>
   );
 }
 

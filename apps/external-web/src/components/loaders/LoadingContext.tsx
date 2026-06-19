@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
 
 export type ScreenType =
   | 'dashboard'
@@ -135,6 +135,15 @@ let sessionCounter = 0;
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(loadingReducer, { activeSessions: [], queue: [] });
   const timersRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      timersRef.current.forEach((timer) => clearInterval(timer));
+      timersRef.current.clear();
+    };
+  }, []);
 
   const startLoading = useCallback(
     (screenType: ScreenType, options: LoadingOptions = {}): string => {
@@ -149,6 +158,10 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'START', id, screenType, options, startTime });
 
       const interval = setInterval(() => {
+        if (!mountedRef.current) {
+          clearInterval(interval);
+          return;
+        }
         dispatch({
           type: 'UPDATE_PROGRESS',
           id,
@@ -161,7 +174,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
               )
             ] || undefined,
         });
-      }, 100);
+      }, 150);
 
       timersRef.current.set(id, interval);
       return id;
@@ -182,7 +195,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'COMPLETE', id });
 
     setTimeout(() => {
-      dispatch({ type: 'DEQUEUE' });
+      if (mountedRef.current) dispatch({ type: 'DEQUEUE' });
     }, 300);
   }, []);
 

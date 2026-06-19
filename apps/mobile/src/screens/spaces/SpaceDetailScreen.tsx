@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Share,
-  Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +15,7 @@ import { useSpaceStore } from '../../store/spaceStore';
 import { useAuth } from '../../store/AuthContext';
 import { useAIStore } from '../../store/aiStore';
 import { useToast } from '../../store/ToastContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { TimelineItem } from '../../components/ui/TimelineItem';
 import { CreateGoalModal } from '../goals/CreateGoalModal';
 
@@ -51,7 +50,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
-  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, spaceTasks, addSpaceTask, toggleSpaceTask, deleteSpaceTask, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace, addMember } = useSpaceStore();
+  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, spaceTasks, addSpaceTask, toggleSpaceTask, deleteSpaceTask, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace } = useSpaceStore();
   const { accessToken, user } = useAuth();
   const { insights, loading: aiLoading, fetchInsights } = useAIStore();
   const [tab, setTab] = useState<Tab>('overview');
@@ -62,11 +61,18 @@ export function SpaceDetailScreen({ route, navigation }: any) {
   }, [spaceId]);
 
   useEffect(() => {
-    if (spaceId || !spaceId) {
+    if (spaceId) {
       fetchSpaceDetail(accessToken);
       fetchDashboard(accessToken);
     }
   }, [spaceId]);
+
+  useFocusEffect(useCallback(() => {
+    if (spaceId) {
+      fetchSpaceDetail(accessToken);
+      fetchDashboard(accessToken);
+    }
+  }, [spaceId, accessToken]));
 
   useEffect(() => {
     if (tab === 'ai' && accessToken && spaceId) {
@@ -78,19 +84,11 @@ export function SpaceDetailScreen({ route, navigation }: any) {
 
   const handleInvite = useCallback(async () => {
     if (!spaceId) return;
-    try {
-      await Share.share({
-        message: `Join my "${activeSpace?.name || 'Dabbu'}" space on Dabbu! Use invite code: ${spaceId.slice(0, 8).toUpperCase()}`,
-        title: `Invite to ${activeSpace?.name || 'Dabbu'}`,
-      });
-      showToast('Invite link shared!', 'info');
-    } catch {
-      // user cancelled
-    }
-  }, [spaceId, activeSpace, showToast]);
+    navigation.navigate('AddMember', { type: 'space', spaceId, existingMemberIds: (activeSpace?.members || []).map((m: any) => m.userId) });
+  }, [spaceId, activeSpace, navigation]);
 
   const handleAddExpense = useCallback(() => {
-    navigation.navigate('WalletTab', { screen: 'AddExpense', params: { spaceId } });
+    navigation.navigate('AddSpaceExpense', { spaceId });
   }, [navigation, spaceId]);
 
   if (detailLoading || !activeSpace) {

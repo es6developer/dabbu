@@ -3,9 +3,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { StatusBar, LogBox, Appearance, View, UIManager, Platform } from 'react-native';
 import * as Font from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -24,15 +21,17 @@ import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
 import { OfflineProvider } from './src/store/OfflineContext';
-import { DashboardProvider } from './src/store/DashboardContext';
 import { ToastProvider } from './src/store/ToastContext';
-import { ActiveSpaceProvider } from './src/providers/ActiveSpaceProvider';
 import { AlertProvider } from './src/components/ui/CustomAlert';
 import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
 import { useNotifications } from './src/hooks/useNotifications';
 import { warmupBackend } from './src/services/api';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
@@ -128,14 +127,13 @@ function AppInner(): React.ReactElement | null {
       try {
         loadFeatures();
         warmupBackend();
-        const fontName = Platform.OS === 'android' ? null : null;
-        const inter = await import('@expo-google-fonts/inter');
-        await Font.loadAsync({
-          'Inter-Regular': inter.Inter_400Regular,
-          'Inter-Medium': inter.Inter_500Medium,
-          'Inter-SemiBold': inter.Inter_600SemiBold,
-          'Inter-Bold': inter.Inter_700Bold,
-        });
+        const interFonts = {
+          'Inter-Regular': require('@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf'),
+          'Inter-Medium': require('@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf'),
+          'Inter-SemiBold': require('@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf'),
+          'Inter-Bold': require('@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf'),
+        };
+        await Font.loadAsync(interFonts);
         setFontsLoaded(true);
       } catch (e) {
         console.warn('Load error:', e);
@@ -168,8 +166,6 @@ function AppInner(): React.ReactElement | null {
               <LockProvider>
                 <FavoritesProvider>
                   <OfflineProvider>
-                    <DashboardProvider>
-                    <ActiveSpaceProvider>
                     <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                       <ThemedStatusBar />
                       <NotificationInitializer />
@@ -181,15 +177,13 @@ function AppInner(): React.ReactElement | null {
                         <ApiProgressBar />
                       </View>
                     </ThemedNavigationContainer>
-                    </ActiveSpaceProvider>
-                    </DashboardProvider>
-                  </OfflineProvider>
-                </FavoritesProvider>
-              </LockProvider>
-            </PreferencesProvider>
-          </ThemeProvider>
+                    </OfflineProvider>
+                  </FavoritesProvider>
+                </LockProvider>
+              </PreferencesProvider>
+            </ThemeProvider>
             </PremiumProvider>
-        </AuthProvider>
+          </AuthProvider>
         </ToastProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
