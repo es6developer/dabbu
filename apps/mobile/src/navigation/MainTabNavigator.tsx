@@ -20,8 +20,17 @@ import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen'
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { StreaksScreen } from '../screens/home/StreaksScreen';
 import { GlobalSearchScreen } from '../screens/home/GlobalSearchScreen';
+import { SpaceDetailScreen } from '../screens/spaces/SpaceDetailScreen';
+import { CreateSpaceScreen } from '../screens/spaces/CreateSpaceScreen';
+import { SpacesDashboardScreen as SpacesListScreen } from '../screens/spaces/SpacesDashboardScreen';
 import { YearlySummaryScreen } from '../screens/home/YearlySummaryScreen';
+import { HousePlannerScreen } from '../screens/lifehub/HousePlannerScreen';
+import { BabyPlannerScreen } from '../screens/lifehub/BabyPlannerScreen';
+import { RetirementPlannerScreen } from '../screens/lifehub/RetirementPlannerScreen';
+import { InvestmentPlannerScreen } from '../screens/lifehub/InvestmentPlannerScreen';
 import { WalletNavigator } from './WalletNavigator';
+import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
+import { FamilySpaceNavigator } from './FamilySpaceNavigator';
 import { FamilyHubNavigator } from './FamilyHubNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 import { useTheme } from '../theme';
@@ -54,16 +63,31 @@ function DashboardNavigator() {
       <DashboardStack.Screen name="Streaks" component={StreaksScreen} options={{ headerShown: false }} />
       <DashboardStack.Screen name="YearlySummary" component={YearlySummaryScreen} options={{ headerShown: false }} />
       <DashboardStack.Screen name="GlobalSearch" component={GlobalSearchScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="SpaceDetail" component={SpaceDetailScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="CreateSpace" component={CreateSpaceScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="SpacesDashboard" component={SpacesListScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="HousePlanner" component={HousePlannerScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="BabyPlanner" component={BabyPlannerScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="RetirementPlanner" component={RetirementPlannerScreen} options={{ headerShown: false }} />
+      <DashboardStack.Screen name="InvestmentPlanner" component={InvestmentPlannerScreen} options={{ headerShown: false }} />
     </DashboardStack.Navigator>
   );
 }
+
+const TAB_CONFIG = [
+  { name: 'Dashboard', label: 'Home', icon: 'home', activeIcon: 'home', component: DashboardNavigator },
+  { name: 'Couple', label: 'Couple', icon: 'hearto', activeIcon: 'heart', component: CoupleSpaceNavigator },
+  { name: 'Wallet', label: 'Wallet', icon: 'wallet', activeIcon: 'wallet', component: WalletNavigator },
+  { name: 'Family', label: 'Family', icon: 'team', activeIcon: 'team', component: FamilySpaceNavigator },
+  { name: 'Settings', label: 'Profile', icon: 'user', activeIcon: 'user', component: SettingsNavigator },
+];
 
 export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
   const { user, accessToken } = useAuth();
   const { getTabVisibility, bottomBarVisible, quickActionVisible } = usePreferences();
-  const { showCoupleFeatures } = useCoupleMode();
+  const { showCoupleFeatures, isInCouple } = useCoupleMode();
   const [showActions, setShowActions] = useState(false);
   const navigation = useNavigation<any>();
 
@@ -72,7 +96,6 @@ export function MainTabNavigator() {
   const quickActions = [
     { label: 'Add Expense', icon: 'addusergroup', color: '#DC2626', onPress: () => navigation.navigate('Wallet', { screen: 'AddExpense' }) },
     { label: 'Add Income', icon: 'caretup', color: '#16A34A', onPress: () => navigation.navigate('Wallet', { screen: 'AddExpense', params: { type: 'income' } }) },
-    { label: 'Create Group', icon: 'team', color: '#2563EB', onPress: () => navigation.navigate('FamilyHub', { screen: 'CreateSharedGroup' }) },
     { label: 'Create Goal', icon: 'flag', color: '#F59E0B', onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }) },
     { label: 'Net Worth', icon: 'barschart', color: '#7C3AED', onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }) },
     { label: 'Scan Bill', icon: 'camerao', color: '#14B8A6', onPress: () => navigation.navigate('Wallet', { screen: 'BillScanner' }) },
@@ -104,14 +127,19 @@ export function MainTabNavigator() {
           tabBarStyle: { backgroundColor: colors.bg.primary, borderTopWidth: 0, elevation: 0 },
         }}
       >
-        <Tab.Screen name="Dashboard" component={DashboardNavigator}
-          options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused, color }) => <AntDesign name={focused ? 'home' : 'home'} size={22} color={color} /> }} />
-        <Tab.Screen name="Wallet" component={WalletNavigator}
-          options={{ tabBarLabel: 'Wallet', tabBarIcon: ({ focused, color }) => <AntDesign name={focused ? 'wallet' : 'wallet'} size={22} color={color} /> }} />
-        <Tab.Screen name="FamilyHub" component={FamilyHubNavigator}
-          options={{ tabBarLabel: 'Family', tabBarIcon: ({ color, size }) => <AntDesign name="team" size={size} color={color} /> }} />
-        <Tab.Screen name="Settings" component={SettingsNavigator}
-          options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused, color }) => <AntDesign name={focused ? 'user' : 'user'} size={22} color={color} /> }} />
+        {TAB_CONFIG.map((tab) => (
+          <Tab.Screen
+            key={tab.name}
+            name={tab.name}
+            component={tab.component}
+            options={{
+              tabBarLabel: tab.label,
+              tabBarIcon: ({ focused, color }) => (
+                <AntDesign name={(focused ? tab.activeIcon : tab.icon) as any} size={22} color={color} />
+              ),
+            }}
+          />
+        ))}
       </Tab.Navigator>
       {quickActionVisible && (
         <QuickActionSheet visible={showActions} onClose={() => setShowActions(false)} actions={quickActions} />
@@ -121,7 +149,7 @@ export function MainTabNavigator() {
 }
 
 function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterButton, bottomBarVisible, onCenterPress }: any) {
-  if (!bottomBarVisible) return null;
+  if (!bottomBarVisible) {return null;}
 
   const scaleAnims = useRef<Record<string, Animated.Value>>({}).current;
   const fabScale = useRef(new Animated.Value(1)).current;
@@ -129,7 +157,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
   const { getTabVisibility } = usePreferences();
 
   function springTap(routeName: string, toValue: number) {
-    if (!scaleAnims[routeName]) scaleAnims[routeName] = new Animated.Value(1);
+    if (!scaleAnims[routeName]) {scaleAnims[routeName] = new Animated.Value(1);}
     Animated.spring(scaleAnims[routeName], { toValue, tension: 120, friction: 8, useNativeDriver: true }).start();
   }
 
@@ -138,17 +166,18 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
     const { options } = descriptor;
     const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
 
-    if (!scaleAnims[route.name]) scaleAnims[route.name] = new Animated.Value(1);
+    if (!scaleAnims[route.name]) {scaleAnims[route.name] = new Animated.Value(1);}
 
     const onPress = () => {
       springTap(route.name, 0.92);
       setTimeout(() => springTap(route.name, 1), 100);
       const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-      if (event.defaultPrevented) return;
+      if (event.defaultPrevented) {return;}
       const homeScreens: Record<string, string> = {
         Dashboard: 'DashboardMain',
+        Couple: 'CoupleOverview',
         Wallet: 'WalletHome',
-        FamilyHub: 'FamilyHome',
+        Family: 'FamilyOverview',
         Settings: 'SettingsMain',
       };
       navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
@@ -168,7 +197,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
     );
   }
 
-  const midIndex = 2;
+  const midIndex = Math.floor(state.routes.length / 2);
 
   return (
     <View style={[tabStyles.container, { backgroundColor: isDark ? 'rgba(17,17,17,0.92)' : 'rgba(248,248,250,0.92)' }]}>
@@ -179,8 +208,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
           shadowColor: colors.accent.primary,
         }]}>
           <View style={tabStyles.innerRow}>
-            {renderTab(state.routes[0])}
-            {renderTab(state.routes[1])}
+            {state.routes.slice(0, midIndex).map((route: any) => renderTab(route))}
             {showCenterButton && (
               <TouchableOpacity activeOpacity={0.85} style={tabStyles.centerFab}
                 onPressIn={() => Animated.spring(fabScale, { toValue: 0.9, tension: 120, friction: 8, useNativeDriver: true }).start()}
@@ -191,8 +219,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
                 </Animated.View>
               </TouchableOpacity>
             )}
-            {renderTab(state.routes[2])}
-            {renderTab(state.routes[3])}
+            {state.routes.slice(midIndex).map((route: any) => renderTab(route))}
           </View>
         </View>
       </BlurView>
@@ -207,6 +234,6 @@ const tabStyles = StyleSheet.create({
   innerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', minHeight: 56 },
   tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   label: { fontSize: 10, letterSpacing: 0.1, marginTop: 2 },
-  centerFab: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -16 },
+  centerFab: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   centerFabInner: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
 });

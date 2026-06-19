@@ -1,127 +1,217 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
-  Alert,
+  TouchableOpacity,
+  RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../../theme';
+import { api } from '../../services/api';
 
-type BillStatus = 'Paid' | 'Upcoming' | 'Overdue';
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_GAP = 12;
+const H_PADDING = 20;
+const CARD_WIDTH = (SCREEN_WIDTH - H_PADDING * 2 - CARD_GAP) / 2;
 
-interface Bill {
-  id: string;
-  name: string;
-  amount: number;
-  dueDate: string;
-  status: BillStatus;
-  category: string;
+interface CardConfig {
+  key: string;
+  label: string;
+  icon: keyof typeof AntDesign.glyphMap;
+  accent: string;
+  navigateTo: string;
 }
 
-const initialBills: Bill[] = [
-  { id: '1', name: 'Electricity Bill', amount: 3200, dueDate: '15 Jun 2026', status: 'Upcoming', category: 'Utilities' },
-  { id: '2', name: 'Water Bill', amount: 850, dueDate: '20 Jun 2026', status: 'Upcoming', category: 'Utilities' },
-  { id: '3', name: 'Internet - Airtel', amount: 1499, dueDate: '10 Jun 2026', status: 'Paid', category: 'Utilities' },
-  { id: '4', name: 'Home Insurance Premium', amount: 12500, dueDate: '05 Jun 2026', status: 'Paid', category: 'Insurance' },
-  { id: '5', name: 'Society Maintenance', amount: 4500, dueDate: '01 Jun 2026', status: 'Overdue', category: 'Housing' },
-  { id: '6', name: 'School Fees - Aarav', amount: 8500, dueDate: '25 May 2026', status: 'Overdue', category: 'Education' },
-  { id: '7', name: 'Credit Card Bill', amount: 23400, dueDate: '28 Jun 2026', status: 'Upcoming', category: 'Finance' },
-  { id: '8', name: 'Gas Cylinder', amount: 1050, dueDate: '18 Jun 2026', status: 'Upcoming', category: 'Utilities' },
+const CARDS: CardConfig[] = [
+  { key: 'sharedExpenses', label: 'Shared Expenses', icon: 'wallet', accent: '#EF4444', navigateTo: 'Bills' },
+  { key: 'sharedIncome', label: 'Shared Income', icon: 'caretdown', accent: '#22C55E', navigateTo: 'Bills' },
+  { key: 'familyBudget', label: 'Family Budget', icon: 'piechart', accent: '#3B82F6', navigateTo: 'Budget' },
+  { key: 'contributions', label: 'Contribution Tracking', icon: 'addusergroup', accent: '#A78BFA', navigateTo: 'Contributions' },
+  { key: 'monthlyAnalysis', label: 'Monthly Analysis', icon: 'linechart', accent: '#F97316', navigateTo: 'Reports' },
+  { key: 'cashFlow', label: 'Cash Flow', icon: 'swap', accent: '#14B8A6', navigateTo: 'Reports' },
 ];
 
-const statusConfig = {
-  Paid: { icon: 'checkcircle' as const, color: '#10B981', label: 'Paid' },
-  Upcoming: { icon: 'clockcircle' as const, color: '#3B82F6', label: 'Upcoming' },
-  Overdue: { icon: 'exclamationcircle' as const, color: '#EF4444', label: 'Overdue' },
-};
+function fmtShort(v: number): string {
+  if (v >= 10000000) return '₹' + (v / 10000000).toFixed(1) + 'Cr';
+  if (v >= 100000) return '₹' + (v / 100000).toFixed(1) + 'L';
+  if (v >= 1000) return '₹' + (v / 1000).toFixed(1) + 'K';
+  return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
 
-const BillCard: React.FC<{ bill: Bill }> = ({ bill }) => {
-  const config = statusConfig[bill.status];
-  const isOverdue = bill.status === 'Overdue';
-  const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
+function fmt(v: number): string {
+  return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
 
+interface MoneyCardProps {
+  card: CardConfig;
+  value: string;
+  subtext: string;
+  onPress: () => void;
+  colors: any;
+}
+
+function MoneyCard({ card, value, subtext, onPress, colors }: MoneyCardProps) {
   return (
     <TouchableOpacity
-      style={[styles.billCard, isOverdue && styles.overdueCard]}
       activeOpacity={0.7}
-      onPress={() => Alert.alert('Bill Details', `${bill.name}\n${formatCurrency(bill.amount)}\nDue: ${bill.dueDate}`)}
+      onPress={onPress}
+      style={[styles.card, { backgroundColor: colors.bg.card }]}
     >
-      <View style={styles.billLeft}>
-        <View style={[styles.statusDot, { backgroundColor: config.color }]} />
-        <View style={styles.billInfo}>
-          <Text style={[styles.billName, isOverdue && styles.overdueText]}>{bill.name}</Text>
-          <Text style={styles.billCategory}>{bill.category}</Text>
-          <Text style={[styles.billDueDate, isOverdue && styles.overdueText]}>Due: {bill.dueDate}</Text>
-        </View>
+      <View style={[styles.cardAccent, { backgroundColor: card.accent + '20' }]}>
+        <AntDesign name={card.icon} size={22} color={card.accent} />
       </View>
-      <View style={styles.billRight}>
-        <Text style={[styles.billAmount, isOverdue && styles.overdueText]}>
-          {formatCurrency(bill.amount)}
-        </Text>
-        <View style={[styles.statusBadge, { backgroundColor: config.color + '20' }]}>
-          <AntDesign name={config.icon} size={12} color={config.color} />
-          <Text style={[styles.statusLabel, { color: config.color }]}>{config.label}</Text>
-        </View>
-      </View>
+      <Text style={[styles.cardValue, { color: colors.text.primary }]} numberOfLines={1}>
+        {value}
+      </Text>
+      <Text style={[styles.cardSubtext, { color: colors.text.tertiary }]} numberOfLines={2}>
+        {subtext}
+      </Text>
+      <Text style={[styles.cardLabel, { color: card.accent }]} numberOfLines={1}>
+        {card.label}
+      </Text>
     </TouchableOpacity>
   );
-};
+}
+
+function SkeletonCard({ colors }: { colors: any }) {
+  return (
+    <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
+      <View style={[styles.skelAccent, { backgroundColor: colors.skeleton.base }]} />
+      <View style={[styles.skelLine, { backgroundColor: colors.skeleton.base, width: '70%', marginTop: 12 }]} />
+      <View style={[styles.skelLine, { backgroundColor: colors.skeleton.base, width: '90%', marginTop: 6 }]} />
+      <View style={[styles.skelLine, { backgroundColor: colors.skeleton.base, width: '50%', marginTop: 6 }]} />
+    </View>
+  );
+}
 
 export default function FamilyBillsScreen() {
   const insets = useSafeAreaInsets();
-  const [bills] = useState<Bill[]>(initialBills);
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [data, setData] = useState<any>(null);
+  const [wealth, setWealth] = useState<any>(null);
 
-  const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    try {
+      const families = await api.get<any>('/family');
+      const activeFamily = Array.isArray(families) ? families[0] : null;
+      if (!activeFamily) {
+        setData(null);
+        setWealth(null);
+        return;
+      }
+      const fid = activeFamily.id;
+      const [dashRes, wealthRes] = await Promise.allSettled([
+        api.get<any>(`/family/dashboard?familyId=${fid}`),
+        api.get<any>(`/family/wealth?familyId=${fid}`),
+      ]);
+      if (dashRes.status === 'fulfilled') setData(dashRes.value);
+      if (wealthRes.status === 'fulfilled') setWealth(wealthRes.value);
+    } catch {
+      /* handled by empty/default state */
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
-  const totalBills = bills.reduce((s, b) => s + b.amount, 0);
-  const dueThisMonth = bills
-    .filter(b => b.status === 'Upcoming')
-    .reduce((s, b) => s + b.amount, 0);
-  const overdue = bills
-    .filter(b => b.status === 'Overdue')
-    .reduce((s, b) => s + b.amount, 0);
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData(true);
+  }, [fetchData]);
+
+  const d = data || {};
+  const w = wealth || {};
+  const totalExpenses = d.totalExpenses ?? w.totalExpenses ?? 0;
+  const totalIncome = d.totalIncome ?? w.totalIncome ?? 0;
+  const recentExpenses = d.recentExpenses ?? w.recentExpenses ?? 0;
+  const budgetSpent = d.budgetSpent ?? w.budgetSpent ?? 0;
+  const budgetLimit = d.budgetLimit ?? w.budgetLimit ?? 0;
+  const contributions = d.contributions ?? w.contributions ?? 0;
+  const members = d.members ?? w.members ?? 0;
+  const monthlyIncome = d.monthlyIncome ?? w.monthlyIncome ?? 0;
+  const monthlyExpense = d.monthlyExpense ?? w.monthlyExpense ?? 0;
+  const monthlySavings = d.monthlySavings ?? w.monthlySavings ?? 0;
+  const netFlow = d.netFlow ?? w.netFlow ?? (totalIncome - totalExpenses);
+
+  const cardValues: Record<string, { value: string; subtext: string }> = {
+    sharedExpenses: {
+      value: fmtShort(totalExpenses),
+      subtext: `₹${recentExpenses.toLocaleString('en-IN')} recent`,
+    },
+    sharedIncome: {
+      value: fmtShort(totalIncome),
+      subtext: `This month: ${fmtShort(monthlyIncome)}`,
+    },
+    familyBudget: {
+      value: `${budgetLimit > 0 ? Math.round((budgetSpent / budgetLimit) * 100) : 0}%`,
+      subtext: `${fmtShort(budgetSpent)} of ${fmtShort(budgetLimit)}`,
+    },
+    contributions: {
+      value: fmtShort(contributions),
+      subtext: `${members} member${members !== 1 ? 's' : ''}`,
+    },
+    monthlyAnalysis: {
+      value: fmtShort(monthlySavings),
+      subtext: `↑ ${fmtShort(monthlyIncome)} / ↓ ${fmtShort(monthlyExpense)}`,
+    },
+    cashFlow: {
+      value: netFlow >= 0 ? `+${fmtShort(netFlow)}` : fmtShort(netFlow),
+      subtext: netFlow >= 0 ? 'Positive cash flow' : 'Negative cash flow',
+    },
+  };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Shared Bills</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => Alert.alert('Add Bill', 'Add a new shared bill')}
-        >
-          <AntDesign name="plus" size={18} color="#0A0A0A" />
-          <Text style={styles.addButtonText}>Add Bill</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Bills</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(totalBills)}</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Due This Month</Text>
-          <Text style={[styles.summaryValue, { color: '#3B82F6' }]}>{formatCurrency(dueThisMonth)}</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Overdue</Text>
-          <Text style={[styles.summaryValue, { color: overdue > 0 ? '#EF4444' : '#6B7280' }]}>
-            {formatCurrency(overdue)}
-          </Text>
-        </View>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Text style={[styles.title, { color: colors.text.primary }]}>Money</Text>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.text.tertiary}
+          />
+        }
         showsVerticalScrollIndicator={false}
       >
-        {bills.map(bill => (
-          <BillCard key={bill.id} bill={bill} />
-        ))}
+        {loading ? (
+          <View style={styles.grid}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} colors={colors} />
+            ))}
+          </View>
+        ) : (
+          <View style={styles.grid}>
+            {CARDS.map((card) => {
+              const cv = cardValues[card.key];
+              return (
+                <MoneyCard
+                  key={card.key}
+                  card={card}
+                  value={cv?.value || '₹0'}
+                  subtext={cv?.subtext || ''}
+                  colors={colors}
+                  onPress={() => navigation.navigate(card.navigateTo)}
+                />
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -130,130 +220,63 @@ export default function FamilyBillsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: H_PADDING,
+    paddingBottom: 12,
   },
-  headerTitle: {
-    fontSize: 28,
+  title: {
+    fontSize: 34,
     fontWeight: '700',
-    color: '#F9FAFB',
     letterSpacing: -0.5,
   },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#10B981',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0A0A0A',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 10,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-  scrollView: {
+  scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: H_PADDING,
     paddingBottom: 100,
   },
-  billCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: CARD_GAP,
+  },
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: 20,
     padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  overdueCard: {
-    borderLeftWidth: 3,
-    borderLeftColor: '#EF4444',
-  },
-  billLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  billInfo: {
-    flex: 1,
-  },
-  billName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#F9FAFB',
-    marginBottom: 2,
-  },
-  billCategory: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  billDueDate: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  overdueText: {
-    color: '#EF4444',
-  },
-  billRight: {
-    alignItems: 'flex-end',
     gap: 6,
   },
-  billAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-  statusBadge: {
-    flexDirection: 'row',
+  cardAccent: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    gap: 4,
+    justifyContent: 'center',
   },
-  statusLabel: {
+  cardValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  cardSubtext: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  cardLabel: {
     fontSize: 11,
     fontWeight: '600',
+    letterSpacing: 0.2,
+    marginTop: 2,
+  },
+  skelAccent: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+  },
+  skelLine: {
+    height: 14,
+    borderRadius: 7,
   },
 });

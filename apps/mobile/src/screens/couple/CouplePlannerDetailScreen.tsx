@@ -83,7 +83,7 @@ export function CouplePlannerDetailScreen() {
   const fetchPlanner = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true); else setLoading(true);
     try {
-      const res = await api.get<any>(`/couple/planners/${plannerType.toLowerCase()}`);
+      const res = await api.get<any>(`/couple/planner/${plannerType}`);
       setPlanner(res);
       setError('');
     } catch (e: any) {

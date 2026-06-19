@@ -1,238 +1,611 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Dimensions,
+  Animated,
+  StyleSheet,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { Card } from '../../components/ui/Card';
-import { ProfileBubble } from '../../components/ui/ProfileBubble';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { api } from '../../services/api';
 
-const TABS = ['Overview', 'Expenses', 'Balances'];
-
-const SHARED_EXPENSES = [
-  { name: 'Rent', amount: 22000, paidBy: 'You', date: '1 Jun' },
-  { name: 'Groceries', amount: 5600, paidBy: 'Priya', date: '3 Jun' },
-  { name: 'Electricity', amount: 3400, paidBy: 'You', date: '5 Jun' },
-  { name: 'Dinner Out', amount: 2400, paidBy: 'Priya', date: '7 Jun' },
-  { name: 'Netflix', amount: 649, paidBy: 'You', date: '10 Jun' },
-];
+const { width } = Dimensions.get('window');
+const CARD_GAP = 12;
+const CARD_WIDTH = (width - 20 * 2 - CARD_GAP) / 2;
+const COLORS = {
+  expenses: '#EF4444',
+  income: '#22C55E',
+  accounts: '#3B82F6',
+  settlement: '#F97316',
+  contribution: '#8B5CF6',
+  whoPaid: '#14B8A6',
+};
 
 function fmt(v: number) {
-  return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-export function CoupleFinance() {
-  const { colors, isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState('Overview');
+function shortFmt(v: number) {
+  if (v >= 10000000) return `\u20B9${(v / 10000000).toFixed(1)}Cr`;
+  if (v >= 100000) return `\u20B9${(v / 100000).toFixed(1)}L`;
+  if (v >= 1000) return `\u20B9${(v / 1000).toFixed(1)}K`;
+  return `\u20B9${Math.round(v)}`;
+}
 
-  const totalShared = 34049;
-  const youPaid = 26049;
-  const theyPaid = 8000;
-  const balance = youPaid - theyPaid;
-
+function SkeletonCard() {
+  const { colors } = useTheme();
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg.primary }}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {/* ── Header ──────────────────────────────── */}
-        <View className="flex-row items-center justify-between px-5 pt-2 pb-2">
-          <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-            <AntDesign  name="left" size={24} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
-            Couple Space
-          </Text>
-          <TouchableOpacity
-            onPress={() => {}}
-            activeOpacity={0.7}
-            className="w-9 h-9 rounded-full items-center justify-center"
-            style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
-          >
-            <AntDesign  name="ellipsis1" size={18} color={colors.text.secondary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Couple Avatar Row ──────────────────── */}
-        <View className="items-center py-4">
-          <View className="flex-row items-center -space-x-2">
-            <View className="z-10">
-              <ProfileBubble name="You" size={56} />
-            </View>
-            <View className="-ml-4">
-              <ProfileBubble name="Priya" size={56} />
-            </View>
-          </View>
-          <View className="flex-row items-center gap-1.5 mt-2">
-            <View
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: colors.status.success }}
-            />
-            <Text className="text-[13px] font-medium" style={{ color: colors.text.secondary }}>
-              Connected · Shared since May 2026
-            </Text>
-          </View>
-        </View>
-
-        {/* ── Balance Card ────────────────────────── */}
-        <View className="mx-5">
-          <Card variant="highlight" padding="xl">
-            <Text
-              className="text-[12px] font-semibold tracking-wide text-center"
-              style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#6D28D9' }}
-            >
-              TOTAL SHARED THIS MONTH
-            </Text>
-            <Text
-              className="text-center font-bold mt-1"
-              style={{
-                fontSize: 34,
-                lineHeight: 40,
-                color: isDark ? '#FFFFFF' : '#0F172A',
-              }}
-            >
-              {fmt(totalShared)}
-            </Text>
-
-            <View className="flex-row mt-5 gap-3">
-              <View
-                className="flex-1 items-center py-3 rounded-xl"
-                style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
-                }}
-              >
-                <Text
-                  className="text-[11px] font-medium"
-                  style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#7C3AED' }}
-                >
-                  You paid
-                </Text>
-                <Text className="text-[18px] font-bold mt-1" style={{ color: '#10B981' }}>
-                  {fmt(youPaid)}
-                </Text>
-              </View>
-              <View
-                className="flex-1 items-center py-3 rounded-xl"
-                style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
-                }}
-              >
-                <Text
-                  className="text-[11px] font-medium"
-                  style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#7C3AED' }}
-                >
-                  They paid
-                </Text>
-                <Text className="text-[18px] font-bold mt-1" style={{ color: colors.text.primary }}>
-                  {fmt(theyPaid)}
-                </Text>
-              </View>
-            </View>
-
-            {/* Settle up banner */}
-            {balance > 0 && (
-              <TouchableOpacity
-                onPress={() => {}}
-                activeOpacity={0.7}
-                className="flex-row items-center justify-center mt-4 py-3 rounded-xl gap-2"
-                style={{ backgroundColor: colors.status.successLight }}
-              >
-                <AntDesign  name="wallet" size={18} color={colors.status.success} />
-                <Text className="text-[13px] font-bold" style={{ color: '#10B981' }}>
-                  Settle Up · {fmt(balance)}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </Card>
-        </View>
-
-        {/* ── Tab Bar ─────────────────────────────── */}
-        <View className="mx-5 mt-6 mb-4">
-          <View
-            className="flex-row rounded-xl p-1"
-            style={{
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : colors.bg.tertiary,
-            }}
-          >
-            {TABS.map((tab) => {
-              const isActive = tab === activeTab;
-              return (
-                <TouchableOpacity
-                  key={tab}
-                  onPress={() => setActiveTab(tab)}
-                  activeOpacity={0.7}
-                  className="flex-1 py-2.5 rounded-xl items-center"
-                  style={{
-                    backgroundColor: isActive ? colors.accent.primary : 'transparent',
-                  }}
-                >
-                  <Text
-                    className="text-[13px] font-semibold"
-                    style={{
-                      color: isActive ? '#FFFFFF' : colors.text.secondary,
-                    }}
-                  >
-                    {tab}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* ── Expenses List ────────────────────────── */}
-        <View className="mx-5 mb-8">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-[15px] font-bold" style={{ color: colors.text.primary }}>
-              Shared Expenses
-            </Text>
-            <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-              <Text className="text-[12px] font-semibold" style={{ color: colors.accent.primary }}>
-                + Add
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {SHARED_EXPENSES.map((exp, i) => {
-            const isYou = exp.paidBy === 'You';
-            return (
-              <Card key={i} variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
-                <View className="flex-row items-center">
-                  <View
-                    className="w-10 h-10 rounded-xl items-center justify-center"
-                    style={{
-                      backgroundColor: isYou
-                        ? 'rgba(124, 58, 237, 0.10)'
-                        : 'rgba(16, 185, 129, 0.10)',
-                    }}
-                  >
-                    <AntDesign
-                      name={(isYou ? 'user' : 'user') as any}
-                      size={16}
-                      color={isYou ? colors.accent.primary : colors.status.success}
-                    />
-                  </View>
-                  <View className="flex-1 ml-3">
-                    <Text
-                      className="text-[14px] font-semibold"
-                      style={{ color: colors.text.primary }}
-                    >
-                      {exp.name}
-                    </Text>
-                    <Text
-                      className="text-[11px] font-medium mt-0.5"
-                      style={{ color: colors.text.tertiary }}
-                    >
-                      Paid by {exp.paidBy} · {exp.date}
-                    </Text>
-                  </View>
-                  <Text className="text-[15px] font-bold" style={{ color: colors.text.primary }}>
-                    {fmt(exp.amount)}
-                  </Text>
-                </View>
-              </Card>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={[styles.skeletonCard, { backgroundColor: colors.skeleton.base }]}>
+      <View style={[styles.skelAccent, { backgroundColor: colors.skeleton.highlight }]} />
+      <View style={styles.skelBody}>
+        <View style={[styles.skelCircle, { backgroundColor: colors.skeleton.highlight }]} />
+        <View style={[styles.skelLine, { width: '60%', backgroundColor: colors.skeleton.highlight }]} />
+        <View style={[styles.skelLine, { width: '40%', backgroundColor: colors.skeleton.highlight }]} />
+        <View style={[styles.skelLine, { width: '80%', backgroundColor: colors.skeleton.highlight }]} />
+      </View>
+    </View>
   );
 }
+
+function WidgetCard({
+  icon,
+  title,
+  color,
+  children,
+  onPress,
+  delay,
+}: {
+  icon: string;
+  title: string;
+  color: string;
+  children: React.ReactNode;
+  onPress?: () => void;
+  delay: number;
+}) {
+  const { colors, isDark } = useTheme();
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        delay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 400,
+        delay,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.bg.card,
+            shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.08)',
+            borderLeftColor: color,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: `${color}18` },
+          ]}
+        >
+          <AntDesign name={icon as any} size={18} color={color} />
+        </View>
+        <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+          {title}
+        </Text>
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+export function CoupleFinance({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState('');
+
+  const fetchDashboard = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    try {
+      const dashboard = await api.get<any>('/couple/dashboard');
+      setData(dashboard);
+      setError('');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchDashboard(true);
+  }, [fetchDashboard]);
+
+  const expenses = data?.sharedMonthlyExpenses ?? 0;
+  const income = data?.sharedMonthlyIncome ?? 0;
+  const recentExpenses: any[] = data?.recentExpenses ?? [];
+  const recentIncomes: any[] = data?.recentIncomes ?? [];
+  const sharedBalance = data?.sharedBalance?.amount ?? 0;
+  const monthlySnapshot = data?.monthlySnapshot ?? {};
+  const userSpent = monthlySnapshot?.userSpent ?? 0;
+  const partnerSpent = monthlySnapshot?.partnerSpent ?? 0;
+  const totalSpent = userSpent + partnerSpent || 1;
+  const userName = data?.userName || 'You';
+  const partnerName = data?.partnerName || 'Partner';
+
+  const recentExpensesSlice = recentExpenses.slice(0, 3);
+  const recentIncomesSlice = recentIncomes.slice(0, 3);
+
+  const settlementAmount = (data?.sharedBalance?.owes ?? 0) > 0
+    ? data.sharedBalance.amount
+    : 0;
+  const settlementLabel = data?.sharedBalance?.owes;
+  const isYouOwe = settlementLabel === 'you';
+
+  return (
+    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 40,
+          paddingTop: insets.top + 16,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+          />
+        }
+      >
+        {/* ── Header ──────────────────────────────── */}
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>
+            Money Hub
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CoupleSettings')}
+            activeOpacity={0.7}
+            style={[styles.settingsBtn, { backgroundColor: colors.bg.tertiary }]}
+          >
+            <AntDesign name="setting" size={20} color={colors.text.secondary} />
+          </TouchableOpacity>
+        </View>
+
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={{ color: colors.status.error, fontSize: 14 }}>{error}</Text>
+          </View>
+        ) : loading ? (
+          <View style={styles.grid}>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </View>
+        ) : (
+          <View style={styles.grid}>
+            {/* 1. Shared Expenses */}
+            <WidgetCard
+              icon="shoppingcart"
+              title="Shared Expenses"
+              color={COLORS.expenses}
+              delay={0}
+              onPress={() => navigation.navigate('Expenses')}
+            >
+              <Text style={[styles.amountLabel, { color: COLORS.expenses }]}>
+                {fmt(expenses)}
+              </Text>
+              {recentExpensesSlice.length > 0 ? (
+                <View style={styles.cardList}>
+                  {recentExpensesSlice.map((exp, i) => (
+                    <View key={i} style={styles.cardListItem}>
+                      <Text style={[styles.cardListItemText, { color: colors.text.secondary }]} numberOfLines={1}>
+                        {exp.name ?? exp.category ?? 'Expense'}
+                      </Text>
+                      <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
+                        {fmt(exp.amount ?? 0)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No expenses yet</Text>
+              )}
+            </WidgetCard>
+
+            {/* 2. Shared Income */}
+            <WidgetCard
+              icon="linechart"
+              title="Shared Income"
+              color={COLORS.income}
+              delay={100}
+              onPress={() => navigation.navigate('Income')}
+            >
+              <Text style={[styles.amountLabel, { color: COLORS.income }]}>
+                {fmt(income)}
+              </Text>
+              {recentIncomesSlice.length > 0 ? (
+                <View style={styles.cardList}>
+                  {recentIncomesSlice.map((inc, i) => (
+                    <View key={i} style={styles.cardListItem}>
+                      <Text style={[styles.cardListItemText, { color: colors.text.secondary }]} numberOfLines={1}>
+                        {inc.name ?? inc.category ?? 'Income'}
+                      </Text>
+                      <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
+                        {fmt(inc.amount ?? 0)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No income yet</Text>
+              )}
+            </WidgetCard>
+
+            {/* 3. Shared Accounts */}
+            <WidgetCard
+              icon="wallet"
+              title="Shared Accounts"
+              color={COLORS.accounts}
+              delay={200}
+              onPress={() => navigation.navigate('Budgets')}
+            >
+              <Text style={[styles.amountLabel, { color: COLORS.accounts }]}>
+                {fmt(sharedBalance)}
+              </Text>
+              <View style={styles.cardList}>
+                <View style={styles.cardListItem}>
+                  <Text style={[styles.cardListItemText, { color: colors.text.secondary }]}>Combined</Text>
+                  <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
+                    {shortFmt(sharedBalance)}
+                  </Text>
+                </View>
+                <View style={styles.cardListItem}>
+                  <Text style={[styles.cardListItemText, { color: colors.text.secondary }]}>This Month</Text>
+                  <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
+                    {shortFmt(expenses + income)}
+                  </Text>
+                </View>
+              </View>
+            </WidgetCard>
+
+            {/* 4. Settlement */}
+            <WidgetCard
+              icon="swap"
+              title="Settlement"
+              color={COLORS.settlement}
+              delay={300}
+              onPress={() => navigation.navigate('Settlements')}
+            >
+              {settlementAmount > 0 ? (
+                <>
+                  <Text style={[styles.amountLabel, { color: COLORS.settlement }]}>
+                    {fmt(settlementAmount)}
+                  </Text>
+                  <Text style={[styles.owesText, { color: colors.text.secondary }]}>
+                    {isYouOwe ? 'You owe' : 'Owes you'}
+                  </Text>
+                  <View style={[styles.settleBtn, { backgroundColor: `${COLORS.settlement}18` }]}>
+                    <AntDesign name="wallet" size={12} color={COLORS.settlement} />
+                    <Text style={[styles.settleBtnText, { color: COLORS.settlement }]}>Settle Up</Text>
+                  </View>
+                </>
+              ) : (
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>All settled up</Text>
+              )}
+            </WidgetCard>
+
+            {/* 5. Contribution Tracking */}
+            <WidgetCard
+              icon="piechart"
+              title="Contributions"
+              color={COLORS.contribution}
+              delay={400}
+              onPress={() => navigation.navigate('Reports')}
+            >
+              <View style={styles.cardList}>
+                <View style={styles.contributionRow}>
+                  <Text style={[styles.contributionLabel, { color: colors.text.secondary }]} numberOfLines={1}>
+                    {userName}
+                  </Text>
+                  <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: `${Math.round((userSpent / totalSpent) * 100)}%`,
+                          backgroundColor: COLORS.contribution,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.contributionPct, { color: colors.text.primary }]}>
+                    {Math.round((userSpent / totalSpent) * 100)}%
+                  </Text>
+                </View>
+                <View style={styles.contributionRow}>
+                  <Text style={[styles.contributionLabel, { color: colors.text.secondary }]} numberOfLines={1}>
+                    {partnerName}
+                  </Text>
+                  <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: `${Math.round((partnerSpent / totalSpent) * 100)}%`,
+                          backgroundColor: COLORS.contribution,
+                          opacity: 0.5,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.contributionPct, { color: colors.text.primary }]}>
+                    {Math.round((partnerSpent / totalSpent) * 100)}%
+                  </Text>
+                </View>
+              </View>
+            </WidgetCard>
+
+            {/* 6. Who Paid What */}
+            <WidgetCard
+              icon="team"
+              title="Who Paid What"
+              color={COLORS.whoPaid}
+              delay={500}
+              onPress={() => navigation.navigate('Reports')}
+            >
+              {recentExpensesSlice.length > 0 ? (
+                <View style={styles.cardList}>
+                  {recentExpensesSlice.map((exp, i) => (
+                    <View key={i} style={styles.cardListItem}>
+                      <View style={styles.payerRow}>
+                        <View
+                          style={[
+                            styles.payerDot,
+                            { backgroundColor: exp.paidBy === userName ? COLORS.whoPaid : `${COLORS.whoPaid}50` },
+                          ]}
+                        />
+                        <Text style={[styles.cardListItemText, { color: colors.text.secondary }]} numberOfLines={1}>
+                          {exp.paidBy ?? 'Someone'}
+                        </Text>
+                      </View>
+                      <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
+                        {fmt(exp.amount ?? 0)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No recent expenses</Text>
+              )}
+              <View style={[styles.pieIndicator, { backgroundColor: `${COLORS.whoPaid}18` }]}>
+                <View style={[styles.pieDot, { backgroundColor: COLORS.whoPaid }]} />
+                <Text style={[styles.pieLabel, { color: colors.text.secondary }]}>
+                  {userName}: {fmt(userSpent)}
+                </Text>
+                <View style={[styles.pieDot, { backgroundColor: COLORS.whoPaid, opacity: 0.5 }]} />
+                <Text style={[styles.pieLabel, { color: colors.text.secondary }]}>
+                  {partnerName}: {fmt(partnerSpent)}
+                </Text>
+              </View>
+            </WidgetCard>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  settingsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorBox: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 20,
+    gap: CARD_GAP,
+  },
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: 20,
+    padding: 14,
+    borderLeftWidth: 3.5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 3,
+    gap: 8,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: -0.1,
+  },
+  amountLabel: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  cardList: {
+    gap: 4,
+  },
+  cardListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardListItemText: {
+    fontSize: 11,
+    fontWeight: '500',
+    flex: 1,
+    marginRight: 4,
+  },
+  cardListItemAmount: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  emptyText: {
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'italic',
+  },
+  owesText: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: -4,
+  },
+  settleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  settleBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  contributionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  contributionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    width: 48,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: 6,
+    borderRadius: 3,
+  },
+  contributionPct: {
+    fontSize: 11,
+    fontWeight: '700',
+    width: 32,
+    textAlign: 'right',
+  },
+  payerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  payerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  pieIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  pieDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  pieLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginRight: 6,
+  },
+  skeletonCard: {
+    width: CARD_WIDTH,
+    height: 160,
+    borderRadius: 20,
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  skelAccent: {
+    width: 3.5,
+    height: '100%',
+  },
+  skelBody: {
+    flex: 1,
+    padding: 14,
+    gap: 10,
+  },
+  skelCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  skelLine: {
+    height: 10,
+    borderRadius: 5,
+  },
+});

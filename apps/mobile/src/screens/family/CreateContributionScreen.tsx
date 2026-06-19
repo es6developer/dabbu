@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -11,6 +11,7 @@ const TYPES = ['Monthly', 'Quarterly', 'Yearly', 'One-time'];
 
 export function CreateContributionScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 

@@ -20,6 +20,8 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
+import { useUserStore } from '../../store/userStore';
+import { useLensStore } from '../../store/lensStore';
 
 const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
 
@@ -36,6 +38,8 @@ export function ProfileScreen() {
   const { accessToken, user, logout, updateAvatarUrl, completeProfileSetup } = useAuth();
 
   const { showToast } = useToast();
+  const { activeLens } = useLensStore();
+  const updateUserLens = useUserStore((s) => s.updateLens);
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
@@ -322,6 +326,56 @@ export function ProfileScreen() {
                 >
                   {fullName}
                 </Text>
+              </View>
+
+              {/* Life Lens */}
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 10,
+                    paddingLeft: 2,
+                  }}
+                >
+                  Life Lens
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {(['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] as const).map((lens) => {
+                    const isActive = activeLens === lens;
+                    return (
+                      <TouchableOpacity
+                        key={lens}
+                        onPress={async () => {
+                          useLensStore.getState().setLens(lens);
+                          await updateUserLens(accessToken, lens);
+                        }}
+                        activeOpacity={0.7}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 10,
+                          borderRadius: borderRadius.md,
+                          backgroundColor: isActive ? colors.accent.primary : colors.bg.tertiary,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '800',
+                            color: isActive ? '#FFFFFF' : colors.text.secondary,
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {lens}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
               {/* Avatar Presets */}

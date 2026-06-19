@@ -79,12 +79,6 @@ export class CoupleController {
     return this.coupleService.joinWithCode(userId, dto.code);
   }
 
-  @Get('dashboard')
-  @ApiOperation({ summary: 'Get couple dashboard with shared data' })
-  async getDashboard(@CurrentUser('id') userId: string) {
-    return this.coupleService.getCoupleDashboard(userId);
-  }
-
   @Get('planners')
   @ApiOperation({ summary: 'List couple planners' })
   async getPlanners(@CurrentUser('id') userId: string) {
@@ -107,12 +101,6 @@ export class CoupleController {
   @ApiOperation({ summary: 'Get planner by type' })
   async getPlannerByType(@CurrentUser('id') userId: string, @Param('type') type: string) {
     return this.coupleService.getPlannerByType(userId, type);
-  }
-
-  @Get('timeline')
-  @ApiOperation({ summary: 'Get couple timeline events' })
-  async getTimeline(@CurrentUser('id') userId: string) {
-    return this.coupleService.getTimeline(userId);
   }
 
   @Get('coach')

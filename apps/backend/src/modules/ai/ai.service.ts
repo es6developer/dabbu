@@ -3176,6 +3176,40 @@ ${JSON.stringify(context, null, 2)}`;
       return null;
     }
   }
+
+  async getReview(userId: string, spaceId?: string) {
+    const where: any = { userId };
+    if (spaceId) where.spaceId = spaceId;
+    const existing = await this.prisma.aiReview.findFirst({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    if (existing) return existing;
+    const [income, expense] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'income', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'expense', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+        _sum: { amount: true },
+      }),
+    ]);
+    const totalIncome = Number(income._sum.amount || 0);
+    const totalExpense = Number(expense._sum.amount || 0);
+    const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpense) / totalIncome) * 100) : 0;
+    const score = Math.min(100, Math.max(0, Math.round(50 + savingsRate * 0.5)));
+    const review = await this.prisma.aiReview.create({
+      data: {
+        userId,
+        spaceId: spaceId || null,
+        insight: `Your savings rate is ${savingsRate}% this month. ${savingsRate > 20 ? 'Great job maintaining healthy savings!' : savingsRate > 10 ? 'You are saving at a moderate rate.' : 'Consider increasing your savings rate.'}`,
+        prediction: `Projected savings for next month: ${Math.round(totalIncome * (savingsRate / 100))} based on current trends.`,
+        score,
+      },
+    });
+    return review;
+  }
 }
 
 function urgencyText(urgency: number): string {

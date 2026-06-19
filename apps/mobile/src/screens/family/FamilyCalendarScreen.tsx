@@ -1,240 +1,296 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
+  Animated,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../theme';
+import { api } from '../../services/api';
 
-interface CalendarEvent {
+const EVENT_TYPE_CONFIG: Record<
+  string,
+  { icon: string; iconSet: 'AntDesign' | 'MaterialCommunityIcons'; color: string }
+> = {
+  Birthday: { icon: 'gift', iconSet: 'AntDesign', color: '#EC4899' },
+  EMI: { icon: 'creditcard', iconSet: 'AntDesign', color: '#EF4444' },
+  'Bill Due': { icon: 'filetext1', iconSet: 'AntDesign', color: '#F97316' },
+  'Insurance Renewal': { icon: 'shield-check', iconSet: 'MaterialCommunityIcons', color: '#3B82F6' },
+  'School Fee': { icon: 'book', iconSet: 'AntDesign', color: '#22C55E' },
+  'Goal Milestone': { icon: 'flag', iconSet: 'AntDesign', color: '#A855F7' },
+  Reminder: { icon: 'bell', iconSet: 'AntDesign', color: '#14B8A6' },
+  Custom: { icon: 'calendar', iconSet: 'AntDesign', color: '#6B7280' },
+};
+
+interface FamilyCalendarEvent {
   id: string;
-  date: number;
-  name: string;
-  description: string;
-  time: string;
-  type: string;
+  title: string;
+  description?: string;
+  eventType: string;
+  startDate: string;
+  endDate?: string;
+  allDay?: boolean;
+  color?: string;
+  assignedTo?: string;
+  createdBy?: string;
+  familyId: string;
 }
 
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
-const events: CalendarEvent[] = [
-  { id: '1', date: 5, name: 'Electricity Bill Due', description: 'Pay monthly electricity bill', time: 'All day', type: 'bill' },
-  { id: '2', date: 10, name: 'Insurance Premium', description: 'Health insurance due', time: 'All day', type: 'insurance' },
-  { id: '3', date: 15, name: 'Family Budget Review', description: 'Monthly budget review with family', time: '7:00 PM', type: 'meeting' },
-  { id: '4', date: 18, name: 'School Fee Payment', description: 'Aarav school fees due', time: 'All day', type: 'education' },
-  { id: '5', date: 22, name: 'Investment Review', description: 'Review MF & stock portfolio', time: '10:00 AM', type: 'finance' },
-  { id: '6', date: 25, name: 'Credit Card Payment', description: 'Settle outstanding bill', time: 'All day', type: 'bill' },
-];
-
-const eventDates = events.map(e => e.date);
-
-const DayCell: React.FC<{
-  day: number;
-  isToday: boolean;
-  isCurrentMonth: boolean;
-  hasEvent: boolean;
-  onPress: () => void;
-}> = ({ day, isToday, isCurrentMonth, hasEvent, onPress }) => (
-  <TouchableOpacity
-    style={[
-      styles.dayCell,
-      isToday && styles.todayCell,
-    ]}
-    onPress={onPress}
-    disabled={!isCurrentMonth}
-  >
-    <Text style={[styles.dayText, !isCurrentMonth && styles.otherMonthDay, isToday && styles.todayText]}>
-      {day}
-    </Text>
-    {hasEvent && <View style={[styles.eventDot, isToday && styles.todayEventDot]} />}
-  </TouchableOpacity>
-);
-
-const CalendarGrid: React.FC<{
-  month: number;
-  year: number;
-  onDayPress: (day: number) => void;
-}> = ({ month, year, onDayPress }) => {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
-
-  const cells: React.ReactElement[] = [];
-
-  for (let i = 0; i < firstDay; i++) {
-    cells.push(
-      <DayCell
-        key={`prev-${i}`}
-        day={daysInPrevMonth - firstDay + i + 1}
-        isToday={false}
-        isCurrentMonth={false}
-        hasEvent={false}
-        onPress={() => {}}
-      />
-    );
+function EventTypeIcon({ type, size = 14 }: { type: string; size?: number }) {
+  const config = EVENT_TYPE_CONFIG[type] || EVENT_TYPE_CONFIG.Custom;
+  const color = config.color;
+  if (config.iconSet === 'MaterialCommunityIcons') {
+    return <MaterialCommunityIcons name={config.icon as any} size={size} color={color} />;
   }
+  return <AntDesign name={config.icon as any} size={size} color={color} />;
+}
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    cells.push(
-      <DayCell
-        key={day}
-        day={day}
-        isToday={isCurrentMonth && day === today.getDate()}
-        isCurrentMonth={true}
-        hasEvent={eventDates.includes(day)}
-        onPress={() => onDayPress(day)}
-      />
-    );
-  }
-
-  const remainingCells = 42 - cells.length;
-  for (let day = 1; day <= remainingCells; day++) {
-    cells.push(
-      <DayCell
-        key={`next-${day}`}
-        day={day}
-        isToday={false}
-        isCurrentMonth={false}
-        hasEvent={false}
-        onPress={() => {}}
-      />
-    );
-  }
-
+function EventTypeBadge({ type }: { type: string }) {
+  const config = EVENT_TYPE_CONFIG[type] || EVENT_TYPE_CONFIG.Custom;
   return (
-    <View style={styles.calendarGrid}>
-      {weekDays.map(d => (
-        <View key={d} style={styles.weekDayCell}>
-          <Text style={styles.weekDayText}>{d}</Text>
-        </View>
-      ))}
-      {cells}
+    <View style={[styles.typeBadge, { backgroundColor: config.color + '20' }]}>
+      <EventTypeIcon type={type} size={11} />
+      <Text style={[styles.typeBadgeText, { color: config.color }]}>{type}</Text>
     </View>
   );
-};
+}
+
+function EventCardSkeleton() {
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [pulseAnim]);
+
+  const opacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.skeletonCard}>
+      <View style={styles.skeletonRow}>
+        <Animated.View style={[styles.skeletonIcon, { opacity }]} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <Animated.View style={[styles.skeletonLine, { width: '55%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { width: '35%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { width: '70%', opacity }]} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function EventCard({ event }: { event: FamilyCalendarEvent }) {
+  const { colors } = useTheme();
+  const config = EVENT_TYPE_CONFIG[event.eventType] || EVENT_TYPE_CONFIG.Custom;
+
+  return (
+    <View style={[styles.eventCard, { backgroundColor: colors.bg.card }]}>
+      <View style={styles.eventCardTop}>
+        <View style={[styles.eventTypeIconWrap, { backgroundColor: config.color + '15' }]}>
+          <EventTypeIcon type={event.eventType} size={18} />
+        </View>
+        <View style={styles.eventCardInfo}>
+          <View style={styles.eventTitleRow}>
+            <Text style={[styles.eventTitle, { color: colors.text.primary }]} numberOfLines={1}>
+              {event.title}
+            </Text>
+            <EventTypeBadge type={event.eventType} />
+          </View>
+          <View style={styles.eventMetaRow}>
+            <AntDesign name="calendar" size={12} color={colors.text.tertiary} />
+            <Text style={[styles.eventMetaText, { color: colors.text.secondary }]}>
+              {formatDate(event.startDate)}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {event.description ? (
+        <Text
+          style={[styles.eventDescription, { color: colors.text.secondary }]}
+          numberOfLines={2}
+        >
+          {event.description}
+        </Text>
+      ) : null}
+
+      {event.assignedTo ? (
+        <View style={styles.assignedRow}>
+          <AntDesign name="user" size={12} color={colors.text.tertiary} />
+          <Text style={[styles.assignedText, { color: colors.text.tertiary }]}>
+            {event.assignedTo}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 export default function FamilyCalendarScreen() {
   const insets = useSafeAreaInsets();
-  const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const [events, setEvents] = useState<FamilyCalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const goToPrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const fetchEvents = useCallback(async (refresh = false) => {
+    if (refresh) {
+      setRefreshing(true);
     } else {
-      setCurrentMonth(currentMonth - 1);
+      setLoading(true);
     }
-    setSelectedDay(null);
-  };
-
-  const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
+    setError(null);
+    try {
+      const families: any[] = await api.get('/family');
+      if (!families || families.length === 0) {
+        setEvents([]);
+        return;
+      }
+      const familyId = families[0].id;
+      const data: FamilyCalendarEvent[] = await api.get(
+        `/family/calendar?familyId=${familyId}`,
+      );
+      setEvents(data || []);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load events');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setSelectedDay(null);
-  };
+  }, []);
 
-  const dayEvents = selectedDay
-    ? events.filter(e => e.date === selectedDay)
-    : [];
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const onRefresh = useCallback(() => {
+    fetchEvents(true);
+  }, [fetchEvents]);
+
+  const monthEvents = events
+    .filter((e) => {
+      const d = new Date(e.startDate);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <AntDesign name="calendar" size={22} color="#10B981" />
-          <Text style={styles.headerTitle}>Calendar</Text>
-        </View>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingHorizontal: 20 }]}>
+        <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Calendar</Text>
       </View>
 
-      <View style={styles.monthNavigator}>
-        <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
-          <AntDesign name="left" size={18} color="#F9FAFB" />
-        </TouchableOpacity>
-        <Text style={styles.monthYearText}>
-          {monthNames[currentMonth]} {currentYear}
-        </Text>
-        <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-          <AntDesign name="right" size={18} color="#F9FAFB" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.calendarCard}>
-          <CalendarGrid
-            month={currentMonth}
-            year={currentYear}
-            onDayPress={setSelectedDay}
-          />
+      {loading ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {[1, 2, 3, 4, 5].map((i) => (
+            <EventCardSkeleton key={i} />
+          ))}
+        </ScrollView>
+      ) : error ? (
+        <View style={styles.centerState}>
+          <AntDesign name="exclamationcircleo" size={48} color={colors.text.tertiary} />
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => fetchEvents()}
+          >
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Retry</Text>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.legendRow}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-            <Text style={styles.legendText}>Events</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#10B981', width: 10, height: 10, borderRadius: 5 }]} />
-            <Text style={styles.legendText}>Today</Text>
-          </View>
-        </View>
-
-        <View style={styles.eventsSection}>
-          <Text style={styles.eventsTitle}>
-            {selectedDay ? `Events on ${selectedDay} ${monthNames[currentMonth]}` : 'All Events'}
+      ) : monthEvents.length === 0 ? (
+        <View style={styles.centerState}>
+          <AntDesign name="calendar" size={48} color={colors.text.tertiary} />
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>
+            No events this month
           </Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => navigation.navigate('CreateCalendarEvent')}
+          >
+            <AntDesign name="plus" size={16} color={colors.text.inverse} />
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Create Event</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent.primary}
+              colors={[colors.accent.primary]}
+            />
+          }
+        >
+          <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              This Month's Events
+            </Text>
+            <Text style={[styles.eventCount, { color: colors.text.tertiary }]}>
+              {monthEvents.length} event{monthEvents.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
 
-          {selectedDay && dayEvents.length === 0 && (
-            <View style={styles.noEventsCard}>
-              <AntDesign name="calendar" size={32} color="#6B7280" />
-              <Text style={styles.noEventsText}>No events on this day</Text>
-            </View>
-          )}
-
-          {(selectedDay ? dayEvents : events).map(event => (
-            <View key={event.id} style={styles.eventCard}>
-              <View style={styles.eventDateBadge}>
-                <Text style={styles.eventDateDay}>{event.date}</Text>
-                <Text style={styles.eventDateMonth}>{monthNames[currentMonth].slice(0, 3)}</Text>
-              </View>
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventName}>{event.name}</Text>
-                <Text style={styles.eventDescription}>{event.description}</Text>
-                <View style={styles.eventTimeRow}>
-                  <AntDesign name="clockcircle" size={12} color="#6B7280" />
-                  <Text style={styles.eventTime}>{event.time}</Text>
-                </View>
-              </View>
-              <View style={[styles.eventTypeDot, {
-                backgroundColor: event.type === 'bill' ? '#EF4444' :
-                  event.type === 'insurance' ? '#3B82F6' :
-                  event.type === 'education' ? '#8B5CF6' :
-                  '#10B981'
-              }]} />
+          {monthEvents.map((event) => (
+            <View key={event.id} style={{ paddingHorizontal: 20 }}>
+              <EventCard event={event} />
             </View>
           ))}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
+
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.accent.primary }]}
+        onPress={() => navigation.navigate('CreateCalendarEvent')}
+        activeOpacity={0.8}
+      >
+        <AntDesign name="plus" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -242,204 +298,163 @@ export default function FamilyCalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
+  largeTitle: {
+    fontSize: 34,
     fontWeight: '700',
-    color: '#F9FAFB',
     letterSpacing: -0.5,
   },
-  monthNavigator: {
+  scrollContent: {
+    paddingTop: 4,
+    paddingBottom: 120,
+  },
+  centerState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 40,
+  },
+  stateText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    marginBottom: 8,
+    marginBottom: 14,
+    paddingTop: 4,
   },
-  navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#1C1C1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  monthYearText: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9FAFB',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  calendarCard: {
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 16,
-  },
-  calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  weekDayCell: {
-    width: '14.28%',
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  weekDayText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  dayCell: {
-    width: '14.28%',
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayText: {
-    fontSize: 15,
-    color: '#F9FAFB',
+  eventCount: {
+    fontSize: 13,
     fontWeight: '500',
   },
-  otherMonthDay: {
-    color: '#3A3A3C',
-  },
-  todayCell: {
-    backgroundColor: '#10B981',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  todayText: {
-    color: '#0A0A0A',
-    fontWeight: '700',
-  },
-  eventDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#10B981',
-    marginTop: 2,
-  },
-  todayEventDot: {
-    backgroundColor: '#0A0A0A',
-  },
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-    marginVertical: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  legendText: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  eventsSection: {
-    paddingHorizontal: 20,
-  },
-  eventsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#F9FAFB',
+  skeletonCard: {
+    marginHorizontal: 20,
     marginBottom: 12,
-  },
-  noEventsCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    padding: 16,
     backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 30,
-    alignItems: 'center',
-    gap: 10,
   },
-  noEventsText: {
-    fontSize: 14,
-    color: '#6B7280',
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  skeletonIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#27272A',
+  },
+  skeletonLine: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#27272A',
   },
   eventCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 12,
+  },
+  eventCardTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  eventDateBadge: {
-    width: 48,
-    height: 48,
+  eventTypeIconWrap: {
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    backgroundColor: '#2C2C2E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
-  eventDateDay: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-  eventDateMonth: {
-    fontSize: 10,
-    color: '#6B7280',
-    textTransform: 'uppercase',
-  },
-  eventInfo: {
+  eventCardInfo: {
     flex: 1,
+    gap: 4,
   },
-  eventName: {
-    fontSize: 15,
+  eventTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  eventTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: '#F9FAFB',
-    marginBottom: 2,
+    flexShrink: 1,
+  },
+  eventMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  eventMetaText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   eventDescription: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 10,
   },
-  eventTimeRow: {
+  assignedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 8,
+  },
+  assignedText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  eventTime: {
-    fontSize: 12,
-    color: '#6B7280',
+  typeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
-  eventTypeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 8,
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });

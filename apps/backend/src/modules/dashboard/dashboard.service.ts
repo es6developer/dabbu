@@ -166,6 +166,162 @@ export class DashboardService {
     await this.cache.invalidate(`dashboard:family:${userId}`);
   }
 
+  async getAggregated(userId: string, lens: string) {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    try {
+      const personal = await this.getPersonalAggregated(userId, monthStart, monthEnd);
+      if (lens === 'PERSONAL') return personal;
+
+      const coupled = await this.getCoupledAggregated(userId, monthStart, monthEnd);
+
+      if (lens === 'PARTNERED') return { ...personal, ...coupled };
+
+      const family = await this.getFamilyAggregated(userId, monthStart, monthEnd);
+
+      if (lens === 'FAMILY') return { ...personal, ...coupled, ...family };
+
+      return { ...personal, ...coupled, ...family };
+    } catch (err) {
+      this.logger.error(`getAggregated failed for user ${userId}: ${err}`);
+      return {
+        netWorth: { assets: 0, liabilities: 0, netWorth: 0 },
+        healthScore: { score: 0 },
+        myMoney: { income: 0, expense: 0, savings: 0 },
+        goals: [],
+        recentTransactions: [],
+        spaces: 0,
+      };
+    }
+  }
+
+  private async getPersonalAggregated(userId: string, monthStart: Date, monthEnd: Date) {
+    const [netWorth, healthScore, incomeAgg, expenseAgg, goals, recentTxns, spaceCount] = await Promise.all([
+      this.prisma.userNetWorth.findUnique({ where: { userId } }).catch(() => null),
+      this.prisma.healthScore.findUnique({ where: { entityType_entityId: { entityType: 'USER', entityId: userId } } }).catch(() => null),
+      this.prisma.transaction.aggregate({
+        where: { userId, deletedAt: null, type: 'income', spaceId: null, date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+      this.prisma.transaction.aggregate({
+        where: { userId, deletedAt: null, type: 'expense', spaceId: null, date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+      this.prisma.goal.findMany({
+        where: { userId, deletedAt: null, spaceId: null, isCompleted: false },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true, icon: true, color: true },
+      }).catch(() => []),
+      this.prisma.transaction.findMany({
+        where: { userId, deletedAt: null, spaceId: null },
+        orderBy: { date: 'desc' },
+        take: 5,
+        select: { id: true, description: true, amount: true, date: true, type: true },
+      }).catch(() => []),
+      this.prisma.spaceMember.count({ where: { userId } }).catch(() => 0),
+    ]);
+
+    const totalAssets = Number(netWorth?.totalAssets || 0);
+    const totalLiabilities = Number(netWorth?.totalLiabilities || 0);
+    const income = Number(incomeAgg._sum?.amount || 0);
+    const expense = Number(expenseAgg._sum?.amount || 0);
+
+    return {
+      netWorth: { assets: totalAssets, liabilities: totalLiabilities, netWorth: totalAssets - totalLiabilities },
+      healthScore: { score: healthScore?.score ?? 0, breakdown: healthScore?.breakdownJson ?? null },
+      myMoney: { income, expense, savings: Math.max(0, income - expense) },
+      goals: goals.map(g => ({
+        id: g.id, name: g.name, targetAmount: Number(g.targetAmount),
+        currentAmount: Number(g.currentAmount), type: g.type, icon: g.icon, color: g.color,
+        progress: Number(g.targetAmount) > 0 ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100) : 0,
+      })),
+      recentTransactions: recentTxns.map(t => ({
+        id: t.id, description: t.description, amount: Number(t.amount), date: t.date, type: t.type,
+      })),
+      spaces: spaceCount,
+    };
+  }
+
+  private async getCoupledAggregated(userId: string, monthStart: Date, monthEnd: Date) {
+    const coupleSpaces = await this.prisma.space.findMany({
+      where: { type: 'COUPLE', members: { some: { userId } } },
+      select: { id: true },
+    }).catch(() => []);
+
+    const ids = coupleSpaces.map(s => s.id);
+    if (ids.length === 0) {
+      return { ourMoney: { income: 0, expense: 0, savings: 0 }, sharedGoals: [], partnerSummary: [] };
+    }
+
+    const [incomeAgg, expenseAgg, sharedGoals, members] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+      this.prisma.transaction.aggregate({
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+      this.prisma.goal.findMany({
+        where: { spaceId: { in: ids }, deletedAt: null, isCompleted: false },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true },
+      }).catch(() => []),
+      this.prisma.spaceMember.findMany({
+        where: { spaceId: { in: ids }, userId: { not: userId } },
+        select: { role: true, user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+      }).catch(() => []),
+    ]);
+
+    const income = Number(incomeAgg._sum?.amount || 0);
+    const expense = Number(expenseAgg._sum?.amount || 0);
+
+    return {
+      ourMoney: { income, expense, savings: Math.max(0, income - expense) },
+      sharedGoals: sharedGoals.map(g => ({
+        id: g.id, name: g.name, targetAmount: Number(g.targetAmount),
+        currentAmount: Number(g.currentAmount), type: g.type,
+        progress: Number(g.targetAmount) > 0 ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100) : 0,
+      })),
+      partnerSummary: members.map(m => ({
+        id: m.user.id, firstName: m.user.firstName, lastName: m.user.lastName,
+        email: m.user.email, role: m.role,
+      })),
+    };
+  }
+
+  private async getFamilyAggregated(userId: string, monthStart: Date, monthEnd: Date) {
+    const familySpaces = await this.prisma.space.findMany({
+      where: { type: 'FAMILY', members: { some: { userId } } },
+      select: { id: true },
+    }).catch(() => []);
+
+    const ids = familySpaces.map(s => s.id);
+    if (ids.length === 0) {
+      return { familyMoney: { income: 0, expense: 0, savings: 0 } };
+    }
+
+    const [incomeAgg, expenseAgg] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+      this.prisma.transaction.aggregate({
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
+    ]);
+
+    const income = Number(incomeAgg._sum?.amount || 0);
+    const expense = Number(expenseAgg._sum?.amount || 0);
+
+    return { familyMoney: { income, expense, savings: Math.max(0, income - expense) } };
+  }
+
   async trackFeature(userId: string, feature: string, label?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

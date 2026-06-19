@@ -401,4 +401,12 @@ export class AiController {
   async dismissFeedCard(@CurrentUser('id') userId: string, @Param('cardId') cardId: string) {
     return this.aiService.markFeedCardDismissed(cardId, userId);
   }
+
+  @Get('review')
+  @ApiOperation({ summary: 'Get latest AI review for the user or space' })
+  @ApiQuery({ name: 'spaceId', required: false })
+  async getReview(@CurrentUser('id') userId: string, @Query('spaceId') spaceId?: string) {
+    const review = await this.aiService.getReview(userId, spaceId);
+    return { data: review };
+  }
 }

@@ -127,6 +127,7 @@ model User {
   bottomMenuConfig      Json?   @db.Json // Array of tab configs [{id, visible, order}]
   preferredPrimaryColor String? @db.VarChar(20) // User's preferred accent color hex
   userType              String? @default("single") @db.VarChar(20) // single, couple, family, friends
+  activeLens            String  @default("PERSONAL") @db.VarChar(20) // PERSONAL, PARTNERED, FAMILY, FULL
 
   // Relations
   sessions                     Session[]
@@ -265,6 +266,11 @@ model User {
   dataExports                  DataExport[]
   dashboardWidgets             DashboardWidget[]
   CookieConsent                CookieConsent?
+  recentSearches               RecentSearch[]
+  spacesCreated                Space[]                  @relation("SpaceCreator")
+  spaceMemberships             SpaceMember[]
+  aiReviews                    AiReview[]
+  healthScores                 HealthScore[]
 
   @@index([email])
   @@index([isActive])
@@ -708,6 +714,7 @@ model Transaction {
   isSplit             Boolean   @default(false)
   parentTransactionId String?   @db.VarChar(36)
   expenseGroupId      String?   @db.VarChar(36)
+  spaceId             String?   @db.VarChar(36)
   metadata            Json?     @db.Json
   deletedAt           DateTime?
   createdAt           DateTime  @default(now())
@@ -718,6 +725,7 @@ model Transaction {
   account           Account?             @relation(fields: [accountId], references: [id])
   category          TransactionCategory? @relation(fields: [categoryId], references: [id])
   expenseGroup      ExpenseGroup?        @relation(fields: [expenseGroupId], references: [id])
+  space             Space?               @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   splitTransactions Transaction[]        @relation("SplitTransaction")
   parentTransaction Transaction?         @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
 
@@ -728,6 +736,7 @@ model Transaction {
   @@index([userId, status])
   @@index([userId, isReviewed])
   @@index([expenseGroupId, date])
+  @@index([spaceId])
   @@index([date, status])
   @@index([description(255)])
   @@fulltext([description, notes])
@@ -810,6 +819,7 @@ model Goal {
   targetAmount        Decimal   @db.Decimal(15, 2)
   currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
   deadline            DateTime? @db.Date
+  spaceId             String?   @db.VarChar(36)
   type                String    @default("custom") @db.VarChar(20) // emergency, vacation, education, home, car, wedding, retirement, baby, savings, investment, custom
   icon                String?   @db.VarChar(50)
   color               String?   @db.VarChar(50)
@@ -823,11 +833,13 @@ model Goal {
   updatedAt           DateTime  @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: SetNull)
 
   @@index([userId, isCompleted])
   @@index([userId, deadline])
   @@index([userId, type])
+  @@index([spaceId])
   @@index([name(255)])
   @@fulltext([name, notes])
   @@map("goals")
@@ -3259,6 +3271,7 @@ model FinancialDna {
 model AiInsight {
   id          String    @id @default(uuid()) @db.VarChar(36)
   userId      String    @db.VarChar(36)
+  spaceId     String?   @db.VarChar(36)
   type        String    @db.VarChar(50) // spending, saving, behavior, goal, family, couple, settlement, milestone
   title       String    @db.VarChar(255)
   description String    @db.Text
@@ -3947,4 +3960,85 @@ model DashboardWidget {
   @@unique([userId, scope, widgetType])
   @@index([userId, scope, enabled, position])
   @@map("dashboard_widgets")
+}
+
+// ─── SPACES (NEW CORE ENTITY) ──────────────────────────
+// Standalone Space model — replaces SharedGroup long-term
+model Space {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  name      String   @db.VarChar(255)
+  type      String   @db.VarChar(20) // COUPLE, FAMILY, TRIP, BUSINESS, CUSTOM
+  icon      String?  @db.VarChar(50)
+  coverColor String? @db.VarChar(20)
+  createdBy String   @db.VarChar(36)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator      User             @relation("SpaceCreator", fields: [createdBy], references: [id])
+  members      SpaceMember[]
+  transactions Transaction[]
+  goals        Goal[]
+  healthScores HealthScore[]
+  aiReviews    AiReview[]
+
+  @@index([createdBy])
+  @@index([type])
+  @@map("spaces")
+}
+
+model SpaceMember {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  spaceId   String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  role      String   @default("member") @db.VarChar(20) // owner, admin, member, viewer
+  joinedAt  DateTime @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([spaceId, userId])
+  @@index([userId])
+  @@map("space_members")
+}
+
+// ─── HEALTH SCORE ─────────────────────────────────────────
+// Per-user and per-space financial health score
+model HealthScore {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String?  @db.VarChar(36)
+  spaceId        String?  @db.VarChar(36)
+  entityType     String   @db.VarChar(10) // USER, SPACE
+  entityId       String   @db.VarChar(36)
+  score          Int      @default(70)
+  breakdownJson  Json?    @db.Json
+  calculatedAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@unique([entityType, entityId])
+  @@index([userId])
+  @@index([spaceId])
+  @@map("health_scores")
+}
+
+// ─── AI REVIEW ──────────────────────────────────────────
+// Periodic AI-generated financial health reviews per user/space
+model AiReview {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  spaceId    String?  @db.VarChar(36)
+  insight    String   @db.Text
+  prediction String?  @db.Text
+  score      Int?     @default(70)
+  createdAt  DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([spaceId])
+  @@index([createdAt])
+  @@map("ai_reviews")
 }

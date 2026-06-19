@@ -53,6 +53,7 @@ import { FamilySpaceModule } from './modules/family-space/family-space.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AiModule } from './modules/ai/ai.module';
+import { LifeHubModule } from './modules/life-hub/life-hub.module';
 import { LoansModule } from './modules/loans/loans.module';
 import { NetWorthModule } from './modules/net-worth/net-worth.module';
 import { BudgetsModule } from './modules/budgets/budgets.module';
@@ -72,7 +73,9 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
 import { SupportModule } from './modules/support/support.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
+import { HealthScoreModule } from './modules/health-score/health-score.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { SpacesModule } from './modules/spaces/spaces.module';
 
 @Module({
   imports: [
@@ -170,6 +173,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
     UsersModule,
     FriendsModule,
     FavoritesModule,
+    LifeHubModule,
     LoansModule,
     NetWorthModule,
     BudgetsModule,
@@ -188,7 +192,9 @@ import { MetricsModule } from './modules/metrics/metrics.module';
     SupportModule,
     AuditModule,
     HealthModule,
+    HealthScoreModule,
     MetricsModule,
+    SpacesModule,
   ],
   controllers: [],
   providers: [

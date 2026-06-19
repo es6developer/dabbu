@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -12,6 +12,7 @@ const COLOR_OPTIONS = ['#6366F1', '#F59E0B', '#EF4444', '#10B981', '#EC4899', '#
 
 export function CreateCalendarEventScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -35,7 +36,7 @@ export function CreateCalendarEventScreen() {
     }
     setLoading(true);
     try {
-      await api.post('/family-space/calendar', {
+      await api.post('/family-space/calendar/events', {
         title: title.trim(),
         description: description.trim() || undefined,
         eventType: eventType || undefined,

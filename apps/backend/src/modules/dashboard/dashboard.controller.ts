@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -74,8 +74,13 @@ export class DashboardController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get unified dashboard with auto-detected mode' })
-  async get(@CurrentUser('id') userId: string) {
+  @ApiOperation({ summary: 'Get unified dashboard with auto-detected mode, or aggregated by lens' })
+  @ApiQuery({ name: 'lens', required: false, enum: ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] })
+  async get(@CurrentUser('id') userId: string, @Query('lens') lens?: string) {
+    if (lens) {
+      const data = await this.dashboardService.getAggregated(userId, lens);
+      return { data };
+    }
     return this.dashboardService.getDashboard(userId);
   }
 

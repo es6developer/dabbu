@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
 @Injectable()
@@ -297,24 +297,6 @@ export class FamilyDashboardService {
     };
   }
 
-  async getHealthScore(familyId: string) {
-    const members = await this.prisma.familyMember.findMany({
-      where: { familyId },
-      select: { userId: true },
-    });
-    const memberIds = members.map((m) => m.userId);
-    const scores = await this.prisma.aiScore.findMany({
-      where: { userId: { in: memberIds } },
-      orderBy: { createdAt: 'desc' },
-      take: memberIds.length,
-    });
-    const avgScore =
-      scores.length > 0
-        ? Math.round(scores.reduce((s, sc) => s + (sc.overallScore || 0), 0) / scores.length)
-        : 0;
-    return { overallScore: avgScore, memberScores: scores };
-  }
-
   async getNetWorth(familyId: string) {
     const members = await this.prisma.familyMember.findMany({
       where: { familyId },
@@ -489,5 +471,277 @@ export class FamilyDashboardService {
       category: b.category,
       frequency: b.frequency,
     }));
+  }
+
+  async getWealth(familyId: string) {
+    const members = await this.prisma.familyMember.findMany({ where: { familyId }, select: { userId: true } });
+    const memberIds = members.map(m => m.userId);
+    const netWorths = await this.prisma.userNetWorth.findMany({ where: { userId: { in: memberIds } } });
+
+    let cash = 0, savings = 0, investments = 0, property = 0, gold = 0, assets = 0, loans = 0;
+    for (const nw of netWorths) {
+      cash += Number(nw.cash || 0);
+      savings += Number(nw.bank || 0);
+      investments += Number(nw.investments || 0);
+      property += Number(nw.property || 0);
+      gold += Number(nw.gold || 0);
+      assets += Number(nw.totalAssets || 0);
+      loans += Number(nw.homeLoan || 0) + Number(nw.personalLoan || 0) + Number(nw.creditCardDebt || 0) + Number(nw.otherLiabilities || 0);
+    }
+
+    const snapshots = await this.prisma.netWorthSnapshot.findMany({
+      where: { userId: { in: memberIds } },
+      orderBy: { snapshotDate: 'asc' },
+      take: 24,
+    });
+
+    const monthlyMap = new Map<string, number>();
+    for (const s of snapshots) {
+      const key = s.snapshotDate.toISOString().slice(0, 7);
+      monthlyMap.set(key, (monthlyMap.get(key) || 0) + Number(s.netWorth || 0));
+    }
+    const trend: { date: string; netWorth: number }[] = [];
+    for (const [date, nw] of monthlyMap) { trend.push({ date, netWorth: nw }); }
+    trend.sort((a, b) => a.date.localeCompare(b.date));
+
+    const netWorth = cash + savings + investments + property + gold - loans;
+    return { cash, savings, investments, property, gold, assets, loans, netWorth, trend };
+  }
+
+  async getMembers(familyId: string) {
+    const members = await this.prisma.familyMember.findMany({
+      where: { familyId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, phone: true } },
+      },
+    });
+
+    const memberIds = members.map(m => m.userId);
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [contributions, transactions, tasks] = await Promise.all([
+      this.prisma.familyContribution.findMany({
+        where: { familyId, userId: { in: memberIds } },
+        orderBy: { date: 'desc' },
+        take: 50,
+      }),
+      this.prisma.transaction.findMany({
+        where: { userId: { in: memberIds }, deletedAt: null, date: { gte: monthStart } },
+      }),
+      this.prisma.sharedTask.findMany({
+        where: { familyId, assignedToId: { in: memberIds } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+    ]);
+
+    return members.map(m => {
+      const memberContributions = contributions.filter(c => c.userId === m.userId);
+      const memberTxns = transactions.filter(t => t.userId === m.userId);
+      const memberTasks = tasks.filter(t => t.assignedToId === m.userId);
+      return {
+        id: m.id,
+        userId: m.userId,
+        role: m.role,
+        joinedAt: m.joinedAt,
+        profile: {
+          firstName: m.user.firstName,
+          lastName: m.user.lastName,
+          email: m.user.email,
+          avatarUrl: m.user.avatarUrl,
+          phone: m.user.phone,
+        },
+        contributionHistory: memberContributions.map(c => ({
+          id: c.id, amount: Number(c.amount), period: c.period, date: c.date,
+        })),
+        totalContributed: memberContributions.reduce((s, c) => s + Number(c.amount), 0),
+        monthlyActivity: {
+          income: memberTxns.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0),
+          expenses: memberTxns.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0),
+          transactionCount: memberTxns.length,
+        },
+        responsibilities: memberTasks.filter(t => t.status !== 'completed').map(t => ({
+          id: t.id, title: t.title, dueDate: t.dueDate, priority: t.priority, status: t.status,
+        })),
+      };
+    });
+  }
+
+  async getInvestments(familyId: string) {
+    const investments = await this.prisma.familyInvestment.findMany({
+      where: { familyId },
+      include: {
+        manager: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const totalPortfolio = investments.reduce((s, i) => s + Number(i.currentValue || 0), 0);
+    const totalInvested = investments.reduce((s, i) => s + Number(i.amount || 0), 0);
+    const totalReturns = totalPortfolio - totalInvested;
+    const returnPercentage = totalInvested > 0 ? Math.round((totalReturns / totalInvested) * 100) : 0;
+
+    const byType: Record<string, number> = {};
+    for (const inv of investments) {
+      const type = inv.type || 'Other';
+      byType[type] = (byType[type] || 0) + Number(inv.currentValue || 0);
+    }
+
+    return {
+      investments: investments.map(i => ({
+        id: i.id, name: i.name, type: i.type, investedAmount: Number(i.amount || 0),
+        currentValue: Number(i.currentValue || 0), returns: Number(i.currentValue || 0) - Number(i.amount || 0),
+        returnPercentage: Number(i.amount || 0) > 0 ? Math.round(((Number(i.currentValue || 0) - Number(i.amount || 0)) / Number(i.amount || 0)) * 100) : 0,
+        manager: i.manager ? { id: i.manager.id, name: i.manager.firstName || i.manager.lastName } : null,
+        createdAt: i.createdAt,
+      })),
+      totalPortfolio,
+      totalInvested,
+      totalReturns,
+      returnPercentage,
+      assetAllocation: byType,
+    };
+  }
+
+  async getDocuments(familyId: string) {
+    const docs = await this.prisma.familyDocument.findMany({
+      where: { familyId },
+      include: { uploader: { select: { id: true, firstName: true, lastName: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return docs.map(d => ({
+      id: d.id, name: d.name, type: d.type, category: d.category,
+      fileUrl: d.fileUrl, fileSize: d.fileSize, isEncrypted: d.isEncrypted,
+      uploadedBy: d.uploader ? { id: d.uploader.id, name: d.uploader.firstName || d.uploader.lastName } : null,
+      createdAt: d.createdAt,
+    }));
+  }
+
+  async getHealthScore(familyId: string) {
+    const members = await this.prisma.familyMember.findMany({ where: { familyId }, select: { userId: true } });
+    const memberIds = members.map(m => m.userId);
+
+    const [scores, goals, bills, investments] = await Promise.all([
+      this.prisma.aiScore.findMany({ where: { userId: { in: memberIds } }, orderBy: { createdAt: 'desc' }, take: memberIds.length }),
+      this.prisma.familyGoal.findMany({ where: { familyId } }),
+      this.prisma.familyBill.findMany({ where: { familyId, isPaid: false } }),
+      this.prisma.familyInvestment.findMany({ where: { familyId } }),
+    ]);
+
+    const avgScore = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + (sc.overallScore || 0), 0) / scores.length) : 0;
+
+    const avgSavings = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + (sc.savingsRate || 0), 0) / scores.length) : 0;
+    const avgDebt = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + (100 - (sc.debtRatio || 0)), 0) / scores.length) : 50;
+    const avgEmergency = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + (sc.emergencyFund || 0), 0) / scores.length) : 0;
+
+    const goalProgress = goals.length > 0
+      ? Math.round(goals.reduce((s, g) => s + (Number(g.savedAmount || 0) / Number(g.targetAmount || 1)), 0) / goals.length * 100)
+      : 0;
+
+    const totalInvested = investments.reduce((s, i) => s + Number(i.currentValue || 0), 0);
+    const insuranceScore = investments.filter(i => i.type === 'INSURANCE').length > 0 ? 80 : 30;
+
+    const totalMonthlyExpenses = (await this.prisma.transaction.aggregate({
+      where: { userId: { in: memberIds }, type: 'expense', deletedAt: null, date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } },
+      _sum: { amount: true },
+    }))._sum.amount || 0;
+
+    const emergencyFundMonths = Number(totalMonthlyExpenses) > 0
+      ? Math.round((avgEmergency * 0.01 * 50000) / (Number(totalMonthlyExpenses) / memberIds.length))
+      : 0;
+
+    const emergencyReadinessScore = Math.min(100, Math.round((emergencyFundMonths / 6) * 100));
+
+    return {
+      overallScore: avgScore,
+      emergencyReadinessScore,
+      emergencyFundMonths,
+      categoryScores: {
+        savings: avgSavings,
+        debt: avgDebt,
+        insurance: insuranceScore,
+        emergencyFund: avgEmergency,
+        investments: Math.round((totalInvested / 1000000) * 100),
+        goals: goalProgress,
+      },
+    };
+  }
+
+  async getTasks(familyId: string) {
+    const tasks = await this.prisma.sharedTask.findMany({
+      where: { familyId, deletedAt: null },
+      include: {
+        createdBy: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        assignedTo: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return tasks.map(t => ({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      status: t.status,
+      priority: t.priority,
+      dueDate: t.dueDate,
+      createdBy: t.createdBy ? { id: t.createdBy.id, name: t.createdBy.firstName || t.createdBy.lastName, avatarUrl: t.createdBy.avatarUrl } : null,
+      assignedTo: t.assignedTo ? { id: t.assignedTo.id, name: t.assignedTo.firstName || t.assignedTo.lastName, avatarUrl: t.assignedTo.avatarUrl } : null,
+      createdAt: t.createdAt,
+    }));
+  }
+
+  async updateTaskStatus(taskId: string, status: string) {
+    return this.prisma.sharedTask.update({
+      where: { id: taskId },
+      data: { status, completedAt: status === 'completed' ? new Date() : undefined },
+    });
+  }
+
+  async getAIReview(familyId: string) {
+    const members = await this.prisma.familyMember.findMany({ where: { familyId }, select: { userId: true } });
+    const memberIds = members.map(m => m.userId);
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const [thisMonthTxns, lastMonthTxns, goals, bills, investments, intelligence] = await Promise.all([
+      this.prisma.transaction.findMany({ where: { userId: { in: memberIds }, date: { gte: monthStart, lte: monthEnd }, deletedAt: null } }),
+      this.prisma.transaction.findMany({ where: { userId: { in: memberIds }, date: { gte: lastMonthStart, lte: lastMonthEnd }, deletedAt: null } }),
+      this.prisma.familyGoal.findMany({ where: { familyId } }),
+      this.prisma.familyBill.findMany({ where: { familyId, isPaid: false } }),
+      this.prisma.familyInvestment.findMany({ where: { familyId } }),
+      this.prisma.familyIntelligence.findFirst({ where: { familyId }, orderBy: { createdAt: 'desc' } }),
+    ]);
+
+    const thisIncome = thisMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+    const thisExpense = thisMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+    const lastIncome = lastMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+    const lastExpense = lastMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+    const savings = Math.max(0, thisIncome + lastIncome - thisExpense - lastExpense);
+    const expenseChange = lastExpense > 0 ? Math.round(((thisExpense - lastExpense) / lastExpense) * 100) : 0;
+
+    return {
+      period: { start: lastMonthStart, end: monthEnd },
+      summary: {
+        income: thisIncome + lastIncome,
+        expenses: thisExpense + lastExpense,
+        savings,
+        savingsRate: (thisIncome + lastIncome) > 0 ? Math.round((savings / (thisIncome + lastIncome)) * 100) : 0,
+        expenseChange,
+      },
+      goals: {
+        total: goals.length,
+        onTrack: goals.filter(g => g.status === 'active').length,
+        completed: goals.filter(g => g.status === 'completed').length,
+      },
+      bills: { unpaid: bills.length, totalDue: bills.reduce((s, b) => s + Number(b.amount), 0) },
+      investments: {
+        total: investments.reduce((s, i) => s + Number(i.currentValue || 0), 0),
+        count: investments.length,
+      },
+      insights: intelligence?.insights || [],
+    };
   }
 }

@@ -51,4 +51,13 @@ export class UsersController {
   async validateUpi(@Query('upiId') upiId: string) {
     return this.usersService.validateUpi(upiId);
   }
+
+  @Patch('lens')
+  @ApiOperation({ summary: 'Update active lens (PERSONAL, PARTNERED, FAMILY, FULL)' })
+  async updateLens(@CurrentUser('id') userId: string, @Body('lens') lens: string) {
+    const valid = ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'];
+    if (!valid.includes(lens)) throw new Error('Invalid lens. Must be one of: ' + valid.join(', '));
+    const user = await this.usersService.updateLens(userId, lens);
+    return { data: { activeLens: user.activeLens } };
+  }
 }

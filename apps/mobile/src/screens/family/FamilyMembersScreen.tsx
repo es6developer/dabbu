@@ -1,288 +1,415 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   Animated,
-  Alert,
+  RefreshControl,
   Dimensions,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
+import { api } from '../../services/api';
 
 const { width } = Dimensions.get('window');
+const CARD_MARGIN = 16;
+const CARD_HORIZONTAL = 20;
+const INITIAL_HEIGHT = 88;
+const EXPANDED_EXTRA = 200;
+
+type Role = 'Owner' | 'Admin' | 'Contributor' | 'Viewer';
+
+interface Profile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string | null;
+  phone: string;
+}
+
+interface ContributionHistory {
+  amount: number;
+  period: string;
+  date: string;
+}
+
+interface MonthlyActivity {
+  income: number;
+  expenses: number;
+  transactionCount: number;
+}
+
+interface Responsibility {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 interface FamilyMember {
   id: string;
-  name: string;
-  relationship: string;
-  phone: string;
-  contribution: number;
-  role: 'Admin' | 'Member';
+  userId: string;
+  role: Role;
+  joinedAt: string;
+  profile: Profile;
+  contributionHistory: ContributionHistory[];
+  totalContributed: number;
+  monthlyActivity: MonthlyActivity;
+  responsibilities: Responsibility[];
 }
 
-const initialMembers: FamilyMember[] = [
-  { id: '1', name: 'Rajesh Sharma', relationship: 'Self', phone: '+91 98765 43210', contribution: 85000, role: 'Admin' },
-  { id: '2', name: 'Priya Sharma', relationship: 'Spouse', phone: '+91 98765 43211', contribution: 45000, role: 'Admin' },
-  { id: '3', name: 'Aarav Sharma', relationship: 'Son', phone: '+91 98765 43212', contribution: 0, role: 'Member' },
-  { id: '4', name: 'Ananya Sharma', relationship: 'Daughter', phone: '+91 98765 43213', contribution: 0, role: 'Member' },
-  { id: '5', name: 'Suresh Sharma', relationship: 'Father', phone: '+91 98765 43214', contribution: 25000, role: 'Member' },
+interface Family {
+  id: string;
+  name: string;
+}
+
+const ROLE_CONFIG: Record<Role, { icon: string; color: string; label: string }> = {
+  Owner: { icon: 'crown-outline', color: '#F59E0B', label: 'Owner' },
+  Admin: { icon: 'shield-outline', color: '#3B82F6', label: 'Admin' },
+  Contributor: { icon: 'hand-left', color: '#22C55E', label: 'Contributor' },
+  Viewer: { icon: 'eye-outline', color: '#6B7280', label: 'Viewer' },
+};
+
+const PROFILE_COLORS = [
+  '#7C3AED', '#3B82F6', '#22C55E', '#F59E0B',
+  '#EF4444', '#EC4899', '#14B8A6', '#F97316',
 ];
 
-const relationships = ['Self', 'Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister', 'Other'];
+function getProfileColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
+}
 
-const RoleBadge: React.FC<{ role: 'Admin' | 'Member' }> = ({ role }) => {
-  const isAdmin = role === 'Admin';
+function initials(first: string, last: string): string {
+  return ((first?.[0] || '') + (last?.[0] || '')).toUpperCase() || '?';
+}
+
+function fmt(v: number) {
+  return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
+function fmtDate(iso: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function MemberCardSkeleton() {
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [pulseAnim]);
+
+  const opacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
   return (
-    <View style={[styles.roleBadge, isAdmin ? styles.adminBadge : styles.memberBadge]}>
-      <Text style={[styles.roleText, isAdmin ? styles.adminRoleText : styles.memberRoleText]}>
-        {role}
-      </Text>
+    <View style={styles.skeletonCard}>
+      <View style={styles.skeletonRow}>
+        <Animated.View style={[styles.skeletonAvatar, { opacity }]} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <Animated.View style={[styles.skeletonLine, { width: '50%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { width: '35%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { width: '60%', opacity }]} />
+        </View>
+      </View>
     </View>
   );
-};
+}
 
-const SwipeableMemberCard: React.FC<{
+function RoleBadge({ role }: { role: Role }) {
+  const cfg = ROLE_CONFIG[role];
+  return (
+    <View style={[styles.roleBadge, { backgroundColor: cfg.color + '20' }]}>
+      <MaterialCommunityIcons name={cfg.icon as any} size={12} color={cfg.color} />
+      <Text style={[styles.roleBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+    </View>
+  );
+}
+
+function ExpandIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <View style={styles.expandIconContainer}>
+      <AntDesign name={expanded ? 'up' : 'down'} size={14} color="#6B7280" />
+    </View>
+  );
+}
+
+function MemberCard({
+  member,
+  index,
+}: {
   member: FamilyMember;
-  onDelete: (id: string) => void;
-}> = ({ member, onDelete }) => {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const panResponder = useRef(
-    Animated.event([null, { dx: translateX }], { useNativeDriver: false })
-  ).current;
+  index: number;
+}) {
+  const { colors } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const animHeight = useRef(new Animated.Value(INITIAL_HEIGHT)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const mounted = useRef(false);
 
-  const handleSwipeComplete = useCallback(() => {
-    Animated.timing(translateX, {
-      toValue: -width,
-      duration: 250,
-      useNativeDriver: false,
-    }).start(() => {
-      onDelete(member.id);
-    });
-  }, [member.id, onDelete, translateX]);
-
-  const resetPosition = useCallback(() => {
-    Animated.spring(translateX, {
-      toValue: 0,
-      useNativeDriver: false,
-    }).start();
-  }, [translateX]);
-
-  const formatCurrency = (amount: number) => {
-    return '₹' + amount.toLocaleString('en-IN');
-  };
-
-  return (
-    <View style={styles.swipeContainer}>
-      <TouchableOpacity style={styles.deleteAction} onPress={handleSwipeComplete}>
-        <AntDesign name="delete" size={24} color="#FFF" />
-        <Text style={styles.deleteText}>Delete</Text>
-      </TouchableOpacity>
-      <Animated.View
-        style={[styles.memberCard, { transform: [{ translateX }] }]}
-        {...panResponder}
-      >
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onLongPress={() => {
-            Alert.alert('Delete Member', `Remove ${member.name}?`, [
-              { text: 'Cancel', style: 'cancel', onPress: resetPosition },
-              { text: 'Delete', style: 'destructive', onPress: handleSwipeComplete },
-            ]);
-          }}
-        >
-          <View style={styles.memberContent}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <AntDesign name="user" size={28} color="#10B981" />
-              </View>
-            </View>
-            <View style={styles.memberInfo}>
-              <View style={styles.nameRow}>
-                <Text style={styles.memberName}>{member.name}</Text>
-                <RoleBadge role={member.role} />
-              </View>
-              <Text style={styles.relationship}>{member.relationship}</Text>
-              <View style={styles.phoneRow}>
-                <AntDesign name="phone" size={12} color="#6B7280" />
-                <Text style={styles.phone}>{member.phone}</Text>
-              </View>
-              <View style={styles.contributionRow}>
-                <AntDesign name="arrowup" size={12} color="#10B981" />
-                <Text style={styles.contribution}>
-                  Contributes {formatCurrency(member.contribution)}/mo
-                </Text>
-              </View>
-            </View>
-            <AntDesign name="right" size={16} color="#6B7280" />
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-  );
-};
-
-export default function FamilyMembersScreen() {
-  const insets = useSafeAreaInsets();
-  const [members, setMembers] = useState<FamilyMember[]>(initialMembers);
-  const [showAddSheet, setShowAddSheet] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newRelationship, setNewRelationship] = useState('Self');
-  const [newPhone, setNewPhone] = useState('');
-  const [showRelationPicker, setShowRelationPicker] = useState(false);
-
-  const handleDelete = useCallback((id: string) => {
-    setMembers(prev => prev.filter(m => m.id !== id));
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    mounted.current = true;
   }, []);
 
-  const handleAddMember = useCallback(() => {
-    if (!newName.trim()) {
-      Alert.alert('Error', 'Please enter a name');
-      return;
-    }
-    const newMember: FamilyMember = {
-      id: Date.now().toString(),
-      name: newName.trim(),
-      relationship: newRelationship,
-      phone: newPhone.trim() || 'Not provided',
-      contribution: 0,
-      role: 'Member',
-    };
-    setMembers(prev => [...prev, newMember]);
-    setNewName('');
-    setNewPhone('');
-    setNewRelationship('Self');
-    setShowAddSheet(false);
-  }, [newName, newRelationship, newPhone]);
+  const toggleExpand = useCallback(() => {
+    const toValue = expanded ? INITIAL_HEIGHT : INITIAL_HEIGHT + EXPANDED_EXTRA;
+    Animated.spring(animHeight, {
+      toValue,
+      damping: 20,
+      stiffness: 300,
+      useNativeDriver: false,
+    }).start();
+    setExpanded(!expanded);
+  }, [expanded, animHeight]);
 
-  const totalContribution = members.reduce((sum, m) => sum + m.contribution, 0);
-  const formatCurrency = (amount: number) => {
-    return '₹' + amount.toLocaleString('en-IN');
-  };
+  const cfg = ROLE_CONFIG[member.role];
+  const profileColor = getProfileColor(member.userId);
+  const fullName = `${member.profile.firstName} ${member.profile.lastName}`.trim();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Family Members</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddSheet(true)}
+    <Animated.View
+      style={[
+        styles.cardOuter,
+        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+      ]}
+    >
+      <TouchableOpacity activeOpacity={0.7} onPress={toggleExpand}>
+        <Animated.View
+          style={[
+            styles.card,
+            { borderColor: colors.border.subtle, height: animHeight },
+          ]}
         >
-          <AntDesign name="adduser" size={20} color="#0A0A0A" />
-          <Text style={styles.addButtonText}>Add Member</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total Members</Text>
-          <Text style={styles.summaryValue}>{members.length}</Text>
-        </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Total Contribution</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(totalContribution)}</Text>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {members.map(member => (
-          <SwipeableMemberCard
-            key={member.id}
-            member={member}
-            onDelete={handleDelete}
-          />
-        ))}
-      </ScrollView>
-
-      {showAddSheet && (
-        <View style={styles.overlay}>
-          <TouchableOpacity
-            style={styles.overlayBg}
-            activeOpacity={1}
-            onPress={() => setShowAddSheet(false)}
-          />
-          <View style={styles.bottomSheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Add Family Member</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Amit Kumar"
-                placeholderTextColor="#6B7280"
-                value={newName}
-                onChangeText={setNewName}
-              />
+          <View style={styles.cardHeader}>
+            <View style={[styles.avatar, { backgroundColor: profileColor + '20' }]}>
+              <Text style={[styles.avatarText, { color: profileColor }]}>
+                {initials(member.profile.firstName, member.profile.lastName)}
+              </Text>
             </View>
+            <View style={styles.cardHeaderInfo}>
+              <View style={styles.nameRoleRow}>
+                <Text style={[styles.memberName, { color: colors.text.primary }]} numberOfLines={1}>
+                  {fullName}
+                </Text>
+                <RoleBadge role={member.role} />
+              </View>
+              <Text style={[styles.joinedDate, { color: colors.text.tertiary }]}>
+                Joined {fmtDate(member.joinedAt)}
+              </Text>
+              <Text style={[styles.contributionAmount, { color: colors.text.primary }]}>
+                {fmt(member.totalContributed)} contributed
+              </Text>
+            </View>
+            <ExpandIcon expanded={expanded} />
+          </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Relationship</Text>
-              <TouchableOpacity
-                style={styles.pickerButton}
-                onPress={() => setShowRelationPicker(!showRelationPicker)}
-              >
-                <Text style={styles.pickerText}>{newRelationship}</Text>
-                <AntDesign
-                  name={showRelationPicker ? 'up' : 'down'}
-                  size={14}
-                  color="#6B7280"
-                />
-              </TouchableOpacity>
-              {showRelationPicker && (
-                <View style={styles.pickerDropdown}>
-                  {relationships.map(rel => (
-                    <TouchableOpacity
-                      key={rel}
-                      style={[
-                        styles.pickerOption,
-                        rel === newRelationship && styles.pickerOptionSelected,
-                      ]}
-                      onPress={() => {
-                        setNewRelationship(rel);
-                        setShowRelationPicker(false);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerOptionText,
-                          rel === newRelationship && styles.pickerOptionTextSelected,
-                        ]}
-                      >
-                        {rel}
+          {expanded && (
+            <View style={styles.cardExpanded}>
+              <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+
+              <View style={styles.expandedSection}>
+                <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Monthly Activity</Text>
+                <View style={styles.activityRow}>
+                  <View style={styles.activityItem}>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Income</Text>
+                    <Text style={[styles.activityValue, { color: colors.status.success }]}>
+                      {fmt(member.monthlyActivity.income)}
+                    </Text>
+                  </View>
+                  <View style={styles.activityItem}>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Expenses</Text>
+                    <Text style={[styles.activityValue, { color: colors.status.error }]}>
+                      {fmt(member.monthlyActivity.expenses)}
+                    </Text>
+                  </View>
+                  <View style={styles.activityItem}>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Transactions</Text>
+                    <Text style={[styles.activityValue, { color: colors.text.primary }]}>
+                      {member.monthlyActivity.transactionCount}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {member.responsibilities.length > 0 && (
+                <View style={styles.expandedSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Responsibilities</Text>
+                  <Text style={[styles.responsibilityCount, { color: colors.text.primary }]}>
+                    {member.responsibilities.filter(r => !r.completed).length} pending ·{' '}
+                    {member.responsibilities.filter(r => r.completed).length} completed
+                  </Text>
+                </View>
+              )}
+
+              {member.contributionHistory.length > 0 && (
+                <View style={styles.expandedSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Contribution History</Text>
+                  {member.contributionHistory.slice(0, 3).map((ch, i) => (
+                    <View key={i} style={styles.historyRow}>
+                      <Text style={[styles.historyPeriod, { color: colors.text.secondary }]}>
+                        {ch.period}
                       </Text>
-                    </TouchableOpacity>
+                      <Text style={[styles.historyAmount, { color: colors.text.primary }]}>
+                        {fmt(ch.amount)}
+                      </Text>
+                    </View>
                   ))}
                 </View>
               )}
             </View>
+          )}
+        </Animated.View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+91 98765 43210"
-                placeholderTextColor="#6B7280"
-                value={newPhone}
-                onChangeText={setNewPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
+export default function FamilyMembersScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleAddMember}>
-              <AntDesign name="check" size={20} color="#0A0A0A" />
-              <Text style={styles.submitText}>Add Member</Text>
-            </TouchableOpacity>
-          </View>
+  const fetchMembers = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+    try {
+      const families: Family[] = await api.get('/family');
+      if (!families || families.length === 0) {
+        setMembers([]);
+        return;
+      }
+      const activeFamily = families[0];
+      const data: FamilyMember[] = await api.get(
+        `/family/members?familyId=${activeFamily.id}`,
+      );
+      setMembers(data || []);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load members');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  const onRefresh = useCallback(() => {
+    fetchMembers(true);
+  }, [fetchMembers]);
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingHorizontal: CARD_HORIZONTAL }]}>
+        <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Family Members</Text>
+        <TouchableOpacity
+          style={[styles.inviteButton, { backgroundColor: colors.accent.primary }]}
+          onPress={() => navigation?.navigate('InviteMember')}
+        >
+          <AntDesign name="adduser" size={18} color={colors.text.inverse} />
+          <Text style={[styles.inviteButtonText, { color: colors.text.inverse }]}>Invite</Text>
+        </TouchableOpacity>
+      </View>
+
+      {!loading && !error && members.length > 0 && (
+        <View style={[styles.countPill, { backgroundColor: colors.bg.tertiary }]}>
+          <Text style={[styles.countText, { color: colors.text.secondary }]}>
+            {members.length} member{members.length !== 1 ? 's' : ''}
+          </Text>
         </View>
+      )}
+
+      {loading ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: 8, paddingHorizontal: CARD_HORIZONTAL, paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {[1, 2, 3, 4, 5].map(i => (
+            <MemberCardSkeleton key={i} />
+          ))}
+        </ScrollView>
+      ) : error ? (
+        <View style={styles.centerState}>
+          <AntDesign name="exclamationcircleo" size={48} color={colors.text.tertiary} />
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => fetchMembers()}
+          >
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : members.length === 0 ? (
+        <View style={styles.centerState}>
+          <AntDesign name="team" size={48} color={colors.text.tertiary} />
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>No members yet</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => navigation?.navigate('InviteMember')}
+          >
+            <AntDesign name="adduser" size={16} color={colors.text.inverse} />
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Invite someone</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: 4, paddingHorizontal: CARD_HORIZONTAL, paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent.primary}
+              colors={[colors.accent.primary]}
+            />
+          }
+        >
+          {members.map((member, i) => (
+            <MemberCard key={member.id} member={member} index={i} />
+          ))}
+        </ScrollView>
       )}
     </View>
   );
@@ -291,275 +418,219 @@ export default function FamilyMembersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
-  headerTitle: {
-    fontSize: 28,
+  largeTitle: {
+    fontSize: 34,
     fontWeight: '700',
-    color: '#F9FAFB',
     letterSpacing: -0.5,
   },
-  addButton: {
+  inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
+    gap: 6,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
-    gap: 8,
   },
-  addButtonText: {
-    fontSize: 14,
+  inviteButtonText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: '#0A0A0A',
   },
-  summaryCard: {
-    flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    alignItems: 'center',
+  countPill: {
+    alignSelf: 'flex-start',
+    marginLeft: CARD_HORIZONTAL,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#2C2C2E',
-  },
-  summaryLabel: {
+  countText: {
     fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-  scrollView: {
-    flex: 1,
+    fontWeight: '500',
   },
   scrollContent: {
-    paddingHorizontal: 20,
     paddingBottom: 100,
   },
-  swipeContainer: {
-    marginBottom: 12,
-    position: 'relative',
-  },
-  deleteAction: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 80,
-    backgroundColor: '#EF4444',
-    borderRadius: 16,
+  centerState: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 40,
   },
-  deleteText: {
-    color: '#FFF',
-    fontSize: 12,
-    marginTop: 4,
-    fontWeight: '600',
+  stateText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  memberCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  memberContent: {
+  retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  // Skeleton
+  skeletonCard: {
+    marginBottom: CARD_MARGIN,
+    borderRadius: 20,
+    overflow: 'hidden',
+    padding: 16,
+    backgroundColor: '#1C1C1E',
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  skeletonAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#27272A',
+  },
+  skeletonLine: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#27272A',
+  },
+
+  // Card
+  cardOuter: {
+    marginBottom: CARD_MARGIN,
+  },
+  card: {
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
     padding: 16,
   },
-  avatarContainer: {
-    marginRight: 14,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#1A2E2A',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#10B98120',
+    marginRight: 14,
   },
-  memberInfo: {
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  cardHeaderInfo: {
     flex: 1,
+    gap: 2,
   },
-  nameRow: {
+  nameRoleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 2,
   },
   memberName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#F9FAFB',
+    flexShrink: 1,
   },
+  joinedDate: {
+    fontSize: 13,
+  },
+  contributionAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  expandIconContainer: {
+    marginLeft: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Role Badge
   roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 6,
   },
-  adminBadge: {
-    backgroundColor: '#10B98120',
-  },
-  memberBadge: {
-    backgroundColor: '#3B82F620',
-  },
-  roleText: {
+  roleBadgeText: {
     fontSize: 11,
     fontWeight: '600',
   },
-  adminRoleText: {
-    color: '#10B981',
+
+  // Expanded
+  cardExpanded: {
+    paddingTop: 4,
   },
-  memberRoleText: {
-    color: '#3B82F6',
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 12,
   },
-  relationship: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 4,
+  expandedSection: {
+    marginBottom: 14,
   },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  phone: {
+  sectionTitle: {
     fontSize: 12,
-    color: '#6B7280',
-  },
-  contributionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  contribution: {
-    fontSize: 13,
-    color: '#10B981',
-    fontWeight: '500',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'flex-end',
-    zIndex: 100,
-  },
-  overlayBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  bottomSheet: {
-    backgroundColor: '#1C1C1E',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    paddingTop: 12,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#3A3A3C',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#F9FAFB',
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 18,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#F9FAFB',
+  activityRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  pickerButton: {
-    backgroundColor: '#2C2C2E',
+  activityItem: {
+    flex: 1,
+    backgroundColor: '#111111',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+  },
+  activityLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  activityValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  responsibilityCount: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  historyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingVertical: 6,
   },
-  pickerText: {
-    fontSize: 16,
-    color: '#F9FAFB',
+  historyPeriod: {
+    fontSize: 14,
   },
-  pickerDropdown: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    marginTop: 4,
-    overflow: 'hidden',
-  },
-  pickerOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  pickerOptionSelected: {
-    backgroundColor: '#10B98120',
-  },
-  pickerOptionText: {
-    fontSize: 15,
-    color: '#F9FAFB',
-  },
-  pickerOptionTextSelected: {
-    color: '#10B981',
+  historyAmount: {
+    fontSize: 14,
     fontWeight: '600',
-  },
-  submitButton: {
-    flexDirection: 'row',
-    backgroundColor: '#10B981',
-    borderRadius: 14,
-    paddingVertical: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-  submitText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0A0A0A',
   },
 });

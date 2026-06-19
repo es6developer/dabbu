@@ -1,11 +1,22 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { SpacesMigrationService } from '../spaces/spaces-migration.service';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly spacesMigrationService: SpacesMigrationService,
+  ) {}
+
+  async updateLens(userId: string, lens: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { activeLens: lens },
+    });
+  }
 
   async validateUpi(upiId: string) {
     if (!upiId || !/^[\w.-]+@[\w.-]+$/.test(upiId)) {
@@ -98,6 +109,21 @@ export class UsersService {
         userType: true,
       },
     });
+
+    if (data.userType === 'couple') {
+      try {
+        await this.spacesMigrationService.migrateCoupleToSpace(userId);
+      } catch (e: any) {
+        this.logger.warn(`Auto-migration to couple space skipped: ${e.message}`);
+      }
+    } else if (data.userType === 'family') {
+      try {
+        await this.spacesMigrationService.migrateFamilyToSpace(userId);
+      } catch (e: any) {
+        this.logger.warn(`Auto-migration to family space skipped: ${e.message}`);
+      }
+    }
+
     return user;
   }
 

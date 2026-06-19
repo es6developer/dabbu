@@ -2,17 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
+  Animated,
+  StyleSheet,
   Dimensions,
-  FlatList,
-  Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,812 +16,639 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { useToast } from '../../store/ToastContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - spacing.xl * 2 - spacing.md) / 2;
 
-const GOAL_ICONS = [
-  { key: 'gift', icon: 'gift', label: 'Gift' },
-  { key: 'home', icon: 'home', label: 'Home' },
-  { key: 'car', icon: 'car', label: 'Car' },
-  { key: 'planner', icon: 'earth', label: 'Travel' },
-  { key: 'rest', icon: 'enviroment', label: 'Dining' },
-  { key: 'fitness', icon: 'heart', label: 'Fitness' },
-  { key: 'school', icon: 'book', label: 'Education' },
-  { key: 'medkit', icon: 'heart', label: 'Health' },
-  { key: 'shirt', icon: 'skin', label: 'Fashion' },
-  { key: 'tv', icon: 'tablet1', label: 'Electronics' },
-  { key: 'wallet', icon: 'wallet', label: 'Savings' },
-  { key: 'business', icon: 'idcard', label: 'Business' },
-  { key: 'heart', icon: 'heart', label: 'Wedding' },
-  { key: 'paw', icon: 'heart', label: 'Pet' },
-  { key: 'ellipse', icon: 'ellipsis1', label: 'Other' },
+const TEMPLATES = [
+  { type: 'HOUSE', icon: 'home', label: 'House', color: '#60A5FA' },
+  { type: 'CAR', icon: 'car', label: 'Car', color: '#34C759' },
+  { type: 'BABY', icon: 'smileo', label: 'Baby Fund', color: '#FF8A65' },
+  { type: 'VACATION', icon: 'earth', label: 'Vacation', color: '#F59E0B' },
+  { type: 'WEDDING', icon: 'heart', label: 'Wedding', color: '#F43F5E' },
+  { type: 'INVESTMENT', icon: 'linechart', label: 'Investment', color: '#A78BFA' },
 ];
 
 function fmt(v: number) {
-  return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-export function CoupleGoalsScreen() {
-  const navigation = useNavigation<any>();
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function ProgressBar({ pct, color }: { pct: number; color: string }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: pct,
+      duration: 800,
+      useNativeDriver: false,
+    }).start();
+  }, [pct]);
+  const w = anim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+  return (
+    <View style={styles.progressTrack}>
+      <Animated.View style={[styles.progressFill, { width: w, backgroundColor: color }]} />
+    </View>
+  );
+}
+
+function useStagger(count: number, baseDelay = 80) {
+  const anims = useRef(Array.from({ length: count }, () => new Animated.Value(0))).current;
+  useEffect(() => {
+    Animated.stagger(
+      baseDelay,
+      anims.map((a) =>
+        Animated.timing(a, { toValue: 1, duration: 400, useNativeDriver: true }),
+      ),
+    ).start();
+  }, [count]);
+  return anims;
+}
+
+function SkeletonGoalCard() {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.goalCard, { backgroundColor: colors.bg.card }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Skeleton width={40} height={40} borderRadius={12} />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Skeleton width="70%" height={14} borderRadius={6} />
+          <Skeleton width="50%" height={11} borderRadius={5} />
+        </View>
+      </View>
+      <Skeleton width="100%" height={6} borderRadius={3} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Skeleton width="35%" height={20} borderRadius={6} />
+        <Skeleton width={50} height={18} borderRadius={9} />
+      </View>
+    </View>
+  );
+}
+
+function GoalsSkeleton() {
+  return (
+    <View style={{ paddingHorizontal: spacing.xl, gap: 12, paddingTop: spacing.lg }}>
+      <Skeleton width={120} height={16} borderRadius={8} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} width={CARD_WIDTH} height={100} borderRadius={20} />
+        ))}
+      </ScrollView>
+      <Skeleton width={100} height={16} borderRadius={8} style={{ marginTop: 8 }} />
+      <SkeletonGoalCard />
+      <SkeletonGoalCard />
+    </View>
+  );
+}
+
+export function CoupleGoalsScreen({ navigation: nav }: any) {
+  const navigation = nav || useNavigation<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [contributionModalVisible, setContributionModalVisible] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<any>(null);
+  const [aiPredictions, setAiPredictions] = useState<Record<string, any>>({});
+  const [completedExpanded, setCompletedExpanded] = useState(false);
 
-  const [formName, setFormName] = useState('');
-  const [formTarget, setFormTarget] = useState('');
-  const [formDate, setFormDate] = useState('');
-  const [formIcon, setFormIcon] = useState('gift');
-  const [formNotes, setFormNotes] = useState('');
-  const [formAmount, setFormAmount] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [goalPredictions, setGoalPredictions] = useState<Record<string, any>>({});
-  const [aiRebalance, setAiRebalance] = useState<any>(null);
-  const { showToast } = useToast();
+  const activeGoals = goals.filter((g: any) => g.status !== 'COMPLETED');
+  const completedGoals = goals.filter((g: any) => g.status === 'COMPLETED');
 
-  const fetchGoals = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) {
-      setLoading(true);
-    }
+  const stagger = useStagger(activeGoals.length + 1);
+
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
     try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) {
-        setGoals([]);
-        return;
-      }
-      const [dashboardRes, rebalanceRes] = await Promise.all([
-        api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/dashboard`),
-        api.get('/ai/goals/rebalance').catch(() => null),
-      ]);
-      const goals = dashboardRes?.goals || [];
-      setGoals(goals);
-      setAiRebalance((rebalanceRes as any)?.data || rebalanceRes);
+      const dashboard = await api.get<any>('/couple/dashboard');
+      const goalsData = dashboard?.goals || [];
+      setGoals(goalsData);
 
-      // Fetch AI prediction for each goal
       const predMap: Record<string, any> = {};
       await Promise.allSettled(
-        goals.map(async (goal: any) => {
+        goalsData.map(async (goal: any) => {
           try {
             const pred = await api.get(`/ai/goals/${goal.id}/prediction`);
             predMap[goal.id] = (pred as any)?.data || pred;
-          } catch { /* ignore */ }
+          } catch { }
         }),
       );
-      setGoalPredictions(predMap);
-    } catch (e: any) {
+      setAiPredictions(predMap);
+    } catch {
       setGoals([]);
-      if (e?.message !== 'Session expired') {
-        Alert.alert('Error', e?.message || 'Failed to load goals');
-      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleAddGoal = async () => {
-    if (!formName.trim()) {
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) {
-        return;
-      }
-      const payload: any = {
-        name: formName.trim(),
-        targetAmount: parseFloat(formTarget) || 0,
-        category: formIcon,
-        notes: formNotes.trim(),
-      };
-      if (formDate.trim()) {
-        payload.deadline = formDate.trim();
-      }
-      await api.post(`/shared-finance/groups/${coupleGroup.id}/goals`, payload);
-      setAddModalVisible(false);
-      resetForm();
-      fetchGoals(true);
-      showToast('Goal created');
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create goal');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData(true);
+  }, [fetchData]);
 
-  const handleAddContribution = async () => {
-    if (!selectedGoal || !formAmount.trim()) {
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) {
-        return;
-      }
-      await api.post(`/shared-finance/goals/${selectedGoal.id}/contribute`, {
-        amount: parseFloat(formAmount) || 0,
-      });
-      setContributionModalVisible(false);
-      setFormAmount('');
-      setSelectedGoal(null);
-      fetchGoals(true);
-      showToast('Contribution added');
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add contribution');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const resetForm = () => {
-    setFormName('');
-    setFormTarget('');
-    setFormDate('');
-    setFormIcon('gift');
-    setFormNotes('');
-    setFormAmount('');
-  };
-
-  const openContribution = (goal: any) => {
-    setSelectedGoal(goal);
-    setFormAmount('');
-    setContributionModalVisible(true);
-  };
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen skeleton={<GoalsSkeleton />} />;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <FlatList
-        data={goals}
-        keyExtractor={(_, i) => String(i)}
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40, paddingTop: 0 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              fetchGoals(true);
-            }}
+            onRefresh={onRefresh}
             tintColor={colors.accent.primary}
           />
         }
-        ListHeaderComponent={
-          <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-            <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <AntDesign  name="arrowleft" size={22} color={colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Shared Goals</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  resetForm();
-                  setAddModalVisible(true);
-                }}
-                style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
-              >
-                <AntDesign  name="plus" size={24} color={colors.text.primary} />
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.headerSubtitle, { color: colors.text.tertiary }]}>
-              {goals.length > 0
-                ? `${goals.length} goal${goals.length !== 1 ? 's' : ''}`
-                : 'Save towards what matters most'}
-            </Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIllustration}>
-              <AntDesign  name="gift" size={56} color={colors.accent.primary} />
-            </View>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              Add your first shared goal
-            </Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Save together for trips, a home, a wedding, or anything else you dream of.
-            </Text>
+      >
+        {/* Header */}
+        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Goals</Text>
             <TouchableOpacity
-              style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-              activeOpacity={0.8}
-              onPress={() => {
-                resetForm();
-                setAddModalVisible(true);
-              }}
+              onPress={() => navigation.navigate('LifePlanForm')}
+              style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <AntDesign  name="pluscircleo" size={20} color="#FFF" />
-              <Text style={styles.emptyBtnText}>Create Goal</Text>
+              <AntDesign name="plus" size={20} color={colors.accent.primary} />
             </TouchableOpacity>
           </View>
-        }
-        renderItem={({ item }) => {
-          const pct =
-            item.targetAmount > 0
-              ? Math.min(Math.round((item.savedAmount / item.targetAmount) * 100), 100)
-              : 0;
-          const hasDate = !!item.deadline;
-          const dateStr = hasDate
-            ? new Date(item.deadline).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })
-            : '';
-          const goalContributions = Array.isArray(item.contributions) ? item.contributions : [];
-          const partnerTotals: Record<string, { name: string; amount: number }> = {};
-          goalContributions.forEach((c: any) => {
-            const uid = c.user?.id || c.userId;
-            if (!partnerTotals[uid]) {
-              partnerTotals[uid] = { name: c.user?.firstName || 'Partner', amount: 0 };
-            }
-            partnerTotals[uid].amount += Number(c.amount || 0);
-          });
-          const partners = Object.values(partnerTotals);
-          const p1 = partners[0];
-          const p2 = partners[1];
-          const p1Pct =
-            item.savedAmount > 0 && p1?.amount
-              ? Math.round((p1.amount / item.savedAmount) * 100)
-              : 0;
-          const p2Pct =
-            item.savedAmount > 0 && p2?.amount
-              ? Math.round((p2.amount / item.savedAmount) * 100)
-              : 0;
-          const goalIcon = GOAL_ICONS.find((g) => g.key === (item.category || 'gift'))?.icon || 'gift';
+        </View>
 
-          return (
-            <View
-              style={[
-                styles.goalCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                shadows.lg,
-              ]}
-            >
-              <View style={styles.goalTopRow}>
-                <View style={[styles.goalIconWrap, { backgroundColor: colors.accent.primary }]}>
-                  <AntDesign name={goalIcon as any} size={22} color="#FFF" />
-                </View>
-                <View style={styles.goalTitleWrap}>
-                  <Text
-                    style={[styles.goalTitle, { color: colors.text.primary }]}
-                    numberOfLines={1}
-                  >
-                    {item.name}
-                  </Text>
-                  <Text style={[styles.goalSubtitle, { color: colors.text.tertiary }]}>
-                    Target {fmt(item.targetAmount)}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.goalAmountRow}>
-                <View>
-                  <Text style={[styles.goalSaved, { color: colors.text.primary }]}>
-                    {fmt(item.savedAmount)}
-                  </Text>
-                  <Text style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}>
-                    saved
-                  </Text>
-                </View>
-                <View style={[styles.goalPctBadge, { backgroundColor: colors.accent.primary }]}>
-                  <Text style={styles.goalPctText}>{pct}%</Text>
-                </View>
-              </View>
-
-              <View style={[styles.progressBar, { backgroundColor: colors.bg.tertiary }]}>
-                <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: colors.accent.primary }]} />
-              </View>
-
-              {goalPredictions[item.id] && (
-                <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
-                  <AntDesign name="bulb1" size={12} color="#FBBF24" />
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary, flex: 1 }}>
-                    {goalPredictions[item.id].predictedCompletion
-                      ? `AI predicts completion by ${new Date(goalPredictions[item.id].predictedCompletion).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                      : goalPredictions[item.id].probability != null
-                        ? `${Math.round(goalPredictions[item.id].probability * 100)}% confidence of achieving this goal`
-                        : 'AI tracking progress'}
-                  </Text>
-                </View>
-              )}
-
-              <View style={styles.goalMetaRow}>
-                <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />
-                <Text style={[styles.goalMetaText, { color: colors.text.tertiary }]}>
-                  {hasDate ? dateStr : 'No deadline'}
-                </Text>
-              </View>
-
-              {partners.length > 0 && (
-                <View style={styles.partnerRow}>
-                  <View style={styles.partnerChips}>
-                    {p1 && (
-                      <View style={[styles.partnerChip, { backgroundColor: colors.bg.tertiary }]}>
-                        <View
-                          style={[styles.partnerDot, { backgroundColor: colors.accent.primary }]}
-                        />
-                        <Text
-                          style={[styles.partnerChipText, { color: colors.text.secondary }]}
-                          numberOfLines={1}
-                        >
-                          {p1.name || 'Partner 1'} {p1Pct > 0 ? `(${p1Pct}%)` : ''}
-                        </Text>
-                      </View>
-                    )}
-                    {p2 && (
-                      <View style={[styles.partnerChip, { backgroundColor: colors.bg.tertiary }]}>
-                        <View style={[styles.partnerDot, { backgroundColor: '#14B8A6' }]} />
-                        <Text
-                          style={[styles.partnerChipText, { color: colors.text.secondary }]}
-                          numberOfLines={1}
-                        >
-                          {p2.name || 'Partner 2'} {p2Pct > 0 ? `(${p2Pct}%)` : ''}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
-
-              <TouchableOpacity
-                style={[styles.contributeBtn, { backgroundColor: colors.accent.primary }]}
-                activeOpacity={0.8}
-                onPress={() => openContribution(item)}
-              >
-                <AntDesign  name="pluscircleo" size={16} color="#FFF" />
-                <Text style={styles.contributeBtnText}>Add Contribution</Text>
-              </TouchableOpacity>
+        {goals.length === 0 && !loading ? (
+          /* Empty State */
+          <View style={styles.emptyWrap}>
+            <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+              <AntDesign name="heart" size={48} color={colors.accent.primary} />
             </View>
-          );
-        }}
-      />
-
-      <Modal
-        visible={addModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setAddModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setAddModalVisible(false)}
-          />
-          <View style={[styles.modalSheet, { backgroundColor: colors.bg.card }]}>
-            <View style={[styles.modalHandle, { backgroundColor: colors.border.subtle }]} />
-            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>New Shared Goal</Text>
-
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Goal Name</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              placeholder="e.g. Bali Trip"
-              placeholderTextColor={colors.text.tertiary}
-              value={formName}
-              onChangeText={setFormName}
-            />
-
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
-              Target Amount (₹)
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+              Start dreaming together
             </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              placeholder="e.g. 500000"
-              placeholderTextColor={colors.text.tertiary}
-              value={formTarget}
-              onChangeText={setFormTarget}
-              keyboardType="decimal-pad"
-            />
-
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
-              Target Date (optional)
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+              Create your first shared goal and start saving for what matters most.
             </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.text.tertiary}
-              value={formDate}
-              onChangeText={setFormDate}
-            />
-
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Icon</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconPicker}>
-              {GOAL_ICONS.map((g) => (
-                <TouchableOpacity
-                  key={g.key}
-                  style={[
-                    styles.iconItem,
-                    {
-                      backgroundColor:
-                        formIcon === g.key ? `${colors.accent.primary}15` : colors.bg.tertiary,
-                      borderColor: formIcon === g.key ? colors.accent.primary : 'transparent',
-                    },
-                  ]}
-                  onPress={() => setFormIcon(g.key)}
-                >
-                  <AntDesign
-                    name={g.icon as any}
-                    size={22}
-                    color={formIcon === g.key ? colors.accent.primary : colors.text.secondary}
-                  />
-                  <Text
+            <TouchableOpacity
+              style={[styles.emptyCta, { backgroundColor: colors.accent.primary }]}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('LifePlanForm')}
+            >
+              <AntDesign name="pluscircleo" size={18} color="#FFF" />
+              <Text style={styles.emptyCtaText}>Create Goal</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {/* Section 1: Goal Templates */}
+            <View style={{ paddingTop: spacing.md }}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Goal Templates</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('LifePlanForm')}>
+                  <Text style={[styles.seeAll, { color: colors.accent.primary }]}>See All</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 10 }}
+              >
+                {TEMPLATES.map((t, i) => (
+                  <TouchableOpacity
+                    key={t.type}
+                    activeOpacity={0.8}
+                    onPress={() => navigation.navigate('LifePlanForm', { plannerType: t.type })}
                     style={[
-                      styles.iconLabel,
-                      { color: formIcon === g.key ? colors.accent.primary : colors.text.tertiary },
+                      styles.templateCard,
+                      {
+                        backgroundColor: colors.bg.card,
+                        borderColor: colors.border.subtle,
+                      },
+                      shadows.md,
                     ]}
                   >
-                    {g.label}
+                    <View style={[styles.templateIcon, { backgroundColor: `${t.color}18` }]}>
+                      <AntDesign name={t.icon as any} size={22} color={t.color} />
+                    </View>
+                    <Text style={[styles.templateLabel, { color: colors.text.primary }]}>{t.label}</Text>
+                    <View style={[styles.templateCta, { backgroundColor: colors.accent.primary }]}>
+                      <Text style={styles.templateCtaText}>Create</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Section 2: Active Goals */}
+            {activeGoals.length > 0 && (
+              <View style={{ paddingTop: spacing['2xl'] }}>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                    Active Goals
                   </Text>
+                  <Text style={[styles.sectionCount, { color: colors.text.tertiary }]}>
+                    {activeGoals.length}
+                  </Text>
+                </View>
+                <View style={{ paddingHorizontal: spacing.xl, gap: 12 }}>
+                  {activeGoals.map((goal: any, idx: number) => {
+                    const target = Number(goal.targetAmount || goal.target || 0);
+                    const saved = Number(goal.savedAmount || goal.currentAmount || 0);
+                    const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
+                    const catIcon = TEMPLATES.find(
+                      (t) => t.type === goal.category || t.label === goal.category,
+                    );
+                    const icon = catIcon?.icon || 'Trophy';
+                    const iconColor = catIcon?.color || colors.accent.primary;
+                    const prediction = aiPredictions[goal.id];
+                    const predDate = prediction?.predictedCompletion;
+                    const predSuggestion = prediction?.suggestion;
+
+                    return (
+                      <Animated.View
+                        key={goal.id}
+                        style={{ opacity: stagger[idx] }}
+                      >
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={() => navigation.navigate('Goals', { goalId: goal.id })}
+                          style={[
+                            styles.goalCard,
+                            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                            shadows.md,
+                          ]}
+                        >
+                          <View style={styles.goalTop}>
+                            <View style={[styles.goalIcon, { backgroundColor: `${iconColor}18` }]}>
+                              <AntDesign name={icon as any} size={20} color={iconColor} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[styles.goalName, { color: colors.text.primary }]} numberOfLines={1}>
+                                {goal.name}
+                              </Text>
+                              <Text style={[styles.goalTarget, { color: colors.text.tertiary }]}>
+                                Target {fmt(target)}
+                              </Text>
+                            </View>
+                            <View style={[styles.pctBadge, { backgroundColor: `${iconColor}15` }]}>
+                              <Text style={[styles.pctText, { color: iconColor }]}>{pct}%</Text>
+                            </View>
+                          </View>
+
+                          <ProgressBar pct={pct} color={iconColor} />
+
+                          <View style={styles.goalStats}>
+                            <View>
+                              <Text style={[styles.goalSaved, { color: colors.text.primary }]}>
+                                {fmt(saved)}
+                              </Text>
+                              <Text style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}>
+                                saved
+                              </Text>
+                            </View>
+                            {predDate && (
+                              <View style={styles.forecast}>
+                                <AntDesign name="calendar" size={11} color={colors.text.tertiary} />
+                                <Text style={[styles.forecastText, { color: colors.text.tertiary }]}>
+                                  Est. {fmtDate(predDate)}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+
+                          {(predDate || predSuggestion) && (
+                            <View style={[styles.aiSnippet, { backgroundColor: `${colors.status.warning}10` }]}>
+                              <AntDesign name="bulb1" size={12} color="#FBBF24" />
+                              <Text style={[styles.aiText, { color: colors.text.secondary }]} numberOfLines={2}>
+                                {predSuggestion ||
+                                  `AI predicts completion by ${fmtDate(predDate)}`}
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </Animated.View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Section 3: Completed Goals */}
+            {completedGoals.length > 0 && (
+              <View style={{ paddingTop: spacing['2xl'] }}>
+                <TouchableOpacity
+                  style={styles.sectionHeaderRow}
+                  activeOpacity={0.7}
+                  onPress={() => setCompletedExpanded((p) => !p)}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                      Completed
+                    </Text>
+                    <View style={[styles.completedCount, { backgroundColor: colors.status.successLight }]}>
+                      <Text style={[styles.completedCountText, { color: colors.status.success }]}>
+                        {completedGoals.length}
+                      </Text>
+                    </View>
+                  </View>
+                  <AntDesign
+                    name={completedExpanded ? 'up' : 'down'}
+                    size={14}
+                    color={colors.text.tertiary}
+                  />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+                {completedExpanded && (
+                  <View style={{ paddingHorizontal: spacing.xl, gap: 10, paddingBottom: spacing.lg }}>
+                    {completedGoals.map((goal: any) => {
+                      const target = Number(goal.targetAmount || 0);
+                      const saved = Number(goal.savedAmount || 0);
+                      return (
+                        <View
+                          key={goal.id}
+                          style={[
+                            styles.completedCard,
+                            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                          ]}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            <View style={[styles.completedIcon, { backgroundColor: colors.status.successLight }]}>
+                              <AntDesign name="checkcircle" size={18} color={colors.status.success} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[styles.goalName, { color: colors.text.primary }]} numberOfLines={1}>
+                                {goal.name}
+                              </Text>
+                              <Text style={[styles.goalTarget, { color: colors.text.tertiary }]}>
+                                {fmt(saved)} of {fmt(target)}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+            )}
+          </>
+        )}
+      </ScrollView>
 
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
-              Notes (optional)
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                styles.inputMultiline,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              placeholder="Any notes about this goal..."
-              placeholderTextColor={colors.text.tertiary}
-              value={formNotes}
-              onChangeText={setFormNotes}
-              multiline
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalCancelBtn, { borderColor: colors.border.default }]}
-                onPress={() => setAddModalVisible(false)}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalSubmitBtn,
-                  { backgroundColor: colors.accent.primary, opacity: submitting || !formName.trim() ? 0.5 : 1 },
-                ]}
-                onPress={handleAddGoal}
-                disabled={submitting || !formName.trim()}
-              >
-                <Text style={styles.modalSubmitText}>
-                  {submitting ? 'Creating...' : 'Create Goal'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      <Modal
-        visible={contributionModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setContributionModalVisible(false)}
+      {/* FAB */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('LifePlanForm')}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: colors.accent.primary,
+            bottom: insets.bottom + 24,
+          },
+          shadows.lg,
+        ]}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
-        >
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setContributionModalVisible(false)}
-          />
-          <View style={[styles.modalSheet, { backgroundColor: colors.bg.card }]}>
-            <View style={[styles.modalHandle, { backgroundColor: colors.border.subtle }]} />
-            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
-              Add to {selectedGoal?.name || 'Goal'}
-            </Text>
-
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Amount (₹)</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              placeholder="e.g. 5000"
-              placeholderTextColor={colors.text.tertiary}
-              value={formAmount}
-              onChangeText={setFormAmount}
-              keyboardType="decimal-pad"
-              autoFocus
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalCancelBtn, { borderColor: colors.border.default }]}
-                onPress={() => {
-                  setContributionModalVisible(false);
-                  setSelectedGoal(null);
-                }}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalSubmitBtn,
-                  { backgroundColor: colors.accent.primary, opacity: submitting || !formAmount.trim() ? 0.5 : 1 },
-                ]}
-                onPress={handleAddContribution}
-                disabled={submitting || !formAmount.trim()}
-              >
-                <Text style={styles.modalSubmitText}>{submitting ? 'Adding...' : 'Add'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        <AntDesign name="plus" size={24} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: {
+  largeTitle: {
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* Sections */
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.sm,
   },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
-  headerSubtitle: {
-    color: 'rgba(255,255,255,0.65)',
-    fontSize: 13,
+  sectionCount: {
+    fontSize: 14,
     fontWeight: '500',
-    marginTop: 6,
+  },
+  seeAll: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 
-  emptyContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 32,
-    paddingBottom: 40,
+  /* Templates */
+  templateCard: {
+    width: CARD_WIDTH,
+    padding: spacing.lg,
+    borderRadius: borderRadius['3xl'],
+    borderWidth: 1,
+    gap: 10,
   },
-  emptyIllustration: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  templateIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+  },
+  templateLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  templateCta: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+  },
+  templateCtaText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  /* Goal Card */
+  goalCard: {
+    borderRadius: borderRadius['3xl'],
+    padding: spacing.lg,
+    borderWidth: 1,
+    gap: 12,
+  },
+  goalTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  goalIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalName: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  goalTarget: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  pctBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+  },
+  pctText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  /* Progress Bar */
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(128,128,128,0.12)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+
+  /* Stats */
+  goalStats: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  goalSaved: {
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  goalSavedLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  forecast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  forecastText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+
+  /* AI Snippet */
+  aiSnippet: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    padding: 10,
+    borderRadius: borderRadius.xl,
+  },
+  aiText: {
+    fontSize: 11,
+    lineHeight: 16,
+    flex: 1,
+  },
+
+  /* Completed */
+  completedCount: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  completedCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  completedCard: {
+    borderRadius: borderRadius['2xl'],
+    padding: spacing.lg,
+    borderWidth: 1,
+  },
+  completedIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* Empty State */
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing['4xl'],
+    paddingTop: 60,
+  },
+  emptyIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing['2xl'],
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   emptyDesc: {
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 24,
+    marginBottom: spacing['2xl'],
   },
-  emptyBtn: {
+  emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 24,
     paddingVertical: 14,
-    borderRadius: 16,
+    borderRadius: borderRadius['2xl'],
   },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-
-  goalCard: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    gap: 14,
-  },
-  goalTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  goalIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  goalTitleWrap: { flex: 1 },
-  goalTitle: { fontSize: 16, fontWeight: '700' },
-  goalSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 2 },
-
-  goalAmountRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-  },
-  goalSaved: { fontSize: 26, fontWeight: '800' },
-  goalSavedLabel: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  goalPctBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  goalPctText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-
-  progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
-
-  goalMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  goalMetaText: { fontSize: 12, fontWeight: '500' },
-
-  partnerRow: { marginTop: -2 },
-  partnerChips: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  partnerChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  partnerDot: { width: 8, height: 8, borderRadius: 4 },
-  partnerChipText: { fontSize: 11, fontWeight: '600', maxWidth: 120 },
-
-  contributeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 14,
-  },
-  contributeBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalSheet: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    maxHeight: '85%',
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 20,
-  },
-
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 6,
-    marginTop: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  input: {
-    height: 48,
-    borderRadius: 14,
-    paddingHorizontal: 16,
+  emptyCtaText: {
+    color: '#FFF',
     fontSize: 15,
-    fontWeight: '500',
-    borderWidth: 1,
-  },
-  inputMultiline: {
-    height: 80,
-    paddingTop: 14,
-    textAlignVertical: 'top',
+    fontWeight: '700',
   },
 
-  iconPicker: { marginTop: 8, marginBottom: 4 },
-  iconItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    marginRight: 10,
-    borderWidth: 1.5,
-  },
-  iconLabel: { fontSize: 10, fontWeight: '600', marginTop: 3 },
-
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  modalCancelBtn: {
-    flex: 1,
-    height: 50,
-    borderRadius: 16,
-    borderWidth: 1,
+  /* FAB */
+  fab: {
+    position: 'absolute',
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalCancelText: { fontSize: 15, fontWeight: '600' },
-  modalSubmitBtn: {
-    flex: 1,
-    height: 50,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalSubmitText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });
