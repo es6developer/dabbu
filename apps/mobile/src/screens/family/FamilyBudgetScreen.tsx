@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../../services/api';
 
 interface Category {
   id: string;
@@ -17,17 +20,6 @@ interface Category {
   spent: number;
   limit: number;
 }
-
-const categories: Category[] = [
-  { id: '1', name: 'Food', icon: 'rest', spent: 28500, limit: 30000 },
-  { id: '2', name: 'Rent', icon: 'home', spent: 35000, limit: 35000 },
-  { id: '3', name: 'Utilities', icon: 'bulb1', spent: 8200, limit: 10000 },
-  { id: '4', name: 'Education', icon: 'book', spent: 12500, limit: 15000 },
-  { id: '5', name: 'Transport', icon: 'car', spent: 9500, limit: 10000 },
-  { id: '6', name: 'Healthcare', icon: 'heart', spent: 5400, limit: 8000 },
-  { id: '7', name: 'Entertainment', icon: 'star', spent: 6300, limit: 6000 },
-  { id: '8', name: 'Savings', icon: 'arrowup', spent: 45000, limit: 50000 },
-];
 
 const BudgetCategoryCard: React.FC<{ category: Category }> = ({ category }) => {
   const percentage = Math.min((category.spent / category.limit) * 100, 100);
@@ -82,11 +74,23 @@ const BudgetCategoryCard: React.FC<{ category: Category }> = ({ category }) => {
 
 export default function FamilyBudgetScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalBudget = categories.reduce((s, c) => s + c.limit, 0);
-  const totalSpent = categories.reduce((s, c) => s + c.spent, 0);
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/budget').then((res: any) => {
+      const data = res?.data || res || [];
+      if (mounted) setCategories(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
+
+  const totalBudget = categories.reduce((s, c) => s + (c.limit || 0), 0);
+  const totalSpent = categories.reduce((s, c) => s + (c.spent || 0), 0);
   const remaining = totalBudget - totalSpent;
-  const overallPercent = (totalSpent / totalBudget) * 100;
+  const overallPercent = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
 
@@ -94,67 +98,84 @@ export default function FamilyBudgetScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Family Budget</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => Alert.alert('Set Budget', 'Configure budget limits')}
-        >
-          <AntDesign name="setting" size={18} color="#10B981" />
-          <Text style={styles.addButtonText}>Set Budget</Text>
-        </TouchableOpacity>
       </View>
 
-      <View style={styles.overviewCard}>
-        <View style={styles.overviewTop}>
-          <View>
-            <Text style={styles.overviewLabel}>Total Budget</Text>
-            <Text style={styles.overviewAmount}>{formatCurrency(totalBudget)}</Text>
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      ) : categories.length === 0 ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}>
+          <AntDesign name="piechart" size={52} color="#6B7280" />
+          <Text style={{ color: '#F9FAFB', marginTop: 16, fontSize: 18, fontWeight: '600' }}>No budget yet</Text>
+          <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+            Set up a family budget to track spending across categories
+          </Text>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 20, gap: 8 }}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Goals')}
+          >
+            <AntDesign name="plus" size={18} color="#0A0A0A" />
+            <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Create Your First Budget</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+      <>
+        <View style={styles.overviewCard}>
+          <View style={styles.overviewTop}>
+            <View>
+              <Text style={styles.overviewLabel}>Total Budget</Text>
+              <Text style={styles.overviewAmount}>{formatCurrency(totalBudget)}</Text>
+            </View>
+            <View style={styles.overviewRight}>
+              <Text style={styles.overviewLabel}>Remaining</Text>
+              <Text style={[styles.overviewRemaining, { color: remaining > 0 ? '#10B981' : '#EF4444' }]}>
+                {formatCurrency(remaining)}
+              </Text>
+            </View>
           </View>
-          <View style={styles.overviewRight}>
-            <Text style={styles.overviewLabel}>Remaining</Text>
-            <Text style={[styles.overviewRemaining, { color: remaining > 0 ? '#10B981' : '#EF4444' }]}>
-              {formatCurrency(remaining)}
+          <View style={styles.overallProgress}>
+            <View style={styles.overallBarBg}>
+              <View
+                style={[
+                  styles.overallBarFill,
+                  { width: `${Math.min(overallPercent, 100)}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.overallPercentText}>
+              {overallPercent.toFixed(1)}% used
             </Text>
           </View>
         </View>
-        <View style={styles.overallProgress}>
-          <View style={styles.overallBarBg}>
-            <View
-              style={[
-                styles.overallBarFill,
-                { width: `${Math.min(overallPercent, 100)}%` },
-              ]}
-            />
+
+        <View style={styles.legendRow}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+            <Text style={styles.legendText}>Under 80%</Text>
           </View>
-          <Text style={styles.overallPercentText}>
-            {overallPercent.toFixed(1)}% used
-          </Text>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+            <Text style={styles.legendText}>80-100%</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
+            <Text style={styles.legendText}>Over 100%</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.legendRow}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-          <Text style={styles.legendText}>Under 80%</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
-          <Text style={styles.legendText}>80-100%</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-          <Text style={styles.legendText}>Over 100%</Text>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {categories.map(cat => (
-          <BudgetCategoryCard key={cat.id} category={cat} />
-        ))}
-      </ScrollView>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {categories.map(cat => (
+            <BudgetCategoryCard key={cat.id} category={cat} />
+          ))}
+        </ScrollView>
+      </>
+      )}
     </View>
   );
 }

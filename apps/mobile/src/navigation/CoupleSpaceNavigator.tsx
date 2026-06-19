@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
-import { CoupleSpaceRouter } from './CoupleSpaceRouter';
 import { CoupleOverviewScreen } from '../screens/couple/CoupleOverviewScreen';
 import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
 import { CoupleHomeScreen } from '../screens/couple/CoupleHomeScreen';
@@ -62,7 +61,7 @@ export function CoupleSpaceNavigator() {
     <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <Stack.Screen
         name="CoupleOverview"
-        component={CoupleSpaceRouter}
+        component={CoupleOverviewScreen}
         options={{ headerShown: false }}
       />
       {COUPLE_SUB_SCREENS.map(({ name, component }) => (

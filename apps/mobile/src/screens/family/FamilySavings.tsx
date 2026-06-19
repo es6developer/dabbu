@@ -1,22 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
-
-const FAMILY_MEMBERS = [
-  { name: 'Karthik', role: 'You', saved: 320000 },
-  { name: 'Priya', role: 'Spouse', saved: 280000 },
-  { name: 'Ananya', role: 'Sister', saved: 150000 },
-  { name: 'Rajesh', role: 'Father', saved: 100000 },
-];
-
-const GOAL_TOTAL = 1200000;
-const GOAL_SAVED = 850000;
-const GOAL_PCT = (GOAL_SAVED / GOAL_TOTAL) * 100;
+import { api } from '../../services/api';
 
 function fmt(v: number) {
   return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -24,20 +15,53 @@ function fmt(v: number) {
 
 export function FamilySavings() {
   const { colors, isDark } = useTheme();
+  const navigation = useNavigation<any>();
+  const [members, setMembers] = useState<any[]>([]);
+  const [goalTotal, setGoalTotal] = useState(0);
+  const [goalSaved, setGoalSaved] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    api.get('/family-space/dashboard').then((res: any) => {
+      const d = res?.data || res || {};
+      if (!mounted) return;
+      const savedByMember = d.savedByMember || {};
+      const memberList = (d.members || []).map((m: any) => ({
+        name: m.firstName || m.name || 'Member',
+        role: m.role || 'Member',
+        saved: savedByMember[m.id] || 0,
+      }));
+      setMembers(memberList);
+      setGoalTotal(d.goalTotal || 0);
+      setGoalSaved(d.goalSaved || 0);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  const goalPct = goalTotal > 0 ? (goalSaved / goalTotal) * 100 : 0;
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center" style={{ backgroundColor: colors.bg.primary }}>
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg.primary }}>
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* ── Header ──────────────────────────────── */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
-          <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
             Family Savings
           </Text>
           <TouchableOpacity
-            onPress={() => {}}
+            onPress={() => navigation.navigate('FamilySpace')}
             activeOpacity={0.7}
             className="px-3.5 py-1.5 rounded-full"
             style={{ backgroundColor: colors.brand.light }}
@@ -63,7 +87,7 @@ export function FamilySavings() {
                 style={{ backgroundColor: 'rgba(124, 58, 237, 0.15)' }}
               >
                 <Text className="text-[11px] font-bold" style={{ color: colors.accent.primary }}>
-                  {GOAL_PCT.toFixed(0)}%
+                  {goalPct.toFixed(0)}%
                 </Text>
               </View>
             </View>
@@ -76,13 +100,13 @@ export function FamilySavings() {
                 color: isDark ? '#FFFFFF' : colors.text.primary,
               }}
             >
-              {fmt(GOAL_TOTAL)}
+              {fmt(goalTotal)}
             </Text>
             <Text
               className="text-[12px] font-medium mt-1"
               style={{ color: isDark ? 'rgba(255,255,255,0.55)' : '#7C3AED' }}
             >
-              {fmt(GOAL_SAVED)} saved · {fmt(GOAL_TOTAL - GOAL_SAVED)} remaining
+              {fmt(goalSaved)} saved · {fmt(goalTotal - goalSaved)} remaining
             </Text>
 
             {/* Progress bar */}
@@ -94,13 +118,13 @@ export function FamilySavings() {
             >
               <View
                 className="h-full rounded-full"
-                style={{ width: `${GOAL_PCT}%`, backgroundColor: colors.accent.primary }}
+                style={{ width: `${goalPct}%`, backgroundColor: colors.accent.primary }}
               />
             </View>
 
             {/* Contributor avatars */}
             <View className="flex-row items-center mt-4 gap-2">
-              {FAMILY_MEMBERS.slice(0, 4).map((m, i) => (
+              {members.slice(0, 4).map((m, i) => (
                 <View
                   key={m.name}
                   className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-full"
@@ -113,7 +137,7 @@ export function FamilySavings() {
                     className="text-[10px] font-semibold"
                     style={{ color: isDark ? 'rgba(255,255,255,0.8)' : '#6D28D9' }}
                   >
-                    {m.saved > 0 ? `${((m.saved / GOAL_SAVED) * 100).toFixed(0)}%` : '0%'}
+                    {m.saved > 0 ? `${((m.saved / goalSaved) * 100).toFixed(0)}%` : '0%'}
                   </Text>
                 </View>
               ))}
@@ -127,8 +151,8 @@ export function FamilySavings() {
             Members
           </Text>
 
-          {FAMILY_MEMBERS.map((member, i) => {
-            const memberPct = (member.saved / GOAL_SAVED) * 100;
+          {members.map((member, i) => {
+            const memberPct = goalSaved > 0 ? (member.saved / goalSaved) * 100 : 0;
             return (
               <Card key={member.name} variant="default" padding="lg" style={{ marginBottom: 10 }}>
                 <View className="flex-row items-center">

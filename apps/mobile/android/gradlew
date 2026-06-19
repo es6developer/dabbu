@@ -115,6 +115,12 @@ esac
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
 
+# Force JDK 17 (Gradle 8.x does not support JDK 25; AGP 8.1.1 JdkImageTransform
+# rejects Android SDK 34's core-for-system-modules.jar on JDK 21+)
+JAVA_HOME="/Users/karthikjayasrimac/Library/Java/JavaVirtualMachines/jbr-17.0.14/Contents/Home"
+STUDIO_JDK="$JAVA_HOME"
+ANDROID_JDK_HOME="$JAVA_HOME"
+
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then

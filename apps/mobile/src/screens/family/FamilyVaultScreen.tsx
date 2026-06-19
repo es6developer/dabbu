@@ -1,29 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../../services/api';
 
 interface VaultItem {
   id: string;
   name: string;
   type: string;
   dateAdded: string;
-  icon: keyof typeof AntDesign.glyphMap;
+  icon?: keyof typeof AntDesign.glyphMap;
 }
-
-const vaultItems: VaultItem[] = [
-  { id: '1', name: 'ICICI Account Details', type: 'Bank Account', dateAdded: '12 May 2026', icon: 'lock' },
-  { id: '2', name: 'Will Document', type: 'Legal Document', dateAdded: '03 Jan 2026', icon: 'lock' },
-  { id: '3', name: 'Property Deed - Whitefield', type: 'Property', dateAdded: '20 Feb 2026', icon: 'lock' },
-  { id: '4', name: 'Gold Holdings Summary', type: 'Investment', dateAdded: '15 Apr 2026', icon: 'lock' },
-];
 
 const VaultItemCard: React.FC<{ item: VaultItem }> = ({ item }) => {
   const [showContent, setShowContent] = useState(false);
@@ -66,7 +62,20 @@ const VaultItemCard: React.FC<{ item: VaultItem }> = ({ item }) => {
 
 export default function FamilyVaultScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const [vaultUnlocked, setVaultUnlocked] = useState(false);
+  const [items, setItems] = useState<VaultItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/vault').then((res: any) => {
+      const data = res?.data || res || [];
+      const list = Array.isArray(data) ? data : data.items || data.vaultItems || [];
+      if (mounted) setItems(list);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
 
   const handleVaultToggle = () => {
     if (!vaultUnlocked) {
@@ -106,6 +115,11 @@ export default function FamilyVaultScreen() {
         </TouchableOpacity>
       </View>
 
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      ) : (
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -132,7 +146,7 @@ export default function FamilyVaultScreen() {
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{vaultItems.length}</Text>
+            <Text style={styles.statValue}>{items.length}</Text>
             <Text style={styles.statLabel}>Documents</Text>
           </View>
           <View style={styles.statCard}>
@@ -147,16 +161,32 @@ export default function FamilyVaultScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Vault Items</Text>
-          <Text style={styles.sectionCount}>{vaultItems.length} items</Text>
+          <Text style={styles.sectionCount}>{items.length} items</Text>
         </View>
 
-        {vaultItems.map(item => (
+        {items.length === 0 ? (
+          <View style={{ alignItems: 'center', paddingTop: 20, paddingHorizontal: 40 }}>
+            <AntDesign name="lock" size={48} color="#6B7280" />
+            <Text style={{ color: '#F9FAFB', marginTop: 16, fontSize: 18, fontWeight: '600' }}>Vault is empty</Text>
+            <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+              Store your sensitive documents securely in the family vault
+            </Text>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 20, gap: 8 }}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('Documents')}
+            >
+              <AntDesign name="plus" size={18} color="#0A0A0A" />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Add Your First Document</Text>
+            </TouchableOpacity>
+          </View>
+        ) : items.map(item => (
           <VaultItemCard key={item.id} item={item} />
         ))}
 
         <TouchableOpacity
           style={styles.addToVaultButton}
-          onPress={() => Alert.alert('Add to Vault', 'Upload a document to the secure vault')}
+          onPress={() => navigation.navigate('Documents')}
         >
           <AntDesign name="plus" size={18} color="#10B981" />
           <Text style={styles.addToVaultText}>Add Document to Vault</Text>
@@ -178,6 +208,7 @@ export default function FamilyVaultScreen() {
           </View>
         </View>
       </ScrollView>
+      )}
     </View>
   );
 }

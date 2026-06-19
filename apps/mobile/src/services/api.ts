@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { GlobalLoading } from './loading-events';
+import { useSpaceStore } from '../store/spaceStore';
 
 const CACHE_STORAGE_KEY = 'api_cache_v2';
 
@@ -33,6 +34,15 @@ export function setAccessToken(token: string | null) {
 }
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+export function getActiveSpaceId(): string | null {
+  try {
+    const state = useSpaceStore.getState();
+    return state.activeSpaceId || null;
+  } catch {
+    return null;
+  }
 }
 
 // ─── Offline Queue ──────────────────────────────────
@@ -538,6 +548,10 @@ async function executeRequest<T>(
   }
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+  const activeSpaceId = getActiveSpaceId();
+  if (activeSpaceId) {
+    headers['X-Active-Space'] = activeSpaceId;
   }
 
   const timeout = customTimeout || REQUEST_TIMEOUT;

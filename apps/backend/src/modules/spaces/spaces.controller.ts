@@ -68,6 +68,59 @@ export class SpacesController {
     return result;
   }
 
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update space (name, icon, coverColor)' })
+  async update(
+    @Param('id') id: string,
+    @Body() body: { name?: string; icon?: string; coverColor?: string },
+    @CurrentUser('id') userId: string,
+  ) {
+    const space = await this.spacesService.update(id, userId, body);
+    return { data: space };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a space' })
+  async deleteSpace(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    const result = await this.spacesService.deleteSpace(id, userId);
+    return result;
+  }
+
+  @Patch(':id/activate')
+  @ApiOperation({ summary: 'Activate / set as active space' })
+  async activate(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    const result = await this.spacesService.activate(id, userId);
+    return result;
+  }
+
+  @Get(':id/transactions')
+  @ApiOperation({ summary: 'Get transactions for a space' })
+  async getTransactions(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    const transactions = await this.spacesService.getTransactions(id, userId);
+    return { data: transactions };
+  }
+
+  @Get(':id/goals')
+  @ApiOperation({ summary: 'Get goals for a space' })
+  async getGoals(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    const goals = await this.spacesService.getGoals(id, userId);
+    return { data: goals };
+  }
+
+  @Get(':id/budgets')
+  @ApiOperation({ summary: 'Get budgets for a space' })
+  async getBudgets(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    const budgets = await this.spacesService.getBudgets(id, userId);
+    return { data: budgets };
+  }
+
+  @Post('default')
+  @ApiOperation({ summary: 'Create default personal space' })
+  async createDefault(@CurrentUser('id') userId: string) {
+    const space = await this.spacesService.createDefault(userId);
+    return { data: space };
+  }
+
   @Post('migrate')
   @ApiOperation({ summary: 'Migrate legacy couple/family data to spaces' })
   async migrate(

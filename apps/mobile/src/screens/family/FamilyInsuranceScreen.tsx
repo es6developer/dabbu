@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-type PolicyType = 'Health' | 'Life' | 'Term' | 'Car' | 'Home';
+import { api } from '../../services/api';
 
 interface Policy {
   id: string;
-  type: PolicyType;
+  type: string;
   name: string;
   coverage: number;
   premium: number;
   nextDue: string;
-  status: 'Active' | 'Pending' | 'Lapsed';
-  icon: keyof typeof AntDesign.glyphMap;
+  status: string;
+  icon?: string;
 }
 
-const policyConfig: Record<PolicyType, { icon: keyof typeof AntDesign.glyphMap; color: string }> = {
+const typeConfig: Record<string, { icon: keyof typeof AntDesign.glyphMap; color: string }> = {
   Health: { icon: 'heart', color: '#EC4899' },
   Life: { icon: 'team', color: '#8B5CF6' },
   Term: { icon: 'Safety', color: '#3B82F6' },
@@ -31,22 +32,14 @@ const policyConfig: Record<PolicyType, { icon: keyof typeof AntDesign.glyphMap; 
   Home: { icon: 'home', color: '#F59E0B' },
 };
 
-const policies: Policy[] = [
-  { id: '1', type: 'Health', name: 'Star Health Family Plan', coverage: 10000000, premium: 18500, nextDue: '15 Jul 2026', status: 'Active', icon: 'heart' },
-  { id: '2', type: 'Life', name: 'LIC Jeevan Anand', coverage: 5000000, premium: 22400, nextDue: '10 Aug 2026', status: 'Active', icon: 'team' },
-  { id: '3', type: 'Term', name: 'HDFC Term Plan', coverage: 7500000, premium: 12000, nextDue: '22 Sep 2026', status: 'Active', icon: 'Safety' },
-  { id: '4', type: 'Car', name: 'Car Insurance - Hyundai', coverage: 800000, premium: 12500, nextDue: '05 Jul 2026', status: 'Pending', icon: 'car' },
-  { id: '5', type: 'Home', name: 'Home Insurance - Flat', coverage: 3000000, premium: 9500, nextDue: '18 Jun 2026', status: 'Active', icon: 'home' },
-];
-
-const statusColors = {
+const statusColors: Record<string, string> = {
   Active: '#10B981',
   Pending: '#F59E0B',
   Lapsed: '#EF4444',
 };
 
 const PolicyCard: React.FC<{ policy: Policy }> = ({ policy }) => {
-  const config = policyConfig[policy.type];
+  const config = typeConfig[policy.type] || { icon: 'Safety' as const, color: '#6B7280' };
   const statusColor = statusColors[policy.status];
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + 'Cr';
@@ -93,9 +86,21 @@ const PolicyCard: React.FC<{ policy: Policy }> = ({ policy }) => {
 
 export default function FamilyInsuranceScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalCoverage = policies.reduce((s, p) => s + p.coverage, 0);
-  const totalPremium = policies.reduce((s, p) => s + p.premium, 0);
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/insurance').then((res: any) => {
+      const data = res?.data || res || [];
+      if (mounted) setPolicies(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
+
+  const totalCoverage = policies.reduce((s, p) => s + (p.coverage || 0), 0);
+  const totalPremium = policies.reduce((s, p) => s + (p.premium || 0), 0);
 
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + 'Cr';
@@ -107,44 +112,61 @@ export default function FamilyInsuranceScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Insurance</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => Alert.alert('Add Policy', 'Add a new insurance policy')}
-        >
-          <AntDesign name="plus" size={18} color="#0A0A0A" />
-          <Text style={styles.addButtonText}>Add Policy</Text>
-        </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Coverage</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(totalCoverage)}</Text>
-          <View style={styles.summaryIcon}>
-            <AntDesign name="Safety" size={16} color="#10B981" />
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      ) : (
+      <>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Total Coverage</Text>
+            <Text style={styles.summaryValue}>{formatCurrency(totalCoverage)}</Text>
+            <View style={styles.summaryIcon}>
+              <AntDesign name="Safety" size={16} color="#10B981" />
+            </View>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Premium / Year</Text>
+            <Text style={styles.summaryValue}>₹{totalPremium.toLocaleString('en-IN')}</Text>
+            <Text style={styles.summarySub}>₹{Math.round(totalPremium / 12).toLocaleString('en-IN')}/mo</Text>
           </View>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Premium / Year</Text>
-          <Text style={styles.summaryValue}>₹{totalPremium.toLocaleString('en-IN')}</Text>
-          <Text style={styles.summarySub}>₹{Math.round(totalPremium / 12).toLocaleString('en-IN')}/mo</Text>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Your Policies</Text>
+          <Text style={styles.sectionCount}>{policies.length} active</Text>
         </View>
-      </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Your Policies</Text>
-        <Text style={styles.sectionCount}>{policies.length} active</Text>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {policies.map(policy => (
-          <PolicyCard key={policy.id} policy={policy} />
-        ))}
-      </ScrollView>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {policies.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingTop: 60, paddingHorizontal: 40 }}>
+              <AntDesign name="Safety" size={48} color="#6B7280" />
+              <Text style={{ color: '#F9FAFB', marginTop: 16, fontSize: 18, fontWeight: '600' }}>No policies yet</Text>
+              <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+                Add your first insurance policy to track coverage and premiums
+              </Text>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 20, gap: 8 }}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('Goals')}
+              >
+                <AntDesign name="plus" size={18} color="#0A0A0A" />
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Add Your First Policy</Text>
+              </TouchableOpacity>
+            </View>
+          ) : policies.map(policy => (
+            <PolicyCard key={policy.id} policy={policy} />
+          ))}
+        </ScrollView>
+      </>
+      )}
     </View>
   );
 }

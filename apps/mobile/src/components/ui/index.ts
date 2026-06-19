@@ -51,6 +51,11 @@ export { SplitSummaryCard } from './SplitSummaryCard';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Toast } from './Toast';
 export { AiInsightCard } from './AiInsightCard';
+export { StatTile } from './StatTile';
+export { ProgressRing } from './ProgressRing';
+export { TimelineItem } from './TimelineItem';
+export { SpaceChip } from './SpaceChip';
+export { HealthScoreGauge } from './HealthScoreGauge';
 export { PremiumAuthLayout } from './PremiumAuthLayout';
 export { UpgradeBanner } from './UpgradeBanner';
 export {

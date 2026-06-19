@@ -2,6 +2,13 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Force AGP's JavaCompile task creation to resolve JDK 17 instead of JDK 21.
+// Kotlin/RN plugins set the toolchain languageVersion to 21 (matching AS JBR);
+// AGP uses this to select the jlink binary for JdkImageTransform, which crashes
+// with JDK 21. Overriding languageVersion to 17 here (before the android block)
+// makes AGP use JDK 17 for both compilation and JdkImageTransform.
+extensions.getByType(JavaPluginExtension).toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
@@ -35,7 +42,7 @@ react {
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    // nodeExecutableAndArgs = ["node"]
+    nodeExecutableAndArgs = ["/opt/homebrew/bin/node"]
 
     //
     //   The path to the CLI configuration file. Default is empty.

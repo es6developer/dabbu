@@ -27,6 +27,7 @@ import {
 } from '../services/api';
 import { resetPushRegistration } from '../services/notifications';
 import { trackEventImmediate } from '../services/trackEvent';
+import { useToast } from './ToastContext';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 const MIN_REFRESH_INTERVAL = 30_000;
@@ -182,6 +183,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isNewUser: false,
     needsPhone: false,
   });
+
+  const { showToast } = useToast();
 
   const tokenRefreshInFlight = useRef<Promise<boolean> | null>(null);
   const lastRefreshTime = useRef(0);
@@ -434,6 +437,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
+    showToast(`Welcome back, ${user.firstName}!`, 'info');
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
   }
 
@@ -482,6 +486,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
+    showToast(`Welcome to Dabbu, ${user.firstName}! 🎉`, 'success');
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
   }
 
@@ -517,6 +522,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
+    showToast(isNewUser ? `Welcome to Dabbu, ${user.firstName}! 🎉` : `Welcome back, ${user.firstName}!`, isNewUser ? 'success' : 'info');
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
   }
 

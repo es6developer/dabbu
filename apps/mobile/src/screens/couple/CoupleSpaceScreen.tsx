@@ -287,7 +287,7 @@ export function CoupleSpaceScreen() {
           <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
-              <TouchableOpacity onPress={() => (navigation as any).navigate('Bills')}>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('Couple', { screen: 'Bills' })}>
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -348,12 +348,12 @@ export function CoupleSpaceScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {[
-            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'wallet' as const } } },
-            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'arrowdown' as const } } },
-            { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
+            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'Couple', params: { screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'wallet' as const } } } },
+            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'Couple', params: { screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'arrowdown' as const } } } },
+            { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Wallet', params: { screen: 'WalletHome' } },
             { icon: 'barchart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
-            { icon: 'flag', label: 'Goals', color: '#F59E0B', screen: 'Goals', params: {} },
-            { icon: 'setting', label: 'Settings', color: '#14B8A6', screen: 'CoupleSettings', params: {} },
+            { icon: 'flag', label: 'Goals', color: '#F59E0B', screen: 'Couple', params: { screen: 'Goals' } },
+            { icon: 'setting', label: 'Settings', color: '#14B8A6', screen: 'Couple', params: { screen: 'CoupleSettings' } },
           ].map((action) => (
             <TouchableOpacity key={action.label} activeOpacity={0.7}
               onPress={() => (navigation as any).navigate(action.screen, action.params)}

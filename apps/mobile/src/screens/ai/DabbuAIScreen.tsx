@@ -34,8 +34,15 @@ export function DabbuAIScreen() {
 
   const indicatorPos = useRef(new Animated.Value(0)).current;
   const tabW = 72;
+  const CACHE_TTL = 60000;
+  const lastFetchRef = useRef(0);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastFetchRef.current && now - lastFetchRef.current < CACHE_TTL) {
+      return;
+    }
+    lastFetchRef.current = now;
     try {
       setLoading(true);
       const [insRes, healthRes, saveRes, predRes, dnaRes, anomalyRes, milestoneRes, feedRes] = await Promise.all([

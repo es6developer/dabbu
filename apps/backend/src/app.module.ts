@@ -54,6 +54,7 @@ import { FriendsModule } from './modules/friends/friends.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AiModule } from './modules/ai/ai.module';
 import { LifeHubModule } from './modules/life-hub/life-hub.module';
+import { LifeEventsModule } from './modules/life-events/life-events.module';
 import { LoansModule } from './modules/loans/loans.module';
 import { NetWorthModule } from './modules/net-worth/net-worth.module';
 import { BudgetsModule } from './modules/budgets/budgets.module';
@@ -74,6 +75,7 @@ import { SupportModule } from './modules/support/support.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 import { HealthScoreModule } from './modules/health-score/health-score.module';
+import { DabbuScoreModule } from './modules/dabbu-score/dabbu-score.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { SpacesModule } from './modules/spaces/spaces.module';
 
@@ -174,6 +176,7 @@ import { SpacesModule } from './modules/spaces/spaces.module';
     FriendsModule,
     FavoritesModule,
     LifeHubModule,
+    LifeEventsModule,
     LoansModule,
     NetWorthModule,
     BudgetsModule,
@@ -193,6 +196,7 @@ import { SpacesModule } from './modules/spaces/spaces.module';
     AuditModule,
     HealthModule,
     HealthScoreModule,
+    DabbuScoreModule,
     MetricsModule,
     SpacesModule,
   ],

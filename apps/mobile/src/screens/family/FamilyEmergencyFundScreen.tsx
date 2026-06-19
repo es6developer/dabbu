@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
   Dimensions,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = width * 0.55;
@@ -67,20 +70,38 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 
 export default function FamilyEmergencyFundScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const [fund, setFund] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const targetAmount = 500000;
-  const savedAmount = 250000;
-  const monthlyContribution = 5000;
-  const monthlyExpenses = 83333;
-  const monthsCovered = Math.floor(savedAmount / monthlyExpenses);
-  const targetMonths = 6;
-  const progress = savedAmount / targetAmount;
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/emergency-fund').then((res: any) => {
+      const data = res?.data || res || {};
+      if (mounted) setFund(data);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
 
-  const formatCurrency = (amount: number) => {
-    return '₹' + amount.toLocaleString('en-IN');
-  };
+  const targetAmount = fund?.targetAmount || 500000;
+  const savedAmount = fund?.savedAmount || 0;
+  const monthlyContribution = fund?.monthlyContribution || 0;
+  const monthlyExpenses = fund?.monthlyExpenses || 83333;
+  const monthsCovered = monthlyExpenses > 0 ? Math.floor(savedAmount / monthlyExpenses) : 0;
+  const targetMonths = fund?.targetMonths || 6;
+  const progress = targetAmount > 0 ? savedAmount / targetAmount : 0;
+
+  const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
 
   const remaining = targetAmount - savedAmount;
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -174,7 +195,7 @@ export default function FamilyEmergencyFundScreen() {
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={styles.contributeButton}
-          onPress={() => Alert.alert('Contribute', `Add ₹${monthlyContribution.toLocaleString('en-IN')} to Emergency Fund`)}
+          onPress={() => navigation.navigate('Goals')}
         >
           <AntDesign name="plus" size={20} color="#0A0A0A" />
           <Text style={styles.contributeText}>Contribute Now</Text>

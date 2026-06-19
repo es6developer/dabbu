@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "clean": "expo customize"
+    "clean": "expo customize",
+    "postinstall": "cd ../../node_modules/@react-native/gradle-plugin && sed -i '' '/import org\\.gradle\\.configurationcache/d' build.gradle.kts 2>/dev/null; sed -i '' '/serviceOf<ModuleRegistry/d' build.gradle.kts 2>/dev/null; sed -i '' 's/allWarningsAsErrors = true/allWarningsAsErrors = false/' build.gradle.kts 2>/dev/null"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "0.4.2",

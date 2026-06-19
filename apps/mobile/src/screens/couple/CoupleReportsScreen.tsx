@@ -398,9 +398,14 @@ export function CoupleReportsScreen() {
               styles.exportBtn,
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
-            onPress={() =>
-              Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')
-            }
+            onPress={async () => {
+              try {
+                const res = await api.post<any>('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'budgets'] });
+                Alert.alert('Export Ready', 'Your data has been exported. Check the Data Export section in Settings to download.');
+              } catch {
+                Alert.alert('Export Failed', 'Please try again or use the Data Export in Settings.');
+              }
+            }}
           >
             <AntDesign  name="download" size={20} color={colors.accent.primary} />
             <Text style={styles.exportText}>Export Report</Text>

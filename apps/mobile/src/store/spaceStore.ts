@@ -34,6 +34,13 @@ export interface SpaceDashboard {
   recentTransactions: any[];
 }
 
+export interface SpaceTask {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: string;
+}
+
 interface SpaceStore {
   spaces: Space[];
   activeSpaceId: string | null;
@@ -44,6 +51,7 @@ interface SpaceStore {
   dashboardLoading: boolean;
   error: string | null;
   pinnedSpaceIds: string[];
+  spaceTasks: Record<string, SpaceTask[]>;
   fetchSpaces: (accessToken: string | null) => Promise<void>;
   setActiveSpace: (spaceId: string) => void;
   fetchSpaceDetail: (accessToken: string | null) => Promise<void>;
@@ -52,6 +60,9 @@ interface SpaceStore {
   addMember: (accessToken: string | null, spaceId: string, userId: string, role?: string) => Promise<any>;
   removeMember: (accessToken: string | null, spaceId: string, memberId: string) => Promise<void>;
   togglePinSpace: (spaceId: string) => void;
+  addSpaceTask: (spaceId: string, title: string) => void;
+  toggleSpaceTask: (spaceId: string, taskId: string) => void;
+  deleteSpaceTask: (spaceId: string, taskId: string) => void;
 }
 
 export const useSpaceStore = create<SpaceStore>()(
@@ -66,6 +77,7 @@ export const useSpaceStore = create<SpaceStore>()(
   dashboardLoading: false,
   error: null,
   pinnedSpaceIds: [],
+  spaceTasks: {},
 
   fetchSpaces: async (accessToken) => {
     if (accessToken) setAccessToken(accessToken);
@@ -146,11 +158,46 @@ export const useSpaceStore = create<SpaceStore>()(
       return { pinnedSpaceIds: pinned };
     });
   },
+
+  addSpaceTask: (spaceId, title) => {
+    const task: SpaceTask = {
+      id: `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+    set((state) => ({
+      spaceTasks: {
+        ...state.spaceTasks,
+        [spaceId]: [...(state.spaceTasks[spaceId] || []), task],
+      },
+    }));
+  },
+
+  toggleSpaceTask: (spaceId, taskId) => {
+    set((state) => ({
+      spaceTasks: {
+        ...state.spaceTasks,
+        [spaceId]: (state.spaceTasks[spaceId] || []).map((t) =>
+          t.id === taskId ? { ...t, completed: !t.completed } : t,
+        ),
+      },
+    }));
+  },
+
+  deleteSpaceTask: (spaceId, taskId) => {
+    set((state) => ({
+      spaceTasks: {
+        ...state.spaceTasks,
+        [spaceId]: (state.spaceTasks[spaceId] || []).filter((t) => t.id !== taskId),
+      },
+    }));
+  },
 }),
     {
       name: 'dabbu-space-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ pinnedSpaceIds: state.pinnedSpaceIds }),
+      partialize: (state) => ({ pinnedSpaceIds: state.pinnedSpaceIds, spaceTasks: state.spaceTasks }),
     },
   ),
 );

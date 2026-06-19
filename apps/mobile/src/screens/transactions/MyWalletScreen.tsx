@@ -85,20 +85,19 @@ export function MyWalletScreen() {
     if (accessToken) setAccessToken(accessToken);
     if (refresh) setRefreshing(true); else setLoading(true);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res: any = await api.post('/devices/test-push', {
-        title: 'Test Push',
-        body: 'This is a test notification from Dabbu',
+      const [txnsRes, statsRes] = await Promise.all([
+        api.get('/transactions?limit=100').catch(() => ({ data: [] })),
+        api.get('/transactions/stats').catch(() => ({})),
+      ]);
+      const txns = Array.isArray(txnsRes) ? txnsRes : (txnsRes as any)?.data || [];
+      setTransactions(txns);
+      const stats = (statsRes as any)?.data || statsRes || {};
+      setSummary({
+        totalIncome: Number(stats.monthlyIncome || stats.income || 0),
+        totalExpense: Number(stats.monthlyExpense || stats.expense || 0),
       });
-      const detailLines = (res?.devices || [])
-        .filter((d: any) => !d.success)
-        .map((d: any) => `  ${d.deviceName || d.platform}: ${d.error}`);
-      const msg = res?.message || 'Request sent.';
-      Alert.alert('Test Push', detailLines.length > 0 ? `${msg}\n\nErrors:\n${detailLines.join('\n')}` : msg);
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to send test push');
+    } catch {
+      // handled by empty state
     } finally {
       if (refresh) setRefreshing(false); else setLoading(false);
     }

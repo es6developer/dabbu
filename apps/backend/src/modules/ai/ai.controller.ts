@@ -283,7 +283,6 @@ export class AiController {
   }
 
   @UseGuards(PremiumGuard)
-  @UseGuards(PremiumGuard)
   @Get('monthly-review')
   async getMonthlyReview(@CurrentUser('id') userId: string) {
     const result = await this.aiService.generateMonthlyReview(userId);
@@ -408,5 +407,49 @@ export class AiController {
   async getReview(@CurrentUser('id') userId: string, @Query('spaceId') spaceId?: string) {
     const review = await this.aiService.getReview(userId, spaceId);
     return { data: review };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // V3 — CONTEXTUAL AI ENDPOINTS
+  // ═══════════════════════════════════════════════════════════
+
+  @UseGuards(JwtAuthGuard)
+  @Post('contextual/insight')
+  async getContextualInsight(
+    @CurrentUser('id') userId: string,
+    @Body() body: { screen: string; context?: Record<string, any> },
+  ) {
+    const result = await this.aiService.getContextualInsight(userId, body.screen, body.context);
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('contextual/forecast')
+  async getContextualForecast(
+    @CurrentUser('id') userId: string,
+    @Body() body: { goalId?: string; planId?: string; months?: number },
+  ) {
+    const result = await this.aiService.getContextualForecast(userId, body.goalId, body.planId, body.months);
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('contextual/rebalance')
+  async getContextualRebalance(
+    @CurrentUser('id') userId: string,
+    @Body() body: { targetCategory?: string; monthlyBudget?: number },
+  ) {
+    const result = await this.aiService.getContextualRebalance(userId, body.targetCategory, body.monthlyBudget);
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('contextual/categorize')
+  async getContextualCategorize(
+    @CurrentUser('id') userId: string,
+    @Body() body: { description: string; amount?: number },
+  ) {
+    const result = await this.aiService.getContextualCategorize(userId, body.description, body.amount);
+    return { data: result };
   }
 }

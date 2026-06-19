@@ -146,6 +146,19 @@ export class NotificationEventsService {
     await this.notificationService.create({ userId, type: 'weekly_digest', title, message, data });
   }
 
+  // ===== WELCOME / ONBOARDING =====
+  async welcomeBack(userId: string, data: { firstName: string }) {
+    const title = 'Welcome Back!';
+    const message = `Welcome back, ${data.firstName}! 👋 Here's a quick tip: check your Dabbu Score to see how your financial health is doing.`;
+    await this.notificationService.create({ userId, type: 'welcome_back', title, message, data });
+  }
+
+  async welcomeNewUser(userId: string, data: { firstName: string }) {
+    const title = 'Welcome to Dabbu!';
+    const message = `Hey ${data.firstName}, welcome to Dabbu! 🎉 Start by adding your first expense or creating a financial goal.`;
+    await this.notificationService.create({ userId, type: 'welcome_new', title, message, data });
+  }
+
   // ===== MONTHLY REPORT =====
   async monthlyReport(userId: string, data: { totalExpense: number; totalIncome: number; savings: number; topCategory: string; goalProgress: { name: string; progress: number }[]; healthScore: number }) {
     const title = 'Monthly Report';

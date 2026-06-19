@@ -16,6 +16,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { NotificationEventsService } from '../notification/notification-events.service';
 import {
   RegisterDto,
   LoginDto,
@@ -34,7 +35,10 @@ import {
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user account' })
@@ -45,6 +49,7 @@ export class AuthController {
   ) {
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
     const result = await this.authService.register(dto, ip, userAgent);
+    this.notificationEvents.welcomeNewUser(result.user.id, { firstName: result.user.firstName }).catch(() => {});
     return { data: result };
   }
 
@@ -54,6 +59,7 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Req() req: any, @Headers('user-agent') userAgent?: string) {
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
     const result = await this.authService.login(dto, ip, userAgent);
+    this.notificationEvents.welcomeBack(result.user.id, { firstName: result.user.firstName }).catch(() => {});
     return { data: result };
   }
 
@@ -142,6 +148,11 @@ export class AuthController {
       dto.deviceName,
       dto.platform,
     );
+    if (result.isNewUser) {
+      this.notificationEvents.welcomeNewUser(result.user.id, { firstName: result.user.firstName }).catch(() => {});
+    } else {
+      this.notificationEvents.welcomeBack(result.user.id, { firstName: result.user.firstName }).catch(() => {});
+    }
     return { data: result };
   }
 

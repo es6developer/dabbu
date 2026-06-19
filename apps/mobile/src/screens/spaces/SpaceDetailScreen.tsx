@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -15,13 +16,13 @@ import { useAuth } from '../../store/AuthContext';
 import { useAIStore } from '../../store/aiStore';
 import { TimelineItem } from '../../components/ui/TimelineItem';
 
-type Tab = 'overview' | 'money' | 'goals' | 'timeline' | 'ai';
+type Tab = 'overview' | 'money' | 'goals' | 'tasks' | 'timeline' | 'ai';
 
 export function SpaceDetailScreen({ route, navigation }: any) {
   const { spaceId } = route?.params ?? {};
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace } = useSpaceStore();
+  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, spaceTasks, addSpaceTask, toggleSpaceTask, deleteSpaceTask, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace } = useSpaceStore();
   const { accessToken } = useAuth();
   const { insights, loading: aiLoading, fetchInsights } = useAIStore();
   const [tab, setTab] = useState<Tab>('overview');
@@ -59,6 +60,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
     { key: 'overview', label: 'Overview', icon: 'appstore1' },
     { key: 'money', label: 'Money', icon: 'wallet' },
     { key: 'goals', label: 'Goals', icon: 'flag' },
+    { key: 'tasks', label: 'Tasks', icon: 'checkcircleo' },
     { key: 'timeline', label: 'Timeline', icon: 'clockcircleo' },
     { key: 'ai', label: 'AI', icon: 'bulb1' },
   ];
@@ -101,7 +103,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
                 </Text>
               </View>
             ))}
-            <TouchableOpacity style={{ alignItems: 'center', gap: 4 }} onPress={() => {}}>
+            <TouchableOpacity style={{ alignItems: 'center', gap: 4 }} onPress={() => navigation.navigate('FamilySpace')}>
               <View style={{
                 width: 36, height: 36, borderRadius: 18,
                 borderWidth: 1.5, borderColor: colors.border.default, borderStyle: 'dashed',
@@ -109,7 +111,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
               }}>
                 <AntDesign name="plus" size={14} color={colors.text.tertiary} />
               </View>
-              <Text style={{ fontSize: 10, color: colors.text.tertiary }}>Add</Text>
+              <Text style={{ fontSize: 10, color: colors.text.tertiary }}>Invite</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -228,6 +230,12 @@ export function SpaceDetailScreen({ route, navigation }: any) {
           </View>
         )}
 
+        {tab === 'tasks' && (
+          <View>
+            <TasksPanel spaceId={spaceId} tasks={spaceTasks[spaceId || ''] || []} onAdd={addSpaceTask} onToggle={toggleSpaceTask} onDelete={deleteSpaceTask} colors={colors} />
+          </View>
+        )}
+
         {tab === 'timeline' && (
           <View>
             <TimelineItem
@@ -284,6 +292,111 @@ export function SpaceDetailScreen({ route, navigation }: any) {
           </View>
         )}
       </ScrollView>
+    </View>
+  );
+}
+
+function TasksPanel({ spaceId, tasks, onAdd, onToggle, onDelete, colors }: any) {
+  const [input, setInput] = useState('');
+
+  const handleAdd = () => {
+    const title = input.trim();
+    if (!title || !spaceId) return;
+    onAdd(spaceId, title);
+    setInput('');
+  };
+
+  const pending = tasks.filter((t: any) => !t.completed);
+  const done = tasks.filter((t: any) => t.completed);
+
+  return (
+    <View>
+      {/* ─── New task input ─── */}
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+        <TextInput
+          value={input}
+          onChangeText={setInput}
+          placeholder="Add a task…"
+          placeholderTextColor={colors.text.tertiary}
+          onSubmitEditing={handleAdd}
+          style={{
+            flex: 1,
+            backgroundColor: colors.bg.card,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: 12,
+            fontSize: 14,
+            color: colors.text.primary,
+          }}
+        />
+        <TouchableOpacity
+          onPress={handleAdd}
+          style={{
+            backgroundColor: colors.accent.primary,
+            paddingHorizontal: 16,
+            borderRadius: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <AntDesign name="plus" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* ─── Pending tasks ─── */}
+      {pending.length > 0 && (
+        <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Pending ({pending.length})
+        </Text>
+      )}
+      {pending.map((t: any) => (
+        <TaskRow key={t.id} task={t} onToggle={onToggle} onDelete={onDelete} spaceId={spaceId} colors={colors} />
+      ))}
+
+      {/* ─── Completed tasks ─── */}
+      {done.length > 0 && (
+        <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Completed ({done.length})
+        </Text>
+      )}
+      {done.map((t: any) => (
+        <TaskRow key={t.id} task={t} onToggle={onToggle} onDelete={onDelete} spaceId={spaceId} colors={colors} />
+      ))}
+
+      {tasks.length === 0 && (
+        <View style={{ alignItems: 'center', marginTop: 40 }}>
+          <AntDesign name="checkcircleo" size={40} color={colors.text.tertiary} />
+          <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 12 }}>No tasks yet. Add one above!</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function TaskRow({ task, onToggle, onDelete, spaceId, colors }: any) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg.card, padding: 12, borderRadius: 12, marginBottom: 6, gap: 10 }}>
+      <TouchableOpacity onPress={() => onToggle(spaceId, task.id)}>
+        <View style={{
+          width: 22, height: 22, borderRadius: 11,
+          borderWidth: 2,
+          borderColor: task.completed ? colors.status.success : colors.border.default,
+          backgroundColor: task.completed ? colors.status.success : 'transparent',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          {task.completed && <AntDesign name="check" size={12} color="#fff" />}
+        </View>
+      </TouchableOpacity>
+      <Text style={{
+        flex: 1, fontSize: 14, color: colors.text.primary,
+        textDecorationLine: task.completed ? 'line-through' : 'none',
+        opacity: task.completed ? 0.5 : 1,
+      }}>
+        {task.title}
+      </Text>
+      <TouchableOpacity onPress={() => onDelete(spaceId, task.id)}>
+        <AntDesign name="close" size={16} color={colors.text.tertiary} />
+      </TouchableOpacity>
     </View>
   );
 }

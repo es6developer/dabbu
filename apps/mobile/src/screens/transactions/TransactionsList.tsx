@@ -1,55 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
-import { ProfileBubble } from '../../components/ui/ProfileBubble';
 import { spacing } from '../../theme/design';
-
-interface Transaction {
-  id: string;
-  name: string;
-  amount: number;
-  category: string;
-  date: string;
-  from?: string;
-  shared?: boolean;
-}
-
-const TXNS: Transaction[] = [
-  { id: '1', name: 'Zomato Order', amount: -845, category: 'Food', date: 'Today', shared: true },
-  { id: '2', name: 'Freelance Pay', amount: 25000, category: 'Income', date: 'Yesterday' },
-  {
-    id: '3',
-    name: 'Electricity Bill',
-    amount: -3200,
-    category: 'Bills',
-    date: '2 days ago',
-    shared: true,
-    from: 'Split · you paid ₹2,100',
-  },
-  { id: '4', name: 'Uber Ride', amount: -560, category: 'Travel', date: '2 days ago' },
-  {
-    id: '5',
-    name: 'Rent Transfer',
-    amount: -22000,
-    category: 'Housing',
-    date: '3 days ago',
-    shared: true,
-    from: 'Split · ₹11,000 each',
-  },
-  {
-    id: '6',
-    name: 'Groceries',
-    amount: -4200,
-    category: 'Food',
-    date: '4 days ago',
-    shared: true,
-    from: 'Shared with Family',
-  },
-  { id: '7', name: 'Refund', amount: 1200, category: 'Misc', date: '5 days ago' },
-];
+import { api } from '../../services/api';
 
 const FILTERS = ['All', 'Income', 'Expense', 'Shared', 'Bills'];
 
@@ -60,14 +17,62 @@ function fmt(v: number) {
 
 export function TransactionsList() {
   const { colors, isDark } = useTheme();
+  const navigation = useNavigation<any>();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await api.get('/transactions?limit=50');
+      setTransactions(Array.isArray(res) ? res : (res as any)?.data || []);
+    } catch {
+      // handled by empty state
+    } finally {
+      if (refresh) setRefreshing(false); else setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+
+  const filtered = transactions.filter((tx: any) => {
+    if (activeFilter === 'All') return true;
+    if (activeFilter === 'Income') return tx.type === 'arrowdown';
+    if (activeFilter === 'Expense') return tx.type === 'wallet' || tx.type === 'expense';
+    if (activeFilter === 'Shared') return tx.shared === true;
+    return true;
+  });
+
+  const now = new Date();
+  const monthlyTxns = transactions.filter((t: any) => {
+    const d = new Date(t.date || t.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthlyIncome = monthlyTxns.filter((t: any) => t.type === 'arrowdown').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+  const monthlyExpense = monthlyTxns.filter((t: any) => t.type === 'wallet' || t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg.primary }}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg.primary }}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
+      >
         {/* ── Header ──────────────────────────────── */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
-          <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
@@ -75,20 +80,12 @@ export function TransactionsList() {
           </Text>
           <View className="flex-row gap-2">
             <TouchableOpacity
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Wallet', { screen: 'MyWallet', params: { search: '' } })}
               activeOpacity={0.7}
               className="w-9 h-9 rounded-full items-center justify-center"
               style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
             >
               <AntDesign  name="search1" size={18} color={colors.text.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {}}
-              activeOpacity={0.7}
-              className="w-9 h-9 rounded-full items-center justify-center"
-              style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
-            >
-              <AntDesign  name="filter" size={18} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -134,109 +131,110 @@ export function TransactionsList() {
         </ScrollView>
 
         {/* ── Monthly Summary ─────────────────────── */}
-        <View className="mx-5 mb-4">
-          <Card variant="default" padding="lg">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-[13px] font-medium" style={{ color: colors.text.secondary }}>
-                June 2026
-              </Text>
-              <View className="flex-row items-center gap-1">
-                <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />
-                <Text className="text-[11px] font-medium" style={{ color: colors.text.tertiary }}>
-                  This Month
+        {monthlyTxns.length > 0 && (
+          <View className="mx-5 mb-4">
+            <Card variant="default" padding="lg">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-[13px] font-medium" style={{ color: colors.text.secondary }}>
+                  {now.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </Text>
+                <View className="flex-row items-center gap-1">
+                  <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />
+                  <Text className="text-[11px] font-medium" style={{ color: colors.text.tertiary }}>
+                    This Month
+                  </Text>
+                </View>
               </View>
-            </View>
-            <View className="flex-row gap-4">
-              <View className="flex-1">
-                <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
-                  Income
-                </Text>
-                <Text className="text-[18px] font-bold mt-0.5" style={{ color: '#10B981' }}>
-                  {fmt(124500)}
-                </Text>
+              <View className="flex-row gap-4">
+                <View className="flex-1">
+                  <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
+                    Income
+                  </Text>
+                  <Text className="text-[18px] font-bold mt-0.5" style={{ color: '#10B981' }}>
+                    {fmt(monthlyIncome)}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
+                    Spent
+                  </Text>
+                  <Text
+                    className="text-[18px] font-bold mt-0.5"
+                    style={{ color: colors.text.primary }}
+                  >
+                    {fmt(monthlyExpense)}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
+                    Saved
+                  </Text>
+                  <Text className="text-[18px] font-bold mt-0.5" style={{ color: '#10B981' }}>
+                    {fmt(monthlyIncome - monthlyExpense)}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
-                  Spent
-                </Text>
-                <Text
-                  className="text-[18px] font-bold mt-0.5"
-                  style={{ color: colors.text.primary }}
-                >
-                  {fmt(82300)}
-                </Text>
-              </View>
-              <View className="flex-1">
-                <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
-                  Saved
-                </Text>
-                <Text className="text-[18px] font-bold mt-0.5" style={{ color: '#10B981' }}>
-                  {fmt(42200)}
-                </Text>
-              </View>
-            </View>
-          </Card>
-        </View>
+            </Card>
+          </View>
+        )}
 
         {/* ── Transaction List ─────────────────────── */}
         <View className="mx-5 mb-8">
-          {TXNS.map((tx, i) => (
-            <TouchableOpacity key={tx.id} onPress={() => {}} activeOpacity={0.7}>
-              <Card variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
-                <View className="flex-row items-center">
-                  <View
-                    className="w-11 h-11 rounded-xl items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        tx.amount < 0 ? 'rgba(239, 68, 68, 0.10)' : 'rgba(16, 185, 129, 0.10)',
-                    }}
-                  >
-                    <AntDesign
-                      name={tx.amount < 0 ? 'down' : 'up'}
-                      size={18}
-                      color={tx.amount < 0 ? '#EF4444' : '#10B981'}
-                    />
-                  </View>
-                  <View className="flex-1 ml-3">
-                    <View className="flex-row items-center gap-1.5">
+          {filtered.map((tx: any) => {
+            const isExpense = tx.type === 'wallet' || tx.type === 'expense';
+            return (
+              <TouchableOpacity key={tx.id} onPress={() => navigation.navigate('Wallet', { screen: 'TransactionDetail', params: { transactionId: tx.id } })} activeOpacity={0.7}>
+                <Card variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
+                  <View className="flex-row items-center">
+                    <View
+                      className="w-11 h-11 rounded-xl items-center justify-center"
+                      style={{
+                        backgroundColor: isExpense ? 'rgba(239, 68, 68, 0.10)' : 'rgba(16, 185, 129, 0.10)',
+                      }}
+                    >
+                      <AntDesign
+                        name={isExpense ? 'down' : 'up'}
+                        size={18}
+                        color={isExpense ? '#EF4444' : '#10B981'}
+                      />
+                    </View>
+                    <View className="flex-1 ml-3">
                       <Text
                         className="text-[14px] font-semibold"
                         style={{ color: colors.text.primary }}
                       >
-                        {tx.name}
+                        {tx.description || tx.name || 'Transaction'}
                       </Text>
-                      {tx.shared && (
-                        <AntDesign  name="team" size={12} color={colors.accent.primary} />
-                      )}
+                      <Text
+                        className="text-[11px] font-medium mt-0.5"
+                        style={{ color: colors.text.tertiary }}
+                      >
+                        {typeof tx.category === 'string' ? tx.category : tx.category?.name || ''}
+                      </Text>
                     </View>
                     <Text
-                      className="text-[11px] font-medium mt-0.5"
-                      style={{ color: colors.text.tertiary }}
+                      className="text-[15px] font-bold"
+                      style={{ color: isExpense ? colors.text.primary : '#10B981' }}
                     >
-                      {((tx.category as any)?.name || tx.category || '')}
-                      {tx.from ? ` · ${tx.from}` : ''}
+                      {isExpense ? '-' : '+'}{fmt(Math.abs(Number(tx.amount || 0)))}
                     </Text>
                   </View>
-                  <Text
-                    className="text-[15px] font-bold"
-                    style={{
-                      color: tx.amount < 0 ? colors.text.primary : '#10B981',
-                    }}
-                  >
-                    {tx.amount < 0 ? '' : '+'}
-                    {fmt(Math.abs(tx.amount))}
-                  </Text>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))}
+                </Card>
+              </TouchableOpacity>
+            );
+          })}
+          {filtered.length === 0 && (
+            <View className="items-center py-20">
+              <AntDesign name="wallet" size={48} color={colors.text.tertiary} />
+              <Text className="text-[15px] font-semibold mt-4" style={{ color: colors.text.primary }}>No transactions found</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       {/* ── FAB ────────────────────────────────────── */}
       <TouchableOpacity
-        onPress={() => {}}
+        onPress={() => navigation.navigate('Wallet', { screen: 'AddExpense' })}
         activeOpacity={0.8}
         className="absolute bottom-6 right-6 w-14 h-14 rounded-2xl items-center justify-center"
         style={{

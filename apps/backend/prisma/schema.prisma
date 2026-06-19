@@ -748,6 +748,7 @@ model Transaction {
 model Budget {
   id         String    @id @default(uuid()) @db.VarChar(36)
   userId     String    @db.VarChar(36)
+  spaceId    String?   @db.VarChar(36)
   categoryId String?   @db.VarChar(36)
   name       String    @db.VarChar(255)
   amount     Decimal   @db.Decimal(15, 2)
@@ -764,10 +765,12 @@ model Budget {
 
   // Relations
   user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space    Space?               @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([userId, isActive])
   @@index([userId, period])
+  @@index([spaceId])
   @@index([userId, startDate, endDate])
   @@index([categoryId, startDate, endDate])
   @@map("budgets")
@@ -3533,10 +3536,13 @@ model SmartCategoryMapping {
 model LifeEvent {
   id          String    @id @default(uuid()) @db.VarChar(36)
   userId      String    @db.VarChar(36)
-  eventType   String    @db.VarChar(50) // marriage, moving_house, new_child, new_vehicle, salary_increase, vacation, job_change
+  spaceId     String?   @db.VarChar(36)
+  eventType   String    @db.VarChar(50) // HOUSE, BABY, WEDDING, CAR, VACATION, EDUCATION, RETIREMENT, BUSINESS, MOVING, JOB_CHANGE, SALARY_INCREASE, CUSTOM
   title       String    @db.VarChar(255)
   description String    @db.Text
   confidence  Float     @default(0) // 0-100
+  source      String    @default("user_created") @db.VarChar(30) // ai_detected, user_created, planner_created
+  goalId      String?   @db.VarChar(36)
   detectedAt  DateTime  @default(now())
   eventDate   DateTime? // estimated date of the event
   isConfirmed Boolean   @default(false) // user confirmed
@@ -3550,6 +3556,7 @@ model LifeEvent {
   @@index([userId])
   @@index([userId, eventType])
   @@index([userId, isConfirmed])
+  @@index([userId, spaceId])
   @@map("life_events")
 }
 

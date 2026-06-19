@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { api } from '../../services/api';
 import {
   FormScreen,
   FormSection,
@@ -31,35 +32,53 @@ export function AddExpenseScreen() {
   const route = useRoute<any>();
   const { colors } = useTheme();
 
+  const initialType = route.params?.type || 'expense';
   const initialCategory = route.params?.category || 'Food';
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [type, setType] = useState<'expense' | 'income'>(initialType);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     if (!amount || parseFloat(amount) <= 0) {
       setError('Please enter an amount');
       return;
     }
     setError('');
-    Alert.alert('Success', 'Expense added successfully!');
-    navigation.goBack();
+    setSaving(true);
+    try {
+      await api.post('/transactions', {
+        amount: parseFloat(amount),
+        type: type === 'expense' ? 'expense' : 'income',
+        category,
+        description: notes || undefined,
+        notes: notes || undefined,
+        date: new Date(date).toISOString(),
+      });
+      Alert.alert('Success', 'Transaction saved successfully!');
+      navigation.goBack();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save transaction. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <FormScreen
-      title="Add Expense"
-      subtitle="Track spending effortlessly"
-      icon="shoppingcart"
+      title={type === 'expense' ? 'Add Expense' : 'Add Income'}
+      subtitle={type === 'expense' ? 'Track spending effortlessly' : 'Record your earnings'}
+      icon={type === 'expense' ? 'shoppingcart' : 'bank'}
       accent={[colors.accent.primary, colors.accent.secondary]}
       footer={
         <FormFooter
-          title={type === 'expense' ? 'Save Expense' : 'Save Income'}
-          icon="checkcircleo"
+          title={saving ? 'Saving...' : type === 'expense' ? 'Save Expense' : 'Save Income'}
+          icon={saving ? undefined : 'checkcircleo'}
           onPress={handleSave}
+          disabled={saving}
         />
       }
     >

@@ -26,6 +26,7 @@ import { FavoritesProvider } from './src/store/FavoritesContext';
 import { OfflineProvider } from './src/store/OfflineContext';
 import { DashboardProvider } from './src/store/DashboardContext';
 import { ToastProvider } from './src/store/ToastContext';
+import { ActiveSpaceProvider } from './src/providers/ActiveSpaceProvider';
 import { AlertProvider } from './src/components/ui/CustomAlert';
 import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
@@ -159,6 +160,7 @@ function AppInner(): React.ReactElement | null {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
+          <ToastProvider>
           <AuthProvider>
             <PremiumProvider>
             <ThemeProvider>
@@ -167,19 +169,19 @@ function AppInner(): React.ReactElement | null {
                 <FavoritesProvider>
                   <OfflineProvider>
                     <DashboardProvider>
+                    <ActiveSpaceProvider>
                     <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                       <ThemedStatusBar />
                       <NotificationInitializer />
                       <View style={{ flex: 1 }}>
-                        <ToastProvider>
                           <AlertProvider>
                             <RootNavigator />
                           </AlertProvider>
-                        </ToastProvider>
                         <OfflineBanner />
                         <ApiProgressBar />
                       </View>
                     </ThemedNavigationContainer>
+                    </ActiveSpaceProvider>
                     </DashboardProvider>
                   </OfflineProvider>
                 </FavoritesProvider>
@@ -188,6 +190,7 @@ function AppInner(): React.ReactElement | null {
           </ThemeProvider>
             </PremiumProvider>
         </AuthProvider>
+        </ToastProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../../services/api';
 
 interface Contribution {
   id: string;
@@ -16,7 +19,7 @@ interface Contribution {
   amount: number;
   date: string;
   purpose: string;
-  avatar: keyof typeof AntDesign.glyphMap;
+  avatar?: keyof typeof AntDesign.glyphMap;
 }
 
 interface MemberTotal {
@@ -27,23 +30,6 @@ interface MemberTotal {
 }
 
 const months = ['May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026'];
-
-const contributions: Contribution[] = [
-  { id: '1', memberName: 'Rajesh Sharma', amount: 25000, date: '15 Jun 2026', purpose: 'Monthly Pool', avatar: 'user' },
-  { id: '2', memberName: 'Priya Sharma', amount: 15000, date: '14 Jun 2026', purpose: 'Monthly Pool', avatar: 'user' },
-  { id: '3', memberName: 'Rajesh Sharma', amount: 50000, date: '10 Jun 2026', purpose: 'Emergency Fund', avatar: 'user' },
-  { id: '4', memberName: 'Suresh Sharma', amount: 10000, date: '08 Jun 2026', purpose: 'Monthly Pool', avatar: 'user' },
-  { id: '5', memberName: 'Priya Sharma', amount: 8000, date: '05 Jun 2026', purpose: 'Groceries', avatar: 'user' },
-  { id: '6', memberName: 'Rajesh Sharma', amount: 12000, date: '01 Jun 2026', purpose: 'Education Fund', avatar: 'user' },
-  { id: '7', memberName: 'Suresh Sharma', amount: 15000, date: '28 May 2026', purpose: 'Emergency Fund', avatar: 'user' },
-  { id: '8', memberName: 'Priya Sharma', amount: 22000, date: '25 May 2026', purpose: 'Monthly Pool', avatar: 'user' },
-];
-
-const memberTotals: MemberTotal[] = [
-  { name: 'Rajesh Sharma', total: 87000, count: 3, avatar: 'user' },
-  { name: 'Priya Sharma', total: 45000, count: 3, avatar: 'user' },
-  { name: 'Suresh Sharma', total: 25000, count: 2, avatar: 'user' },
-];
 
 const ContributionCard: React.FC<{ item: Contribution }> = ({ item }) => {
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
@@ -85,9 +71,35 @@ const MemberSummaryCard: React.FC<{ member: MemberTotal }> = ({ member }) => {
 export default function FamilyContributionsScreen() {
   const insets = useSafeAreaInsets();
   const [activeMonth, setActiveMonth] = useState(1);
+  const [items, setItems] = useState<Contribution[]>([]);
+  const [totals, setTotals] = useState<MemberTotal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<any>();
+
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/contributions').then((res: any) => {
+      const data = res?.data || res || {};
+      const list = Array.isArray(data) ? data : data.contributions || data.items || [];
+      const memberSummary = data.memberTotals || data.summary || [];
+      if (mounted) {
+        setItems(list);
+        setTotals(memberSummary);
+      }
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
 
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
-  const grandTotal = contributions.reduce((s, c) => s + c.amount, 0);
+  const grandTotal = items.reduce((s, c) => s + c.amount, 0);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -95,7 +107,7 @@ export default function FamilyContributionsScreen() {
         <Text style={styles.headerTitle}>Contributions</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => Alert.alert('Add Contribution', 'Record a new contribution')}
+          onPress={() => navigation.navigate('CreateContribution')}
         >
           <AntDesign name="plus" size={18} color="#0A0A0A" />
           <Text style={styles.addButtonText}>Add Contribution</Text>
@@ -128,20 +140,40 @@ export default function FamilyContributionsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>Member Summary</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.memberSummaryScroll}
-          contentContainerStyle={styles.memberSummaryContent}
-        >
-          {memberTotals.map(m => (
-            <MemberSummaryCard key={m.name} member={m} />
-          ))}
-        </ScrollView>
+        {totals.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Member Summary</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.memberSummaryScroll}
+              contentContainerStyle={styles.memberSummaryContent}
+            >
+              {totals.map((m, i) => (
+                <MemberSummaryCard key={m.name || i} member={m} />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         <Text style={styles.sectionTitle}>History</Text>
-        {contributions.map(c => (
+        {items.length === 0 ? (
+          <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 40 }}>
+            <AntDesign name="caretup" size={44} color="#6B7280" />
+            <Text style={{ color: '#F9FAFB', marginTop: 14, fontSize: 18, fontWeight: '600' }}>No contributions yet</Text>
+            <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+              Record your first family contribution to start tracking
+            </Text>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 16, gap: 8 }}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('CreateContribution')}
+            >
+              <AntDesign name="plus" size={18} color="#0A0A0A" />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Add Your First Contribution</Text>
+            </TouchableOpacity>
+          </View>
+        ) : items.map(c => (
           <ContributionCard key={c.id} item={c} />
         ))}
       </ScrollView>

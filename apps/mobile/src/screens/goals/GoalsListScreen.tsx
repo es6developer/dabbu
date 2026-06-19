@@ -20,8 +20,7 @@ import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { CreateGoalModal } from './CreateGoalModal';
-// TODO: Import CelebrationOverlay when navigator is ready
-// import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -931,15 +930,7 @@ export function GoalsListScreen() {
         prefill={prefill}
       />
 
-      {/*
-      TODO: Add CelebrationOverlay for milestone celebrations
-      <CelebrationOverlay
-        visible={celebrationVisible}
-        onDismiss={() => setCelebrationVisible(false)}
-        title="Milestone Reached!"
-        subtitle="Keep up the great work!"
-      />
-      */}
+
     </>
   );
 }

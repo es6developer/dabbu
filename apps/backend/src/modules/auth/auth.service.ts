@@ -16,6 +16,7 @@ import { EmailService } from '../email/email.service';
 import { ReferralService } from '../referral/referral.service';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { AuditService } from '../audit/audit.service';
+import { SpacesService } from '../spaces/spaces.service';
 import {
   RegisterDto,
   LoginDto,
@@ -42,6 +43,7 @@ export class AuthService {
     private readonly referralService: ReferralService,
     private readonly notificationGateway: NotificationGateway,
     private readonly auditService: AuditService,
+    private readonly spacesService: SpacesService,
   ) {}
 
   private generateAvatarUrl(seed: string): string {
@@ -174,6 +176,10 @@ export class AuthService {
         this.logger.warn(`Failed to process referral for ${user.id}: ${err.message}`);
       });
     }
+
+    this.spacesService.createPersonalSpace(user.id, user.firstName).catch((err) => {
+      this.logger.warn(`Failed to auto-create Personal Space for ${user.id}: ${err.message}`);
+    });
 
     return { user: userWithoutPassword, tokens };
   }
@@ -920,6 +926,12 @@ export class AuthService {
         },
       });
       isNewUser = true;
+    }
+
+    if (isNewUser) {
+      this.spacesService.createPersonalSpace(user.id, user.firstName).catch((err) => {
+        this.logger.warn(`Failed to auto-create Personal Space for ${user.id}: ${err.message}`);
+      });
     }
 
     const tokens = await this.generateTokens(user.id, user.email);

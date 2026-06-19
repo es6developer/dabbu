@@ -237,9 +237,9 @@ export function PersonalDashboardScreen({ navigation }: any) {
             onRefresh={onRefresh}
             onWidgetPress={(type) => {
               if (type === 'goals') navigation?.navigate('GoalsList');
-              else if (type === 'upcomingBills') navigation?.navigate('BillsList');
-              else if (type === 'recentTransactions') navigation?.navigate('Transactions');
-              else if (type === 'budgetsOverview') navigation?.navigate('Budgets');
+              else if (type === 'upcomingBills') navigation?.navigate('Wallet', { screen: 'BillsList' });
+              else if (type === 'recentTransactions') navigation?.navigate('Wallet', { screen: 'WalletHome' });
+              else if (type === 'budgetsOverview') navigation?.navigate('Wallet', { screen: 'Analytics' });
             }}
             onNavigate={(screen, params) => navigation?.navigate(screen, params)}
           />

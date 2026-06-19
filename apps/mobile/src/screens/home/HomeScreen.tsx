@@ -28,6 +28,10 @@ import { HomeHeader } from '../../components/dashboard/HomeHeader';
 import { NetWorthCard } from '../../components/dashboard/NetWorthCard';
 import { AICoachCarousel } from '../../components/dashboard/AICoachCarousel';
 import { QuickAddBar } from '../../components/dashboard/QuickAddBar';
+import { SpaceSwitcher } from '../../components/global/SpaceSwitcher';
+import { DabbuScoreMini } from '../../components/global/DabbuScoreMini';
+import { AIInsightCard } from '../../components/global/AIInsightCard';
+import { useLifeEventStore } from '../../store/lifeEventStore';
 
 const W = Dimensions.get('window').width;
 
@@ -202,6 +206,8 @@ export function HomeScreen() {
   const [apiInsights, setApiInsights] = useState<string[]>([]);
   const [achievements, setAchievements] = useState<any>({ earned: [], all: [], earnedCount: 0, totalCount: 0 });
   const [milestones, setMilestones] = useState<any[]>([]);
+  const lifeEvents = useLifeEventStore((s) => s.events);
+  const fetchLifeEvents = useLifeEventStore((s) => s.fetchEvents);
 
   const [refreshing, setRefreshing] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
@@ -500,7 +506,8 @@ export function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData]),
+      fetchLifeEvents();
+    }, [loadData, fetchLifeEvents]),
   );
 
   const INCOME_KEYWORDS = new Set([
@@ -735,7 +742,12 @@ export function HomeScreen() {
             userFullName={`${user?.firstName || ''} ${user?.lastName || ''}`}
           />
 
-          <View style={{ marginTop: 16 }}>
+          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <SpaceSwitcher />
+            <DabbuScoreMini score={healthScore} size="sm" change={0} />
+          </View>
+
+          <View style={{ marginTop: 12 }}>
             <NetWorthCard
               netWorth={netWorth ?? 0}
               totalBalance={totalBalance ?? 0}
@@ -957,6 +969,42 @@ export function HomeScreen() {
             })}
           </View>
         )}
+
+        {/* ─── LIFE EVENTS ─── */}
+        {(() => {
+          const unconfirmed = lifeEvents.filter((e) => !e.isConfirmed && !e.isDismissed);
+          if (unconfirmed.length === 0) return null;
+          return (
+            <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LifeEventsList')}
+                style={{
+                  backgroundColor: colors.bg.card,
+                  borderRadius: 16,
+                  padding: 14,
+                  borderLeftWidth: 3,
+                  borderLeftColor: '#8B5CF6',
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#8B5CF615', alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="calendar" size={18} color="#8B5CF6" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                      {unconfirmed.length} Life Event{unconfirmed.length > 1 ? 's' : ''} Detected
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 1 }}>
+                      Tap to review
+                    </Text>
+                  </View>
+                  <AntDesign name="arrowright" size={16} color={colors.text.tertiary} />
+                </View>
+              </TouchableOpacity>
+            </View>
+          );
+        })()}
 
         {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 22 }}>

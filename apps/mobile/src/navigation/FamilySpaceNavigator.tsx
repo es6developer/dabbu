@@ -2,11 +2,10 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
-import { FamilyOverviewScreen } from '../screens/family/FamilyOverviewScreen';
+import { FamilyDashboardScreen } from '../screens/family/FamilyDashboardScreen';
 import FamilyMembersScreen from '../screens/family/FamilyMembersScreen';
 import { FamilySpaceScreen } from '../screens/family/FamilySpaceScreen';
 import { FamilyHubScreen } from '../screens/family/FamilyHubScreen';
-import { FamilyDashboardScreen } from '../screens/family/FamilyDashboardScreen';
 import FamilyBillsScreen from '../screens/family/FamilyBillsScreen';
 import FamilyBudgetScreen from '../screens/family/FamilyBudgetScreen';
 import FamilyContributionsScreen from '../screens/family/FamilyContributionsScreen';
@@ -71,7 +70,7 @@ export function FamilySpaceNavigator() {
     <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <Stack.Screen
         name="FamilyOverview"
-        component={FamilyOverviewScreen}
+        component={FamilyDashboardScreen}
         options={{ headerShown: false }}
       />
       {FAMILY_SUB_SCREENS.map(({ name, component }) => (

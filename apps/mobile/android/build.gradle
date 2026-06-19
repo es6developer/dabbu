@@ -23,6 +23,20 @@ buildscript {
 
 apply plugin: "com.facebook.react.rootproject"
 
+// Force ALL subprojects to use JDK 17 for Java toolchains. AGP's
+// JdkImageTransform (used during compile*) invokes jlink from the JDK
+// returned by javaCompiler. JDK 21's jlink crashes on Android SDK's
+// core-for-system-modules.jar (malformed ModuleTarget attribute).
+// By pre-setting languageVersion=17, AGP resolves JDK 17 instead of
+// relying on the Gradle daemon's JDK (typically JBR 21 from AS).
+subprojects { subproject ->
+    if (subproject.name == "app") return // handled by app/build.gradle
+    subproject.plugins.withType(JavaBasePlugin) {
+        subproject.extensions.getByType(JavaPluginExtension)
+            .toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 allprojects {
     repositories {
         maven {

@@ -3210,6 +3210,24 @@ ${JSON.stringify(context, null, 2)}`;
     });
     return review;
   }
+
+  // ───── V3 Contextual AI placeholders ─────
+
+  async getContextualInsight(userId: string, screen: string, context?: Record<string, any>) {
+    return { userId, screen, context, insight: 'Contextual insight not yet implemented' };
+  }
+
+  async getContextualForecast(userId: string, goalId?: string, planId?: string, months?: number) {
+    return { userId, goalId, planId, months, forecast: 'Contextual forecast not yet implemented' };
+  }
+
+  async getContextualRebalance(userId: string, targetCategory?: string, monthlyBudget?: number) {
+    return { userId, targetCategory, monthlyBudget, rebalance: 'Rebalancing not yet implemented' };
+  }
+
+  async getContextualCategorize(userId: string, description: string, amount?: number) {
+    return { userId, description, amount, category: 'Categorization not yet implemented' };
+  }
 }
 
 function urgencyText(urgency: number): string {

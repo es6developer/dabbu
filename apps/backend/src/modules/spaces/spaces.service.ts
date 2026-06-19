@@ -97,7 +97,7 @@ export class SpacesService {
   }
 
   async create(data: { name: string; type: string; icon?: string; coverColor?: string }, userId: string) {
-    const validTypes = ['COUPLE', 'FAMILY', 'TRIP', 'BUSINESS', 'CUSTOM'];
+    const validTypes = ['PERSONAL', 'COUPLE', 'FAMILY', 'TRIP', 'HOME', 'BABY', 'WEDDING', 'CAR', 'EDUCATION', 'VACATION', 'RETIREMENT', 'BUSINESS', 'CUSTOM'];
     if (!validTypes.includes(data.type)) {
       throw new BadRequestException('Invalid space type. Must be one of: ' + validTypes.join(', '));
     }
@@ -114,6 +114,22 @@ export class SpacesService {
       },
     });
     return space;
+  }
+
+  async createPersonalSpace(userId: string, firstName: string) {
+    const existing = await this.prisma.space.findFirst({
+      where: { createdBy: userId, type: 'PERSONAL' },
+    });
+    if (existing) return existing;
+    return this.prisma.space.create({
+      data: {
+        name: `${firstName}'s Personal`,
+        type: 'PERSONAL',
+        icon: 'user',
+        createdBy: userId,
+        members: { create: { userId, role: 'owner' } },
+      },
+    });
   }
 
   async addMember(spaceId: string, userId: string, requesterId: string, role = 'member') {
@@ -150,5 +166,79 @@ export class SpacesService {
       where: { spaceId_userId: { spaceId, userId } },
     });
     return { removed: true };
+  }
+
+  async update(spaceId: string, userId: string, data: { name?: string; icon?: string; coverColor?: string }) {
+    await this.getById(spaceId, userId);
+    const space = await this.prisma.space.update({
+      where: { id: spaceId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.coverColor !== undefined && { coverColor: data.coverColor }),
+      },
+    });
+    return space;
+  }
+
+  async deleteSpace(spaceId: string, userId: string) {
+    const membership = await this.prisma.spaceMember.findUnique({
+      where: { spaceId_userId: { spaceId, userId } },
+    });
+    if (!membership) throw new ForbiddenException('Not a member of this space');
+    if (!['owner', 'admin'].includes(membership.role)) {
+      throw new ForbiddenException('Only owner or admin can delete a space');
+    }
+    await this.prisma.space.delete({ where: { id: spaceId } });
+    return { deleted: true };
+  }
+
+  async activate(spaceId: string, userId: string) {
+    await this.getById(spaceId, userId);
+    await this.prisma.space.update({
+      where: { id: spaceId },
+      data: { updatedAt: new Date() },
+    });
+    return { activated: true };
+  }
+
+  async getTransactions(spaceId: string, userId: string) {
+    await this.getById(spaceId, userId);
+    return this.prisma.transaction.findMany({
+      where: { spaceId },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async getGoals(spaceId: string, userId: string) {
+    await this.getById(spaceId, userId);
+    return this.prisma.goal.findMany({
+      where: { spaceId },
+    });
+  }
+
+  async getBudgets(spaceId: string, userId: string) {
+    await this.getById(spaceId, userId);
+    return this.prisma.budget.findMany({
+      where: { spaceId },
+    });
+  }
+
+  async createDefault(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { firstName: true } });
+    const name = user?.firstName ? `${user.firstName}'s Personal` : 'Personal Space';
+    const existing = await this.prisma.space.findFirst({
+      where: { createdBy: userId, type: 'PERSONAL' },
+    });
+    if (existing) return existing;
+    return this.prisma.space.create({
+      data: {
+        name,
+        type: 'PERSONAL',
+        icon: 'user',
+        createdBy: userId,
+        members: { create: { userId, role: 'owner' } },
+      },
+    });
   }
 }

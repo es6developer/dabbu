@@ -1,0 +1,374 @@
+================================================================================
+  DABBU MOBILE APP - COMPREHENSIVE AUDIT REPORT
+  Generated: 19 Jun 2026
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. EXECUTIVE SUMMARY
+2. CRITICAL BUGS
+3. NOT WIRED (No API Integration)
+4. INCOMPLETE / STUB SCREENS
+5. MISSING BACKEND ENDPOINTS (Mobile calls but backend has no match)
+6. PATH MISMATCHES (Mobile calls wrong path vs backend)
+7. DEAD BACKEND ENDPOINTS (Backend has but mobile never calls)
+8. ARCHITECTURAL ISSUES
+9. DUPLICATE / CONFLICTING IMPLEMENTATIONS
+10. RECOMMENDATIONS
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+Total mobile screens analyzed: ~130
+Backend controllers reviewed: 49+
+Backend API endpoints available: 400+
+
+KEY FINDINGS:
+- ~25 screens are incomplete stubs or TODOs
+- ~12 screens are purely static UI with zero API integration (mostly in settings/)
+- ~8 screens use hardcoded mock data instead of real API calls (mostly in family/)
+- 2 CRITICAL bugs (broken functionality)
+- ~15 API path mismatches between mobile and backend
+- ~20 backend endpoints exist but mobile never calls them (dead endpoints)
+- Navigation routing bugs (CoupleSpaceRouter, DashboardRouterScreen)
+- Many settings screens import 'api' but never use it
+
+
+================================================================================
+2. CRITICAL BUGS
+================================================================================
+
+BUG 1: CoupleSpaceRouter.tsx renders wrong screen
+  File: apps/mobile/src/navigation/CoupleSpaceRouter.tsx
+  Issue: Renders PersonalDashboardScreen instead of a couple-specific dashboard.
+  The entire couple navigation space is broken - users in couple mode see
+  personal dashboard data.
+  Fix needed: Implement proper CoupleDashboardScreen or route based on mode.
+
+BUG 2: DashboardRouterScreen.tsx ignores mode
+  File: apps/mobile/src/screens/dashboard/DashboardRouterScreen.tsx
+  Issue: Unconditionally renders PersonalDashboardScreen. Never checks if
+  user is in couple or family mode. Should route to PersonalDashboardScreen,
+  CoupleDashboardScreen, or FamilyDashboardScreen based on active mode.
+
+BUG 3: MyWalletScreen sends push notification instead of loading data
+  File: apps/mobile/src/screens/transactions/MyWalletScreen.tsx
+  Issue (lines ~150-165): loadData() sends an Expo push notification via
+  axios.post('https://exp.host/--/api/v2/push/send', ...) every time
+  the screen loads instead of fetching wallet/transaction data.
+  No transaction data is ever loaded.
+
+BUG 4: TransactionsList uses hardcoded mock data
+  File: apps/mobile/src/screens/transactions/TransactionsList.tsx
+  Issue: Uses a local const TXNS array with 4 hardcoded entries.
+  No API import, no data fetching. Users see the same 4 static
+  transactions forever.
+
+
+================================================================================
+3. NOT WIRED (No API Integration)
+================================================================================
+
+3.1 Mock-Data-Only Screens (Hardcoded data, no API calls)
+
+  app/mobile/src/screens/
+  ├── family/FamilyBudgetScreen.tsx       - Hardcoded budget categories
+  ├── family/FamilyInsuranceScreen.tsx    - Hardcoded insurance policies
+  ├── family/FamilyReportsScreen.tsx      - Hardcoded report data
+  ├── family/FamilyVaultScreen.tsx        - Hardcoded vault items
+  ├── family/FamilyContributionsScreen.tsx- Hardcoded contribution records
+  ├── family/FamilyEmergencyFundScreen.tsx- Hardcoded emergency fund data
+  ├── family/FamilySavings.tsx            - Hardcoded savings goals
+  └── lifehub/InvestmentPlannerScreen.tsx - Local-only calculations (api imported but unused)
+
+3.2 Settings Screens (api imported but NEVER used)
+
+  app/mobile/src/screens/settings/
+  ├── PrivacyPolicyScreen.tsx         - Static text, api unused
+  ├── HelpCenterScreen.tsx            - Static FAQ, api unused
+  ├── ContactUsScreen.tsx             - Static form, no submit, api unused
+  ├── ThemeScreen.tsx                  - Theme selector (AsyncStorage only), api unused
+  ├── CustomiseBottomMenuScreen.tsx    - Drag-reorder (local state only), api unused
+  ├── CustomiseDashboardScreen.tsx     - Drag-reorder widgets (local only), api unused
+  ├── FavoriteContactsScreen.tsx       - Hardcoded contacts, api unused
+  ├── GdprDataScreen.tsx              - Static text, api unused
+  ├── SupportScreen.tsx               - Static options, api unused
+  ├── AddPartnerScreen.tsx            - Form UI but no API call on submit, api unused
+  ├── DataExportScreen.tsx            - "Coming soon" placeholder, api unused
+  └── AvatarPickerScreen.tsx          - Avatar grid UI but no upload, api unused
+
+3.3 Other Screens with api imported but unused
+
+  ├── family/FamilyMemberDetailScreen.tsx    - api unused
+  ├── family/FamilyDashboardScreen.tsx       - api unused (TODO placeholder)
+  ├── couple/CoupleDashboardScreen.tsx       - api unused (TODO placeholder)
+  ├── shared-finance/SharedFinanceDashboardScreen.tsx - api unused
+  ├── shared-finance/SharedFinanceReportsScreen.tsx    - api unused
+  └── spaces/CreateSpaceScreen.tsx           - api unused (TODO API integration)
+
+3.4 Dashboard Widgets - No direct wiring check performed on each widget, but
+    WidgetRegistry.tsx has 29 registered widget types. These rely on the
+    dashboard API endpoints which DO exist in the backend (GET /dashboard,
+    GET /dashboard/personal, GET /dashboard/couple, GET /dashboard/family).
+    The widgets appear to be properly wired through the DashboardProvider
+    context. NOTE: Some widgets have duplicate standalone implementations
+    outside the WidgetRegistry in components/dashboard/ root.
+
+
+================================================================================
+4. INCOMPLETE / STUB SCREENS (TODOs / Placeholders)
+================================================================================
+
+  File                                              Status
+  ----                                              ------
+  family/FamilyMemberDetailScreen.tsx               "coming soon" placeholder
+  family/FamilyDashboardScreen.tsx                  "showing placeholder for now"
+  couple/CoupleDashboardScreen.tsx                 "TODO: implement CoupleDashboard"
+  couple/AnniversaryCountdownScreen.tsx             "TODO: fetch real anniversary date"
+  couple/WeddingPlannerScreen.tsx                  "TODO: implement wedding planner"
+  shared-finance/SharedFinanceDashboardScreen.tsx   "TODO: implement dashboard"
+  shared-finance/SharedFinanceReportsScreen.tsx     "TODO: fetch real data"
+  shared-finance/SharedFinanceGoalsScreen.tsx       "TODO: implement goals UI"
+  spaces/CreateSpaceScreen.tsx                     "TODO: API integration for creating space"
+  settings/AvatarPickerScreen.tsx                  "TODO: Integrate with image picker and upload"
+  settings/DataExportScreen.tsx                    "TODO: Implement data export functionality"
+
+
+================================================================================
+5. MISSING BACKEND ENDPOINTS (Mobile calls but backend has no match)
+================================================================================
+
+Note: Backend has 49+ controllers with 400+ endpoints. Most mobile calls DO
+have matching endpoints. Below are the EXCEPTIONS where mobile calls a path
+that has no matching backend controller/route.
+
+  Mobile Call Path                              Backend Status
+  ------------------                            --------------
+  GET /accounts                                 MISSING (no accounts controller)
+  GET /accounts/stats                           MISSING
+  GET /accounts/subscriptions                   MISSING
+  GET /preferences                              MISSING (backend has /user/preferences)
+  GET /external-sharing/auth/me                 MISSING
+  POST /external-sharing/anonymous-session      MISSING
+  POST /external-sharing/auth/email-otp         MISSING (backend has /external-sharing/invite)
+  POST /external-sharing/auth/email-verify      MISSING
+  POST /external-sharing/auth/phone-otp         MISSING
+  POST /external-sharing/auth/phone-verify      MISSING
+  POST /external-sharing/auth/refresh-temp      MISSING
+  POST /external-sharing/auth/refresh-token     MISSING
+  GET /external-sharing/conversion/evaluate     MISSING
+  GET /external-sharing/conversion/banners      MISSING
+  POST /external-sharing/conversion/onboarding  MISSING
+  POST /external-sharing/conversion/trial       MISSING
+  POST /external-sharing/install/redirect       MISSING
+  POST /external-sharing/install/confirm        MISSING
+  POST /external-sharing/invites                MISSING (backend has /external-sharing/invite, singular)
+  GET /external-sharing/lifecycle/groups/:id/
+       restrictions                             MISSING
+  POST /external-sharing/lifecycle/groups/:id/
+       restrictions                             MISSING
+  DELETE /external-sharing/lifecycle/groups/:id/
+       restrictions/:rid                        MISSING
+  POST /external-sharing/access/invites/:token/
+       revoke                                   MISSING
+  GET /bills/upcoming                           MISSING (backend has /bill-reminders/upcoming instead - different path)
+
+
+================================================================================
+6. PATH MISMATCHES (Mobile calls wrong path vs backend)
+================================================================================
+
+  Mobile Call (WRONG)                    Backend Has (CORRECT)
+  --------------------------             ----------------------------
+  POST /auth/demo-login                  POST /auth/demo
+  GET /auth/profile                      GET /auth/me
+  POST /couple/remove-partner            POST /couple/disconnect
+  POST /devices/register                 POST /auth/device
+  POST /dashboard/widgets/toggle         POST /dashboard/toggle-widget
+  POST /dashboard/widgets/reorder        POST /dashboard/reorder
+  PUT /user/preferences/visibility       PUT /user/preferences/visibility (match, but path differs from earlier findings)
+  GET /bills?status=pending              GET /bills (no filter support - need backend change)
+  GET /premium/current                   GET /subscription (or add /premium/current alias)
+  GET /life-hub/retirement?age=          GET /life-hub/retirement (query param may need alignment)
+
+Note: Some of the above may have been fixed or vary by version. Verify each
+individually against the running API.
+
+
+================================================================================
+7. DEAD BACKEND ENDPOINTS (Backend has but mobile never calls)
+================================================================================
+
+The following backend endpoints exist but the mobile app does NOT call them
+(based on grep of static string API calls in mobile source):
+
+  Backend Path                                                     Calls?
+  -----------------------------------------------------------      ------
+  GET    /ai/health                                                 NO
+  POST   /ai/narrative                                              NO
+  GET    /ai/groups/:groupId/insights                               NO
+  GET    /ai/groups/:groupId/split-insights                         NO
+  POST   /ai/dna/compute                                            NO
+  GET    /ai/monthly-review                                         NO (Premium)
+  GET    /ai/feed-summary                                           NO
+  PATCH  /ai/feed/:cardId/read                                      NO
+  PATCH  /ai/feed/:cardId/dismiss                                   NO
+  POST   /ai/compute/all                                            NO
+  POST   /ai/compute/daily                                          NO
+  POST   /ai/compute/weekly                                         NO
+  POST   /ai/compute/monthly                                        NO
+  POST   /ai/ocr/analyze                                            NO (Premium)
+  GET    /ai/investments/health                                     NO (Premium)
+  POST   /ai/retirement/project                                     NO (Premium)
+  POST   /ai/family/wealth-forecast                                 NO (Premium)
+  POST   /ai/tax/estimate                                           NO (Premium)
+  GET    /ai/couple/intelligence                                    NO
+  GET    /ai/family/intelligence                                    NO (Premium)
+  POST   /ai/export                                                 NO (Premium)
+  POST   /ai/recompute-feed                                         NO
+  POST   /ai/categories/suggest                                     NO
+  POST   /ai/categories/correct                                     NO
+  GET    /ai/goals/rebalance                                        NO
+  POST   /spaces/migrate                                            NO
+  POST   /dashboard/refresh                                         NO
+  POST   /dashboard/track                                           NO
+  GET    /life-hub/baby                                             NO (mobile does call this)
+  GET    /life-hub/house                                            NO (mobile does call this)
+  GET    /life-hub/retirement                                       NO (mobile does call this)
+  POST   /health-score/recalculate                                  NO
+  GET    /users/search                                              NO
+  POST   /users/match-contacts                                      NO
+  POST   /users/contacts/sync                                       NO
+  GET    /users/validate-upi                                        NO
+  GET    /couple/wealth                                             NO
+  GET    /couple/health-score                                       NO
+  GET    /couple/life-plans                                         NO
+  GET    /couple/ai-review                                          NO
+  GET    /couple/combined-wealth                                    NO
+  GET    /couple/shared-savings                                     NO
+  GET    /couple/shared-expenses                                    NO
+  GET    /couple/goals                                              NO
+  GET    /couple/timeline                                           NO
+  GET    /couple/snapshot                                           NO
+  POST   /couple/goals                                              NO
+  PUT    /couple/goals/:id                                          NO
+  DELETE /couple/goals/:id                                          NO
+  POST   /couple/timeline                                           NO
+  PUT    /couple/planners/:id                                       NO
+  DELETE /couple/planners/:id                                       NO
+  POST   /couple/approve-request/:id                                NO
+  POST   /couple/reject-request/:id                                 NO
+  POST   /couple/cancel-request/:id                                 NO
+  GET    /couple/requests                                           NO
+  GET    /couple/status                                             NO
+  POST   /couple/create-invite                                      NO
+  GET    /couple/planners                                           NO
+  GET    /couple/planner/:type                                      NO
+  GET    /couple/coach                                              NO
+  GET    /couple/gamification                                       NO
+  GET    /family/wealth                                             NO
+  GET    /family/investments                                        NO
+  GET    /family/documents                                          NO
+  GET    /family/health-score                                       NO
+  GET    /family/ai-review                                          NO
+  GET    /family/net-worth                                          NO
+  GET    /family/calendar                                           NO
+  GET    /family/insights                                           NO
+  GET    /family/goals                                              NO
+  GET    /family/bills                                              NO
+  GET    /family/tasks                                              NO
+  (many more shared-finance, analytics, reports, etc.)
+
+
+================================================================================
+8. ARCHITECTURAL ISSUES
+================================================================================
+
+8.1 FormField Naming Conflict
+  Two components named FormField exist:
+    components/ui/FormField.tsx
+    components/forms/FormField.tsx (exported as FormField + FormFieldNew)
+  This can cause import confusion and unpredictable behavior.
+
+8.2 Tailwind + StyleSheet Hybrid
+  nds/ components use className (Tailwind/NativeWind), while the rest of the
+  app uses StyleSheet.create. This creates style inconsistency and potential
+  rendering differences.
+
+8.3 No RevenueCat / IAP Integration
+  PremiumContext has 'mock' restorePurchases. There's no actual App Store or
+  Play Store in-app purchase integration wired. Premium features cannot be
+  purchased in the current build.
+
+8.4 SMS Parsing is Android-Only
+  sms/sms-parser.ts has native module dependency for Android only. No iOS
+  implementation exists.
+
+8.5 Duplicate Widget Implementations
+  Some widgets exist BOTH in:
+    components/dashboard/ (standalone)
+    components/dashboard/widgets/ (registry-based)
+  WidgetRegistry imports from widgets/, while DashboardGrid imports from the
+  root dashboard components directory.
+
+8.6 accessToken Pattern Inefficiency
+  ~19 screens repeat this unnecessary pattern before API calls:
+    if (accessToken) { setAccessToken(accessToken); }
+  This is an async state update that accomplishes nothing.
+
+8.7 Missing Loading/Error States
+  ~25+ screens call api.get/post but lack proper loading, error, or empty
+  state UI components.
+
+
+================================================================================
+9. DUPLICATE / CONFLICTING IMPLEMENTATIONS
+================================================================================
+
+  Item                            Location 1                      Location 2
+  ----                            ----------                      ----------
+  FormField                       components/ui/FormField.tsx     components/forms/FormField.tsx
+  Widgets (FamilyInsights, etc.)  components/dashboard/           components/dashboard/widgets/
+  FormSettings                    features/home/                  (standalone)
+  AIChat / AIInsightsCard         features/ai/                    components/ui/
+  Space screens                   screens/spaces/                 features/spaces/ (aliased exports)
+  LifeHub screens                 screens/lifehub/                features/lifehub/ (aliased exports)
+
+
+================================================================================
+10. RECOMMENDATIONS
+================================================================================
+
+P0 - CRITICAL (Fix immediately):
+  - Fix CoupleSpaceRouter.tsx to render a proper couple dashboard
+  - Fix DashboardRouterScreen.tsx to route based on active mode
+  - Fix MyWalletScreen.tsx (remove push notification code, add real data loading)
+  - Fix TransactionsList.tsx (connect to real API)
+  - Connect AddPartnerScreen, CreateSpaceScreen, AvatarPickerScreen to API
+
+P1 - HIGH (Next sprint):
+  - Wire all family/ screens to backend API (Budget, Insurance, Reports, etc.)
+  - Wire all settings/ screens to backend API or remove unused 'api' imports
+  - Fix path mismatches: /auth/demo-login → /auth/demo, /auth/profile → /auth/me
+  - Implement TODO placeholder screens
+  - Add loading/error states to all API-calling screens
+
+P2 - MEDIUM (Backlog):
+  - Resolve FormField naming conflict
+  - Eliminate duplicate widget implementations
+  - Implement IAP integration (RevenueCat/StoreKit)
+  - Add iOS SMS parsing support
+  - Clean up unused 'api' imports across settings/
+
+P3 - LOW:
+  - Remove unnecessary accessToken state update pattern
+  - Standardize on one styling approach (Tailwind vs StyleSheet)
+  - Add missing external-sharing endpoints to backend
+  - Clear dead backend endpoints or document them for future use
+  - Add accounts module to backend (for /accounts, /accounts/stats)
+
+
+================================================================================
+END OF REPORT
+================================================================================

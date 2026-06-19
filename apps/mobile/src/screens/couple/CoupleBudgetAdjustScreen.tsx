@@ -1,36 +1,102 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { api } from '../../services/api';
 
 export function CoupleBudgetAdjustScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [adjustments, setAdjustments] = useState<Record<string, string>>({});
+
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/budgets').then((res: any) => {
+      const data = res?.data || res || [];
+      const list = Array.isArray(data) ? data : [];
+      if (mounted) {
+        setCategories(list);
+        const adj: Record<string, string> = {};
+        list.forEach((c: any) => { adj[c.id] = String(c.amount || ''); });
+        setAdjustments(adj);
+      }
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await Promise.all(
+        Object.entries(adjustments).map(([id, amount]) =>
+          amount ? api.patch(`/budgets/${id}`, { amount: parseFloat(amount) }) : Promise.resolve()
+        ),
+      );
+      Alert.alert('Budget Updated', 'Your budget adjustments have been saved.');
+      navigation.goBack();
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to save adjustments');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-            <AntDesign  name="left" size={20} color={colors.text.secondary} />
+            <AntDesign name="left" size={20} color={colors.text.secondary} />
           </TouchableOpacity>
           <Text style={[s.title, { color: colors.text.primary }]}>Adjust Budget</Text>
         </View>
       </View>
-      <View style={s.placeholder}>
-        <AntDesign  name="setting" size={48} color={colors.accent.primary} />
-        <Text style={[s.placeholderTitle, { color: colors.text.primary }]}>Coming Soon</Text>
-        <Text style={[s.placeholderText, { color: colors.text.secondary }]}>
-          Budget adjustment form will be available in the next update.
-        </Text>
-        <TouchableOpacity style={[s.backButton, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.goBack()}>
-          <Text style={[s.backButtonText, { color: colors.text.inverse }]}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
+          {categories.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingTop: 40 }}>
+              <AntDesign name="piechart" size={48} color={colors.text.tertiary} />
+              <Text style={{ color: colors.text.primary, fontSize: 16, fontWeight: '600', marginTop: 12 }}>No budgets yet</Text>
+              <Text style={{ color: colors.text.tertiary, marginTop: 4 }}>Create a budget first to adjust it</Text>
+            </View>
+          ) : categories.map((cat) => (
+            <View key={cat.id} style={{ backgroundColor: colors.bg.card, borderRadius: 14, padding: 14, marginBottom: 10 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary, marginBottom: 8 }}>{cat.name || cat.category}</Text>
+              <TextInput
+                style={{ backgroundColor: colors.bg.tertiary, borderRadius: 10, padding: 12, fontSize: 15, fontWeight: '700', color: colors.text.primary }}
+                value={adjustments[cat.id] || ''}
+                onChangeText={(t) => setAdjustments((prev) => ({ ...prev, [cat.id]: t }))}
+                keyboardType="decimal-pad"
+                placeholder="Amount"
+                placeholderTextColor={colors.text.tertiary}
+              />
+            </View>
+          ))}
+          {categories.length > 0 && (
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              style={{ backgroundColor: colors.accent.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 12 }}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Save Adjustments</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -39,9 +105,4 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   backBtn: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
-  placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 12 },
-  placeholderTitle: { fontSize: 20, fontWeight: '700' },
-  placeholderText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  backButton: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
-  backButtonText: { fontSize: 14, fontWeight: '700' },
 });

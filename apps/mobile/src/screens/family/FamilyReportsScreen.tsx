@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   Alert,
   Dimensions,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { api } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 const tileSize = (width - 52) / 2;
@@ -53,11 +56,46 @@ const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void }> = ({ t
 
 export default function FamilyReportsScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const [selectedFilter, setSelectedFilter] = useState('3M');
+  const [insights, setInsights] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    api.get('/family-space/reports').then((res: any) => {
+      const data = res?.data || res || {};
+      if (mounted) setInsights(data);
+    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []));
 
   const handleTilePress = (tile: ReportTile) => {
-    Alert.alert('Coming Soon', `${tile.title} report will be available in the next update.`);
+    const routes: Record<string, string> = {
+      '1': 'Analytics',
+      '2': 'Analytics',
+      '3': 'Analytics',
+      '4': 'InvestmentPlanner',
+      '5': 'Analytics',
+      '6': 'YearlySummary',
+    };
+    const route = routes[tile.id] || 'Analytics';
+    navigation.navigate(route);
   };
+
+  const totalSpend = insights?.totalSpend ?? 185000;
+  const savingsRate = insights?.savingsRate ?? 24;
+  const topCategory = insights?.topCategory ?? 'Housing';
+  const topCategoryPct = insights?.topCategoryPct ?? 32;
+  const lastUpdated = insights?.lastUpdated ?? 'Today';
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -72,7 +110,7 @@ export default function FamilyReportsScreen() {
         </View>
         <View style={styles.headerSummaryCard}>
           <Text style={styles.headerSummaryLabel}>Last Updated</Text>
-          <Text style={styles.headerSummaryValue}>Today</Text>
+          <Text style={styles.headerSummaryValue}>{lastUpdated}</Text>
         </View>
       </View>
 
@@ -113,19 +151,19 @@ export default function FamilyReportsScreen() {
           <View style={styles.insightRow}>
             <View style={styles.insightDot} />
             <Text style={styles.insightText}>
-              Total spend this month is <Text style={styles.insightHighlight}>₹1,85,000</Text>
+              Total spend this month is <Text style={styles.insightHighlight}>₹{totalSpend.toLocaleString('en-IN')}</Text>
             </Text>
           </View>
           <View style={styles.insightRow}>
             <View style={styles.insightDot} />
             <Text style={styles.insightText}>
-              Savings rate: <Text style={[styles.insightHighlight, { color: '#10B981' }]}>24%</Text> of income
+              Savings rate: <Text style={[styles.insightHighlight, { color: '#10B981' }]}>{savingsRate}%</Text> of income
             </Text>
           </View>
           <View style={styles.insightRow}>
             <View style={styles.insightDot} />
             <Text style={styles.insightText}>
-              Top category: <Text style={styles.insightHighlight}>Housing</Text> (32% of spend)
+              Top category: <Text style={styles.insightHighlight}>{topCategory}</Text> ({topCategoryPct}% of spend)
             </Text>
           </View>
         </View>
