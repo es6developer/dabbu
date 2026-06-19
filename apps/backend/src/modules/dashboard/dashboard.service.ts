@@ -68,7 +68,7 @@ export class DashboardService {
       BUDGETS: 'budgetsOverview', QUICK_ACTIONS: 'quickActions',
     };
     const couple: Record<string, string> = {
-      COUPLE_WEALTH: 'combinedWealth', COUPLE_GOALS: 'coupleGoals', COUPLE_TIMELINE: 'coupleTimeline',
+      COUPLE_HERO: 'coupleHero', COUPLE_WEALTH: 'combinedWealth', COUPLE_GOALS: 'coupleGoals', COUPLE_TIMELINE: 'coupleTimeline',
       THIS_MONTH: 'coupleSnapshot', HEALTH_SCORE: 'coupleHealth', AI_INSIGHTS: 'coupleAI',
       UPCOMING_BILLS: 'upcomingBills', RECENT_TRANSACTIONS: 'recentTransactions', QUICK_ACTIONS: 'quickActions',
     };
@@ -76,7 +76,8 @@ export class DashboardService {
       FAMILY_HERO: 'familyHero', FAMILY_WEALTH: 'familyWealth', FAMILY_SNAPSHOT: 'familySnapshot',
       FAMILY_GOALS: 'familyGoals', FAMILY_BILLS: 'familyBills', FAMILY_CONTRIBUTIONS: 'familyContributions',
       FAMILY_EXPENSES: 'familyExpenses', FAMILY_INSIGHTS: 'familyInsights', FAMILY_TIMELINE: 'familyTimeline',
-      FAMILY_HEALTH: 'familyHealth', QUICK_ACTIONS: 'quickActions',
+      FAMILY_HEALTH: 'familyHealth', RECENT_TRANSACTIONS: 'recentTransactions', AI_INSIGHTS: 'familyInsights',
+      QUICK_ACTIONS: 'quickActions',
     };
     if (scope === 'couple') return couple[type] || null;
     if (scope === 'family') return family[type] || null;
@@ -350,16 +351,17 @@ export class DashboardService {
 
 function getAllWidgetTypes(scope: string): string[] {
   const personal = [
-    'NET_WORTH', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS',
-    'GOALS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'QUICK_ACTIONS',
+    'GREETING', 'NET_WORTH', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS',
+    'GOALS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'BUDGETS', 'QUICK_ACTIONS',
   ];
   const couple = [
-    'COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH',
-    'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS',
+    'COUPLE_HERO', 'COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH',
+    'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'QUICK_ACTIONS',
   ];
   const family = [
-    'FAMILY_WEALTH', 'FAMILY_CONTRIBUTIONS', 'FAMILY_INSIGHTS', 'GOALS',
-    'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'HEALTH_SCORE', 'AI_INSIGHTS',
+    'FAMILY_HERO', 'FAMILY_WEALTH', 'FAMILY_SNAPSHOT', 'FAMILY_CONTRIBUTIONS', 'FAMILY_EXPENSES',
+    'FAMILY_BILLS', 'FAMILY_GOALS', 'FAMILY_INSIGHTS', 'FAMILY_TIMELINE', 'FAMILY_HEALTH',
+    'RECENT_TRANSACTIONS', 'AI_INSIGHTS', 'QUICK_ACTIONS',
   ];
 
   if (scope === 'couple') return couple;

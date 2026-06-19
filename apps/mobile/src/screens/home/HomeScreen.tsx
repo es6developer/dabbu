@@ -1048,7 +1048,7 @@ export function HomeScreen() {
               </Text>
               {recentTxns.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Wallet', { screen: 'MyWallet' })}
+                  onPress={() => navigation.navigate('WalletTab', { screen: 'MyWallet' })}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                     See All
@@ -1071,7 +1071,7 @@ export function HomeScreen() {
                   <TouchableOpacity
                     key={tx.id || i}
                     activeOpacity={0.7}
-                    onPress={() => navigation.navigate('Wallet', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
+                    onPress={() => navigation.navigate('WalletTab', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
                   >
                     <View
                       style={{

@@ -407,8 +407,7 @@ export function FamilyModuleScreen() {
     try {
       const res = await api.get(apiPath);
       setData((res as any)?.data || res);
-    } catch (e) {
-      console.warn(`Failed to load ${module}:`, e);
+    } catch {
     } finally {
       setLoading(false); setRefreshing(false);
     }

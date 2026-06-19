@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
@@ -100,16 +99,7 @@ export function FormField({
               backgroundColor: colors.bg.card,
               borderColor,
             },
-            fieldState === 'focused' && {
-              ...Platform.select({
-                ios: {
-                  shadowColor: colors.accent.primary,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                },
-              }),
-            },
+
           ]}
         >
           {icon ? (

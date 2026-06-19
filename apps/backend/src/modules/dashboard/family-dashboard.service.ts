@@ -30,7 +30,7 @@ export class FamilyDashboardService {
 
     const family = await this.prisma.family.findUnique({
       where: { id: fid },
-      select: { id: true, name: true, members: { select: { userId: true, role: true } } },
+      select: { id: true, name: true, createdAt: true, members: { select: { userId: true, role: true, user: { select: { firstName: true } } } } },
     });
     if (!family) return [{ type: 'FAMILY_WEALTH', data: null, state: 'disabled' }];
 
@@ -44,7 +44,7 @@ export class FamilyDashboardService {
     const enabledTypes = new Set(
       configs.length > 0
         ? configs.map(c => c.widgetType)
-        : ['FAMILY_WEALTH', 'FAMILY_CONTRIBUTIONS', 'FAMILY_INSIGHTS', 'FAMILY_GOALS', 'FAMILY_BILLS', 'FAMILY_HEALTH'],
+        : ['FAMILY_HERO', 'FAMILY_WEALTH', 'FAMILY_SNAPSHOT', 'FAMILY_CONTRIBUTIONS', 'FAMILY_EXPENSES', 'FAMILY_BILLS', 'FAMILY_GOALS', 'FAMILY_INSIGHTS', 'FAMILY_TIMELINE', 'FAMILY_HEALTH', 'RECENT_TRANSACTIONS', 'AI_INSIGHTS', 'QUICK_ACTIONS'],
     );
 
     const now = new Date();
@@ -52,15 +52,19 @@ export class FamilyDashboardService {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     const fetchers: Record<string, () => Promise<any>> = {
+      FAMILY_HERO: () => this.getFamilyHero(family),
       FAMILY_WEALTH: () => this.getFamilyWealth(family, memberIds),
+      FAMILY_SNAPSHOT: () => this.getFamilySnapshot(memberIds, monthStart, monthEnd),
       FAMILY_CONTRIBUTIONS: () => this.getFamilyContributions(fid!, memberIds),
       FAMILY_INSIGHTS: () => this.getFamilyInsights(fid!),
       FAMILY_GOALS: () => this.getFamilyGoals(fid!),
       FAMILY_BILLS: () => this.getFamilyBills(fid!),
       FAMILY_HEALTH: () => this.getFamilyHealth(memberIds),
       FAMILY_EXPENSES: () => this.getFamilyExpenses(memberIds, monthStart, monthEnd),
+      FAMILY_TIMELINE: () => this.getFamilyTimeline(fid!),
       RECENT_TRANSACTIONS: () => this.getCombinedTransactions(memberIds),
       AI_INSIGHTS: () => this.getCombinedAiInsights(memberIds),
+      QUICK_ACTIONS: () => this.getQuickActions(),
     };
 
     const results = await Promise.all(
@@ -80,6 +84,65 @@ export class FamilyDashboardService {
 
     await this.cache.set(cacheKey, results, 120);
     return results;
+  }
+
+  private async getFamilyHero(family: any) {
+    return {
+      familyName: family.name || 'Family',
+      memberCount: family.members?.length || 0,
+      familySince: family.createdAt?.toISOString?.()?.split('T')[0] || '',
+      members: family.members?.map((m: any) => ({
+        name: m.user?.firstName || m.userId?.slice(0, 8) || 'Member',
+        role: m.role || 'member',
+      })) || [],
+    };
+  }
+
+  private async getFamilySnapshot(memberIds: string[], monthStart: Date, monthEnd: Date) {
+    const [income, expense] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId: { in: memberIds }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId: { in: memberIds }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        _sum: { amount: true },
+      }),
+    ]);
+    const totalIncome = Number(income._sum.amount || 0);
+    const totalExpense = Number(expense._sum.amount || 0);
+    return {
+      income: totalIncome,
+      expense: totalExpense,
+      saved: Math.max(0, totalIncome - totalExpense),
+      savingsRate: totalIncome > 0 ? Math.round((Math.max(0, totalIncome - totalExpense) / totalIncome) * 100) : 0,
+      memberCount: memberIds.length,
+    };
+  }
+
+  private async getFamilyTimeline(familyId: string) {
+    const events = await this.prisma.familyCalendarEvent.findMany({
+      where: { familyId },
+      orderBy: { startDate: 'desc' },
+      take: 10,
+    });
+    return {
+      events: events.map(e => ({
+        id: e.id,
+        title: e.title || e.description || 'Event',
+        date: e.startDate,
+        type: e.eventType || 'event',
+      })),
+    };
+  }
+
+  private async getQuickActions() {
+    return [
+      { id: 'add_expense', label: 'Add Expense', icon: 'add-circle', route: 'AddExpense', color: '#7C3AED' },
+      { id: 'add_income', label: 'Add Income', icon: 'trending-up', route: 'AddExpense?type=income', color: '#22C55E' },
+      { id: 'family_goal', label: 'Family Goal', icon: 'flag', route: 'FamilyGoals', color: '#F59E0B' },
+      { id: 'family_contribute', label: 'Contribute', icon: 'rise', route: 'FamilyContributions', color: '#6366F1' },
+    ];
   }
 
   private async getFamilyWealth(family: any, memberIds: string[]) {

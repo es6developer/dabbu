@@ -344,10 +344,9 @@ export function PremiumLoginScreen() {
                 try {
                   setError('');
                   await promptAsync();
-                } catch (e: any) {
-                  console.error('Google sign-in prompt failed:', e);
-                  setError(e?.message || 'Google sign-in could not be started');
-                }
+                  } catch (e: any) {
+                    setError(e?.message || 'Google sign-in could not be started');
+                  }
               }}
               disabled={loading}
               style={{

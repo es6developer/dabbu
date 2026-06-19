@@ -3211,22 +3211,318 @@ ${JSON.stringify(context, null, 2)}`;
     return review;
   }
 
-  // ───── V3 Contextual AI placeholders ─────
+  // ───── V3 Contextual AI ─────
 
   async getContextualInsight(userId: string, screen: string, context?: Record<string, any>) {
-    return { userId, screen, context, insight: 'Contextual insight not yet implemented' };
+    const cutoff = new Date(Date.now() - 90 * 86400000);
+    const [recentTxns, monthlyStats] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where: { userId, date: { gte: cutoff }, deletedAt: null },
+        orderBy: { date: 'desc' },
+        take: 20,
+        include: { category: { select: { name: true } } },
+      }),
+      this.prisma.transaction.groupBy({
+        by: ['type'],
+        where: { userId, date: { gte: cutoff }, deletedAt: null },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const totalIncome = monthlyStats.find((s) => s.type === 'income')?._sum.amount
+      ? Number(monthlyStats.find((s) => s.type === 'income')!._sum.amount)
+      : 0;
+    const totalExpense = monthlyStats.find((s) => s.type === 'expense')?._sum.amount
+      ? Number(monthlyStats.find((s) => s.type === 'expense')!._sum.amount)
+      : 0;
+    const balance = totalIncome - totalExpense;
+    const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+
+    let insight = '';
+
+    if (screen === 'dashboard' || screen === 'home') {
+      if (recentTxns.length === 0) {
+        insight = 'Start tracking your expenses to get personalized financial insights.';
+      } else if (balance < 0) {
+        insight = `You spent ₹${Math.round(Math.abs(balance))} more than you earned this period. Try reducing discretionary spending.`;
+      } else if (savingsRate > 20) {
+        insight = `Great job! You saved ${savingsRate}% of your income. Keep it up!`;
+      } else if (savingsRate > 10) {
+        insight = `You saved ${savingsRate}% this period. Aim for 20% to build a stronger cushion.`;
+      } else {
+        insight = `Your savings rate is ${savingsRate}%. Try to save at least 20% of income.`;
+      }
+
+      const topCategory = recentTxns
+        .filter((t) => t.type === 'expense' && t.category?.name)
+        .reduce<Record<string, number>>((acc, t) => {
+          const name = t.category!.name;
+          acc[name] = (acc[name] || 0) + Number(t.amount);
+          return acc;
+        }, {});
+      const topCat = Object.entries(topCategory).sort(([, a], [, b]) => b - a)[0];
+      if (topCat) {
+        insight += ` Your top expense category is ${topCat[0]} (₹${Math.round(topCat[1])}).`;
+      }
+    } else if (screen === 'wallet' || screen === 'transactions') {
+      const largeTxns = recentTxns.filter((t) => Number(t.amount) > 10000);
+      if (largeTxns.length > 0) {
+        insight = `You have ${largeTxns.length} transaction(s) over ₹10,000. Review for potential savings.`;
+      } else {
+        insight = 'All clear — no unusually large transactions detected.';
+      }
+    } else if (screen === 'goals') {
+      insight = 'Set specific savings targets to make progress visible and stay motivated.';
+    } else {
+      insight = 'Track your spending patterns to discover opportunities to save more.';
+    }
+
+    return {
+      screen,
+      insight,
+      transactionCount: recentTxns.length,
+      savingsRate,
+      totalIncome: Math.round(totalIncome),
+      totalExpense: Math.round(totalExpense),
+    };
   }
 
   async getContextualForecast(userId: string, goalId?: string, planId?: string, months?: number) {
-    return { userId, goalId, planId, months, forecast: 'Contextual forecast not yet implemented' };
+    const m = months || 3;
+    const cutoff = new Date(Date.now() - 90 * 86400000);
+
+    const [incomeAvg, expenseAvg, goals] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'income', date: { gte: cutoff }, deletedAt: null },
+        _avg: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null },
+        _avg: { amount: true },
+      }),
+      goalId
+        ? this.prisma.goal.findFirst({ where: { id: goalId, userId } })
+        : this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
+    ]);
+
+    const avgIncome = Number(incomeAvg._avg.amount || 0);
+    const avgExpense = Number(expenseAvg._avg.amount || 0);
+    const monthlySavings = avgIncome - avgExpense;
+
+    const projectedIncome = avgIncome * m;
+    const projectedExpense = avgExpense * m;
+    const projectedSavings = monthlySavings * m;
+
+    const prediction = {
+      monthlyAvgIncome: Math.round(avgIncome),
+      monthlyAvgExpense: Math.round(avgExpense),
+      monthlySavings: Math.round(Math.max(0, monthlySavings)),
+      projectedIncome: Math.round(projectedIncome),
+      projectedExpense: Math.round(projectedExpense),
+      projectedSavings: Math.round(Math.max(0, projectedSavings)),
+      savingsRate: avgIncome > 0 ? Math.round((monthlySavings / avgIncome) * 100) : 0,
+      monthsProjected: m,
+      goalImpact: null as any,
+    };
+
+    if (goalId && goals && !Array.isArray(goals)) {
+      const target = Number(goals.targetAmount);
+      const current = Number(goals.currentAmount);
+      const remaining = target - current;
+      const monthsToGoal = monthlySavings > 0 ? Math.ceil(remaining / monthlySavings) : null;
+      prediction.goalImpact = {
+        goalName: goals.name,
+        target: Math.round(target),
+        current: Math.round(current),
+        remaining: Math.round(remaining),
+        monthsToGoal,
+        onTrack: monthsToGoal !== null && monthsToGoal <= m,
+      };
+    }
+
+    return prediction;
   }
 
   async getContextualRebalance(userId: string, targetCategory?: string, monthlyBudget?: number) {
-    return { userId, targetCategory, monthlyBudget, rebalance: 'Rebalancing not yet implemented' };
+    const cutoff = new Date(Date.now() - 90 * 86400000);
+
+    const categorySpending = await this.prisma.transaction.groupBy({
+      by: ['categoryId'],
+      where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null },
+      _sum: { amount: true },
+    });
+
+    const totalSpent = categorySpending.reduce((s, c) => s + Number(c._sum.amount || 0), 0);
+    const budget = monthlyBudget || Math.round(totalSpent / 3);
+
+    const categories = await this.prisma.transactionCategory.findMany({
+      where: { userId, isActive: true, transactionType: 'expense' },
+      select: { id: true, name: true },
+    });
+
+    const catMap = new Map(categories.map((c) => [c.id, c.name]));
+
+    const currentSplit = categorySpending
+      .map((c) => ({
+        categoryId: c.categoryId,
+        categoryName: c.categoryId ? catMap.get(c.categoryId) || 'Unknown' : 'Uncategorized',
+        current: Math.round(Number(c._sum.amount || 0) / 3),
+        percentage: totalSpent > 0 ? Math.round((Number(c._sum.amount || 0) / totalSpent) * 100) : 0,
+      }))
+      .sort((a, b) => b.current - a.current);
+
+    const suggestions: { categoryId: string | null; categoryName: string; current: number; suggested: number; change: number }[] = [];
+
+    if (targetCategory) {
+      const target = currentSplit.find(
+        (c) => c.categoryName.toLowerCase() === targetCategory.toLowerCase(),
+      );
+      if (target) {
+        const maxRecommended = Math.round(budget * 0.5);
+        if (target.current > maxRecommended) {
+          suggestions.push({
+            categoryId: target.categoryId,
+            categoryName: target.categoryName,
+            current: target.current,
+            suggested: maxRecommended,
+            change: maxRecommended - target.current,
+          });
+        }
+      }
+    }
+
+    if (suggestions.length === 0) {
+      for (const cat of currentSplit) {
+        if (cat.percentage > 40) {
+          const maxRecommended = Math.round(budget * 0.35);
+          suggestions.push({
+            categoryId: cat.categoryId,
+            categoryName: cat.categoryName,
+            current: cat.current,
+            suggested: maxRecommended,
+            change: maxRecommended - cat.current,
+          });
+        }
+      }
+    }
+
+    return {
+      monthlyBudget: budget,
+      currentSpending: currentSplit,
+      suggestions,
+      totalMonthlySpent: Math.round(totalSpent / 3),
+      message: suggestions.length > 0
+        ? `Consider reducing ${suggestions[0].categoryName} by ₹${Math.abs(suggestions[0].change)}/mo`
+        : 'Your spending is well-balanced across categories.',
+    };
   }
 
   async getContextualCategorize(userId: string, description: string, amount?: number) {
-    return { userId, description, amount, category: 'Categorization not yet implemented' };
+    if (!description || description.trim().length === 0) {
+      return { category: 'Other', confidence: 0, description };
+    }
+
+    const desc = description.toLowerCase();
+
+    const keywordMap: [string, string, number][] = [
+      ['grocery', 'Groceries', 0.85],
+      ['vegetable', 'Groceries', 0.8],
+      ['fruit', 'Groceries', 0.8],
+      ['restaurant', 'Food & Dining', 0.9],
+      ['food', 'Food & Dining', 0.7],
+      ['pizza', 'Food & Dining', 0.9],
+      ['lunch', 'Food & Dining', 0.85],
+      ['dinner', 'Food & Dining', 0.85],
+      ['swiggy', 'Food & Dining', 0.9],
+      ['zomato', 'Food & Dining', 0.9],
+      ['uber', 'Transport', 0.85],
+      ['ola', 'Transport', 0.85],
+      ['fuel', 'Transport', 0.9],
+      ['petrol', 'Transport', 0.95],
+      ['diesel', 'Transport', 0.95],
+      ['metro', 'Transport', 0.8],
+      ['cab', 'Transport', 0.8],
+      ['bus', 'Transport', 0.75],
+      ['train', 'Travel', 0.75],
+      ['flight', 'Travel', 0.9],
+      ['hotel', 'Travel', 0.85],
+      ['rent', 'Rent', 0.95],
+      ['electricity', 'Bills & Utilities', 0.9],
+      ['water', 'Bills & Utilities', 0.85],
+      ['wifi', 'Bills & Utilities', 0.85],
+      ['internet', 'Bills & Utilities', 0.85],
+      ['mobile', 'Bills & Utilities', 0.8],
+      ['phone', 'Bills & Utilities', 0.7],
+      ['bill', 'Bills & Utilities', 0.6],
+      ['movie', 'Entertainment', 0.9],
+      ['netflix', 'Entertainment', 0.95],
+      ['amazon prime', 'Entertainment', 0.9],
+      ['spotify', 'Entertainment', 0.9],
+      ['game', 'Entertainment', 0.7],
+      ['salary', 'Salary', 0.95],
+      ['freelance', 'Freelance', 0.9],
+      ['doctor', 'Health & Fitness', 0.85],
+      ['hospital', 'Health & Fitness', 0.9],
+      ['medicine', 'Health & Fitness', 0.85],
+      ['pharmacy', 'Health & Fitness', 0.85],
+      ['gym', 'Health & Fitness', 0.85],
+      ['course', 'Education', 0.85],
+      ['university', 'Education', 0.9],
+      ['tuition', 'Education', 0.9],
+      ['book', 'Education', 0.6],
+      ['clothing', 'Shopping', 0.8],
+      ['amazon', 'Shopping', 0.7],
+      ['flipkart', 'Shopping', 0.75],
+      ['myntra', 'Shopping', 0.85],
+      ['shoe', 'Shopping', 0.7],
+      ['gift', 'Gift', 0.85],
+      ['donation', 'Gift', 0.8],
+      ['insurance', 'Insurance', 0.9],
+      ['investment', 'Investments', 0.9],
+      ['sip', 'Investments', 0.95],
+      ['mutual fund', 'Investments', 0.95],
+      ['stock', 'Investments', 0.9],
+    ];
+
+    let bestMatch: { category: string; confidence: number; matchedKeyword: string } | null = null;
+
+    for (const [keyword, category, confidence] of keywordMap) {
+      if (desc.includes(keyword)) {
+        if (!bestMatch || confidence > bestMatch.confidence) {
+          bestMatch = { category, confidence, matchedKeyword: keyword };
+        }
+      }
+    }
+
+    if (bestMatch) {
+      return {
+        category: bestMatch.category,
+        confidence: bestMatch.confidence,
+        matchedKeyword: bestMatch.matchedKeyword,
+        description,
+      };
+    }
+
+    const userCategories = await this.prisma.transactionCategory.findMany({
+      where: { userId, isActive: true },
+      select: { name: true },
+    });
+
+    for (const cat of userCategories) {
+      const catWords = cat.name.toLowerCase().split(/[\s&]+/);
+      for (const word of catWords) {
+        if (word.length > 3 && desc.includes(word)) {
+          return {
+            category: cat.name,
+            confidence: 0.6,
+            matchedKeyword: word,
+            description,
+          };
+        }
+      }
+    }
+
+    return { category: 'Other', confidence: 0.3, description };
   }
 }
 

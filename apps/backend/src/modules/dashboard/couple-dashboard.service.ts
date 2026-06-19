@@ -32,7 +32,7 @@ export class CoupleDashboardService {
     const enabledTypes = new Set(
       configs.length > 0
         ? configs.map(c => c.widgetType)
-        : ['COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS'],
+        : ['COUPLE_HERO', 'COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'QUICK_ACTIONS'],
     );
 
     const now = new Date();
@@ -40,6 +40,7 @@ export class CoupleDashboardService {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     const fetchers: Record<string, () => Promise<any>> = {
+      COUPLE_HERO: () => this.getCoupleHero(userId, user.partnerId!),
       COUPLE_WEALTH: () => this.getCoupleWealth(userId, user.partnerId!),
       COUPLE_GOALS: () => this.getCoupleGoals(userId),
       COUPLE_TIMELINE: () => this.getCoupleTimeline(userId, user.partnerId!),
@@ -48,6 +49,7 @@ export class CoupleDashboardService {
       AI_INSIGHTS: () => this.getCombinedAiInsights([userId, user.partnerId!]),
       UPCOMING_BILLS: () => this.getCombinedBills([userId, user.partnerId!]),
       RECENT_TRANSACTIONS: () => this.getCombinedTransactions([userId, user.partnerId!]),
+      QUICK_ACTIONS: () => this.getQuickActions(),
     };
 
     const results = await Promise.all(
@@ -67,6 +69,21 @@ export class CoupleDashboardService {
 
     await this.cache.set(cacheKey, results, 120);
     return results;
+  }
+
+  private async getCoupleHero(userId: string, partnerId: string) {
+    const [user, partner] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { firstName: true } }),
+      this.prisma.user.findUnique({ where: { id: partnerId }, select: { firstName: true } }),
+    ]);
+    const profile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
+    });
+    return {
+      partner1Name: user?.firstName || 'Partner 1',
+      partner2Name: partner?.firstName || 'Partner 2',
+      togetherSince: profile?.createdAt?.toISOString()?.split('T')[0] || '',
+    };
   }
 
   private async getCoupleWealth(userId: string, partnerId: string) {
@@ -215,5 +232,15 @@ export class CoupleDashboardService {
       type: t.type === 'income' ? 'arrowdown' : 'arrowup',
       category: t.categoryId,
     }));
+  }
+
+  private async getQuickActions() {
+    return [
+      { id: 'add_expense', label: 'Add Expense', icon: 'add-circle', route: 'AddExpense', color: '#7C3AED' },
+      { id: 'add_income', label: 'Add Income', icon: 'trending-up', route: 'AddExpense?type=income', color: '#22C55E' },
+      { id: 'couple_goal', label: 'Couple Goal', icon: 'flag', route: 'CoupleGoals', color: '#F59E0B' },
+      { id: 'couple_settle', label: 'Settle Up', icon: 'swap', route: 'Settlements', color: '#EF4444' },
+      { id: 'couple_timeline', label: 'Timeline', icon: 'clockcircleo', route: 'CoupleTimeline', color: '#6366F1' },
+    ];
   }
 }

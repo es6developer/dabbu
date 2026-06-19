@@ -71,8 +71,7 @@ export default function CouplePaywallScreen() {
     try {
       await subscribe(planCode);
       navigation.goBack();
-    } catch (e: any) {
-      console.warn('Subscribe failed', e.message);
+    } catch {
     }
   };
 

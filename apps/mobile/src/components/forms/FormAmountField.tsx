@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Animated,
   ScrollView,
-  Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
@@ -133,17 +132,7 @@ export function FormAmountField({
             backgroundColor: `${isExpense ? colors.accent.primary : colors.status.success}06`,
             borderColor: fieldState === 'error' ? colors.status.error : colors.border.subtle,
           },
-          fieldState === 'focused' && {
-            ...Platform.select({
-              ios: {
-                shadowColor: accentColor,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 12,
-              },
-              android: { elevation: 4 },
-            }),
-          },
+
         ]}
       >
         <View style={[styles.amountRow, (value.length > 6) && { gap: 0 }]}>

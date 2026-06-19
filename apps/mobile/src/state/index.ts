@@ -3,7 +3,7 @@ export { useSpaceStore } from '../store/spaceStore';
 export type { Space, SpaceDetail, SpaceDashboard, SpaceTask } from '../store/spaceStore';
 export { useFinanceStore } from '../store/financeStore';
 export { useAIStore } from '../store/aiStore';
-export { useHealthStore } from '../store/healthStore';
+export { useDabbuScoreStore } from '../store/dabbuScoreStore';
 export { useLensStore } from '../store/lensStore';
 export type { LensMode } from '../store/lensStore';
 export { useAnalyticsStore } from '../store/analyticsStore';

@@ -7,7 +7,6 @@ import {
   ScrollView,
   RefreshControl,
   Alert,
-  Platform,
   Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';

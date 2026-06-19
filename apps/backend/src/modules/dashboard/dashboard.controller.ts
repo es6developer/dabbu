@@ -43,6 +43,7 @@ export class DashboardController {
       QUICK_ACTIONS: 'quickActions',
     };
     const couple: Record<string, string> = {
+      COUPLE_HERO: 'coupleHero',
       COUPLE_WEALTH: 'combinedWealth',
       COUPLE_GOALS: 'coupleGoals',
       COUPLE_TIMELINE: 'coupleTimeline',

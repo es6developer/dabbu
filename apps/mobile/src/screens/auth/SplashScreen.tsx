@@ -57,7 +57,7 @@ function Particle({ size, left, top, color, delay }: { size: number; left: numbe
 }
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const fadeOpacity = useSharedValue(1);
   const contentOpacity = useSharedValue(0);
   const logoScale = useSharedValue(0.5);
@@ -93,6 +93,11 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const brandAnim = useAnimatedStyle(() => ({ opacity: brandOpacity.value, transform: [{ translateY: brandTranslate.value }] }));
   const taglineAnim = useAnimatedStyle(() => ({ opacity: taglineOpacity.value, transform: [{ translateY: taglineTranslate.value }] }));
 
+  const svgMain = colors.accent.primary;
+  const svgMid = colors.accent.secondary;
+  const svgLight = colors.accent.tertiary;
+  const svgOpacity = isDark ? 0.12 : 0.08;
+
   return (
     <Animated.View style={[s.container, { backgroundColor: colors.bg.primary }, containerAnim]}>
       <StatusBar hidden translucent />
@@ -104,51 +109,28 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       </Animated.View>
 
       {/* Decorative finance illustration */}
-      <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: 0.12 }} pointerEvents="none">
+      <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: svgOpacity }} pointerEvents="none">
         <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
           <G opacity={0.5}>
-            {/* Overlapping coins */}
-            <Circle cx={W * 0.2} cy={H * 0.7} r={60} fill="#C4B5FD" opacity={0.3} />
-            <Circle cx={W * 0.25} cy={H * 0.65} r={50} fill="#8B5CF6" opacity={0.2} />
-            <Circle cx={W * 0.8} cy={H * 0.75} r={70} fill="#A78BFA" opacity={0.25} />
-            <Circle cx={W * 0.85} cy={H * 0.68} r={45} fill="#C4B5FD" opacity={0.15} />
-            {/* Growth curve */}
-            <Path d={`M${W * 0.1} ${H * 0.85} Q${W * 0.3} ${H * 0.7} ${W * 0.5} ${H * 0.75} T${W * 0.9} ${H * 0.6}`} stroke="#C4B5FD" strokeWidth={2} fill="none" strokeLinecap="round" />
-            <Path d={`M${W * 0.1} ${H * 0.88} Q${W * 0.35} ${H * 0.78} ${W * 0.5} ${H * 0.82} T${W * 0.9} ${H * 0.68}`} stroke="#8B5CF6" strokeWidth={1.5} fill="none" strokeLinecap="round" />
-            {/* Small star/diamond accents */}
-            <Circle cx={W * 0.5} cy={H * 0.73} r={3} fill="#DDD6FE" />
-            <Circle cx={W * 0.75} cy={H * 0.65} r={2.5} fill="#C4B5FD" />
-            <Circle cx={W * 0.35} cy={H * 0.76} r={2} fill="#A78BFA" />
+            <Circle cx={W * 0.2} cy={H * 0.7} r={60} fill={svgLight} opacity={0.3} />
+            <Circle cx={W * 0.25} cy={H * 0.65} r={50} fill={svgMain} opacity={0.2} />
+            <Circle cx={W * 0.8} cy={H * 0.75} r={70} fill={svgMid} opacity={0.25} />
+            <Circle cx={W * 0.85} cy={H * 0.68} r={45} fill={svgLight} opacity={0.15} />
+            <Path d={`M${W * 0.1} ${H * 0.85} Q${W * 0.3} ${H * 0.7} ${W * 0.5} ${H * 0.75} T${W * 0.9} ${H * 0.6}`} stroke={svgLight} strokeWidth={2} fill="none" strokeLinecap="round" />
+            <Path d={`M${W * 0.1} ${H * 0.88} Q${W * 0.35} ${H * 0.78} ${W * 0.5} ${H * 0.82} T${W * 0.9} ${H * 0.68}`} stroke={svgMain} strokeWidth={1.5} fill="none" strokeLinecap="round" />
+            <Circle cx={W * 0.5} cy={H * 0.73} r={3} fill={svgMain} />
+            <Circle cx={W * 0.75} cy={H * 0.65} r={2.5} fill={svgLight} />
+            <Circle cx={W * 0.35} cy={H * 0.76} r={2} fill={svgMid} />
           </G>
         </Svg>
       </View>
 
-      {/* Decorative finance illustration */}
-      <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: 0.12 }} pointerEvents="none">
-        <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-          <G opacity={0.5}>
-            {/* Overlapping coins */}
-            <Circle cx={W * 0.2} cy={H * 0.7} r={60} fill="#C4B5FD" opacity={0.3} />
-            <Circle cx={W * 0.25} cy={H * 0.65} r={50} fill="#8B5CF6" opacity={0.2} />
-            <Circle cx={W * 0.8} cy={H * 0.75} r={70} fill="#A78BFA" opacity={0.25} />
-            <Circle cx={W * 0.85} cy={H * 0.68} r={45} fill="#C4B5FD" opacity={0.15} />
-            {/* Growth curve */}
-            <Path d={`M${W * 0.1} ${H * 0.85} Q${W * 0.3} ${H * 0.7} ${W * 0.5} ${H * 0.75} T${W * 0.9} ${H * 0.6}`} stroke="#C4B5FD" strokeWidth={2} fill="none" strokeLinecap="round" />
-            <Path d={`M${W * 0.1} ${H * 0.88} Q${W * 0.35} ${H * 0.78} ${W * 0.5} ${H * 0.82} T${W * 0.9} ${H * 0.68}`} stroke="#8B5CF6" strokeWidth={1.5} fill="none" strokeLinecap="round" />
-            {/* Small star/diamond accents */}
-            <Circle cx={W * 0.5} cy={H * 0.73} r={3} fill="#DDD6FE" />
-            <Circle cx={W * 0.75} cy={H * 0.65} r={2.5} fill="#C4B5FD" />
-            <Circle cx={W * 0.35} cy={H * 0.76} r={2} fill="#A78BFA" />
-          </G>
-        </Svg>
-      </View>
-
-      <Particle size={4} left={W * 0.15} top={H * 0.2} color="#A78BFA" delay={100} />
-      <Particle size={3} left={W * 0.82} top={H * 0.15} color="#C4B5FD" delay={300} />
-      <Particle size={5} left={W * 0.75} top={H * 0.7} color="#8B5CF6" delay={500} />
-      <Particle size={3} left={W * 0.1} top={H * 0.78} color="#DDD6FE" delay={200} />
-      <Particle size={4} left={W * 0.5} top={H * 0.08} color="#A78BFA" delay={400} />
-      <Particle size={3} left={W * 0.88} top={H * 0.5} color="#C4B5FD" delay={600} />
+      <Particle size={4} left={W * 0.15} top={H * 0.2} color={svgMid} delay={100} />
+      <Particle size={3} left={W * 0.82} top={H * 0.15} color={svgLight} delay={300} />
+      <Particle size={5} left={W * 0.75} top={H * 0.7} color={svgMain} delay={500} />
+      <Particle size={3} left={W * 0.1} top={H * 0.78} color={svgLight} delay={200} />
+      <Particle size={4} left={W * 0.5} top={H * 0.08} color={svgMid} delay={400} />
+      <Particle size={3} left={W * 0.88} top={H * 0.5} color={svgLight} delay={600} />
 
       <Animated.View style={[s.taglineWrap, taglineAnim]}>
         <Text style={[s.tagline, { color: colors.text.tertiary }]}>

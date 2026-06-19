@@ -31,10 +31,10 @@ export class TransactionsService {
       metadata.groupId = dto.groupId;
     }
     if ((dto as any).paymentMethod) {
-      metadata.paymentType = (dto as any).paymentMethod;
+      metadata.paymentMethod = (dto as any).paymentMethod;
     }
 
-    const tx = await this.prisma.transaction.create({
+    const prismaTx = await this.prisma.transaction.create({
       data: {
         userId,
         accountId: dto.accountId || null,
@@ -54,6 +54,11 @@ export class TransactionsService {
       },
       include: { category: true },
     });
+
+    const tx = {
+      ...prismaTx,
+      paymentMethod: (prismaTx.metadata as any)?.paymentMethod || null,
+    };
 
     const amount = Number(tx.amount);
 
@@ -218,9 +223,13 @@ export class TransactionsService {
       this.prisma.transaction.count({ where }),
     ]);
 
-    const data = needsGroupFilter
+    const data = (needsGroupFilter
       ? rawData.filter((t) => (t.metadata as any)?.groupId === filter.groupId)
-      : rawData;
+      : rawData
+    ).map((t) => ({
+      ...t,
+      paymentMethod: (t.metadata as any)?.paymentMethod || null,
+    }));
 
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
@@ -233,7 +242,7 @@ export class TransactionsService {
     if (!tx || (tx.userId !== userId && !tx.expenseGroupId)) {
       throw new NotFoundException('Transaction not found');
     }
-    return { data: tx };
+    return { data: { ...tx, paymentMethod: (tx.metadata as any)?.paymentMethod || null } };
   }
 
   async update(userId: string, id: string, dto: UpdateTransactionDto) {
@@ -373,7 +382,7 @@ export class TransactionsService {
       orderBy: { date: 'desc' },
       take: limit,
     });
-    return { data: transactions };
+    return { data: transactions.map((t) => ({ ...t, paymentMethod: (t.metadata as any)?.paymentMethod || null })) };
   }
 
   async getCategorySummary(

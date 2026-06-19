@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
 const CATEGORIES = ['Rent', 'Electricity', 'Water', 'Internet', 'School Fees', 'Insurance', 'Loans', 'EMI', 'Subscriptions', 'Other'];
@@ -12,7 +11,6 @@ const FREQUENCIES = ['Monthly', 'Quarterly', 'Yearly', 'One-time'];
 
 export function CreateBillScreen() {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 

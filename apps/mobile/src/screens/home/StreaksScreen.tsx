@@ -69,9 +69,8 @@ export function StreaksScreen() {
       } catch {
         setYearlySummary(null);
       }
-    } catch (err) {
+    } catch {
       clearTimeout(timeoutId);
-      console.warn('Failed to load streaks:', err);
     } finally {
       clearTimeout(timeoutId);
       setLoading(false);

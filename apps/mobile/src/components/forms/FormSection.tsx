@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme';
 
 interface FormSectionProps {
@@ -37,15 +37,6 @@ export function FormSection({ title, children, spacing = 'md' }: FormSectionProp
             backgroundColor: colors.bg.card,
             borderColor: colors.border.default,
             gap,
-            ...Platform.select({
-              ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.04,
-                shadowRadius: 8,
-              },
-              android: { elevation: 2 },
-            }),
           },
         ]}
       >

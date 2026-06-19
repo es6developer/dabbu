@@ -16,9 +16,10 @@ interface DashboardGridProps {
   onNavigate: (screen: string, params?: any) => void;
   onToggleWidget?: (type: WidgetType) => void;
   dashboardLayout?: WidgetType[];
+  hideTitle?: boolean;
 }
 
-export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress, onNavigate, onToggleWidget, dashboardLayout }: DashboardGridProps) {
+export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress, onNavigate, onToggleWidget, dashboardLayout, hideTitle }: DashboardGridProps) {
   const { colors } = useTheme();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -87,20 +88,23 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
   };
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.scroll, { paddingBottom: 100 }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
-    >
-      <View style={styles.headerRow}>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{getTitle()}</Text>
-        <View style={styles.headerActions}>
-          {saving && <ActivityIndicator size="small" color={colors.text.tertiary} style={{ marginRight: 4 }} />}
-          <TouchableOpacity onPress={() => setEditMode(!editMode)} style={[styles.editBtn, { backgroundColor: colors.bg.tertiary }]}>
-            <AntDesign name={editMode ? 'check' : 'setting'} size={18} color={colors.text.secondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 100 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
+      >
+        {!hideTitle && (
+          <View style={styles.headerRow}>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{getTitle()}</Text>
+            <View style={styles.headerActions}>
+              {saving && <ActivityIndicator size="small" color={colors.text.tertiary} style={{ marginRight: 4 }} />}
+              <TouchableOpacity onPress={() => setEditMode(!editMode)} style={[styles.editBtn, { backgroundColor: colors.bg.tertiary }]}>
+                <AntDesign name={editMode ? 'check' : 'setting'} size={18} color={colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
       {visibleWidgets.map((type, index) => (
         <View key={type}>
@@ -155,6 +159,7 @@ export function DashboardGrid({ data, mode, refreshing, onRefresh, onWidgetPress
         </TouchableOpacity>
       )}
     </ScrollView>
+    </View>
   );
 }
 

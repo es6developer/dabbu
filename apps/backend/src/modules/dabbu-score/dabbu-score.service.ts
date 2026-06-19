@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
 interface ScoreBreakdown {
+  [key: string]: number;
   savingsRate: number;
   expenseRatio: number;
   goalProgress: number;

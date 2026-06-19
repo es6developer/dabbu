@@ -22,6 +22,7 @@ import { useAIStore } from '../../store/aiStore';
 import { SpaceSwitcher } from '../../components/global/SpaceSwitcher';
 import { DabbuScoreMini } from '../../components/global/DabbuScoreMini';
 import { AIInsightCard } from '../../components/global/AIInsightCard';
+import { DashboardGrid } from '../../components/dashboard/DashboardGrid';
 
 const W = Dimensions.get('window').width;
 
@@ -73,10 +74,10 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Wallet', screen: 'AddExpense', params: { type: 'expense' } },
-  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Wallet', screen: 'AddExpense', params: { type: 'income' } },
-  { label: 'Transfer', icon: 'swap', desc: 'Move money between accounts', route: 'Home', screen: 'NetWorth' },
-  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Home', screen: 'GoalsList' },
+  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'WalletTab', screen: 'AddExpense', params: { type: 'expense' } },
+  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'WalletTab', screen: 'AddExpense', params: { type: 'income' } },
+  { label: 'My Wallet', icon: 'wallet', desc: 'View transactions', route: 'WalletTab', screen: 'MyWallet' },
+  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'HomeTab', screen: 'GoalsList' },
 ];
 
 export function LifeDashboardScreen() {
@@ -92,6 +93,7 @@ export function LifeDashboardScreen() {
   const healthScoreData = useDabbuScoreStore((s) => s.score);
   const fetchHealthScore = useDabbuScoreStore((s) => s.fetchScore);
 
+  const [activeTab, setActiveTab] = useState<'personal' | 'couple' | 'family'>('personal');
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
   const [netWorth, setNetWorth] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
@@ -105,6 +107,12 @@ export function LifeDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coupleData, setCoupleData] = useState<any>(null);
+  const [familyData, setFamilyData] = useState<any>(null);
+  const [coupleLoading, setCoupleLoading] = useState(false);
+  const [familyLoading, setFamilyLoading] = useState(false);
+  const [coupleRefreshing, setCoupleRefreshing] = useState(false);
+  const [familyRefreshing, setFamilyRefreshing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const hasLoadedOnce = useRef(false);
 
@@ -128,7 +136,7 @@ export function LifeDashboardScreen() {
   }).length;
 
   const healthScore = displayScore ?? (() => {
-    if (healthScoreData?.score != null) return healthScoreData.score;
+    if (healthScoreData != null) return healthScoreData;
     const sr = monthlyIncome > 0 ? Math.min((monthlySavings / monthlyIncome) * 100, 100) : 0;
     const budgetHealthVal = budgets.length > 0
       ? budgets.reduce((s, b) => {
@@ -217,7 +225,7 @@ export function LifeDashboardScreen() {
         await Promise.all([
           fetchLifeEvents(),
           fetchAIInsights(accessToken),
-          fetchHealthScore(accessToken),
+          fetchHealthScore(),
         ]);
       } catch {
         if (!ctrl.signal.aborted) setError('Failed to load dashboard');
@@ -231,15 +239,407 @@ export function LifeDashboardScreen() {
     [accessToken, fetchLifeEvents, fetchAIInsights, fetchHealthScore],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
+  const loadCoupleData = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setCoupleRefreshing(true);
+      else setCoupleLoading(true);
+      try {
+        const res = await api.get<any>('/dashboard/couple');
+        const data = res.data || res;
+        setCoupleData(data);
+      } catch {
+        setCoupleData({ mode: 'couple', error: 'Failed to load couple dashboard' });
+      } finally {
+        setCoupleLoading(false);
+        setCoupleRefreshing(false);
+      }
+    },
+    [],
   );
 
-  if (loading) {
+  const loadFamilyData = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setFamilyRefreshing(true);
+      else setFamilyLoading(true);
+      try {
+        const res = await api.get<any>('/dashboard/family');
+        const data = res.data || res;
+        setFamilyData(data);
+      } catch {
+        setFamilyData({ mode: 'family', error: 'Failed to load family dashboard' });
+      } finally {
+        setFamilyLoading(false);
+        setFamilyRefreshing(false);
+      }
+    },
+    [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === 'personal') loadData();
+      else if (activeTab === 'couple') loadCoupleData();
+      else if (activeTab === 'family') loadFamilyData();
+    }, [activeTab, loadData, loadCoupleData, loadFamilyData]),
+  );
+
+  const renderTabBar = () => (
+    <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+      <View style={[styles.tabBar, { backgroundColor: colors.bg.card }]}>
+        {(['personal', 'couple', 'family'] as const).map((tab) => {
+          const isActive = activeTab === tab;
+          const icons: Record<string, string> = { personal: 'user', couple: 'heart', family: 'team' };
+          const labels: Record<string, string> = { personal: 'Personal', couple: 'Couple', family: 'Family' };
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={[
+                styles.tabItem,
+                isActive && [styles.tabItemActive, { backgroundColor: colors.brand.primary }],
+              ]}
+              activeOpacity={0.7}
+            >
+              <AntDesign
+                name={icons[tab] as any}
+                size={14}
+                color={isActive ? '#FFF' : colors.text.tertiary}
+              />
+              <Text
+                style={[
+                  styles.tabLabel,
+                  { color: isActive ? '#FFF' : colors.text.tertiary },
+                ]}
+              >
+                {labels[tab]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  const renderPersonalDashboard = () => (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingTop: 0, paddingBottom: 100 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            clearCache();
+            loadData(true);
+          }}
+          tintColor={colors.brand.primary}
+        />
+      }
+    >
+      {/* ─── NET WORTH HERO ─── */}
+      <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('HomeTab', { screen: 'NetWorth' })}
+          style={[styles.netWorthCard, { backgroundColor: colors.bg.card }]}
+        >
+          <View style={styles.netWorthHeader}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
+              Net Worth
+            </Text>
+            <AntDesign name="right" size={14} color={colors.text.tertiary} />
+          </View>
+          <Text style={[styles.netWorthValue, { color: colors.text.primary }]}>
+            {netWorth != null ? fmtShort(netWorth) : fmtShort(totalBalance ?? 0)}
+          </Text>
+          {streak > 0 && (
+            <View style={styles.streakRow}>
+              <AntDesign name="star" size={12} color="#F59E0B" />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: '#F59E0B' }}>
+                {streak} day streak
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* ─── DABBU SCORE + SPACE SWITCHER ─── */}
+      <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+        <View style={styles.scoreRow}>
+          <SpaceSwitcher />
+          <View style={styles.scoreSection}>
+            <DabbuScoreMini
+              score={healthScore}
+              size="sm"
+              change={scoreChange}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '600',
+                color: colors.text.tertiary,
+                marginLeft: 6,
+              }}
+            >
+              {healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : healthScore >= 40 ? 'Fair' : 'Needs Work'}
+              {scoreChange !== 0 && (
+                <Text style={{ color: scoreChange > 0 ? '#22C55E' : '#EF4444' }}>
+                  {' '}{scoreChange > 0 ? '↑' : '↓'}{Math.abs(scoreChange)} pts
+                </Text>
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ─── SNAPSHOT ROW ─── */}
+      <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+        <View style={[styles.snapshotRow, { backgroundColor: colors.bg.card }]}>
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotIcon}>🏦</Text>
+            <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
+              {emergencyFundMonths}mo
+            </Text>
+            <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
+              Runway
+            </Text>
+          </View>
+          <View style={[styles.snapshotDivider, { backgroundColor: colors.border.subtle }]} />
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotIcon}>🎯</Text>
+            <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
+              {goals.length}
+            </Text>
+            <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
+              Goals
+            </Text>
+          </View>
+          <View style={[styles.snapshotDivider, { backgroundColor: colors.border.subtle }]} />
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotIcon}>📋</Text>
+            <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
+              {activeBudgetCount}
+            </Text>
+            <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
+              Active
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ─── AI INSIGHT ─── */}
+      <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+          <AntDesign name="bulb1" size={14} color="#7C3AED" />
+          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>
+            AI Insight
+          </Text>
+        </View>
+        {topInsight ? (
+          <AIInsightCard
+            insight={topInsight.description || topInsight.title}
+            type={(topInsight.severity === 'warning' ? 'warning' : topInsight.severity === 'forecast' ? 'forecast' : 'tip') as any}
+            actionLabel="See details"
+            onAction={() => navigation.navigate('DabbuAI')}
+          />
+        ) : (
+          <AIInsightCard
+            insight={
+              totalBalance != null && totalBalance > 0
+                ? `Your net worth is ${fmtShort(totalBalance)}. You're on track to meet your financial goals this year.`
+                : 'Welcome to Dabbu! Start by adding your first income or expense to get personalized insights.'
+            }
+            type="tip"
+          />
+        )}
+      </View>
+
+      {/* ─── LIFE EVENTS ─── */}
+      {confirmedEvents.length > 0 && (
+        <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <View style={styles.sectionHeader}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              Life Events
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('LifeEventsList')}>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
+                See All
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ gap: 10 }}>
+            {confirmedEvents.slice(0, 3).map((event) => {
+              const icon = LIFE_EVENT_ICONS[event.eventType] || 'flag';
+              const goalForEvent = goals.find((g: any) => g.id === event.goalId);
+              const saved = Number(goalForEvent?.currentAmount || 0);
+              const target = Number(goalForEvent?.targetAmount || 0);
+              const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
+              return (
+                <TouchableOpacity
+                  key={event.id}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('LifeEventsList', { eventId: event.id })}
+                  style={[styles.lifeEventCard, { backgroundColor: colors.bg.card }]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={[styles.eventIconBox, { backgroundColor: '#8B5CF615' }]}>
+                      <AntDesign name={icon as any} size={20} color="#8B5CF6" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
+                        {event.title}
+                      </Text>
+                      {target > 0 && (
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                          {pct}% to goal · {fmtShort(target)}
+                        </Text>
+                      )}
+                    </View>
+                    <AntDesign name="right" size={14} color={colors.text.tertiary} />
+                  </View>
+                  {target > 0 && (
+                    <View style={styles.progressBar}>
+                      <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: '#8B5CF6' }]} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
+      {unconfirmedCount > 0 && (
+        <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('LifeEventsList')}
+            style={[styles.unconfirmedBanner, { backgroundColor: colors.bg.card, borderLeftColor: '#8B5CF6' }]}
+            activeOpacity={0.8}
+          >
+            <AntDesign name="calendar" size={16} color="#8B5CF6" />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
+              {unconfirmedCount} Life Event{unconfirmedCount > 1 ? 's' : ''} Detected
+            </Text>
+            <AntDesign name="arrowright" size={14} color={colors.text.tertiary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* ─── ACTIVE SPACES ─── */}
+      {spaces.length > 0 && (
+        <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>
+            Active Spaces
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {spaces.map((space) => {
+              const spaceEmojis: Record<string, string> = {
+                PERSONAL: '💼',
+                COUPLE: '❤️',
+                FAMILY: '👨‍👩‍👧‍👦',
+                HOME: '🏠',
+                BABY: '👶',
+                WEDDING: '💍',
+                CAR: '🚗',
+                TRIP: '🌍',
+                EDUCATION: '🎓',
+                VACATION: '🌴',
+                RETIREMENT: '📈',
+                BUSINESS: '💼',
+                CUSTOM: '📁',
+              };
+              return (
+                <TouchableOpacity
+                  key={space.id}
+                  onPress={() => {
+                    useSpaceStore.getState().setActiveSpace(space.id);
+                  }}
+                  style={[styles.spaceChip, { backgroundColor: colors.bg.card }]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 14 }}>
+                    {spaceEmojis[space.type] || '📁'}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                    numberOfLines={1}
+                  >
+                    {space.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* ─── QUICK ACTIONS ─── */}
+      <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+        <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>
+          Quick Actions
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {QUICK_ACTIONS.map((a) => (
+            <TouchableOpacity
+              key={a.label}
+              onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
+              style={[styles.actionCard, { backgroundColor: colors.bg.card }]}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
+                <AntDesign name={a.icon as any} size={22} color={colors.brand.primary} />
+              </View>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
+                {a.label}
+              </Text>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
+                {a.desc}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* ─── ERROR STATE ─── */}
+      {error && (
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={[styles.errorCard, { backgroundColor: colors.status.errorLight, borderColor: colors.status.error }]}>
+            <AntDesign name="exclamationcircleo" size={16} color={colors.status.error} />
+            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+              {error}
+            </Text>
+            <TouchableOpacity onPress={() => loadData(true)}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.brand.primary }}>
+                Retry
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      <View style={{ height: 40 }} />
+    </ScrollView>
+  );
+
+  if (loading && activeTab === 'personal') {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+          <View style={styles.headerRow}>
+            <View style={styles.greetingBlock}>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+                {greeting}
+              </Text>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+                {userName}
+              </Text>
+            </View>
+          </View>
+          {renderTabBar()}
+        </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <ActivityIndicator size="large" color={colors.brand.primary} />
           <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
@@ -252,348 +652,162 @@ export function LifeDashboardScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              clearCache();
-              loadData(true);
-            }}
-            tintColor={colors.brand.primary}
-          />
-        }
-      >
-        {/* ─── HEADER: GREETING + ACTIONS ─── */}
-        <View style={{ paddingHorizontal: 20 }}>
-          <View style={styles.headerRow}>
-            <View style={styles.greetingBlock}>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
-                {greeting}
-              </Text>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
-                {userName}
-              </Text>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Notifications')}
-                style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
-              >
-                <AntDesign name="bells" size={20} color={colors.text.secondary} />
-                {unreadCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
-                style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
-              >
-                <AntDesign name="user" size={20} color={colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* ─── NET WORTH HERO ─── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('HomeTab', { screen: 'NetWorth' })}
-            style={[styles.netWorthCard, { backgroundColor: colors.bg.card }]}
-          >
-            <View style={styles.netWorthHeader}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
-                Net Worth
-              </Text>
-              <AntDesign name="right" size={14} color={colors.text.tertiary} />
-            </View>
-            <Text style={[styles.netWorthValue, { color: colors.text.primary }]}>
-              {netWorth != null ? fmtShort(netWorth) : fmtShort(totalBalance ?? 0)}
+      {/* ─── HEADER: GREETING + ACTIONS (shared across all tabs) ─── */}
+      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+        <View style={styles.headerRow}>
+          <View style={styles.greetingBlock}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+              {greeting}
             </Text>
-            {streak > 0 && (
-              <View style={styles.streakRow}>
-                <AntDesign name="star" size={12} color="#F59E0B" />
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#F59E0B' }}>
-                  {streak} day streak
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* ─── DABBU SCORE + SPACE SWITCHER ─── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <View style={styles.scoreRow}>
-            <SpaceSwitcher />
-            <View style={styles.scoreSection}>
-              <DabbuScoreMini
-                score={healthScore}
-                size="sm"
-                change={scoreChange}
-              />
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: colors.text.tertiary,
-                  marginLeft: 6,
-                }}
-              >
-                {healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : healthScore >= 40 ? 'Fair' : 'Needs Work'}
-                {scoreChange !== 0 && (
-                  <Text style={{ color: scoreChange > 0 ? '#22C55E' : '#EF4444' }}>
-                    {' '}{scoreChange > 0 ? '↑' : '↓'}{Math.abs(scoreChange)} pts
-                  </Text>
-                )}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ─── SNAPSHOT ROW ─── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-          <View style={[styles.snapshotRow, { backgroundColor: colors.bg.card }]}>
-            <View style={styles.snapshotItem}>
-              <Text style={styles.snapshotIcon}>🏦</Text>
-              <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
-                {emergencyFundMonths}mo
-              </Text>
-              <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
-                Runway
-              </Text>
-            </View>
-            <View style={[styles.snapshotDivider, { backgroundColor: colors.border.subtle }]} />
-            <View style={styles.snapshotItem}>
-              <Text style={styles.snapshotIcon}>🎯</Text>
-              <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
-                {goals.length}
-              </Text>
-              <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
-                Goals
-              </Text>
-            </View>
-            <View style={[styles.snapshotDivider, { backgroundColor: colors.border.subtle }]} />
-            <View style={styles.snapshotItem}>
-              <Text style={styles.snapshotIcon}>📋</Text>
-              <Text style={[styles.snapshotValue, { color: colors.text.primary }]}>
-                {activeBudgetCount}
-              </Text>
-              <Text style={[styles.snapshotLabel, { color: colors.text.tertiary }]}>
-                Active
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ─── AI INSIGHT ─── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <AntDesign name="bulb1" size={14} color="#7C3AED" />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>
-              AI Insight
+            <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+              {userName}
             </Text>
           </View>
-          {topInsight ? (
-            <AIInsightCard
-              insight={topInsight.description || topInsight.title}
-              type={(topInsight.severity === 'warning' ? 'warning' : topInsight.severity === 'forecast' ? 'forecast' : 'tip') as any}
-              actionLabel="See details"
-              onAction={() => navigation.navigate('DabbuAI')}
-            />
-          ) : (
-            <AIInsightCard
-              insight={
-                totalBalance != null && totalBalance > 0
-                  ? `Your net worth is ${fmtShort(totalBalance)}. You're on track to meet your financial goals this year.`
-                  : 'Welcome to Dabbu! Start by adding your first income or expense to get personalized insights.'
-              }
-              type="tip"
-            />
-          )}
-        </View>
-
-        {/* ─── LIFE EVENTS ─── */}
-        {confirmedEvents.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-            <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
-                Life Events
-              </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('LifeEventsList')}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
-                  See All
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ gap: 10 }}>
-              {confirmedEvents.slice(0, 3).map((event) => {
-                const icon = LIFE_EVENT_ICONS[event.eventType] || 'flag';
-                const goalForEvent = goals.find((g: any) => g.id === event.goalId);
-                const saved = Number(goalForEvent?.currentAmount || 0);
-                const target = Number(goalForEvent?.targetAmount || 0);
-                const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
-                return (
-                  <TouchableOpacity
-                    key={event.id}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate('LifeEventsList', { eventId: event.id })}
-                    style={[styles.lifeEventCard, { backgroundColor: colors.bg.card }]}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <View style={[styles.eventIconBox, { backgroundColor: '#8B5CF615' }]}>
-                        <AntDesign name={icon as any} size={20} color="#8B5CF6" />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
-                          {event.title}
-                        </Text>
-                        {target > 0 && (
-                          <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
-                            {pct}% to goal · {fmtShort(target)}
-                          </Text>
-                        )}
-                      </View>
-                      <AntDesign name="right" size={14} color={colors.text.tertiary} />
-                    </View>
-                    {target > 0 && (
-                      <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: '#8B5CF6' }]} />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {unconfirmedCount > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+          <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('LifeEventsList')}
-              style={[styles.unconfirmedBanner, { backgroundColor: colors.bg.card, borderLeftColor: '#8B5CF6' }]}
-              activeOpacity={0.8}
+              onPress={() => navigation.navigate('Notifications')}
+              style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
             >
-              <AntDesign name="calendar" size={16} color="#8B5CF6" />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
-                {unconfirmedCount} Life Event{unconfirmedCount > 1 ? 's' : ''} Detected
-              </Text>
-              <AntDesign name="arrowright" size={14} color={colors.text.tertiary} />
+              <AntDesign name="bells" size={20} color={colors.text.secondary} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+              style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
+            >
+              <AntDesign name="user" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
-        )}
-
-        {/* ─── ACTIVE SPACES ─── */}
-        {spaces.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>
-              Active Spaces
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
-            >
-              {spaces.map((space) => {
-                const spaceEmojis: Record<string, string> = {
-                  PERSONAL: '💼',
-                  COUPLE: '❤️',
-                  FAMILY: '👨‍👩‍👧‍👦',
-                  HOME: '🏠',
-                  BABY: '👶',
-                  WEDDING: '💍',
-                  CAR: '🚗',
-                  TRIP: '🌍',
-                  EDUCATION: '🎓',
-                  VACATION: '🌴',
-                  RETIREMENT: '📈',
-                  BUSINESS: '💼',
-                  CUSTOM: '📁',
-                };
-                return (
-                  <TouchableOpacity
-                    key={space.id}
-                    onPress={() => {
-                      useSpaceStore.getState().setActiveSpace(space.id);
-                    }}
-                    style={[styles.spaceChip, { backgroundColor: colors.bg.card }]}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{ fontSize: 14 }}>
-                      {spaceEmojis[space.type] || '📁'}
-                    </Text>
-                    <Text
-                      style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
-                      numberOfLines={1}
-                    >
-                      {space.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* ─── QUICK ACTIONS ─── */}
-        <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>
-            Quick Actions
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {QUICK_ACTIONS.map((a) => (
-              <TouchableOpacity
-                key={a.label}
-                onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
-                style={[styles.actionCard, { backgroundColor: colors.bg.card }]}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
-                  <AntDesign name={a.icon as any} size={22} color={colors.brand.primary} />
-                </View>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
-                  {a.label}
-                </Text>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
-                  {a.desc}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
+      </View>
 
-        {/* ─── ERROR STATE ─── */}
-        {error && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <View style={[styles.errorCard, { backgroundColor: colors.status.errorLight, borderColor: colors.status.error }]}>
-              <AntDesign name="exclamationcircleo" size={16} color={colors.status.error} />
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
-                {error}
-              </Text>
-              <TouchableOpacity onPress={() => loadData(true)}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.brand.primary }}>
-                  Retry
-                </Text>
-              </TouchableOpacity>
-            </View>
+      {/* ─── TAB BAR ─── */}
+      {renderTabBar()}
+
+      {/* ─── CONTENT ─── */}
+      {activeTab === 'personal' && renderPersonalDashboard()}
+
+      {activeTab === 'couple' && (
+        coupleLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <ActivityIndicator size="large" color={colors.brand.primary} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
+              Loading couple dashboard...
+            </Text>
           </View>
-        )}
+        ) : !coupleData || (!coupleData.coupleHero && !coupleData.combinedWealth) ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 }}>
+            <View style={[styles.emptyIconBox, { backgroundColor: '#F472B615' }]}>
+              <AntDesign name="heart" size={32} color="#F472B6" />
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
+              Not Connected
+            </Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', lineHeight: 20 }}>
+              Link with your partner to track shared finances, goals, and more together.
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace', params: { type: 'COUPLE' } })}
+              style={[styles.emptyCta, { backgroundColor: '#F472B6' }]}
+              activeOpacity={0.8}
+            >
+              <AntDesign name="heart" size={16} color="#FFF" />
+              <Text style={styles.emptyCtaText}>Connect with Partner</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }}>
+            <DashboardGrid
+              data={coupleData}
+              mode="couple"
+              refreshing={coupleRefreshing}
+              onRefresh={() => loadCoupleData(true)}
+              onNavigate={(screen, params) => navigation.navigate(screen, params)}
+              hideTitle
+            />
+          </View>
+        )
+      )}
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
+      {activeTab === 'family' && (
+        familyLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <ActivityIndicator size="large" color={colors.brand.primary} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
+              Loading family dashboard...
+            </Text>
+          </View>
+        ) : !familyData || (!familyData.familyHero && !familyData.familyWealth) ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 }}>
+            <View style={[styles.emptyIconBox, { backgroundColor: '#8B5CF615' }]}>
+              <AntDesign name="team" size={32} color="#8B5CF6" />
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
+              No Family Yet
+            </Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', lineHeight: 20 }}>
+              Create or join a family to manage shared expenses, goals, and bills together.
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace', params: { type: 'FAMILY' } })}
+              style={[styles.emptyCta, { backgroundColor: '#8B5CF6' }]}
+              activeOpacity={0.8}
+            >
+              <AntDesign name="addusergroup" size={16} color="#FFF" />
+              <Text style={styles.emptyCtaText}>Create Family</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }}>
+            <DashboardGrid
+              data={familyData}
+              mode="family"
+              refreshing={familyRefreshing}
+              onRefresh={() => loadFamilyData(true)}
+              onNavigate={(screen, params) => navigation.navigate(screen, params)}
+              hideTitle
+            />
+          </View>
+        )
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  tabBar: {
+    flexDirection: 'row',
+    borderRadius: 14,
+    padding: 4,
+    gap: 4,
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 11,
+  },
+  tabItemActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -775,6 +989,29 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  emptyIconBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  emptyCtaText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   errorCard: {
     flexDirection: 'row',

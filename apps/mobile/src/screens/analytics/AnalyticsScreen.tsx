@@ -168,8 +168,7 @@ export function AnalyticsScreen() {
       const blob = await res.blob();
       // On mobile, we'd use expo-file-system + expo-sharing
       // For now, show success
-    } catch (e: any) {
-      console.warn('Export error:', e.message);
+    } catch {
     } finally {
       setExporting(null);
     }

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { AIMessage, AIResponse } from '../types';
 import { processAIChat } from '../services/aiEngine';
 import { generateId } from '../types';
@@ -7,7 +7,6 @@ export function useAI(userId: string = 'user') {
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeOptions, setActiveOptions] = useState<{ field: string; options: string[]; context?: any } | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;

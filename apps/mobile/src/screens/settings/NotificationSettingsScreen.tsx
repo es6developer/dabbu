@@ -199,7 +199,7 @@ export function NotificationSettingsScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const prefs = await api.get<Preferences>('/preferences');
+      const prefs = await api.get<Preferences>('/user/preferences');
       setToggles(mapBackendToToggles(prefs));
     } catch {
       setToggles(getDefaultToggles());
@@ -223,7 +223,7 @@ export function NotificationSettingsScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        await api.patch('/preferences', body);
+        await api.patch('/user/preferences', body);
         showToast('Preferences saved');
       } catch {
         setToggles(toggles);

@@ -80,7 +80,7 @@ export function TransactionsList() {
           </Text>
           <View className="flex-row gap-2">
             <TouchableOpacity
-              onPress={() => navigation.navigate('Wallet', { screen: 'MyWallet', params: { search: '' } })}
+              onPress={() => navigation.navigate('WalletTab', { screen: 'MyWallet', params: { search: '' } })}
               activeOpacity={0.7}
               className="w-9 h-9 rounded-full items-center justify-center"
               style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
@@ -183,7 +183,7 @@ export function TransactionsList() {
           {filtered.map((tx: any) => {
             const isExpense = tx.type === 'wallet' || tx.type === 'expense';
             return (
-              <TouchableOpacity key={tx.id} onPress={() => navigation.navigate('Wallet', { screen: 'TransactionDetail', params: { transactionId: tx.id } })} activeOpacity={0.7}>
+              <TouchableOpacity key={tx.id} onPress={() => navigation.navigate('WalletTab', { screen: 'TransactionDetail', params: { transactionId: tx.id } })} activeOpacity={0.7}>
                 <Card variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
                   <View className="flex-row items-center">
                     <View
@@ -234,7 +234,7 @@ export function TransactionsList() {
 
       {/* ── FAB ────────────────────────────────────── */}
       <TouchableOpacity
-        onPress={() => navigation.navigate('Wallet', { screen: 'AddExpense' })}
+        onPress={() => navigation.navigate('WalletTab', { screen: 'AddExpense' })}
         activeOpacity={0.8}
         className="absolute bottom-6 right-6 w-14 h-14 rounded-2xl items-center justify-center"
         style={{

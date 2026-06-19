@@ -1,0 +1,14 @@
+Dabbu is a production-ready personal finance management and expense-splitting platform — an all-in-one financial control center for individuals, couples, families, roommates, and friend groups. Tagline: "Know Where Your Money Goes."
+
+It's a full-stack monorepo covering:
+
+- Mobile app (React Native / Expo) with 120+ screens
+- Backend API (NestJS + Prisma + MySQL + Redis + BullMQ) with 33 modules, 66 DB models, 200+ endpoints  
+- Admin panel (Next.js 14 + shadcn/ui)
+- External web / PWA (Next.js 14)
+- AI Engine — 31 custom rule-based financial intelligence engines
+- Shared TypeScript types across the monorepo
+
+Key features include multi-account management, OCR receipt scanning, hierarchical categories, budgets, bill management, financial goals, investment portfolio tracking, SMS transaction detection, reports (PDF/Excel/CSV), group expense splitting (6 types), settlements with UPI deep links, group wallets, credit card bill splitting, cash pools, encrypted document vault, trip groups, household bills, contribution rules, group chat, calendar, invite links, Pay Now links, expense approval workflows, couple/family finance modes, AI financial health scoring, anomaly detection, spending predictions, financial copilot chatbot, gamification (badges & streaks), premium subscriptions via Razorpay, JWT auth, biometrics, app lock, rate limiting, session management, push notifications, and a full admin panel.
+
+Motto: Know Where Your Money Goes.

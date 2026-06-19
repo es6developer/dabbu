@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Share,
+  Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,18 +16,46 @@ import { useTheme } from '../../theme';
 import { useSpaceStore } from '../../store/spaceStore';
 import { useAuth } from '../../store/AuthContext';
 import { useAIStore } from '../../store/aiStore';
+import { useToast } from '../../store/ToastContext';
 import { TimelineItem } from '../../components/ui/TimelineItem';
+import { CreateGoalModal } from '../goals/CreateGoalModal';
 
 type Tab = 'overview' | 'money' | 'goals' | 'tasks' | 'timeline' | 'ai';
+
+function HelpTip({ icon, title, message, colors }: { icon: string; title: string; message: string; colors: any }) {
+  return (
+    <View style={[s.helpCard, { backgroundColor: colors.accent.primary + '08', borderColor: colors.accent.primary + '20' }]}>
+      <View style={[s.helpIconWrap, { backgroundColor: colors.accent.primary + '15' }]}>
+        <AntDesign name={icon as any} size={20} color={colors.accent.primary} />
+      </View>
+      <Text style={[s.helpTitle, { color: colors.text.primary }]}>{title}</Text>
+      <Text style={[s.helpMessage, { color: colors.text.tertiary }]}>{message}</Text>
+    </View>
+  );
+}
+
+function EmptyState({ icon, title, subtitle, colors }: { icon: string; title: string; subtitle: string; colors: any }) {
+  return (
+    <View style={{ alignItems: 'center', marginTop: 40, paddingHorizontal: 20 }}>
+      <View style={[s.emptyIconWrap, { backgroundColor: colors.bg.tertiary }]}>
+        <AntDesign name={icon as any} size={32} color={colors.text.tertiary} />
+      </View>
+      <Text style={[s.emptyTitle, { color: colors.text.secondary }]}>{title}</Text>
+      <Text style={[s.emptySubtitle, { color: colors.text.tertiary }]}>{subtitle}</Text>
+    </View>
+  );
+}
 
 export function SpaceDetailScreen({ route, navigation }: any) {
   const { spaceId } = route?.params ?? {};
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, spaceTasks, addSpaceTask, toggleSpaceTask, deleteSpaceTask, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace } = useSpaceStore();
-  const { accessToken } = useAuth();
+  const { showToast } = useToast();
+  const { activeSpace, dashboard, pinnedSpaceIds, togglePinSpace, spaceTasks, addSpaceTask, toggleSpaceTask, deleteSpaceTask, detailLoading, dashboardLoading, fetchSpaceDetail, fetchDashboard, setActiveSpace, addMember } = useSpaceStore();
+  const { accessToken, user } = useAuth();
   const { insights, loading: aiLoading, fetchInsights } = useAIStore();
   const [tab, setTab] = useState<Tab>('overview');
+  const [showGoalModal, setShowGoalModal] = useState(false);
 
   useEffect(() => {
     if (spaceId) setActiveSpace(spaceId);
@@ -46,6 +76,23 @@ export function SpaceDetailScreen({ route, navigation }: any) {
 
   const isPinned = spaceId ? pinnedSpaceIds.includes(spaceId) : false;
 
+  const handleInvite = useCallback(async () => {
+    if (!spaceId) return;
+    try {
+      await Share.share({
+        message: `Join my "${activeSpace?.name || 'Dabbu'}" space on Dabbu! Use invite code: ${spaceId.slice(0, 8).toUpperCase()}`,
+        title: `Invite to ${activeSpace?.name || 'Dabbu'}`,
+      });
+      showToast('Invite link shared!', 'info');
+    } catch {
+      // user cancelled
+    }
+  }, [spaceId, activeSpace, showToast]);
+
+  const handleAddExpense = useCallback(() => {
+    navigation.navigate('WalletTab', { screen: 'AddExpense', params: { spaceId } });
+  }, [navigation, spaceId]);
+
   if (detailLoading || !activeSpace) {
     return (
       <View style={[s.center, { backgroundColor: colors.bg.primary }]}>
@@ -53,8 +100,6 @@ export function SpaceDetailScreen({ route, navigation }: any) {
       </View>
     );
   }
-
-  const isCouple = activeSpace.type === 'COUPLE';
 
   const TABS: { key: Tab; label: string; icon: string }[] = [
     { key: 'overview', label: 'Overview', icon: 'appstore1' },
@@ -83,7 +128,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
         </View>
       </View>
 
-      {/* ─── Members row (wireframe: between title and tabs) ─── */}
+      {/* ─── Members row ─── */}
       {activeSpace.members && activeSpace.members.length > 0 && (
         <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
@@ -103,7 +148,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
                 </Text>
               </View>
             ))}
-            <TouchableOpacity style={{ alignItems: 'center', gap: 4 }} onPress={() => navigation.navigate('FamilySpace')}>
+            <TouchableOpacity style={{ alignItems: 'center', gap: 4 }} onPress={handleInvite}>
               <View style={{
                 width: 36, height: 36, borderRadius: 18,
                 borderWidth: 1.5, borderColor: colors.border.default, borderStyle: 'dashed',
@@ -183,13 +228,28 @@ export function SpaceDetailScreen({ route, navigation }: any) {
                 </Text>
               </View>
             )}
+
+            <HelpTip
+              icon="infocirlceo"
+              title="About this Space"
+              message={`This is a ${activeSpace.type} space. Track shared finances, set goals, assign tasks, and get AI-powered insights — all in one place.`}
+              colors={colors}
+            />
           </View>
         )}
 
         {tab === 'money' && (
           <View>
+            <TouchableOpacity
+              onPress={handleAddExpense}
+              style={[s.actionButton, { backgroundColor: colors.accent.primary }]}
+            >
+              <AntDesign name="plus" size={16} color="#fff" />
+              <Text style={[s.actionButtonText, { color: '#fff' }]}>Add Expense</Text>
+            </TouchableOpacity>
+
             {dashboardLoading ? (
-              <ActivityIndicator size="large" color={colors.accent.primary} />
+              <ActivityIndicator size="large" color={colors.accent.primary} style={{ marginTop: 20 }} />
             ) : dashboard?.recentTransactions?.length ? (
               dashboard.recentTransactions.map((t: any) => (
                 <View key={t.id} style={[s.card, { backgroundColor: colors.bg.card, marginBottom: 8 }]}>
@@ -203,13 +263,26 @@ export function SpaceDetailScreen({ route, navigation }: any) {
                 </View>
               ))
             ) : (
-              <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 40 }}>No transactions yet</Text>
+              <EmptyState
+                icon="wallet"
+                title="No transactions yet"
+                subtitle="Tap the button above to add your first expense or income to this space."
+                colors={colors}
+              />
             )}
           </View>
         )}
 
         {tab === 'goals' && (
           <View>
+            <TouchableOpacity
+              onPress={() => setShowGoalModal(true)}
+              style={[s.actionButton, { backgroundColor: colors.accent.primary }]}
+            >
+              <AntDesign name="plus" size={16} color="#fff" />
+              <Text style={[s.actionButtonText, { color: '#fff' }]}>Add Goal</Text>
+            </TouchableOpacity>
+
             {dashboard?.goals?.items?.length ? (
               dashboard.goals.items.map((g: any) => (
                 <View key={g.id} style={[s.card, { backgroundColor: colors.bg.card, marginBottom: 8 }]}>
@@ -225,14 +298,19 @@ export function SpaceDetailScreen({ route, navigation }: any) {
                 </View>
               ))
             ) : (
-              <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 40 }}>No goals yet</Text>
+              <EmptyState
+                icon="flag"
+                title="No goals yet"
+                subtitle="Set a financial goal for this space — save for a trip, an emergency fund, or anything that matters."
+                colors={colors}
+              />
             )}
           </View>
         )}
 
         {tab === 'tasks' && (
           <View>
-            <TasksPanel spaceId={spaceId} tasks={spaceTasks[spaceId || ''] || []} onAdd={addSpaceTask} onToggle={toggleSpaceTask} onDelete={deleteSpaceTask} colors={colors} />
+            <TasksPanel spaceId={spaceId} tasks={spaceTasks[spaceId || ''] || []} onAdd={addSpaceTask} onToggle={toggleSpaceTask} onDelete={deleteSpaceTask} colors={colors} showToast={showToast} />
           </View>
         )}
 
@@ -257,7 +335,12 @@ export function SpaceDetailScreen({ route, navigation }: any) {
               />
             ))}
             {(!activeSpace.members || activeSpace.members.length === 0) && (
-              <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 40 }}>No timeline events yet</Text>
+              <EmptyState
+                icon="clockcircleo"
+                title="No timeline events"
+                subtitle="Events like member joins and milestones will appear here as your space grows."
+                colors={colors}
+              />
             )}
           </View>
         )}
@@ -286,24 +369,41 @@ export function SpaceDetailScreen({ route, navigation }: any) {
             ) : (
               <View style={{ alignItems: 'center', marginTop: 40 }}>
                 <AntDesign name="bulb1" size={40} color={colors.text.tertiary} />
-                <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 12 }}>No AI insights yet</Text>
+                <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 12, fontSize: 15, fontWeight: '600' }}>
+                  No AI insights yet
+                </Text>
+                <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 6, fontSize: 13, paddingHorizontal: 20 }}>
+                  Add more transactions and goals to get personalized AI-powered insights about your finances.
+                </Text>
               </View>
             )}
           </View>
         )}
       </ScrollView>
+
+      <CreateGoalModal
+        visible={showGoalModal}
+        onClose={() => setShowGoalModal(false)}
+        onCreated={() => { setShowGoalModal(false); fetchDashboard(accessToken); showToast('Goal created!', 'success'); }}
+        prefill={null}
+      />
     </View>
   );
 }
 
-function TasksPanel({ spaceId, tasks, onAdd, onToggle, onDelete, colors }: any) {
+function TasksPanel({ spaceId, tasks, onAdd, onToggle, onDelete, colors, showToast }: any) {
   const [input, setInput] = useState('');
 
   const handleAdd = () => {
     const title = input.trim();
-    if (!title || !spaceId) return;
+    if (!title) return;
+    if (!spaceId) {
+      showToast?.('Could not add task — space not ready', 'error');
+      return;
+    }
     onAdd(spaceId, title);
     setInput('');
+    showToast?.('Task added!', 'success');
   };
 
   const pending = tasks.filter((t: any) => !t.completed);
@@ -311,6 +411,13 @@ function TasksPanel({ spaceId, tasks, onAdd, onToggle, onDelete, colors }: any) 
 
   return (
     <View>
+      {/* ─── Section help tip ─── */}
+      <View style={[s.helpCard, { backgroundColor: colors.accent.primary + '08', borderColor: colors.accent.primary + '20', marginBottom: 16 }]}>
+        <Text style={{ fontSize: 13, color: colors.text.tertiary, lineHeight: 18 }}>
+          Tasks are saved locally for this space. Use them to track to-dos and action items with your members.
+        </Text>
+      </View>
+
       {/* ─── New task input ─── */}
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
         <TextInput
@@ -364,10 +471,12 @@ function TasksPanel({ spaceId, tasks, onAdd, onToggle, onDelete, colors }: any) 
       ))}
 
       {tasks.length === 0 && (
-        <View style={{ alignItems: 'center', marginTop: 40 }}>
-          <AntDesign name="checkcircleo" size={40} color={colors.text.tertiary} />
-          <Text style={{ color: colors.text.tertiary, textAlign: 'center', marginTop: 12 }}>No tasks yet. Add one above!</Text>
-        </View>
+        <EmptyState
+          icon="checkcircleo"
+          title="No tasks yet"
+          subtitle="Type a task above and press + to add it. Tasks are saved automatically on this device."
+          colors={colors}
+        />
       )}
     </View>
   );
@@ -411,5 +520,58 @@ const s = StyleSheet.create({
   statTile: {
     padding: 16,
     borderRadius: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  actionButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  helpCard: {
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  helpIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  helpTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  helpMessage: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
   },
 });

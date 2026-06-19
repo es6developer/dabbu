@@ -93,16 +93,7 @@ export function FormTextArea({
               backgroundColor: colors.bg.card,
               borderColor,
             },
-            fieldState === 'focused' && {
-              ...Platform.select({
-                ios: {
-                  shadowColor: colors.accent.primary,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.12,
-                  shadowRadius: 8,
-                },
-              }),
-            },
+
           ]}
         >
           {icon ? (
