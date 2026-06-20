@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +22,39 @@ import { Avatar } from '../../components/ui/Avatar';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { useUserStore } from '../../store/userStore';
-import { useLensStore } from '../../store/lensStore';
+import { useLensStore, LensMode } from '../../store/lensStore';
+
+const LENS_OPTIONS: {
+  id: LensMode;
+  icon: React.ComponentProps<typeof AntDesign>['name'];
+  title: string;
+  desc: string;
+}[] = [
+  {
+    id: 'PERSONAL',
+    icon: 'user',
+    title: 'Personal Finance',
+    desc: 'Manage your personal finances, savings, and investments.',
+  },
+  {
+    id: 'PARTNERED',
+    icon: 'heart',
+    title: 'Couple Finance',
+    desc: 'Track finances together, split expenses, and share goals.',
+  },
+  {
+    id: 'FAMILY',
+    icon: 'team',
+    title: 'Family Finance',
+    desc: 'Manage family budgets, allowances, and shared goals.',
+  },
+  {
+    id: 'FULL',
+    icon: 'earth',
+    title: 'All (Recommended)',
+    desc: 'Access all features — personal, couple, family, and group.',
+  },
+];
 
 const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
 
@@ -51,7 +84,12 @@ export function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [originalValues, setOriginalValues] = useState({ firstName: '', lastName: '', phone: '', upiId: '' });
+  const [originalValues, setOriginalValues] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    upiId: '',
+  });
   const [upiError, setUpiError] = useState('');
   const [upiValidating, setUpiValidating] = useState(false);
   const [upiValid, setUpiValid] = useState<boolean | null>(null);
@@ -94,7 +132,12 @@ export function ProfileScreen() {
         setLastName(origLastName);
         setPhone(origPhone);
         setUpiId(origUpiId);
-        setOriginalValues({ firstName: origFirstName, lastName: origLastName, phone: origPhone, upiId: origUpiId });
+        setOriginalValues({
+          firstName: origFirstName,
+          lastName: origLastName,
+          phone: origPhone,
+          upiId: origUpiId,
+        });
         if (data.email) {
           setEmail(data.email);
         }
@@ -137,7 +180,9 @@ export function ProfileScreen() {
   }, [presets, user?.avatarUrl]);
 
   useEffect(() => {
-    if (upiTimer.current) clearTimeout(upiTimer.current);
+    if (upiTimer.current) {
+      clearTimeout(upiTimer.current);
+    }
     if (!upiId.trim() || !UPI_PATTERN.test(upiId.trim())) {
       setUpiValid(null);
       setUpiValidating(false);
@@ -146,7 +191,9 @@ export function ProfileScreen() {
     setUpiValidating(true);
     upiTimer.current = setTimeout(async () => {
       try {
-        const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`);
+        const res = await api.get<any>(
+          `/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`,
+        );
         setUpiValid(res?.valid === true);
         setUpiError(res?.valid ? '' : `UPI ID not found: ${res?.error || 'Invalid'}`);
       } catch {
@@ -156,7 +203,9 @@ export function ProfileScreen() {
       }
     }, 600);
     return () => {
-      if (upiTimer.current) clearTimeout(upiTimer.current);
+      if (upiTimer.current) {
+        clearTimeout(upiTimer.current);
+      }
     };
   }, [upiId]);
 
@@ -313,7 +362,7 @@ export function ProfileScreen() {
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('AvatarPicker')}
                   >
-                    <AntDesign  name="edit" size={14} color="#FFFFFF" />
+                    <AntDesign name="edit" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
                 <Text
@@ -328,7 +377,7 @@ export function ProfileScreen() {
                 </Text>
               </View>
 
-              {/* Life Lens */}
+              {/* Dashboard Lens Selection */}
               <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
                 <Text
                   style={{
@@ -337,41 +386,130 @@ export function ProfileScreen() {
                     color: colors.text.tertiary,
                     letterSpacing: 0.8,
                     textTransform: 'uppercase',
-                    marginBottom: 10,
+                    marginBottom: 4,
                     paddingLeft: 2,
                   }}
                 >
-                  Life Lens
+                  Dashboard View
                 </Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {(['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] as const).map((lens) => {
-                    const isActive = activeLens === lens;
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginBottom: 14,
+                    paddingLeft: 2,
+                    lineHeight: 18,
+                  }}
+                >
+                  Choose how your dashboard looks and what data it shows
+                </Text>
+
+                <View style={{ gap: 10 }}>
+                  {LENS_OPTIONS.map((lens) => {
+                    const isActive = activeLens === lens.id;
                     return (
                       <TouchableOpacity
-                        key={lens}
+                        key={lens.id}
                         onPress={async () => {
-                          useLensStore.getState().setLens(lens);
-                          await updateUserLens(accessToken, lens);
+                          useLensStore.getState().setLens(lens.id);
+                          await updateUserLens(accessToken, lens.id);
                         }}
-                        activeOpacity={0.7}
+                        activeOpacity={0.8}
                         style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          borderRadius: borderRadius.md,
-                          backgroundColor: isActive ? colors.accent.primary : colors.bg.tertiary,
+                          flexDirection: 'row',
                           alignItems: 'center',
+                          padding: spacing.lg,
+                          borderRadius: borderRadius['2xl'],
+                          backgroundColor: colors.bg.card,
+                          borderWidth: 1.5,
+                          borderColor: isActive ? colors.accent.primary : colors.border.subtle,
+                          ...shadows.sm,
+                          shadowColor: isActive ? colors.accent.primary : undefined,
+                          shadowOpacity: isActive ? 0.12 : undefined,
+                          shadowRadius: isActive ? 8 : undefined,
+                          overflow: 'hidden',
                         }}
                       >
-                        <Text
+                        {isActive && (
+                          <LinearGradient
+                            colors={[colors.accent.primary + '10', colors.accent.primary + '04']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                            }}
+                          />
+                        )}
+                        <View
                           style={{
-                            fontSize: 11,
-                            fontWeight: '800',
-                            color: isActive ? '#FFFFFF' : colors.text.secondary,
-                            letterSpacing: 0.5,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 14,
+                            backgroundColor: isActive
+                              ? colors.accent.primary + '20'
+                              : colors.border.subtle + '60',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 14,
                           }}
                         >
-                          {lens}
-                        </Text>
+                          <AntDesign
+                            name={lens.icon}
+                            size={22}
+                            color={isActive ? colors.accent.primary : colors.text.tertiary}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              fontWeight: '700',
+                              color: colors.text.primary,
+                              marginBottom: 2,
+                            }}
+                          >
+                            {lens.title}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '500',
+                              color: colors.text.tertiary,
+                              lineHeight: 16,
+                            }}
+                          >
+                            {lens.desc}
+                          </Text>
+                        </View>
+                        {isActive ? (
+                          <View
+                            style={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: 12,
+                              backgroundColor: colors.accent.primary,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <AntDesign name="check" size={14} color="#FFFFFF" />
+                          </View>
+                        ) : (
+                          <View
+                            style={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: 12,
+                              borderWidth: 2,
+                              borderColor: colors.border.default,
+                            }}
+                          />
+                        )}
                       </TouchableOpacity>
                     );
                   })}
@@ -434,7 +572,7 @@ export function ProfileScreen() {
                                   borderColor: colors.bg.primary,
                                 }}
                               >
-                                <AntDesign  name="check" size={12} color="#FFFFFF" />
+                                <AntDesign name="check" size={12} color="#FFFFFF" />
                               </View>
                             )}
                           </TouchableOpacity>
@@ -479,7 +617,7 @@ export function ProfileScreen() {
                       marginBottom: 16,
                     }}
                   >
-                    <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
+                    <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
                     <Text
                       style={{
                         fontSize: 13,
@@ -649,7 +787,14 @@ export function ProfileScreen() {
                       paddingRight: 44,
                       borderRadius: borderRadius.md,
                       borderWidth: 1,
-                      borderColor: upiValid === false ? colors.status.error : upiValid === true ? '#34C759' : upiError ? colors.status.error : colors.border.default,
+                      borderColor:
+                        upiValid === false
+                          ? colors.status.error
+                          : upiValid === true
+                            ? '#34C759'
+                            : upiError
+                              ? colors.status.error
+                              : colors.border.default,
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
                     }}
@@ -669,23 +814,56 @@ export function ProfileScreen() {
                     autoCapitalize="none"
                   />
                   {upiValidating ? (
-                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                    <View
+                      style={{
+                        position: 'absolute',
+                        right: 14,
+                        top: 0,
+                        bottom: 0,
+                        justifyContent: 'center',
+                      }}
+                    >
                       <ActivityIndicator size="small" color={colors.accent.primary} />
                     </View>
                   ) : upiValid === true ? (
-                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                    <View
+                      style={{
+                        position: 'absolute',
+                        right: 14,
+                        top: 0,
+                        bottom: 0,
+                        justifyContent: 'center',
+                      }}
+                    >
                       <AntDesign name="checkcircle" size={18} color="#34C759" />
                     </View>
                   ) : upiValid === false && upiId.trim() ? (
-                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                    <View
+                      style={{
+                        position: 'absolute',
+                        right: 14,
+                        top: 0,
+                        bottom: 0,
+                        justifyContent: 'center',
+                      }}
+                    >
                       <AntDesign name="closecircle" size={18} color={colors.status.error} />
                     </View>
                   ) : null}
                 </View>
                 {upiError ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                    <AntDesign  name="exclamationcircle" size={12} color={colors.status.error} />
-                    <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}
+                  >
+                    <AntDesign name="exclamationcircle" size={12} color={colors.status.error} />
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '500',
+                        color: colors.status.error,
+                        lineHeight: 16,
+                      }}
+                    >
                       {upiError}
                     </Text>
                   </View>
@@ -718,7 +896,7 @@ export function ProfileScreen() {
                 <View
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
                 >
-                  <AntDesign  name="warning" size={18} color={colors.status.error} />
+                  <AntDesign name="warning" size={18} color={colors.status.error} />
                   <Text style={{ fontSize: 15, fontWeight: '700', color: colors.status.error }}>
                     Danger Zone
                   </Text>
@@ -749,7 +927,7 @@ export function ProfileScreen() {
                   onPress={handleDeleteAccount}
                   activeOpacity={0.7}
                 >
-                  <AntDesign  name="delete" size={16} color={colors.status.error} />
+                  <AntDesign name="delete" size={16} color={colors.status.error} />
                   <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.error }}>
                     Delete Account
                   </Text>
@@ -779,7 +957,7 @@ export function ProfileScreen() {
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
                     <>
-                      <AntDesign  name="checkcircleo" size={18} color="#FFFFFF" />
+                      <AntDesign name="checkcircleo" size={18} color="#FFFFFF" />
                       <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
                         Save Changes
                       </Text>
