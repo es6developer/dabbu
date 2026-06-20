@@ -69,6 +69,9 @@ export function GroupDetailScreen() {
 
   const [group, setGroup] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [categories, setCategories] = useState<
+    { name: string; total: number; count: number; percentage: number; color: string | null }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -79,13 +82,16 @@ export function GroupDetailScreen() {
     try {
       setLoading(true);
       const ts = Date.now();
-      const [groupRes, txnRes] = await Promise.all([
+      const [groupRes, txnRes, catRes] = await Promise.all([
         api.get(`/expense-groups/${groupId}?_=${ts}`).catch(() => null),
         api
           .get(
             `/transactions?expenseGroupId=${groupId}&limit=50&sortBy=date&sortOrder=desc&_=${ts}`,
           )
           .catch(() => ({ data: [] })),
+        api
+          .get(`/transactions/categories-summary?expenseGroupId=${groupId}&_=${ts}`)
+          .catch(() => null),
       ]);
       if (groupRes) {
         const d = groupRes as any;
@@ -93,6 +99,8 @@ export function GroupDetailScreen() {
       }
       const tr = txnRes as any;
       setTransactions(Array.isArray(tr) ? tr : tr?.data || []);
+      const cd = catRes as any;
+      setCategories(Array.isArray(cd?.data) ? cd.data : []);
     } catch {
       void 0;
     } finally {
@@ -144,24 +152,44 @@ export function GroupDetailScreen() {
   );
 
   const categoryBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
+    if (categories.length > 0) {
+      return categories.map((c) => ({
+        category: c.name,
+        amount: c.total,
+        percentage: c.percentage,
+      }));
+    }
+    const map = new Map<string, { amount: number }>();
     for (const t of expenseTxns) {
       const cat = t.category?.name || (typeof t.category === 'string' ? t.category : 'Other');
-      map.set(cat, (map.get(cat) || 0) + Number(t.amount || 0));
+      const prev = map.get(cat) || { amount: 0 };
+      map.set(cat, { amount: prev.amount + Number(t.amount || 0) });
     }
-    const total = [...map.values()].reduce((s, v) => s + v, 0);
+    const total = [...map.values()].reduce((s, v) => s + v.amount, 0);
     return [...map.entries()]
-      .map(([category, amount]) => ({
+      .map(([category, { amount }]) => ({
         category,
         amount,
         percentage: total > 0 ? (amount / total) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [expenseTxns]);
+  }, [categories, expenseTxns]);
 
   const avgTransaction = useMemo(() => {
     return expenseTxns.length > 0 ? totalSpent / expenseTxns.length : 0;
   }, [expenseTxns, totalSpent]);
+
+  const lastMonthExpenses = useMemo(() => {
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return expenseTxns.filter((t: any) => {
+      const d = new Date(t.date || t.createdAt);
+      return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+    });
+  }, [expenseTxns, now]);
+  const lastMonthSpending = useMemo(
+    () => lastMonthExpenses.reduce((s: number, t: any) => s + Number(t.amount || 0), 0),
+    [lastMonthExpenses],
+  );
 
   const members = group?.members || [];
   const memberCount = group?._count?.members || members.length || 0;
@@ -345,9 +373,32 @@ export function GroupDetailScreen() {
                 {fmt(monthlySpending)}
               </Text>
             </View>
+            {lastMonthSpending > 0 && (
+              <View style={{ alignItems: 'flex-end', marginRight: spacing.sm }}>
+                <Text style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}>
+                  vs last mo
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color:
+                      monthlySpending > lastMonthSpending
+                        ? colors.status.error
+                        : colors.status.success,
+                  }}
+                >
+                  {monthlySpending > lastMonthSpending ? '+' : ''}
+                  {monthlySpending > 0
+                    ? (((monthlySpending - lastMonthSpending) / lastMonthSpending) * 100).toFixed(0)
+                    : '0'}
+                  %
+                </Text>
+              </View>
+            )}
             <View style={[s.countBadge, { backgroundColor: colors.accent.primary + '12' }]}>
               <Text style={[s.countText, { color: colors.accent.primary }]}>
-                {expenseTxns.length} txn{expenseTxns.length !== 1 ? 's' : ''}
+                {thisMonthExpenses.length} txn{thisMonthExpenses.length !== 1 ? 's' : ''}
               </Text>
             </View>
           </View>

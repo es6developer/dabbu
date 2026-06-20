@@ -137,6 +137,8 @@ export function SharedGroupDetailScreen() {
   const [group, setGroup] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [activityData, setActivityData] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,11 +167,14 @@ export function SharedGroupDetailScreen() {
           setAccessToken(accessToken);
         }
         const ts = Date.now();
-        const [groupRes, expensesRes, activityRes] = await Promise.allSettled([
-          api.get<any>(`/shared-finance/groups/${groupId}?_=${ts}`),
-          api.get<any>(`/shared-finance/groups/${groupId}/expenses?_=${ts}`),
-          api.get<any>(`/shared-finance/groups/${groupId}/settlements?_=${ts}`),
-        ]);
+        const [groupRes, expensesRes, activityRes, analyticsRes, insightsRes] =
+          await Promise.allSettled([
+            api.get<any>(`/shared-finance/groups/${groupId}?_=${ts}`),
+            api.get<any>(`/shared-finance/groups/${groupId}/expenses?_=${ts}`),
+            api.get<any>(`/shared-finance/groups/${groupId}/settlements?_=${ts}`),
+            api.get<any>(`/shared-finance/groups/${groupId}/analytics?_=${ts}`).catch(() => null),
+            api.get<any>(`/shared-finance/groups/${groupId}/insights?_=${ts}`).catch(() => null),
+          ]);
         if (groupRes.status === 'fulfilled') {
           setGroup(groupRes.value);
         }
@@ -177,6 +182,10 @@ export function SharedGroupDetailScreen() {
         setExpenses(Array.isArray(eData) ? eData : []);
         const aData = activityRes.status === 'fulfilled' ? activityRes.value : [];
         setActivityData(Array.isArray(aData) ? aData : []);
+        const ad = analyticsRes.status === 'fulfilled' ? analyticsRes.value : null;
+        setAnalyticsData(ad);
+        const id = insightsRes.status === 'fulfilled' ? insightsRes.value : [];
+        setInsights(Array.isArray(id) ? id : []);
         if (groupRes.status === 'rejected' && expensesRes.status === 'rejected') {
           throw new Error('Unable to load data');
         }
@@ -228,6 +237,14 @@ export function SharedGroupDetailScreen() {
   const avgPerPerson = members.length > 0 ? Math.round(totalSpent / members.length) : 0;
 
   const categoryBreakdown = useMemo(() => {
+    const trends = analyticsData?.categoryTrends;
+    if (Array.isArray(trends) && trends.length > 0) {
+      return trends.map((c: any) => ({
+        category: c.category,
+        amount: c.total,
+        percentage: c.percentage,
+      }));
+    }
     const map = new Map<string, number>();
     for (const e of expenses) {
       const cat = e.category || 'Other';
@@ -241,7 +258,7 @@ export function SharedGroupDetailScreen() {
         percentage: total > 0 ? (amount / total) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [expenses]);
+  }, [expenses, analyticsData]);
   const thisMonthExpenses = useMemo(() => {
     const now = new Date();
     return sortedExpenses.filter((e: any) => {
@@ -653,6 +670,96 @@ export function SharedGroupDetailScreen() {
           </View>
         </View>
 
+        {/* Health Score */}
+        {analyticsData?.healthScore !== null && analyticsData?.healthScore !== undefined && (
+          <View
+            style={[
+              s.monthCard,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={[
+                  s.monthIcon,
+                  {
+                    backgroundColor:
+                      (analyticsData.healthScore >= 70
+                        ? '#34C759'
+                        : analyticsData.healthScore >= 40
+                          ? '#F59E0B'
+                          : '#FF3B30') + '12',
+                  },
+                ]}
+              >
+                <AntDesign
+                  name="heart"
+                  size={14}
+                  color={
+                    analyticsData.healthScore >= 70
+                      ? '#34C759'
+                      : analyticsData.healthScore >= 40
+                        ? '#F59E0B'
+                        : '#FF3B30'
+                  }
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>Group Health</Text>
+                <Text
+                  style={[
+                    s.monthValue,
+                    {
+                      color:
+                        analyticsData.healthScore >= 70
+                          ? '#34C759'
+                          : analyticsData.healthScore >= 40
+                            ? '#F59E0B'
+                            : '#FF3B30',
+                    },
+                  ]}
+                >
+                  {analyticsData.healthScore}%
+                </Text>
+              </View>
+              {analyticsData.fairnessScore !== null &&
+                analyticsData.fairnessScore !== undefined && (
+                  <View style={{ alignItems: 'flex-end', marginRight: spacing.sm }}>
+                    <Text style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}>
+                      Fairness
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: analyticsData.fairnessScore >= 0.5 ? '#34C759' : '#F59E0B',
+                      }}
+                    >
+                      {(analyticsData.fairnessScore * 100).toFixed(0)}%
+                    </Text>
+                  </View>
+                )}
+              {analyticsData.settlementScore !== null &&
+                analyticsData.settlementScore !== undefined && (
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}>
+                      Settled
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: analyticsData.settlementScore >= 70 ? '#34C759' : '#F59E0B',
+                      }}
+                    >
+                      {analyticsData.settlementScore}%
+                    </Text>
+                  </View>
+                )}
+            </View>
+          </View>
+        )}
+
         {/* Category Breakdown */}
         {categoryBreakdown.length > 0 && (
           <View>
@@ -793,6 +900,65 @@ export function SharedGroupDetailScreen() {
           </View>
         )}
 
+        {/* AI Insights */}
+        {insights.length > 0 && (
+          <View>
+            <View style={s.sectionHeader}>
+              <View
+                style={{
+                  width: 4,
+                  height: 14,
+                  borderRadius: 2,
+                  backgroundColor: colors.accent.primary,
+                }}
+              />
+              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>AI Insights</Text>
+            </View>
+            {insights.map((ins: any, i: number) => {
+              const sevColor =
+                ins.severity === 'critical'
+                  ? '#FF3B30'
+                  : ins.severity === 'warning'
+                    ? '#F59E0B'
+                    : ins.severity === 'success'
+                      ? '#34C759'
+                      : colors.accent.primary;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    s.insightCard,
+                    { backgroundColor: sevColor + '08', borderColor: sevColor + '20' },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <AntDesign
+                      name={
+                        ins.severity === 'critical'
+                          ? 'warning'
+                          : ins.severity === 'warning'
+                            ? 'exclamationcircleo'
+                            : 'bulb1'
+                      }
+                      size={14}
+                      color={sevColor}
+                    />
+                    <Text
+                      style={{ fontSize: 12, fontWeight: '700', color: sevColor, flex: 1 }}
+                      numberOfLines={1}
+                    >
+                      {ins.title}
+                    </Text>
+                  </View>
+                  <Text style={[s.insightLine, { color: colors.text.secondary, marginTop: 4 }]}>
+                    {ins.message}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* Members */}
         {members.length > 0 && (
           <>
@@ -849,6 +1015,63 @@ export function SharedGroupDetailScreen() {
                 </View>
               )}
             </View>
+            {/* Member Spending Summary */}
+            {analyticsData?.memberSpending && analyticsData.memberSpending.length > 1 && (
+              <View
+                style={[
+                  s.catCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.subtle,
+                    marginTop: spacing.xs,
+                  },
+                ]}
+              >
+                {analyticsData.memberSpending.slice(0, 5).map((ms: any, i: number) => {
+                  const msColor =
+                    ms.netPosition > 0
+                      ? colors.status.success
+                      : ms.netPosition < 0
+                        ? colors.status.error
+                        : colors.text.tertiary;
+                  return (
+                    <View key={ms.userId}>
+                      {i > 0 && (
+                        <View style={[s.catDivider, { backgroundColor: colors.border.subtle }]} />
+                      )}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: colors.text.primary,
+                            flex: 1,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {ms.name}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                          Paid {fmt(ms.totalPaid)}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '700',
+                            color: msColor,
+                            minWidth: 50,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {ms.netPosition >= 0 ? '+' : ''}
+                          {fmt(ms.netPosition)}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </>
         )}
 
