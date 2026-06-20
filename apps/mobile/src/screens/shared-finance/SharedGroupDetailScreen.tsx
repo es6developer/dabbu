@@ -218,6 +218,30 @@ export function SharedGroupDetailScreen() {
     () => expenses.reduce((s, e) => s + Number(e.amount || 0), 0),
     [expenses],
   );
+  const totalIncomeFromData = useMemo(
+    () =>
+      expenses
+        .filter((e: any) => e.type === 'income')
+        .reduce((s, e) => s + Number(e.amount || 0), 0),
+    [expenses],
+  );
+  const avgPerPerson = members.length > 0 ? Math.round(totalSpent / members.length) : 0;
+
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of expenses) {
+      const cat = e.category || 'Other';
+      map.set(cat, (map.get(cat) || 0) + Number(e.amount || 0));
+    }
+    const total = [...map.values()].reduce((s, v) => s + v, 0);
+    return [...map.entries()]
+      .map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: total > 0 ? (amount / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [expenses]);
   const thisMonthExpenses = useMemo(() => {
     const now = new Date();
     return sortedExpenses.filter((e: any) => {
@@ -392,7 +416,7 @@ export function SharedGroupDetailScreen() {
         colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={{ paddingTop: insets.top }}
+        style={{ paddingTop: insets.top, minHeight: insets.top + 56, justifyContent: 'center' }}
       >
         <View style={s.heroRow}>
           <TouchableOpacity
@@ -507,10 +531,18 @@ export function SharedGroupDetailScreen() {
             ]}
           >
             <View style={[s.summaryIcon, { backgroundColor: colors.status.success + '12' }]}>
-              <AntDesign name="arrowup" size={14} color={colors.status.success} />
+              <AntDesign
+                name={totalIncomeFromData > 0 ? 'arrowup' : 'user'}
+                size={14}
+                color={colors.status.success}
+              />
             </View>
-            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Income</Text>
-            <Text style={[s.summaryValue, { color: colors.status.success }]}>—</Text>
+            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>
+              {totalIncomeFromData > 0 ? 'Income' : 'Avg/Person'}
+            </Text>
+            <Text style={[s.summaryValue, { color: colors.status.success }]}>
+              {totalIncomeFromData > 0 ? fmt(totalIncomeFromData) : fmt(avgPerPerson)}
+            </Text>
           </View>
           <View
             style={[
@@ -519,10 +551,12 @@ export function SharedGroupDetailScreen() {
             ]}
           >
             <View style={[s.summaryIcon, { backgroundColor: colors.accent.primary + '12' }]}>
-              <AntDesign name="swap" size={14} color={colors.accent.primary} />
+              <AntDesign name="wallet" size={14} color={colors.accent.primary} />
             </View>
-            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Left</Text>
-            <Text style={[s.summaryValue, { color: colors.text.primary }]}>{fmt(totalSpent)}</Text>
+            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Budget</Text>
+            <Text style={[s.summaryValue, { color: colors.text.primary }]}>
+              {group?.monthlyBudget ? fmt(Number(group.monthlyBudget)) : '—'}
+            </Text>
           </View>
         </View>
 
@@ -618,6 +652,146 @@ export function SharedGroupDetailScreen() {
             </View>
           </View>
         </View>
+
+        {/* Category Breakdown */}
+        {categoryBreakdown.length > 0 && (
+          <View>
+            <View style={s.sectionHeader}>
+              <View
+                style={{
+                  width: 4,
+                  height: 14,
+                  borderRadius: 2,
+                  backgroundColor: colors.accent.primary,
+                }}
+              />
+              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                Spending by Category
+              </Text>
+            </View>
+            <View
+              style={[
+                s.catCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
+              {categoryBreakdown.slice(0, 5).map((c, i) => (
+                <View key={c.category}>
+                  {i > 0 && (
+                    <View style={[s.catDivider, { backgroundColor: colors.border.subtle }]} />
+                  )}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View
+                      style={[
+                        s.catDot,
+                        {
+                          backgroundColor: [
+                            colors.accent.primary,
+                            colors.status.error,
+                            colors.status.success,
+                            '#F59E0B',
+                            '#8B5CF6',
+                          ][i % 5],
+                        },
+                      ]}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text style={[s.catName, { color: colors.text.primary }]}>
+                          {c.category}
+                        </Text>
+                        <Text style={[s.catAmount, { color: colors.text.secondary }]}>
+                          {fmt(c.amount)}
+                        </Text>
+                      </View>
+                      <View style={s.catBarBg}>
+                        <View
+                          style={[
+                            s.catBarFill,
+                            {
+                              width: `${Math.max(c.percentage, 3)}%`,
+                              backgroundColor: [
+                                colors.accent.primary,
+                                colors.status.error,
+                                colors.status.success,
+                                '#F59E0B',
+                                '#8B5CF6',
+                              ][i % 5],
+                            },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <Text style={[s.catPercent, { color: colors.text.tertiary }]}>
+                      {c.percentage.toFixed(0)}%
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Quick Insights */}
+        {expenses.length > 0 && (
+          <View
+            style={[
+              s.insightCard,
+              {
+                backgroundColor: colors.accent.primary + '08',
+                borderColor: colors.accent.primary + '20',
+              },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
+              <Text style={[s.insightTitle, { color: colors.accent.primary }]}>Group Insights</Text>
+            </View>
+            <View style={{ gap: 3, marginTop: 6 }}>
+              <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                Total expenses: <Text style={{ fontWeight: '700' }}>{expenses.length}</Text> · Avg:{' '}
+                <Text style={{ fontWeight: '700' }}>
+                  {fmt(Math.round(totalSpent / expenses.length))}
+                </Text>
+              </Text>
+              {categoryBreakdown.length > 0 && (
+                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                  Top category:{' '}
+                  <Text style={{ fontWeight: '700' }}>{categoryBreakdown[0].category}</Text> (
+                  {categoryBreakdown[0].percentage.toFixed(0)}% of total)
+                </Text>
+              )}
+              {myBalanceRow && (
+                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                  Your balance:{' '}
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      color: (myBalanceRow.balance || 0) >= 0 ? '#34C759' : colors.status.error,
+                    }}
+                  >
+                    {myBalanceRow.balance >= 0 ? '+' : ''}
+                    {fmt(Math.round(myBalanceRow.balance))}
+                  </Text>
+                </Text>
+              )}
+              {members.length > 1 && (
+                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                  Per person avg:{' '}
+                  <Text style={{ fontWeight: '700' }}>
+                    {fmt(Math.round(totalSpent / members.length))}
+                  </Text>
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Members */}
         {members.length > 0 && (
@@ -1092,4 +1266,25 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
   },
+  catCard: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  catDivider: { height: 1, marginVertical: spacing.sm },
+  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catName: { fontSize: 12, fontWeight: '600' },
+  catAmount: { fontSize: 12, fontWeight: '600' },
+  catBarBg: { height: 4, borderRadius: 2, backgroundColor: 'rgba(128,128,128,0.12)' },
+  catBarFill: { height: 4, borderRadius: 2 },
+  catPercent: { fontSize: 11, fontWeight: '600', minWidth: 32, textAlign: 'right' },
+  insightCard: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  insightTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  insightLine: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });

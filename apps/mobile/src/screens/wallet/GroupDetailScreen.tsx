@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
@@ -142,6 +143,26 @@ export function GroupDetailScreen() {
     [thisMonthExpenses],
   );
 
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of expenseTxns) {
+      const cat = t.category?.name || (typeof t.category === 'string' ? t.category : 'Other');
+      map.set(cat, (map.get(cat) || 0) + Number(t.amount || 0));
+    }
+    const total = [...map.values()].reduce((s, v) => s + v, 0);
+    return [...map.entries()]
+      .map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: total > 0 ? (amount / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [expenseTxns]);
+
+  const avgTransaction = useMemo(() => {
+    return expenseTxns.length > 0 ? totalSpent / expenseTxns.length : 0;
+  }, [expenseTxns, totalSpent]);
+
   const members = group?.members || [];
   const memberCount = group?._count?.members || members.length || 0;
   const recentTxns = transactions.slice(0, 10);
@@ -165,7 +186,7 @@ export function GroupDetailScreen() {
         colors={isDark ? ['#1A0A2E', '#2D1B69'] : [accentColor + '15', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={{ paddingTop: insets.top }}
+        style={{ paddingTop: insets.top, minHeight: insets.top + 56, justifyContent: 'center' }}
       >
         <View style={s.heroRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
@@ -183,6 +204,25 @@ export function GroupDetailScreen() {
               {fmtDate(group?.createdAt)}
             </Text>
           </View>
+          <TouchableOpacity
+            style={[s.backBtn]}
+            onPress={() => {
+              Alert.alert('Group Options', undefined, [
+                {
+                  text: 'Manage Members',
+                  onPress: () =>
+                    navigation.navigate('AddMember', {
+                      groupId,
+                      type: 'expense-group',
+                      existingMemberIds: members.map((m: any) => m.userId),
+                    }),
+                },
+                { text: 'Cancel', style: 'cancel' },
+              ]);
+            }}
+          >
+            <AntDesign name="ellipsis1" size={20} color={colors.text.primary} />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -312,6 +352,125 @@ export function GroupDetailScreen() {
             </View>
           </View>
         </View>
+
+        {/* Category Breakdown */}
+        {categoryBreakdown.length > 0 && (
+          <View>
+            <View style={s.sectionHeader}>
+              <View
+                style={{
+                  width: 4,
+                  height: 14,
+                  borderRadius: 2,
+                  backgroundColor: colors.accent.primary,
+                }}
+              />
+              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                Spending by Category
+              </Text>
+            </View>
+            <View
+              style={[
+                s.catCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
+              {categoryBreakdown.slice(0, 5).map((c, i) => (
+                <View key={c.category}>
+                  {i > 0 && (
+                    <View style={[s.catDivider, { backgroundColor: colors.border.subtle }]} />
+                  )}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View
+                      style={[
+                        s.catDot,
+                        {
+                          backgroundColor: [
+                            colors.accent.primary,
+                            colors.status.error,
+                            colors.status.success,
+                            colors.status.warning,
+                            '#8B5CF6',
+                          ][i % 5],
+                        },
+                      ]}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text style={[s.catName, { color: colors.text.primary }]}>
+                          {c.category}
+                        </Text>
+                        <Text style={[s.catAmount, { color: colors.text.secondary }]}>
+                          {fmt(c.amount)}
+                        </Text>
+                      </View>
+                      <View style={s.catBarBg}>
+                        <View
+                          style={[
+                            s.catBarFill,
+                            {
+                              width: `${Math.max(c.percentage, 3)}%`,
+                              backgroundColor: [
+                                colors.accent.primary,
+                                colors.status.error,
+                                colors.status.success,
+                                colors.status.warning,
+                                '#8B5CF6',
+                              ][i % 5],
+                            },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                    <Text style={[s.catPercent, { color: colors.text.tertiary }]}>
+                      {c.percentage.toFixed(0)}%
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Insights */}
+        {expenseTxns.length > 0 && (
+          <View
+            style={[
+              s.insightCard,
+              {
+                backgroundColor: colors.accent.primary + '08',
+                borderColor: colors.accent.primary + '20',
+              },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
+              <Text style={[s.insightTitle, { color: colors.accent.primary }]}>Quick Insights</Text>
+            </View>
+            <View style={{ gap: 3, marginTop: 6 }}>
+              <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                Avg. transaction:{' '}
+                <Text style={{ fontWeight: '700' }}>{fmt(Math.round(avgTransaction))}</Text>
+              </Text>
+              {categoryBreakdown.length > 0 && (
+                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                  Top category:{' '}
+                  <Text style={{ fontWeight: '700' }}>{categoryBreakdown[0].category}</Text> (
+                  {categoryBreakdown[0].percentage.toFixed(0)}% of spending)
+                </Text>
+              )}
+              <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                Total transactions: <Text style={{ fontWeight: '700' }}>{expenseTxns.length}</Text>
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Members */}
         {members.length > 0 && (
@@ -592,4 +751,25 @@ const s = StyleSheet.create({
   catBadgeText: { fontSize: 8, fontWeight: '700' },
   txnDate: { fontSize: 10, fontWeight: '500' },
   txnAmount: { fontSize: 14, fontWeight: '700' },
+  catCard: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  catDivider: { height: 1, marginVertical: spacing.sm },
+  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catName: { fontSize: 12, fontWeight: '600' },
+  catAmount: { fontSize: 12, fontWeight: '600' },
+  catBarBg: { height: 4, borderRadius: 2, backgroundColor: 'rgba(128,128,128,0.12)' },
+  catBarFill: { height: 4, borderRadius: 2 },
+  catPercent: { fontSize: 11, fontWeight: '600', minWidth: 32, textAlign: 'right' },
+  insightCard: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  insightTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  insightLine: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });
