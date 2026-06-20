@@ -337,6 +337,7 @@ export class SharedFinanceService {
       nickname: m.nickname,
       joinedAt: m.joinedAt,
       totalSpent: Number(m.group.totalSpent || 0),
+      totalIncome: Number(m.group.totalSpent || 0),
       monthlyBudget: Number(m.group.monthlyBudget || 0),
       monthlyIncome: Number(m.group.monthlyIncome || 0),
       aiTip: getGroupAiTip(m.group.type, m.group._count.expenses, m.group._count.members),
@@ -3894,7 +3895,10 @@ export class SharedFinanceService {
   // ─── Auto-OCR Expense Creation ─────────────────────────────
 
   async createExpenseFromOcr(groupId: string, userId: string, ocrText: string) {
-    const lines = ocrText.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = ocrText
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
     const C = /[₹$€£]/;
     let description = '';
     let amount = 0;
@@ -3910,7 +3914,10 @@ export class SharedFinanceService {
       const m = ocrText.match(p);
       if (m) {
         const val = parseFloat(m[1].replace(/,/g, ''));
-        if (!isNaN(val) && val > 0) { amount = val; break; }
+        if (!isNaN(val) && val > 0) {
+          amount = val;
+          break;
+        }
       }
     }
     if (!amount) {
@@ -3922,28 +3929,63 @@ export class SharedFinanceService {
     if (!amount) {
       const fallback = [...ocrText.matchAll(/([\d,]+\.\d{2})/g)];
       if (fallback.length > 0) {
-        const vals = fallback.map(m => parseFloat(m[1].replace(/,/g, ''))).filter(v => v > 0 && v < 1e7);
-        if (vals.length > 0) amount = Math.max(...vals);
+        const vals = fallback
+          .map((m) => parseFloat(m[1].replace(/,/g, '')))
+          .filter((v) => v > 0 && v < 1e7);
+        if (vals.length > 0) {
+          amount = Math.max(...vals);
+        }
       }
     }
 
     const skipWords = new Set([
-      'total', 'grand total', 'sub total', 'subtotal', 'amount', 'tax',
-      'gst', 'cgst', 'sgst', 'vat', 'invoice', 'receipt', 'bill',
-      'date', 'time', 'phone', 'email',
+      'total',
+      'grand total',
+      'sub total',
+      'subtotal',
+      'amount',
+      'tax',
+      'gst',
+      'cgst',
+      'sgst',
+      'vat',
+      'invoice',
+      'receipt',
+      'bill',
+      'date',
+      'time',
+      'phone',
+      'email',
     ]);
     for (const line of lines) {
-      const lower = line.toLowerCase().replace(/[^a-z0-9&.\-'/\s]/g, '').trim();
-      if (!lower || lower.length < 3) continue;
-      if (skipWords.has(lower)) continue;
-      if (/^(?:www\.|http|\d{10,})/i.test(lower)) continue;
-      if (/gstin|invoice|receipt|tax total|subtotal|grand total|net amount/i.test(lower)) continue;
-      if (!/[a-zA-Z]/.test(lower)) continue;
-      merchant = line.replace(/[^a-zA-Z0-9\s&.\-']/g, '').trim().substring(0, 100);
+      const lower = line
+        .toLowerCase()
+        .replace(/[^a-z0-9&.\-'/\s]/g, '')
+        .trim();
+      if (!lower || lower.length < 3) {
+        continue;
+      }
+      if (skipWords.has(lower)) {
+        continue;
+      }
+      if (/^(?:www\.|http|\d{10,})/i.test(lower)) {
+        continue;
+      }
+      if (/gstin|invoice|receipt|tax total|subtotal|grand total|net amount/i.test(lower)) {
+        continue;
+      }
+      if (!/[a-zA-Z]/.test(lower)) {
+        continue;
+      }
+      merchant = line
+        .replace(/[^a-zA-Z0-9\s&.\-']/g, '')
+        .trim()
+        .substring(0, 100);
       break;
     }
 
-    description = merchant || (lines.length > 0 ? lines[0].trim().substring(0, 200) : 'OCR Expense');
+    description =
+      merchant || (lines.length > 0 ? lines[0].trim().substring(0, 200) : 'OCR Expense');
 
     if (!description || !amount) {
       throw new BadRequestException('Could not extract expense details from OCR text');
@@ -3958,7 +4000,11 @@ export class SharedFinanceService {
     const amountError = splitAmount * members.length - amount;
     const splits = members.map((m, i) => ({
       userId: m.userId,
-      amount: Math.round((i === members.length - 1 ? amount - splitAmount * (members.length - 1) : splitAmount) * 100) / 100,
+      amount:
+        Math.round(
+          (i === members.length - 1 ? amount - splitAmount * (members.length - 1) : splitAmount) *
+            100,
+        ) / 100,
     }));
 
     const category = 'Other';

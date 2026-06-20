@@ -2,10 +2,11 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
-import { SpacesDashboardScreen } from '../screens/spaces/SpacesDashboardScreen';
-import { SpaceDetailScreen } from '../screens/spaces/SpaceDetailScreen';
-import { CreateSpaceScreen } from '../screens/spaces/CreateSpaceScreen';
-import { AddSpaceExpenseScreen } from '../screens/spaces/AddSpaceExpenseScreen';
+import { SpacesDashboard } from '../screens/shared-finance/SpacesDashboard';
+import { SharedGroupDetailScreen } from '../screens/shared-finance/SharedGroupDetailScreen';
+import { CreateSharedGroupScreen } from '../screens/shared-finance/CreateSharedGroupScreen';
+import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
+import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 import { AddMemberScreen } from '../screens/social/AddMemberScreen';
 
 const Stack = createNativeStackNavigator();
@@ -17,29 +18,30 @@ export function SpacesNavigator() {
     <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <Stack.Screen
         name="SpacesDashboard"
-        component={SpacesDashboardScreen}
+        component={SpacesDashboard}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="SpaceDetail"
-        component={SpaceDetailScreen}
+        name="SharedGroupDetail"
+        component={SharedGroupDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="CreateSpace"
-        component={CreateSpaceScreen}
+        name="CreateSharedGroup"
+        component={CreateSharedGroupScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="AddSpaceExpense"
-        component={AddSpaceExpenseScreen}
+        name="SharedExpenseForm"
+        component={SharedExpenseFormScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="AddMember"
-        component={AddMemberScreen}
+        name="Settlement"
+        component={SettlementScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="AddMember" component={AddMemberScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
