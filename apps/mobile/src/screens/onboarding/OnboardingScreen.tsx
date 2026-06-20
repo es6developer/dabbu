@@ -22,10 +22,34 @@ import { api, getAccessToken } from '../../services/api';
 type Step = 'lens' | 'setup';
 
 const LENS_OPTIONS: { id: LensMode; icon: any; title: string; desc: string; userType: string }[] = [
-  { id: 'PERSONAL', icon: 'user', title: 'Personal Finance', desc: 'Manage your personal finances, savings, and investments.', userType: 'single' },
-  { id: 'PARTNERED', icon: 'heart', title: 'Couple Finance', desc: 'Track finances together, split expenses, and share goals.', userType: 'couple' },
-  { id: 'FAMILY', icon: 'team', title: 'Family Finance', desc: 'Manage family budgets, allowances, and shared goals.', userType: 'family' },
-  { id: 'FULL', icon: 'earth', title: 'All (Recommended)', desc: 'Access all features — personal, couple, family, and group.', userType: 'friends' },
+  {
+    id: 'PERSONAL',
+    icon: 'user',
+    title: 'Personal Finance',
+    desc: 'Manage your personal finances, savings, and investments.',
+    userType: 'single',
+  },
+  {
+    id: 'PARTNERED',
+    icon: 'heart',
+    title: 'Couple Finance',
+    desc: 'Track finances together, split expenses, and share goals.',
+    userType: 'couple',
+  },
+  {
+    id: 'FAMILY',
+    icon: 'team',
+    title: 'Family Finance',
+    desc: 'Manage family budgets, allowances, and shared goals.',
+    userType: 'family',
+  },
+  {
+    id: 'FULL',
+    icon: 'earth',
+    title: 'All (Recommended)',
+    desc: 'Access all features — personal, couple, family, and group.',
+    userType: 'friends',
+  },
 ];
 
 const RISK_LEVELS = ['Low', 'Medium', 'High'];
@@ -39,7 +63,7 @@ export function OnboardingScreen({ route }: any) {
   const { isAuthenticated, guestLogin } = useAuth();
 
   const [step, setStep] = useState<Step>('lens');
-  const [selectedLens, setSelectedLens] = useState<LensMode | null>(null);
+  const [selectedLens, setSelectedLens] = useState<LensMode>('FULL');
   const [submitting, setSubmitting] = useState(false);
 
   const [incomeSource, setIncomeSource] = useState('');
@@ -48,12 +72,14 @@ export function OnboardingScreen({ route }: any) {
   const [partnerEmail, setPartnerEmail] = useState('');
   const [sharedGoal, setSharedGoal] = useState('');
   const [splitPref, setSplitPref] = useState('50/50');
+  const [maritalStatus, setMaritalStatus] = useState('');
+  const [partnerPhone, setPartnerPhone] = useState('');
   const [householdMembers, setHouseholdMembers] = useState(2);
   const [householdIncome, setHouseholdIncome] = useState('');
   const [responsibilities, setResponsibilities] = useState<string[]>([]);
 
   const toggleResponsibility = (r: string) => {
-    setResponsibilities((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
+    setResponsibilities((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
   };
 
   const selectedOption = LENS_OPTIONS.find((o) => o.id === selectedLens);
@@ -76,7 +102,35 @@ export function OnboardingScreen({ route }: any) {
       }
       const token = getAccessToken();
       if (token) {
-        api.patch('/users/profile', { userType: ut, activeLens: lens }).catch(() => {});
+        const profileData: any = { userType: ut, activeLens: lens };
+        if (maritalStatus) {
+          profileData.maritalStatus = maritalStatus;
+        }
+        if (partnerEmail) {
+          profileData.partnerContact = partnerEmail;
+        }
+        if (sharedGoal) {
+          profileData.sharedGoal = sharedGoal;
+        }
+        if (splitPref) {
+          profileData.splitPreference = splitPref;
+        }
+        if (savingsGoal) {
+          profileData.monthlySavingsGoal = savingsGoal;
+        }
+        if (incomeSource) {
+          profileData.incomeSource = incomeSource;
+        }
+        if (riskLevel) {
+          profileData.riskLevel = riskLevel;
+        }
+        if (householdIncome) {
+          profileData.householdIncome = householdIncome;
+        }
+        if (responsibilities.length) {
+          profileData.responsibilities = responsibilities;
+        }
+        api.patch('/users/profile', profileData).catch(() => {});
       }
     } catch {
       // navigation handled by RootNavigator
@@ -86,16 +140,20 @@ export function OnboardingScreen({ route }: any) {
   }
 
   async function handleSkip() {
-    await finishOnboarding('PERSONAL', 'single');
+    await finishOnboarding('FULL', 'friends');
   }
 
   async function handleContinueToSetup() {
-    if (!selectedLens) return;
+    if (!selectedLens) {
+      return;
+    }
     setStep('setup');
   }
 
   async function handleFinish() {
-    if (!selectedLens || !selectedOption) return;
+    if (!selectedLens || !selectedOption) {
+      return;
+    }
     await finishOnboarding(selectedLens, selectedOption.userType);
   }
 
@@ -111,11 +169,23 @@ export function OnboardingScreen({ route }: any) {
     color: colors.text.primary,
   };
 
-  const labelStyle = { fontSize: 14, fontWeight: '600' as const, color: colors.text.secondary, marginBottom: 8 };
+  const labelStyle = {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.text.secondary,
+    marginBottom: 8,
+  };
 
   function renderHeader(showBack: boolean) {
     return (
-      <View style={{ paddingTop: insets.top + 12, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: PADDING }}>
+      <View
+        style={{
+          paddingTop: insets.top + 12,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingHorizontal: PADDING,
+        }}
+      >
         {showBack ? (
           <TouchableOpacity onPress={() => setStep('lens')} style={{ paddingVertical: 8 }}>
             <AntDesign name="arrowleft" size={22} color={colors.text.primary} />
@@ -134,16 +204,35 @@ export function OnboardingScreen({ route }: any) {
     return (
       <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
         {renderHeader(true)}
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <ScrollView
             contentContainerStyle={{ paddingHorizontal: PADDING, paddingBottom: 32 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, marginBottom: 8, letterSpacing: -0.5 }}>
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '800',
+                color: colors.text.primary,
+                marginBottom: 8,
+                letterSpacing: -0.5,
+              }}
+            >
               Quick Setup
             </Text>
-            <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text.tertiary, marginBottom: 28, lineHeight: 22 }}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '500',
+                color: colors.text.tertiary,
+                marginBottom: 28,
+                lineHeight: 22,
+              }}
+            >
               {selectedOption?.title}
             </Text>
 
@@ -183,22 +272,88 @@ export function OnboardingScreen({ route }: any) {
                         borderColor: riskLevel === r ? colors.accent.primary : colors.border.subtle,
                       }}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: riskLevel === r ? '#FFF' : colors.text.primary }}>{r}</Text>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: '600',
+                          color: riskLevel === r ? '#FFF' : colors.text.primary,
+                        }}
+                      >
+                        {r}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
                 {selectedLens === 'FULL' && (
                   <>
-                    <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 24 }} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>Partner Setup</Text>
-                    <Text style={labelStyle}>Partner Email</Text>
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: colors.border.subtle,
+                        marginVertical: 24,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: colors.text.primary,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Relationship Details
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '500',
+                        color: colors.text.tertiary,
+                        marginBottom: 16,
+                        lineHeight: 18,
+                      }}
+                    >
+                      Optional — set up partner and family features now
+                    </Text>
+                    <Text style={[labelStyle, { marginTop: 8 }]}>Marital Status</Text>
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
+                      {['Single', 'Married', 'Engaged', 'Dating', 'Living Together', 'Other'].map(
+                        (s) => {
+                          const sel = maritalStatus === s;
+                          return (
+                            <TouchableOpacity
+                              key={s}
+                              onPress={() => setMaritalStatus(s)}
+                              style={{
+                                paddingHorizontal: 10,
+                                paddingVertical: 10,
+                                borderRadius: borderRadius.lg,
+                                backgroundColor: sel ? colors.accent.primary : colors.bg.card,
+                                borderWidth: 1,
+                                borderColor: sel ? colors.accent.primary : colors.border.subtle,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: '600',
+                                  color: sel ? '#FFF' : colors.text.primary,
+                                  textAlign: 'center',
+                                }}
+                              >
+                                {s}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        },
+                      )}
+                    </View>
+
+                    <Text style={[labelStyle, { marginTop: 16 }]}>Partner Email / Phone</Text>
                     <TextInput
                       style={inputStyle}
-                      placeholder="partner@email.com"
+                      placeholder="partner@email.com or phone"
                       placeholderTextColor={colors.text.tertiary}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
                       value={partnerEmail}
                       onChangeText={setPartnerEmail}
                     />
@@ -220,30 +375,79 @@ export function OnboardingScreen({ route }: any) {
                             flex: 1,
                             paddingVertical: 12,
                             borderRadius: borderRadius.lg,
-                            backgroundColor: splitPref === s ? colors.accent.primary : colors.bg.card,
+                            backgroundColor:
+                              splitPref === s ? colors.accent.primary : colors.bg.card,
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: splitPref === s ? colors.accent.primary : colors.border.subtle,
+                            borderColor:
+                              splitPref === s ? colors.accent.primary : colors.border.subtle,
                           }}
                         >
-                          <Text style={{ fontSize: 13, fontWeight: '600', color: splitPref === s ? '#FFF' : colors.text.primary }}>{s}</Text>
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight: '600',
+                              color: splitPref === s ? '#FFF' : colors.text.primary,
+                            }}
+                          >
+                            {s}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
 
-                    <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 24 }} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>Family Setup</Text>
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: colors.border.subtle,
+                        marginVertical: 24,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: colors.text.primary,
+                        marginBottom: 12,
+                      }}
+                    >
+                      Family Setup
+                    </Text>
                     <Text style={labelStyle}>Household Members</Text>
-                    <View style={{
-                      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                      backgroundColor: colors.bg.card, borderRadius: borderRadius.xl,
-                      borderWidth: 1, borderColor: colors.border.subtle, paddingVertical: 12,
-                    }}>
-                      <TouchableOpacity onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))} style={{ paddingHorizontal: 24, paddingVertical: 8 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: colors.bg.card,
+                        borderRadius: borderRadius.xl,
+                        borderWidth: 1,
+                        borderColor: colors.border.subtle,
+                        paddingVertical: 12,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))}
+                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                      >
                         <AntDesign name="minus" size={20} color={colors.text.primary} />
                       </TouchableOpacity>
-                      <Text style={{fontSize: 24, fontWeight: "700", color: colors.text.primary, marginHorizontal: 20, minWidth: 40, textAlign: "center"}}>{householdMembers}</Text>
-                      <TouchableOpacity onPress={() => setHouseholdMembers(householdMembers + 1)} style={{ paddingHorizontal: 24, paddingVertical: 8 }}>
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontWeight: '700',
+                          color: colors.text.primary,
+                          marginHorizontal: 20,
+                          minWidth: 40,
+                          textAlign: 'center',
+                        }}
+                      >
+                        {householdMembers}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setHouseholdMembers(householdMembers + 1)}
+                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                      >
                         <AntDesign name="plus" size={20} color={colors.text.primary} />
                       </TouchableOpacity>
                     </View>
@@ -264,16 +468,78 @@ export function OnboardingScreen({ route }: any) {
             {/* PARTNERED fields */}
             {selectedLens === 'PARTNERED' && (
               <>
-                <Text style={labelStyle}>Partner Email</Text>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '700',
+                    color: colors.text.primary,
+                    marginBottom: 4,
+                  }}
+                >
+                  Relationship Details
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginBottom: 16,
+                    lineHeight: 18,
+                  }}
+                >
+                  Tell us about your relationship so we can tailor the couple experience
+                </Text>
+                <Text style={[labelStyle, { marginTop: 8 }]}>Marital Status</Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
+                  {['Married', 'Engaged', 'Dating', 'Living Together', 'Other'].map((s) => {
+                    const sel = maritalStatus === s;
+                    return (
+                      <TouchableOpacity
+                        key={s}
+                        onPress={() => setMaritalStatus(s)}
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 10,
+                          borderRadius: borderRadius.lg,
+                          flex: 1,
+                          backgroundColor: sel ? colors.accent.primary : colors.bg.card,
+                          borderWidth: 1,
+                          borderColor: sel ? colors.accent.primary : colors.border.subtle,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: sel ? '#FFF' : colors.text.primary,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {s}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Text style={[labelStyle, { marginTop: 16 }]}>Partner Email / Phone</Text>
                 <TextInput
                   style={inputStyle}
-                  placeholder="partner@email.com"
+                  placeholder="partner@email.com or phone number"
                   placeholderTextColor={colors.text.tertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
                   value={partnerEmail}
                   onChangeText={setPartnerEmail}
                 />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginTop: 4,
+                    lineHeight: 16,
+                  }}
+                >
+                  We'll send them an invite to connect on Dabbu
+                </Text>
                 <Text style={[labelStyle, { marginTop: 16 }]}>Shared Goal</Text>
                 <TextInput
                   style={inputStyle}
@@ -282,7 +548,7 @@ export function OnboardingScreen({ route }: any) {
                   value={sharedGoal}
                   onChangeText={setSharedGoal}
                 />
-                <Text style={[labelStyle, { marginTop: 16 }]}>Expense Split</Text>
+                <Text style={[labelStyle, { marginTop: 16 }]}>Expense Split Preference</Text>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   {SPLIT_OPTIONS.map((s) => (
                     <TouchableOpacity
@@ -298,7 +564,15 @@ export function OnboardingScreen({ route }: any) {
                         borderColor: splitPref === s ? colors.accent.primary : colors.border.subtle,
                       }}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: splitPref === s ? '#FFF' : colors.text.primary }}>{s}</Text>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '600',
+                          color: splitPref === s ? '#FFF' : colors.text.primary,
+                        }}
+                      >
+                        {s}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -309,16 +583,40 @@ export function OnboardingScreen({ route }: any) {
             {selectedLens === 'FAMILY' && (
               <>
                 <Text style={labelStyle}>Household Members</Text>
-                <View style={{
-                      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                      backgroundColor: colors.bg.card, borderRadius: borderRadius.xl,
-                      borderWidth: 1, borderColor: colors.border.subtle, paddingVertical: 12,
-                    }}>
-                  <TouchableOpacity onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))} style={{ paddingHorizontal: 24, paddingVertical: 8 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.bg.card,
+                    borderRadius: borderRadius.xl,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    paddingVertical: 12,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))}
+                    style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                  >
                     <AntDesign name="minus" size={20} color={colors.text.primary} />
                   </TouchableOpacity>
-                  <Text style={{fontSize: 24, fontWeight: "700", color: colors.text.primary, marginHorizontal: 20, minWidth: 40, textAlign: "center"}}>{householdMembers}</Text>
-                  <TouchableOpacity onPress={() => setHouseholdMembers(householdMembers + 1)} style={{ paddingHorizontal: 24, paddingVertical: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: '700',
+                      color: colors.text.primary,
+                      marginHorizontal: 20,
+                      minWidth: 40,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {householdMembers}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setHouseholdMembers(householdMembers + 1)}
+                    style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                  >
                     <AntDesign name="plus" size={20} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
@@ -348,7 +646,15 @@ export function OnboardingScreen({ route }: any) {
                           borderColor: selected ? colors.accent.primary : colors.border.subtle,
                         }}
                       >
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: selected ? '#FFF' : colors.text.primary }}>{r}</Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: selected ? '#FFF' : colors.text.primary,
+                          }}
+                        >
+                          {r}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -358,20 +664,28 @@ export function OnboardingScreen({ route }: any) {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        <View style={{
-          paddingHorizontal: PADDING, paddingBottom: insets.bottom + 24,
-          backgroundColor: colors.bg.primary,
-          borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl,
-        }}>
+        <View
+          style={{
+            paddingHorizontal: PADDING,
+            paddingBottom: insets.bottom + 24,
+            backgroundColor: colors.bg.primary,
+            borderTopLeftRadius: borderRadius.xl,
+            borderTopRightRadius: borderRadius.xl,
+          }}
+        >
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleFinish}
             disabled={submitting}
             style={{
-              backgroundColor: colors.accent.primary, paddingVertical: 16,
-              borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: colors.accent.primary,
+              paddingVertical: 16,
+              borderRadius: borderRadius.xl,
+              alignItems: 'center',
+              justifyContent: 'center',
               opacity: submitting ? 0.6 : 1,
-              ...shadows.md, shadowColor: colors.accent.primary,
+              ...shadows.md,
+              shadowColor: colors.accent.primary,
             }}
           >
             <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
@@ -388,16 +702,28 @@ export function OnboardingScreen({ route }: any) {
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       {renderHeader(false)}
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: PADDING }}>
-        <Text style={{
-          fontSize: 28, fontWeight: '800', color: colors.text.primary, textAlign: 'center',
-          marginBottom: 8, letterSpacing: -0.5,
-        }}>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: '800',
+            color: colors.text.primary,
+            textAlign: 'center',
+            marginBottom: 8,
+            letterSpacing: -0.5,
+          }}
+        >
           How will you use Dabbu?
         </Text>
-        <Text style={{
-          fontSize: 15, fontWeight: '500', color: colors.text.tertiary,
-          textAlign: 'center', marginBottom: 32, lineHeight: 22,
-        }}>
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '500',
+            color: colors.text.tertiary,
+            textAlign: 'center',
+            marginBottom: 32,
+            lineHeight: 22,
+          }}
+        >
           Choose your lens so we can tailor the experience for you
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
@@ -410,27 +736,57 @@ export function OnboardingScreen({ route }: any) {
                 onPress={() => setSelectedLens(opt.id)}
                 style={{ width: '50%', paddingHorizontal: 6, marginBottom: 12 }}
               >
-                <View style={{
-                  backgroundColor: isSelected ? colors.accent.primary + '15' : colors.bg.card,
-                  borderRadius: borderRadius['2xl'],
-                  padding: 16,
-                  borderWidth: 2,
-                  borderColor: isSelected ? colors.accent.primary : colors.border.subtle,
-                  minHeight: 170,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <View style={{
-                    width: 48, height: 48, borderRadius: 24,
-                    backgroundColor: isSelected ? colors.accent.primary + '25' : colors.border.subtle + '60',
-                    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-                  }}>
-                    <AntDesign name={opt.icon} size={24} color={isSelected ? colors.accent.primary : colors.text.tertiary} />
+                <View
+                  style={{
+                    backgroundColor: isSelected ? colors.accent.primary + '15' : colors.bg.card,
+                    borderRadius: borderRadius['2xl'],
+                    padding: 16,
+                    borderWidth: 2,
+                    borderColor: isSelected ? colors.accent.primary : colors.border.subtle,
+                    minHeight: 170,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: isSelected
+                        ? colors.accent.primary + '25'
+                        : colors.border.subtle + '60',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 12,
+                    }}
+                  >
+                    <AntDesign
+                      name={opt.icon}
+                      size={24}
+                      color={isSelected ? colors.accent.primary : colors.text.tertiary}
+                    />
                   </View>
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, textAlign: 'center', marginBottom: 4 }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: colors.text.primary,
+                      textAlign: 'center',
+                      marginBottom: 4,
+                    }}
+                  >
                     {opt.title}
                   </Text>
-                  <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', lineHeight: 16 }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '500',
+                      color: colors.text.tertiary,
+                      textAlign: 'center',
+                      lineHeight: 16,
+                    }}
+                  >
                     {opt.desc}
                   </Text>
                 </View>
@@ -451,10 +807,17 @@ export function OnboardingScreen({ route }: any) {
             alignItems: 'center',
             justifyContent: 'center',
             opacity: selectedLens ? 1 : 0.5,
-            ...shadows.md, shadowColor: colors.accent.primary,
+            ...shadows.md,
+            shadowColor: colors.accent.primary,
           }}
         >
-          <Text style={{ color: selectedLens ? '#FFF' : colors.text.tertiary, fontSize: 17, fontWeight: '700' }}>
+          <Text
+            style={{
+              color: selectedLens ? '#FFF' : colors.text.tertiary,
+              fontSize: 17,
+              fontWeight: '700',
+            }}
+          >
             Continue
           </Text>
         </TouchableOpacity>

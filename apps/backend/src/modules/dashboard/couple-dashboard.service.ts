@@ -14,7 +14,9 @@ export class CoupleDashboardService {
   async getWidgets(userId: string) {
     const cacheKey = `dashboard:couple:${userId}`;
     const cached = await this.cache.get<any[]>(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -31,8 +33,19 @@ export class CoupleDashboardService {
 
     const enabledTypes = new Set(
       configs.length > 0
-        ? configs.map(c => c.widgetType)
-        : ['COUPLE_HERO', 'COUPLE_WEALTH', 'COUPLE_GOALS', 'COUPLE_TIMELINE', 'THIS_MONTH', 'HEALTH_SCORE', 'AI_INSIGHTS', 'UPCOMING_BILLS', 'RECENT_TRANSACTIONS', 'QUICK_ACTIONS'],
+        ? configs.map((c) => c.widgetType)
+        : [
+            'COUPLE_HERO',
+            'COUPLE_WEALTH',
+            'COUPLE_GOALS',
+            'COUPLE_TIMELINE',
+            'THIS_MONTH',
+            'HEALTH_SCORE',
+            'AI_INSIGHTS',
+            'UPCOMING_BILLS',
+            'RECENT_TRANSACTIONS',
+            'QUICK_ACTIONS',
+          ],
     );
 
     const now = new Date();
@@ -73,16 +86,46 @@ export class CoupleDashboardService {
 
   private async getCoupleHero(userId: string, partnerId: string) {
     const [user, partner] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: userId }, select: { firstName: true } }),
-      this.prisma.user.findUnique({ where: { id: partnerId }, select: { firstName: true } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: partnerId },
+        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
+      }),
     ]);
     const profile = await this.prisma.coupleFinanceProfile.findFirst({
       where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
     });
+    const coupleRecord = await (this.prisma as any).couple.findFirst({
+      where: {
+        OR: [
+          { partner1Id: userId, partner2Id: partnerId },
+          { partner1Id: partnerId, partner2Id: userId },
+        ],
+        status: 'active',
+      },
+    });
+    const linkedAt = user?.partnerLinkedAt || coupleRecord?.linkedAt || profile?.startDate || null;
     return {
+      user: {
+        id: userId,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        avatarUrl: user?.avatarUrl,
+      },
+      partner: {
+        id: partnerId,
+        firstName: partner?.firstName,
+        lastName: partner?.lastName,
+        avatarUrl: partner?.avatarUrl,
+      },
       partner1Name: user?.firstName || 'Partner 1',
       partner2Name: partner?.firstName || 'Partner 2',
-      togetherSince: profile?.createdAt?.toISOString()?.split('T')[0] || '',
+      togetherSince: linkedAt ? new Date(linkedAt).toISOString().split('T')[0] : '',
+      since: linkedAt,
+      maritalStatus: user?.maritalStatus || '',
     };
   }
 
@@ -93,7 +136,8 @@ export class CoupleDashboardService {
     ]);
     const combined = {
       totalAssets: Number(userNw?.totalAssets || 0) + Number(partnerNw?.totalAssets || 0),
-      totalLiabilities: Number(userNw?.totalLiabilities || 0) + Number(partnerNw?.totalLiabilities || 0),
+      totalLiabilities:
+        Number(userNw?.totalLiabilities || 0) + Number(partnerNw?.totalLiabilities || 0),
     };
     const netWorth = combined.totalAssets - combined.totalLiabilities;
     return {
@@ -109,12 +153,34 @@ export class CoupleDashboardService {
       where: { userId, deletedAt: null, isCompleted: false },
       orderBy: { createdAt: 'desc' },
       take: 5,
-      select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true, icon: true, color: true },
+      select: {
+        id: true,
+        name: true,
+        targetAmount: true,
+        currentAmount: true,
+        type: true,
+        icon: true,
+        color: true,
+      },
     });
-    const emojiMap: Record<string, string> = { house: '🏠', car: '🚗', vacation: '✈️', education: '📚', wedding: '💒', emergency: '🆘', baby: '👶', retirement: '🌴', other: '🎯' };
-    return goals.map(g => ({
-      name: g.name, emoji: emojiMap[g.type || 'other'] || g.icon || '🎯',
-      progress: Number(g.targetAmount) > 0 ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100) : 0,
+    const emojiMap: Record<string, string> = {
+      house: '🏠',
+      car: '🚗',
+      vacation: '✈️',
+      education: '📚',
+      wedding: '💒',
+      emergency: '🆘',
+      baby: '👶',
+      retirement: '🌴',
+      other: '🎯',
+    };
+    return goals.map((g) => ({
+      name: g.name,
+      emoji: emojiMap[g.type || 'other'] || g.icon || '🎯',
+      progress:
+        Number(g.targetAmount) > 0
+          ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100)
+          : 0,
     }));
   }
 
@@ -122,7 +188,9 @@ export class CoupleDashboardService {
     const profile = await this.prisma.coupleFinanceProfile.findFirst({
       where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
     });
-    if (!profile) return { events: [], level: 1, xp: 0 };
+    if (!profile) {
+      return { events: [], level: 1, xp: 0 };
+    }
     const [events, level] = await Promise.all([
       this.prisma.coupleTimelineEvent.findMany({
         where: { groupId: profile.groupId },
@@ -132,7 +200,12 @@ export class CoupleDashboardService {
       this.prisma.coupleLevel.findUnique({ where: { groupId: profile.groupId } }),
     ]);
     return {
-      events: events.map(e => ({ id: e.id, type: e.eventType, description: e.description || e.title, date: e.createdAt })),
+      events: events.map((e) => ({
+        id: e.id,
+        type: e.eventType,
+        description: e.description || e.title,
+        date: e.createdAt,
+      })),
       level: level?.level || 1,
       xp: level?.xp || 0,
     };
@@ -141,19 +214,39 @@ export class CoupleDashboardService {
   private async getCombinedThisMonth(userIds: string[], monthStart: Date, monthEnd: Date) {
     const [u1Income, u2Income, u1Expense, u2Expense] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId: userIds[0], deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: {
+          userId: userIds[0],
+          deletedAt: null,
+          type: 'income',
+          date: { gte: monthStart, lte: monthEnd },
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: userIds[1], deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: {
+          userId: userIds[1],
+          deletedAt: null,
+          type: 'income',
+          date: { gte: monthStart, lte: monthEnd },
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: userIds[0], deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: {
+          userId: userIds[0],
+          deletedAt: null,
+          type: 'expense',
+          date: { gte: monthStart, lte: monthEnd },
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: userIds[1], deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: {
+          userId: userIds[1],
+          deletedAt: null,
+          type: 'expense',
+          date: { gte: monthStart, lte: monthEnd },
+        },
         _sum: { amount: true },
       }),
     ]);
@@ -178,10 +271,16 @@ export class CoupleDashboardService {
       take: 2,
       distinct: ['userId'],
     });
-    const avgScore = scores.length > 0 ? Math.round(scores.reduce((s, sc) => s + sc.overallScore, 0) / scores.length) : 0;
-    const avgSub = (field: string) => scores.length > 0
-      ? Math.round(scores.reduce((s, sc) => s + Number((sc as any)[field] || 0), 0) / scores.length)
-      : 0;
+    const avgScore =
+      scores.length > 0
+        ? Math.round(scores.reduce((s, sc) => s + sc.overallScore, 0) / scores.length)
+        : 0;
+    const avgSub = (field: string) =>
+      scores.length > 0
+        ? Math.round(
+            scores.reduce((s, sc) => s + Number((sc as any)[field] || 0), 0) / scores.length,
+          )
+        : 0;
     return {
       score: avgScore,
       subScores: [
@@ -202,21 +301,33 @@ export class CoupleDashboardService {
       select: { title: true, description: true },
     });
     if (insights.length > 0) {
-      return { title: insights[0].title || null, text: insights[0].description || insights[0].title };
+      return {
+        title: insights[0].title || null,
+        text: insights[0].description || insights[0].title,
+      };
     }
     return { text: 'Start tracking together to get shared AI insights' };
   }
 
   private async getCombinedBills(userIds: string[]) {
     const bills = await this.prisma.bill.findMany({
-      where: { userId: { in: userIds }, deletedAt: null, isPaid: false, dueDate: { gte: new Date() } },
+      where: {
+        userId: { in: userIds },
+        deletedAt: null,
+        isPaid: false,
+        dueDate: { gte: new Date() },
+      },
       orderBy: { dueDate: 'asc' },
       take: 10,
       select: { id: true, name: true, amount: true, dueDate: true },
     });
-    return bills.map(b => ({
-      name: b.name, amount: Number(b.amount),
-      daysRemaining: Math.max(0, Math.ceil((new Date(b.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
+    return bills.map((b) => ({
+      name: b.name,
+      amount: Number(b.amount),
+      daysRemaining: Math.max(
+        0,
+        Math.ceil((new Date(b.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+      ),
     }));
   }
 
@@ -225,10 +336,20 @@ export class CoupleDashboardService {
       where: { userId: { in: userIds }, deletedAt: null },
       orderBy: { date: 'desc' },
       take: 10,
-      select: { id: true, description: true, amount: true, date: true, type: true, categoryId: true },
+      select: {
+        id: true,
+        description: true,
+        amount: true,
+        date: true,
+        type: true,
+        categoryId: true,
+      },
     });
-    return txns.map(t => ({
-      id: t.id, description: t.description, amount: Number(t.amount), date: t.date,
+    return txns.map((t) => ({
+      id: t.id,
+      description: t.description,
+      amount: Number(t.amount),
+      date: t.date,
       type: t.type === 'income' ? 'arrowdown' : 'arrowup',
       category: t.categoryId,
     }));
@@ -236,11 +357,41 @@ export class CoupleDashboardService {
 
   private async getQuickActions() {
     return [
-      { id: 'add_expense', label: 'Add Expense', icon: 'add-circle', route: 'AddExpense', color: '#7C3AED' },
-      { id: 'add_income', label: 'Add Income', icon: 'trending-up', route: 'AddExpense?type=income', color: '#22C55E' },
-      { id: 'couple_goal', label: 'Couple Goal', icon: 'flag', route: 'CoupleGoals', color: '#F59E0B' },
-      { id: 'couple_settle', label: 'Settle Up', icon: 'swap', route: 'Settlements', color: '#EF4444' },
-      { id: 'couple_timeline', label: 'Timeline', icon: 'clockcircleo', route: 'CoupleTimeline', color: '#6366F1' },
+      {
+        id: 'add_expense',
+        label: 'Add Expense',
+        icon: 'add-circle',
+        route: 'AddExpense',
+        color: '#7C3AED',
+      },
+      {
+        id: 'add_income',
+        label: 'Add Income',
+        icon: 'trending-up',
+        route: 'AddExpense?type=income',
+        color: '#22C55E',
+      },
+      {
+        id: 'couple_goal',
+        label: 'Couple Goal',
+        icon: 'flag',
+        route: 'CoupleGoals',
+        color: '#F59E0B',
+      },
+      {
+        id: 'couple_settle',
+        label: 'Settle Up',
+        icon: 'swap',
+        route: 'Settlements',
+        color: '#EF4444',
+      },
+      {
+        id: 'couple_timeline',
+        label: 'Timeline',
+        icon: 'clockcircleo',
+        route: 'CoupleTimeline',
+        color: '#6366F1',
+      },
     ];
   }
 }

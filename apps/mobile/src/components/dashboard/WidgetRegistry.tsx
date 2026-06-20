@@ -310,16 +310,15 @@ export const PERSONAL_WIDGETS: WidgetType[] = [
 
 export const COUPLE_WIDGETS: WidgetType[] = [
   'coupleHero',
+  'quickActions',
   'combinedWealth',
   'coupleSnapshot',
   'sharedSavings',
   'coupleHealth',
-  'sharedExpenses',
   'upcomingBills',
   'coupleAI',
   'coupleGoals',
   'coupleTimeline',
-  'quickActions',
 ];
 
 export const FAMILY_WIDGETS: WidgetType[] = [

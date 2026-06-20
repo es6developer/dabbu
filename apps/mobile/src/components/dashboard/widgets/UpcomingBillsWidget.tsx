@@ -1,54 +1,176 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
+import { spacing, borderRadius, shadows } from '../../../theme/design';
 
-export function UpcomingBillsWidget({ data }: { data: any }) {
-  const { colors } = useTheme();
+const fmt = (n: number) => '₹' + (n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+export function UpcomingBillsWidget({ data, onPress }: { data: any; onPress?: () => void }) {
+  const { colors, isDark } = useTheme();
   const { upcomingBills } = data || {};
   const bills = Array.isArray(upcomingBills) ? upcomingBills : [];
 
   if (!bills.length) {
     return (
-      <View style={styles.container}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        style={[
+          styles.card,
+          { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+        ]}
+      >
+        <LinearGradient
+          colors={isDark ? ['#F59E0B08', 'transparent'] : ['#F59E0B06', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: borderRadius['2xl'],
+          }}
+        />
         <View style={styles.header}>
-          <AntDesign name="filetext1" size={18} color={colors.accent.primary}  />
+          <View style={[styles.iconBox, { backgroundColor: '#F59E0B15' }]}>
+            <AntDesign name="filetext1" size={18} color="#F59E0B" />
+          </View>
           <Text style={[styles.title, { color: colors.text.primary }]}>Upcoming Bills</Text>
         </View>
-        <Text style={[styles.empty, { color: colors.text.secondary }]}>-</Text>
-      </View>
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No upcoming bills</Text>
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: '#F59E0B' }]}
+            onPress={onPress}
+          >
+            <AntDesign name="plus" size={14} color="#FFF" />
+            <Text style={styles.addBtnText}>Add Bill</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
+    >
+      <LinearGradient
+        colors={isDark ? ['#F59E0B08', 'transparent'] : ['#F59E0B06', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: borderRadius['2xl'],
+        }}
+      />
       <View style={styles.header}>
-        <AntDesign name="filetext1" size={18} color={colors.accent.primary}  />
-        <Text style={[styles.title, { color: colors.text.primary }]}>Upcoming Bills</Text>
+        <View style={[styles.iconBox, { backgroundColor: '#F59E0B15' }]}>
+          <AntDesign name="filetext1" size={18} color="#F59E0B" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Upcoming Bills</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.addBtnSmall, { backgroundColor: '#F59E0B15' }]}
+          onPress={onPress}
+        >
+          <AntDesign name="plus" size={12} color="#F59E0B" />
+        </TouchableOpacity>
       </View>
-      {bills.slice(0, 5).map((bill: any, i: number) => (
-        <View key={i} style={styles.billRow}>
-          <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.name || '-'}</Text>
-          <View style={styles.billRight}>
-            <Text style={[styles.billDays, { color: colors.accent.primary }]}>{bill.daysRemaining ?? '-'}d</Text>
-            <Text style={[styles.billAmount, { color: colors.text.primary }]}>
-              ₹{(Number(bill.amount) || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-            </Text>
+
+      {bills.slice(0, 4).map((bill: any, i: number) => (
+        <View
+          key={bill.id || i}
+          style={[
+            styles.billRow,
+            i < bills.length - 1 && {
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border.subtle,
+            },
+          ]}
+        >
+          <View style={[styles.billIcon, { backgroundColor: '#F59E0B15' }]}>
+            <AntDesign name="filetext1" size={14} color="#F59E0B" />
           </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.billName, { color: colors.text.primary }]} numberOfLines={1}>
+              {bill.name || 'Bill'}
+            </Text>
+            {bill.daysRemaining !== undefined && (
+              <Text
+                style={[
+                  styles.billDue,
+                  { color: bill.daysRemaining <= 3 ? '#DC2626' : colors.text.tertiary },
+                ]}
+              >
+                {bill.daysRemaining === 0 ? 'Due today' : `${bill.daysRemaining} days left`}
+              </Text>
+            )}
+          </View>
+          <Text style={[styles.billAmount, { color: colors.text.primary }]}>
+            {fmt(Number(bill.amount) || 0)}
+          </Text>
         </View>
       ))}
-    </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { fontSize: 14, fontWeight: '700' },
-  billRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  billName: { fontSize: 13, fontWeight: '500', flex: 1 },
-  billRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  billDays: { fontSize: 11, fontWeight: '700' },
-  billAmount: { fontSize: 13, fontWeight: '700' },
-  empty: { fontSize: 14, fontWeight: '500' },
+  card: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.xl,
+    ...shadows.md,
+    overflow: 'hidden',
+  },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.md },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: { fontSize: 15, fontWeight: '700' },
+  emptyState: { alignItems: 'center', gap: 12, paddingVertical: spacing.sm },
+  emptyText: { fontSize: 13, fontWeight: '500' },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  addBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  addBtnSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  billRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
+  billIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  billName: { fontSize: 13, fontWeight: '600' },
+  billDue: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  billAmount: { fontSize: 14, fontWeight: '700' },
 });

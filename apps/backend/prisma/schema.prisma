@@ -113,6 +113,7 @@ model User {
   isCoupleMode     Boolean   @default(false)
   partnerId        String?   @unique @db.VarChar(36)
   partnerLinkedAt  DateTime?
+  maritalStatus    String?   @db.VarChar(30) // Single, Married, Engaged, Dating, Living Together, Other
   partner          User?     @relation("CouplePartner", fields: [partnerId], references: [id])
   partnerOf        User[]    @relation("CouplePartner")
   coupleInviteCode String?   @unique @db.VarChar(20)
