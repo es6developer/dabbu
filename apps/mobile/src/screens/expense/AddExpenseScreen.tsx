@@ -240,245 +240,242 @@ export function AddExpenseScreen() {
             </View>
           ) : null}
 
+          {/* Amount Card */}
+          <View style={[s.amountCard, { backgroundColor: colors.bg.card, ...shadows.md }]}>
+            <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Amount</Text>
+            <View style={s.amountRow}>
+              <Text style={[s.currencySign, { color: colors.text.primary }]}>₹</Text>
+              <TextInput
+                style={[s.amountInput, { color: colors.text.primary }]}
+                value={amount}
+                onChangeText={(t) => {
+                  setAmount(t.replace(/[^0-9.]/g, ''));
+                  setError('');
+                }}
+                placeholder="0.00"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="decimal-pad"
+                autoFocus
+              />
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {QUICK_AMOUNTS.map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  onPress={() => setAmount(q)}
+                  style={[
+                    s.chip,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  <Text style={[s.chipText, { color: colors.text.secondary }]}>₹{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
           {/* 2-Column Grid */}
-          <View style={s.grid}>
-            {/* Amount - Full Width */}
-            <View style={s.fullWidth}>
-              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Amount</Text>
-              <View
+          <View style={s.grid2}>
+            {/* Left: Date */}
+            <View style={s.gridLeft}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
+              <TouchableOpacity
+                onPress={() => setShowPicker(true)}
                 style={[
-                  s.amountShell,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default },
+                  s.fieldRow,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                 ]}
               >
-                <Text style={[s.currencySign, { color: colors.text.tertiary }]}>₹</Text>
-                <TextInput
-                  style={[s.amountInput, { color: colors.text.primary }]}
-                  value={amount}
-                  onChangeText={(t) => {
-                    setAmount(t.replace(/[^0-9.]/g, ''));
-                    setError('');
-                  }}
-                  placeholder="0.00"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="decimal-pad"
-                  autoFocus
+                <AntDesign name="calendar" size={15} color={colors.accent.primary} />
+                <Text style={[s.fieldValue, { color: colors.text.primary }]}>{dateStr}</Text>
+                <AntDesign name="down" size={12} color={colors.text.tertiary} />
+              </TouchableOpacity>
+              {showPicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
                 />
-              </View>
-              {/* Quick amounts */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                {QUICK_AMOUNTS.map((q) => (
-                  <TouchableOpacity
-                    key={q}
-                    onPress={() => setAmount(q)}
-                    style={[
-                      s.qChip,
-                      { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                    ]}
-                  >
-                    <Text style={[s.qChipText, { color: colors.text.secondary }]}>₹{q}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              )}
             </View>
 
-            {/* Row 1: Date + Payment Method */}
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
-                <TouchableOpacity
-                  onPress={() => setShowPicker(true)}
-                  style={[
-                    s.fieldShell,
-                    { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default },
-                  ]}
-                >
-                  <AntDesign name="calendar" size={16} color={colors.text.tertiary} />
-                  <Text style={[s.fieldValue, { color: colors.text.primary }]}>{dateStr}</Text>
-                </TouchableOpacity>
-                {showPicker && (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleDateChange}
-                  />
-                )}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Payment</Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('PaymentMethods')}
-                  style={[
-                    s.fieldShell,
-                    { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default },
-                  ]}
-                >
-                  <AntDesign
-                    name={PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.icon || 'mobile1'}
-                    size={16}
-                    color={colors.text.tertiary}
-                  />
-                  <Text style={[s.fieldValue, { color: colors.text.primary }]}>
-                    {PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.label || paymentMethod}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Row 2: Category + Description */}
-            <View style={s.fullWidth}>
-              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginBottom: spacing.md }}
+            {/* Right: Payment */}
+            <View style={s.gridRight}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Payment</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PaymentMethods')}
+                style={[
+                  s.fieldRow,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                ]}
               >
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {categories.map((cat) => {
-                    const active = category === cat.name;
+                <AntDesign
+                  name={PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.icon || 'mobile1'}
+                  size={15}
+                  color={colors.text.tertiary}
+                />
+                <Text style={[s.fieldValue, { color: colors.text.primary }]}>
+                  {PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.label || paymentMethod}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Category */}
+          <View>
+            <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {categories.map((cat) => {
+                  const active = category === cat.name;
+                  return (
+                    <TouchableOpacity
+                      key={cat.name}
+                      onPress={() => {
+                        setCategory(cat.name);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                      }}
+                      style={[
+                        s.chip,
+                        {
+                          backgroundColor: active ? cat.color + '18' : colors.bg.card,
+                          borderColor: active ? cat.color : colors.border.subtle,
+                          borderWidth: 1,
+                        },
+                      ]}
+                    >
+                      <AntDesign
+                        name={cat.icon}
+                        size={13}
+                        color={active ? cat.color : colors.text.tertiary}
+                      />
+                      <Text
+                        style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+
+          {/* Description */}
+          <View>
+            <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>
+              Description (optional)
+            </Text>
+            <TextInput
+              style={[
+                s.input,
+                {
+                  backgroundColor: colors.bg.card,
+                  borderColor: colors.border.subtle,
+                  color: colors.text.primary,
+                  ...shadows.sm,
+                },
+              ]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder={type === 'expense' ? 'What did you spend on?' : 'Source of income'}
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          {/* Recurring */}
+          <View style={s.grid2}>
+            <View style={s.gridLeft}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Recurring</Text>
+              <TouchableOpacity
+                onPress={() => setIsRecurring(!isRecurring)}
+                style={[
+                  s.fieldRow,
+                  {
+                    backgroundColor: isRecurring ? accentColor + '12' : colors.bg.card,
+                    borderColor: isRecurring ? accentColor : colors.border.subtle,
+                  },
+                ]}
+              >
+                <AntDesign
+                  name={isRecurring ? 'checkcircle' : 'clockcircleo'}
+                  size={15}
+                  color={isRecurring ? accentColor : colors.text.tertiary}
+                />
+                <Text
+                  style={[
+                    s.fieldValue,
+                    { color: isRecurring ? accentColor : colors.text.secondary },
+                  ]}
+                >
+                  {isRecurring ? 'Recurring' : 'One-time'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {isRecurring && (
+              <View style={s.gridRight}>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Frequency</Text>
+                <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                  {RECURRING_FREQUENCIES.map((f) => {
+                    const active = frequency === f.value;
                     return (
                       <TouchableOpacity
-                        key={cat.name}
-                        onPress={() => {
-                          setCategory(cat.name);
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                        }}
+                        key={f.value}
+                        onPress={() => setFrequency(f.value)}
                         style={[
-                          s.catChip,
+                          s.chip,
                           {
-                            backgroundColor: active ? cat.color + '18' : colors.bg.tertiary,
-                            borderColor: active ? cat.color : colors.border.subtle,
+                            backgroundColor: active ? accentColor + '15' : colors.bg.card,
+                            borderColor: active ? accentColor : colors.border.subtle,
+                            borderWidth: 1,
                           },
                         ]}
                       >
-                        <AntDesign
-                          name={cat.icon}
-                          size={14}
-                          color={active ? cat.color : colors.text.tertiary}
-                        />
                         <Text
                           style={[
-                            s.catChipText,
-                            { color: active ? cat.color : colors.text.secondary },
+                            s.chipText,
+                            { color: active ? accentColor : colors.text.secondary },
                           ]}
                         >
-                          {cat.name}
+                          {f.label}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-              </ScrollView>
-            </View>
-
-            <View style={s.fullWidth}>
-              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>
-                Description (optional)
-              </Text>
-              <TextInput
-                style={[
-                  s.input,
-                  {
-                    backgroundColor: colors.bg.tertiary,
-                    borderColor: colors.border.default,
-                    color: colors.text.primary,
-                  },
-                ]}
-                value={description}
-                onChangeText={setDescription}
-                placeholder={type === 'expense' ? 'What did you spend on?' : 'Source of income'}
-                placeholderTextColor={colors.text.tertiary}
-              />
-            </View>
-
-            {/* Row 3: Recurring toggle + Frequency */}
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Recurring</Text>
-                <TouchableOpacity
-                  onPress={() => setIsRecurring(!isRecurring)}
-                  style={[
-                    s.toggleShell,
-                    {
-                      backgroundColor: isRecurring ? accentColor + '15' : colors.bg.tertiary,
-                      borderColor: isRecurring ? accentColor : colors.border.default,
-                    },
-                  ]}
-                >
-                  <AntDesign
-                    name={isRecurring ? 'checkcircle' : 'clockcircleo'}
-                    size={16}
-                    color={isRecurring ? accentColor : colors.text.tertiary}
-                  />
-                  <Text
-                    style={[
-                      s.toggleLabel,
-                      { color: isRecurring ? accentColor : colors.text.secondary },
-                    ]}
-                  >
-                    {isRecurring ? 'Recurring' : 'One-time'}
-                  </Text>
-                </TouchableOpacity>
               </View>
-              {isRecurring && (
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Frequency</Text>
-                  <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-                    {RECURRING_FREQUENCIES.map((f) => {
-                      const active = frequency === f.value;
-                      return (
-                        <TouchableOpacity
-                          key={f.value}
-                          onPress={() => setFrequency(f.value)}
-                          style={[
-                            s.freqChip,
-                            {
-                              backgroundColor: active ? accentColor + '15' : colors.bg.tertiary,
-                              borderColor: active ? accentColor : colors.border.subtle,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              s.freqChipText,
-                              { color: active ? accentColor : colors.text.secondary },
-                            ]}
-                          >
-                            {f.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-            </View>
+            )}
           </View>
 
           {/* Save Button */}
           <TouchableOpacity
-            style={[
-              s.saveBtn,
-              { backgroundColor: accentColor, opacity: saving || !amount ? 0.6 : 1 },
-            ]}
             onPress={handleSave}
             disabled={saving || !amount}
+            activeOpacity={0.85}
+            style={[s.saveBtn, { opacity: saving || !amount ? 0.6 : 1 }]}
           >
-            {saving ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <>
-                <AntDesign
-                  name={type === 'expense' ? 'arrowdown' : 'arrowup'}
-                  size={18}
-                  color="#FFF"
-                />
-                <Text style={s.saveText}>
-                  {type === 'expense' ? 'Save Expense' : 'Save Income'}
-                </Text>
-              </>
-            )}
+            <LinearGradient
+              colors={[accentColor, accentColor]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.saveGrad}
+            >
+              {saving ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <AntDesign
+                    name={type === 'expense' ? 'arrowdown' : 'arrowup'}
+                    size={18}
+                    color="#FFF"
+                  />
+                  <Text style={s.saveText}>
+                    {type === 'expense' ? 'Save Expense' : 'Save Income'}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
@@ -502,7 +499,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   typeRow: {
     flexDirection: 'row',
     gap: 8,
@@ -528,10 +525,23 @@ const s = StyleSheet.create({
     marginBottom: spacing.md,
   },
   errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-  grid: { gap: spacing.md },
-  fullWidth: {},
-  halfLeft: { flex: 1 },
-  halfRight: { flex: 1 },
+  amountCard: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md },
+  amountRow: { flexDirection: 'row', alignItems: 'center' },
+  currencySign: { fontSize: 28, fontWeight: '700', marginRight: 6 },
+  amountInput: { flex: 1, fontSize: 28, fontWeight: '700', padding: 0 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  chipText: { fontSize: 11, fontWeight: '600' },
+  grid2: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  gridLeft: { flex: 1 },
+  gridRight: { flex: 1 },
   fieldLabel: {
     fontSize: 10,
     fontWeight: '800',
@@ -539,66 +549,31 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 6,
   },
-  amountShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-  },
-  currencySign: { fontSize: 22, fontWeight: '700', marginRight: 6 },
-  amountInput: { flex: 1, fontSize: 22, fontWeight: '700', padding: 0 },
-  qChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
-  qChipText: { fontSize: 12, fontWeight: '600' },
-  fieldShell: {
+  fieldRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: borderRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  fieldValue: { fontSize: 14, fontWeight: '600', flex: 1 },
+  fieldValue: { fontSize: 13, fontWeight: '600', flex: 1 },
   input: {
     fontSize: 15,
     fontWeight: '500',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
   },
-  catChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  catChipText: { fontSize: 13, fontWeight: '600' },
-  toggleShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-  },
-  toggleLabel: { fontSize: 14, fontWeight: '600' },
-  freqChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
-  freqChipText: { fontSize: 12, fontWeight: '700' },
-  saveBtn: {
+  saveBtn: { borderRadius: borderRadius['2xl'], overflow: 'hidden', marginTop: spacing['2xl'] },
+  saveGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 16,
-    borderRadius: 16,
-    marginTop: spacing['2xl'],
   },
   saveText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

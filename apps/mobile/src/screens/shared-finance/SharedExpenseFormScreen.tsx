@@ -8,31 +8,27 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
-  Dimensions,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
-import { LinearGradient } from 'expo-linear-gradient';
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const GREEN = '#10B981';
 
 const SPLIT_TYPES = [
-  { key: 'equal', label: 'Equal', icon: 'arrow-redo', desc: 'Everyone pays the same' },
-  { key: 'percentage', label: 'Percentage', icon: 'percent', desc: 'Custom percentages' },
-  { key: 'exact', label: 'Exact', icon: 'wallet', desc: 'Custom amounts' },
-  { key: 'shares', label: 'Shares', icon: 'layers', desc: 'Split by shares' },
-] as const;
+  { key: 'equal', label: 'Equal', icon: 'team' },
+  { key: 'percentage', label: '% Split', icon: 'percent' },
+  { key: 'exact', label: 'Exact', icon: 'wallet' },
+  { key: 'shares', label: 'Shares', icon: 'layers' },
+];
 
 const MM_COLORS = [
   '#8B5CF6',
@@ -45,8 +41,19 @@ const MM_COLORS = [
   '#F59E0B',
 ];
 
-function getMemberColor(idx: number) {
+function getColor(idx: number) {
   return MM_COLORS[idx % MM_COLORS.length];
+}
+
+function fmtDate(d: string) {
+  if (!d) {
+    return '';
+  }
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export function SharedExpenseFormScreen() {
@@ -55,30 +62,24 @@ export function SharedExpenseFormScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
   const { showToast } = useToast();
   const { groupId, expenseId, edit } = route.params || {};
-  const inputRef = useRef<TextInput>(null);
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState<string | null>(null);
-  const [category, setCategory] = useState('Food');
+  const [category, setCategory] = useState('Food & Dining');
   const [splitType, setSplitType] = useState('equal');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [showNotes, setShowNotes] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<any[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
   const [sharesCount, setSharesCount] = useState<Record<string, string>>({});
-
   const loadExpenseRef = useRef(false);
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (accessToken) {
@@ -104,7 +105,7 @@ export function SharedExpenseFormScreen() {
         setPaidBy(me?.userId || data[0].userId);
       }
     } catch {
-      /* ignore */
+      void 0;
     } finally {
       setLoadingMembers(false);
     }
@@ -117,14 +118,13 @@ export function SharedExpenseFormScreen() {
         setDescription(e.description || '');
         setAmount(String(e.amount || ''));
         setPaidBy(e.paidBy);
-        setCategory(e.category || 'Food');
+        setCategory(e.category || 'Food & Dining');
         setSplitType(e.splitType || 'equal');
         if (e.date) {
           setExpenseDate(e.date.split('T')[0]);
         } else if (e.expenseDate) {
           setExpenseDate(e.expenseDate.split('T')[0]);
         }
-        setNotes(e.notes || '');
         if (e.splits) {
           const vals: Record<string, string> = {};
           const shares: Record<string, string> = {};
@@ -144,9 +144,11 @@ export function SharedExpenseFormScreen() {
         }
       }
     } catch {
-      /* ignore */
+      void 0;
     }
   }
+
+  const isMe = (userId: string) => userId === currentUser?.id;
 
   const splitPreview = useMemo(() => {
     const amt = Number(amount) || 0;
@@ -163,7 +165,11 @@ export function SharedExpenseFormScreen() {
     if (splitType === 'percentage') {
       const totalPct = Object.values(splitValues).reduce((s, v) => s + (Number(v) || 0), 0);
       if (totalPct === 0) {
-        return [];
+        return members.map((m: any) => ({
+          name: m.user?.firstName || m.user?.email || 'Member',
+          value: 0,
+          detail: '0%',
+        }));
       }
       return members.map((m: any) => {
         const pct = Number(splitValues[m.id]) || 0;
@@ -178,13 +184,15 @@ export function SharedExpenseFormScreen() {
       return members.map((m: any) => ({
         name: m.user?.firstName || m.user?.email || 'Member',
         value: Number(splitValues[m.id]) || 0,
-        detail: `₹${Number(splitValues[m.id]) || 0}`,
       }));
     }
     if (splitType === 'shares') {
       const totalShares = Object.values(sharesCount).reduce((s, v) => s + (Number(v) || 0), 0);
       if (totalShares === 0) {
-        return [];
+        return members.map((m: any) => ({
+          name: m.user?.firstName || m.user?.email || 'Member',
+          value: 0,
+        }));
       }
       return members.map((m: any) => {
         const s = Number(sharesCount[m.id]) || 0;
@@ -200,25 +208,25 @@ export function SharedExpenseFormScreen() {
 
   const totalSplit = splitPreview.reduce((s, i) => s + i.value, 0);
   const diff = (Number(amount) || 0) - totalSplit;
-  const maxPreviewValue = Math.max(...splitPreview.map((i) => i.value), 0);
-
+  const balanceOk = Math.abs(diff) < 0.01;
   const totalPctEntered = Object.values(splitValues).reduce((s, v) => s + (Number(v) || 0), 0);
-  const percentageValid = splitType !== 'percentage' || (totalPctEntered > 0 && Math.abs(totalPctEntered - 100) < 0.01);
+  const percentageValid =
+    splitType !== 'percentage' || (totalPctEntered > 0 && Math.abs(totalPctEntered - 100) < 0.01);
 
   function validate(): boolean {
-    const errs: Record<string, string> = {};
     if (!description.trim()) {
-      errs.description = 'Add a short description';
+      setError('Add a short description');
+      return false;
     }
     if (!amount || Number(amount) <= 0) {
-      errs.amount = 'Enter a valid amount';
+      setError('Enter a valid amount');
+      return false;
     }
     if (!paidBy) {
-      errs.paidBy = 'Select who paid';
+      setError('Select who paid');
+      return false;
     }
-    setFieldErrors(errs);
-    setError(Object.values(errs).join('\n'));
-    return Object.keys(errs).length === 0;
+    return true;
   }
 
   async function handleSave() {
@@ -252,7 +260,6 @@ export function SharedExpenseFormScreen() {
         amount: Number(amount),
         category,
         date: expenseDate ? new Date(expenseDate).toISOString() : undefined,
-        notes: notes.trim() || undefined,
       };
       if (edit && expenseId) {
         await api.patch(`/shared-finance/expenses/${expenseId}`, basePayload);
@@ -274,162 +281,166 @@ export function SharedExpenseFormScreen() {
     }
   }
 
-  const isMe = (userId: string) => userId === currentUser?.id;
+  async function confirmDelete() {
+    if (!expenseId) {
+      return;
+    }
+    Alert.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (accessToken) {
+              setAccessToken(accessToken);
+            }
+            await api.delete(`/shared-finance/expenses/${expenseId}`);
+            showToast('Expense deleted');
+            navigation.goBack();
+          } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to delete');
+          }
+        },
+      },
+    ]);
+  }
 
   return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <KeyboardAvoidingContainer>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + tabBarHeight + 40) }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-        >
-          <View style={{ paddingTop: insets.top + 4 }} />
-          <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
-            {/* ── Error ── */}
-            {error ? (
-              <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                <AntDesign  name="exclamationcircle" size={18} color={colors.status.error} />
-                <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
-              </View>
-            ) : null}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[s.root, { backgroundColor: colors.bg.primary }]}
+    >
+      {/* Header */}
+      <View style={[s.header, { paddingTop: insets.top + spacing.sm }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[s.headerTitle, { color: colors.text.primary }]}>
+          {edit ? 'Edit Expense' : 'Add Expense'}
+        </Text>
+        {edit ? (
+          <TouchableOpacity onPress={confirmDelete} style={s.backBtn}>
+            <AntDesign name="delete" size={18} color={colors.status.error} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
+      </View>
 
-            {/* ── Amount + Description ── */}
-            <View
-              style={[
-                s.heroCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
+      {error ? (
+        <View style={[s.errorBar, { backgroundColor: colors.status.error + '12' }]}>
+          <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
+          <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+        </View>
+      ) : null}
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+      >
+        {/* Amount Card */}
+        <View style={[s.amountCard, { backgroundColor: colors.bg.card, ...shadows.md }]}>
+          <View style={s.amountRow}>
+            <Text style={[s.currencySign, { color: colors.text.primary }]}>₹</Text>
+            <TextInput
+              ref={inputRef}
+              style={[s.amountInput, { color: colors.text.primary }]}
+              value={amount}
+              onChangeText={(t) => {
+                setAmount(t.replace(/[^0-9.]/g, ''));
+                setError('');
+              }}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={colors.text.tertiary}
+              autoFocus
+            />
+          </View>
+          <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
+          <View style={s.descRow}>
+            <AntDesign name="edit" size={16} color={colors.text.tertiary} />
+            <TextInput
+              style={[s.descInput, { color: colors.text.primary }]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What was this for?"
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+        </View>
+
+        {/* 2-Column Grid */}
+        <View style={s.grid2}>
+          {/* Left: Category */}
+          <View style={s.gridLeft}>
+            <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: spacing.sm }}
             >
-              <View style={s.heroAmountRow}>
-                <Text style={[s.heroCurrency, { color: colors.text.primary }]}>₹</Text>
-                <TextInput
-                  ref={inputRef}
-                  style={[s.heroAmount, { color: colors.text.primary }]}
-                  value={amount}
-                  onChangeText={(text) => {
-                    const cleaned = text.replace(/[^0-9.]/g, '');
-                    const dotCount = cleaned.split('.').length - 1;
-                    if (dotCount > 1) {
-                      return;
-                    }
-                    setAmount(cleaned);
-                    setError('');
-                    setFieldErrors((p) => ({ ...p, amount: '' }));
-                  }}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={colors.text.tertiary}
-                  returnKeyType="done"
-                  onSubmitEditing={() => inputRef.current?.blur()}
-                />
-              </View>
-              {fieldErrors.amount ? (
-                <Text style={[s.fieldError, { color: colors.status.error }]}>
-                  {fieldErrors.amount}
-                </Text>
-              ) : null}
-              <View style={[s.heroUnderline, { backgroundColor: colors.border.subtle }]}>
-                <View
-                  style={[
-                    s.heroUnderlineFill,
-                    {
-                      width: amount ? `${Math.min((Number(amount) / 10000) * 100, 100)}%` : '0%',
-                      backgroundColor: Number(amount) > 0 ? colors.accent.primary : 'transparent',
-                    },
-                  ]}
-                />
-              </View>
-
-              <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
-
-              <View style={s.descRow}>
-                <AntDesign  name="edit" size={18} color={colors.text.tertiary} />
-                <TextInput
-                  style={[s.descInput, { color: colors.text.primary }]}
-                  value={description}
-                  onChangeText={(v) => {
-                    setDescription(v);
-                    setFieldErrors((p) => ({ ...p, description: '' }));
-                  }}
-                  placeholder="What was this for?"
-                  placeholderTextColor={colors.text.tertiary}
-                />
-              </View>
-              {fieldErrors.description ? (
-                <Text style={[s.fieldError, { color: colors.status.error }]}>
-                  {fieldErrors.description}
-                </Text>
-              ) : null}
-            </View>
-
-            {/* ── Date ── */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => setShowDatePicker(true)}
-              style={[
-                s.datePicker,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              <AntDesign  name="calendar" size={18} color={colors.accent.primary} />
-              <Text style={[s.dateText, { color: colors.text.primary }]}>
-                {new Date(expenseDate + 'T12:00:00').toLocaleDateString('en-IN', {
-                  weekday: 'short',
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {EXPENSE_CATEGORIES.map((cat) => {
+                  const active = category === cat.name;
+                  return (
+                    <TouchableOpacity
+                      key={cat.name}
+                      onPress={() => setCategory(cat.name)}
+                      style={[
+                        s.chip,
+                        {
+                          backgroundColor: active ? cat.color + '18' : colors.bg.card,
+                          borderColor: active ? cat.color : colors.border.subtle,
+                          borderWidth: 1,
+                        },
+                      ]}
+                    >
+                      <AntDesign
+                        name={(cat.icon || 'appstore1') as any}
+                        size={13}
+                        color={active ? cat.color : colors.text.tertiary}
+                      />
+                      <Text
+                        style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
                 })}
-              </Text>
-              <AntDesign  name="down" size={16} color={colors.text.tertiary} />
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={new Date(expenseDate + 'T12:00:00')}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={new Date()}
-                onChange={(_event: any, selectedDate?: Date) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (selectedDate) {
-                    setExpenseDate(selectedDate.toISOString().split('T')[0]);
-                  }
-                  if (Platform.OS !== 'ios') {
-                    setShowDatePicker(false);
-                  }
-                }}
-              />
-            )}
+              </View>
+            </ScrollView>
 
-            {/* ── Paid By ── */}
-            <View>
-              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Paid by</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={s.payerRow}
-              >
+            {/* Left: Paid By */}
+            <Text style={[s.label, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
+              Paid by
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
                 {members.map((m: any, idx: number) => {
                   const selected = paidBy === m.userId;
                   const name = m.user?.firstName || m.user?.email || 'Member';
-                  const initial = (name[0] || '?').toUpperCase();
-                  const color = getMemberColor(idx);
+                  const color = getColor(idx);
                   return (
                     <TouchableOpacity
                       key={m.userId}
                       onPress={() => {
                         setPaidBy(m.userId);
-                        setFieldErrors((p) => ({ ...p, paidBy: '' }));
+                        setError('');
                       }}
-                      activeOpacity={0.7}
                       style={[
-                        s.payerCard,
-                        selected && { borderColor: color, backgroundColor: `${color}12` },
+                        s.payerChip,
+                        {
+                          borderColor: selected ? color : colors.border.subtle,
+                          backgroundColor: selected ? color + '15' : colors.bg.card,
+                        },
                       ]}
                     >
-                      <View style={[s.payerAvatar, { backgroundColor: color }]}>
-                        <Text style={s.payerInitial}>{initial}</Text>
+                      <View style={[s.payerDot, { backgroundColor: color }]}>
+                        <Text style={s.payerInitial}>{(name[0] || '?').toUpperCase()}</Text>
                       </View>
                       <Text
                         style={[s.payerName, { color: selected ? color : colors.text.secondary }]}
@@ -437,635 +448,361 @@ export function SharedExpenseFormScreen() {
                       >
                         {isMe(m.userId) ? 'You' : name}
                       </Text>
-                      {selected && (
-                        <View style={[s.payerCheck, { backgroundColor: color }]}>
-                          <AntDesign  name="check" size={10} color="#FFF" />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-              {fieldErrors.paidBy ? (
-                <Text style={[s.fieldError, { color: colors.status.error }]}>
-                  {fieldErrors.paidBy}
-                </Text>
-              ) : null}
-            </View>
-
-            {/* ── Category ── */}
-            <View>
-              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
-              <View style={s.catGrid}>
-                {EXPENSE_CATEGORIES.map((cat, i) => {
-                  const selected = category === cat.name;
-                  return (
-                    <TouchableOpacity
-                      key={i}
-                      activeOpacity={0.7}
-                      onPress={() => setCategory(selected ? '' : cat.name)}
-                      style={[
-                        s.catCard,
-                        {
-                          backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
-                          borderColor: selected ? cat.color : colors.border.subtle,
-                        },
-                      ]}
-                    >
-                      <View
-                        style={[
-                          s.catIconWrap,
-                          {
-                            backgroundColor: selected ? cat.color : `${cat.color}12`,
-                            shadowColor: selected ? cat.color : 'transparent',
-                          },
-                        ]}
-                      >
-                        <AntDesign
-                          name={cat.icon as any}
-                          size={selected ? 22 : 20}
-                          color={selected ? '#FFF' : cat.color}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          s.catName,
-                          { color: selected ? colors.text.primary : colors.text.secondary },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {cat.name}
-                      </Text>
-                      {selected && (
-                        <View style={[s.catCheck, { backgroundColor: cat.color }]}>
-                          <AntDesign  name="check" size={8} color="#FFF" />
-                        </View>
-                      )}
                     </TouchableOpacity>
                   );
                 })}
               </View>
-            </View>
+            </ScrollView>
+          </View>
 
-            {/* ── Split Method ── */}
-            <View>
-              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Split method</Text>
-              <View style={s.splitGrid}>
-                {SPLIT_TYPES.map((st) => {
-                  const active = splitType === st.key;
-                  return (
-                    <TouchableOpacity
-                      key={st.key}
-                      style={[
-                        s.splitCard,
-                        {
-                          borderColor: active ? colors.accent.primary : colors.border.subtle,
-                          backgroundColor: active ? colors.accent.primary + '15' : colors.bg.card,
-                        },
-                      ]}
-                      onPress={() => setSplitType(st.key)}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={[
-                          s.splitIcon,
-                          { backgroundColor: active ? colors.accent.primary : colors.bg.tertiary },
-                        ]}
-                      >
-                        <AntDesign
-                          name={st.icon as any}
-                          size={18}
-                          color={active ? colors.text.inverse : colors.text.tertiary}
-                        />
-                      </View>
-                      <View style={s.splitInfo}>
-                        <Text
-                          style={[
-                            s.splitLabel,
-                            { color: active ? colors.accent.primary : colors.text.primary },
-                          ]}
-                        >
-                          {st.label}
-                        </Text>
-                        <Text style={[s.splitDesc, { color: colors.text.tertiary }]}>
-                          {st.desc}
-                        </Text>
-                      </View>
-                      {active && (
-                        <AntDesign  name="checkcircleo" size={18} color={colors.accent.primary} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* ── Member Split Inputs ── */}
-            {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
-              <View
-                style={[
-                  s.splitInputsCard,
-                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-                ]}
-              >
-                <Text style={[s.splitInputsTitle, { color: colors.text.primary }]}>
-                  {splitType === 'percentage'
-                    ? 'Enter percentages'
-                    : splitType === 'exact'
-                      ? 'Enter amounts'
-                      : 'Enter shares'}
-                </Text>
-                {members.map((m: any, idx: number) => {
-                  const mName = m.user?.firstName || m.user?.email || 'Member';
-                  const val =
-                    splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
-                  const color = getMemberColor(idx);
-                  return (
-                    <View
-                      key={m.id}
-                      style={[s.splitMemberRow, { borderBottomColor: colors.border.subtle }]}
-                    >
-                      <View style={[s.smAvatar, { backgroundColor: `${color}18` }]}>
-                        <Text style={[s.smInitial, { color }]}>
-                          {(mName[0] || '?').toUpperCase()}
-                        </Text>
-                      </View>
-                      <View style={s.smInfo}>
-                        <Text style={[s.smName, { color: colors.text.primary }]}>
-                          {isMe(m.userId) ? 'You' : mName}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          s.smInputWrap,
-                          {
-                            backgroundColor: colors.bg.tertiary,
-                            borderColor: colors.border.subtle,
-                          },
-                        ]}
-                      >
-                        {splitType === 'exact' && (
-                          <Text style={[s.smPrefix, { color: colors.text.tertiary }]}>₹</Text>
-                        )}
-                        <TextInput
-                          style={[s.smInput, { color: colors.text.primary }]}
-                          value={val}
-                          onChangeText={(v) => {
-                            splitType === 'shares'
-                              ? setSharesCount((prev) => ({ ...prev, [m.id]: v }))
-                              : setSplitValues((prev) => ({ ...prev, [m.id]: v }));
-                          }}
-                          keyboardType="decimal-pad"
-                          placeholder={splitType === 'percentage' ? '0%' : '0'}
-                          placeholderTextColor={colors.text.tertiary}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            {/* ── Split Preview ── */}
-            <View
+          {/* Right: Date + Split Type */}
+          <View style={s.gridRight}>
+            <Text style={[s.label, { color: colors.text.tertiary }]}>Date</Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
               style={[
-                s.previewCard,
+                s.fieldRow,
                 { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <View style={s.previewHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <AntDesign  name="calculator" size={16} color={colors.accent.primary} />
-                  <Text style={[s.previewTitle, { color: colors.text.primary }]}>
-                    Split Preview
-                  </Text>
-                </View>
-                {splitPreview.length > 0 && Number(amount) > 0 && (
-                  <View
+              <AntDesign name="calendar" size={15} color={colors.accent.primary} />
+              <Text style={[s.fieldValue, { color: colors.text.primary }]}>
+                {fmtDate(expenseDate)}
+              </Text>
+              <AntDesign name="down" size={12} color={colors.text.tertiary} />
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={new Date(expenseDate + 'T12:00:00')}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_e: any, d?: Date) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (d) {
+                    setExpenseDate(d.toISOString().split('T')[0]);
+                  }
+                }}
+              />
+            )}
+
+            <Text style={[s.label, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
+              Split
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+              {SPLIT_TYPES.map((st) => {
+                const active = splitType === st.key;
+                return (
+                  <TouchableOpacity
+                    key={st.key}
+                    onPress={() => {
+                      setSplitType(st.key);
+                      setSplitValues({});
+                      setSharesCount({});
+                    }}
                     style={[
-                      s.previewTotal,
+                      s.chip,
                       {
-                        backgroundColor:
-                          Math.abs(diff) < 0.01 ? `${GREEN}15` : `${colors.status.error}15`,
+                        backgroundColor: active ? colors.accent.primary + '18' : colors.bg.card,
+                        borderColor: active ? colors.accent.primary : colors.border.subtle,
+                        borderWidth: 1,
                       },
                     ]}
                   >
+                    <AntDesign
+                      name={st.icon as any}
+                      size={13}
+                      color={active ? colors.accent.primary : colors.text.tertiary}
+                    />
                     <Text
                       style={[
-                        s.previewTotalText,
-                        { color: Math.abs(diff) < 0.01 ? GREEN : colors.status.error },
+                        s.chipText,
+                        { color: active ? colors.accent.primary : colors.text.secondary },
                       ]}
                     >
-                      {Math.abs(diff) < 0.01 ? 'Balanced' : `₹${Math.round(diff)}`}
+                      {st.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
+        {/* Split Inputs (for non-equal) */}
+        {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
+          <View
+            style={[
+              s.splitSection,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[s.splitSectionTitle, { color: colors.text.secondary }]}>
+              {splitType === 'percentage'
+                ? 'Percentages'
+                : splitType === 'exact'
+                  ? 'Amounts'
+                  : 'Shares'}
+            </Text>
+            {members.map((m: any, idx: number) => {
+              const val =
+                splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
+              const color = getColor(idx);
+              const mName = m.user?.firstName || m.user?.email || 'Member';
+              return (
+                <View key={m.id} style={[s.splitRow, { borderBottomColor: colors.border.subtle }]}>
+                  <View style={[s.splitAvatar, { backgroundColor: color + '18' }]}>
+                    <Text style={[s.splitInitial, { color }]}>
+                      {(mName[0] || '?').toUpperCase()}
                     </Text>
                   </View>
-                )}
-              </View>
-              {splitPreview.length > 0 && maxPreviewValue > 0 ? (
-                splitPreview.map((item, i) => {
-                  const barWidth = maxPreviewValue > 0 ? (item.value / maxPreviewValue) * 100 : 0;
-                  return (
-                    <View key={i} style={s.previewRow}>
-                      <View style={s.previewBarRow}>
-                        <View style={[s.previewBarBg, { backgroundColor: colors.bg.tertiary }]}>
-                          <View
-                            style={[
-                              s.previewBarFill,
-                              {
-                                width: `${Math.max(barWidth, 2)}%`,
-                                backgroundColor: getMemberColor(i),
-                              },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                      <View style={s.previewLabelRow}>
-                        <Text
-                          style={[s.previewName, { color: colors.text.secondary }]}
-                          numberOfLines={1}
-                        >
-                          {item.name}
-                        </Text>
-                        <Text style={[s.previewValue, { color: colors.text.primary }]}>
-                          {'detail' in item && item.detail
-                            ? `${item.detail}`
-                            : `₹${Math.round(item.value)}`}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })
-              ) : (
-                <View style={s.previewEmpty}>
-                  <AntDesign  name="calculator" size={28} color={colors.text.tertiary} />
-                  <Text style={[s.previewEmptyText, { color: colors.text.tertiary }]}>
-                    Enter amount to see split preview
+                  <Text style={[s.splitName, { color: colors.text.primary }]}>
+                    {isMe(m.userId) ? 'You' : mName}
                   </Text>
+                  <View
+                    style={[
+                      s.splitInputWrap,
+                      { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                    ]}
+                  >
+                    {splitType === 'exact' && (
+                      <Text style={[s.splitPrefix, { color: colors.text.tertiary }]}>₹</Text>
+                    )}
+                    <TextInput
+                      style={[s.splitInput, { color: colors.text.primary }]}
+                      value={val}
+                      onChangeText={(v) => {
+                        splitType === 'shares'
+                          ? setSharesCount((p) => ({ ...p, [m.id]: v }))
+                          : setSplitValues((p) => ({ ...p, [m.id]: v }));
+                      }}
+                      keyboardType="decimal-pad"
+                      placeholder={splitType === 'percentage' ? '0%' : '0'}
+                      placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
                 </View>
-              )}
-            </View>
+              );
+            })}
+          </View>
+        )}
 
-            {/* ── Notes (collapsible) ── */}
-            <TouchableOpacity
-              style={[
-                s.notesToggle,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-              onPress={() => setShowNotes(!showNotes)}
-              activeOpacity={0.7}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <AntDesign  name="filetext1" size={18} color={colors.text.tertiary} />
-                <Text style={[s.notesToggleText, { color: colors.text.secondary }]}>
-                  {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
+        {/* Split Preview (compact) */}
+        {Number(amount) > 0 && splitPreview.length > 0 && (
+          <View
+            style={[
+              s.previewCard,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <AntDesign
+                name="calculator"
+                size={14}
+                color={balanceOk ? '#10B981' : colors.status.error}
+              />
+              <Text style={[s.previewTitle, { color: colors.text.primary }]}>Split Preview</Text>
+              <View style={{ flex: 1 }} />
+              <View
+                style={[
+                  s.balanceBadge,
+                  { backgroundColor: balanceOk ? '#10B981' + '15' : colors.status.error + '15' },
+                ]}
+              >
+                <Text
+                  style={[s.balanceText, { color: balanceOk ? '#10B981' : colors.status.error }]}
+                >
+                  {balanceOk ? 'Balanced' : `₹${Math.round(diff)}`}
                 </Text>
               </View>
-              <AntDesign
-                name={showNotes ? 'up' : 'down'}
-                size={16}
-                color={colors.text.tertiary}
-              />
-            </TouchableOpacity>
-            {showNotes && (
-              <TextInput
-                style={[
-                  s.notesInput,
-                  {
-                    backgroundColor: colors.bg.card,
-                    borderColor: colors.border.subtle,
-                    color: colors.text.primary,
-                  },
-                ]}
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Any additional notes..."
-                placeholderTextColor={colors.text.tertiary}
-                multiline
-              />
-            )}
-
-            {/* ── Save ── */}
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={saving || !percentageValid}
-              activeOpacity={0.85}
-              style={[s.saveBtn, (saving || !percentageValid) && { opacity: 0.6 }]}
-            >
-              <LinearGradient
-                colors={[colors.accent.primary, colors.accent.primary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={s.saveGrad}
-              >
-                {saving ? (
-                  <ActivityIndicator color={colors.text.inverse} />
-                ) : (
-                  <>
-                    <AntDesign  name="checkcircleo" size={20} color={colors.text.inverse} />
-                    <Text style={[s.saveText, { color: colors.text.inverse }]}>
-                      {edit ? 'Update Expense' : 'Save Expense'}
-                    </Text>
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* ── Delete (edit mode only) ── */}
-            {edit && expenseId && (
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    'Delete Expense',
-                    'Are you sure? This cannot be undone.',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Delete',
-                        style: 'destructive',
-                        onPress: async () => {
-                          try {
-                            setDeleting(true);
-                            if (accessToken) {
-                              setAccessToken(accessToken);
-                            }
-                            await api.delete(`/shared-finance/expenses/${expenseId}`);
-                            showToast('Expense deleted');
-                            navigation.goBack();
-                          } catch (e: any) {
-                            setError(e.message || 'Failed to delete');
-                          } finally {
-                            setDeleting(false);
-                          }
-                        },
-                      },
-                    ],
-                  );
-                }}
-                disabled={deleting}
-                activeOpacity={0.7}
-                style={[
-                  s.deleteBtn,
-                  { borderColor: colors.status.error + '30' },
-                  deleting && { opacity: 0.4 },
-                ]}
-              >
-                <AntDesign  name="delete" size={18} color={colors.status.error} />
-                <Text style={[s.deleteText, { color: colors.status.error }]}>Delete Expense</Text>
-              </TouchableOpacity>
-            )}
+            </View>
+            {splitPreview.map((item, i) => (
+              <View key={i} style={s.previewRow}>
+                <Text style={[s.previewName, { color: colors.text.secondary }]} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <View style={{ flex: 1 }} />
+                {(item as any).detail ? (
+                  <Text style={[s.previewDetail, { color: colors.text.tertiary }]}>
+                    {(item as any).detail}
+                  </Text>
+                ) : null}
+                <Text style={[s.previewValue, { color: colors.text.primary }]}>
+                  ₹{Math.round(item.value)}
+                </Text>
+              </View>
+            ))}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingContainer>
-    </View>
+        )}
+
+        {/* Save */}
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={saving || !percentageValid}
+          activeOpacity={0.85}
+          style={[s.saveBtn, { opacity: saving || !percentageValid ? 0.6 : 1 }]}
+        >
+          <LinearGradient
+            colors={[colors.accent.primary, colors.accent.hover || colors.accent.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.saveGrad}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <>
+                <AntDesign name="checkcircleo" size={18} color="#FFF" />
+                <Text style={s.saveText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-
-  /* ── Error ── */
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 14,
-    borderRadius: 14,
-    gap: 10,
-  },
-  errorText: { fontSize: 13, flex: 1, lineHeight: 18 },
-
-  /* ── Hero Card (Amount + Description) ── */
-  heroCard: { borderRadius: 20, padding: 20, borderWidth: 1, gap: 0 },
-  heroAmountRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.sm,
   },
-  heroCurrency: { fontSize: 32, fontWeight: '700' },
-  heroAmount: {
-    fontSize: 44,
-    fontWeight: '800',
-    letterSpacing: -1.5,
-    textAlign: 'center',
-    minWidth: 140,
-    paddingVertical: 0,
-  },
-  heroUnderline: { height: 3, borderRadius: 2, width: '50%', alignSelf: 'center', marginTop: 8 },
-  heroUnderlineFill: { height: 3, borderRadius: 2 },
-  divider: { height: 1, marginVertical: 16 },
-  descRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  descInput: { flex: 1, fontSize: 16, paddingVertical: 2, paddingHorizontal: 0 },
-  fieldError: { fontSize: 12, fontWeight: '500', marginTop: 4, marginLeft: 2 },
-
-  /* ── Section Label ── */
-  sectionLabel: { fontSize: 14, fontWeight: '700', marginBottom: 12, letterSpacing: -0.2 },
-
-  /* ── Paid By ── */
-  payerRow: { gap: 10, paddingBottom: 4 },
-  payerCard: {
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    minWidth: 72,
-  },
-  payerAvatar: {
+  backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  payerInitial: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  payerName: { fontSize: 12, fontWeight: '600', maxWidth: 64 },
-  payerCheck: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFF',
-  },
-
-  /* ── Date Picker ── */
-  datePicker: {
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  errorBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  dateText: { flex: 1, fontSize: 15, fontWeight: '600' },
-
-  /* ── Category Grid ── */
-  catGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'flex-start',
-  },
-  catCard: {
-    width: (SCREEN_W - 60) / 3,
     alignItems: 'center',
     gap: 8,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    paddingVertical: 16,
-    paddingHorizontal: 4,
-    backgroundColor: 'transparent',
-    position: 'relative',
+    padding: spacing.md,
+    marginHorizontal: spacing.xl,
+    borderRadius: 12,
   },
-  catIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+  errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
+  amountCard: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md },
+  amountRow: { flexDirection: 'row', alignItems: 'center' },
+  currencySign: { fontSize: 28, fontWeight: '700', marginRight: 6 },
+  amountInput: { flex: 1, fontSize: 28, fontWeight: '700', padding: 0 },
+  divider: { height: 1, marginVertical: spacing.sm },
+  descRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  descInput: { flex: 1, fontSize: 14, fontWeight: '500', padding: 0 },
+  grid2: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  gridLeft: { flex: 1 },
+  gridRight: { flex: 1 },
+  label: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 6,
   },
-  catName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
-  catCheck: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFF',
-  },
-
-  /* ── Split Method ── */
-  splitGrid: { gap: 8 },
-  splitCard: {
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 16,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  chipText: { fontSize: 11, fontWeight: '600' },
+  payerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
   },
-  splitIcon: {
-    width: 40,
-    height: 40,
+  payerDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payerInitial: { color: '#FFF', fontSize: 10, fontWeight: '800' },
+  payerName: { fontSize: 11, fontWeight: '600', maxWidth: 50 },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  fieldValue: { fontSize: 13, fontWeight: '600', flex: 1 },
+  splitSection: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  splitSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: spacing.xs,
+  },
+  splitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  splitAvatar: {
+    width: 28,
+    height: 28,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  splitInfo: { flex: 1 },
-  splitLabel: { fontSize: 14, fontWeight: '700' },
-  splitDesc: { fontSize: 11, marginTop: 1 },
-
-  /* ── Split Inputs ── */
-  splitInputsCard: { borderRadius: 20, padding: 16, borderWidth: 1, gap: 0 },
-  splitInputsTitle: { fontSize: 13, fontWeight: '700', marginBottom: 8 },
-  splitMemberRow: {
+  splitInitial: { fontSize: 11, fontWeight: '800' },
+  splitName: { flex: 1, fontSize: 13, fontWeight: '600' },
+  splitInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  smAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  smInitial: { fontSize: 12, fontWeight: '700' },
-  smInfo: { flex: 1 },
-  smName: { fontSize: 14, fontWeight: '600' },
-  smInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    width: 96,
+    minWidth: 70,
   },
-  smPrefix: { fontSize: 13, fontWeight: '600', marginRight: 2 },
-  smInput: { flex: 1, fontSize: 13, paddingVertical: 6, textAlign: 'right' },
-
-  /* ── Split Preview ── */
-  previewCard: { borderRadius: 20, padding: 18, borderWidth: 1, gap: 12 },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  splitPrefix: { fontSize: 13, fontWeight: '600' },
+  splitInput: { fontSize: 13, fontWeight: '700', padding: 0, minWidth: 40, textAlign: 'right' },
+  previewCard: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
-  previewTitle: { fontSize: 14, fontWeight: '700' },
-  previewTotal: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  previewTotalText: { fontSize: 11, fontWeight: '700' },
-  previewRow: { gap: 4 },
-  previewBarRow: { marginBottom: 2 },
-  previewBarBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  previewBarFill: { height: 8, borderRadius: 4 },
-  previewLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  previewName: { fontSize: 12, fontWeight: '500', flex: 1 },
+  previewTitle: { fontSize: 13, fontWeight: '700' },
+  balanceBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  balanceText: { fontSize: 10, fontWeight: '700' },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
+  previewName: { fontSize: 12, fontWeight: '500', maxWidth: 100 },
+  previewDetail: { fontSize: 10, fontWeight: '600' },
   previewValue: { fontSize: 13, fontWeight: '700' },
-  previewEmpty: { alignItems: 'center', gap: 8, paddingVertical: 16 },
-  previewEmptyText: { fontSize: 13 },
-
-  /* ── Notes ── */
-  notesToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  notesToggleText: { fontSize: 14, fontWeight: '500' },
-  notesInput: {
-    fontSize: 15,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginTop: -12,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-
-  /* ── Save ── */
-  saveBtn: { borderRadius: 18, overflow: 'hidden', marginTop: 4, marginBottom: 8 },
+  saveBtn: { borderRadius: borderRadius['2xl'], overflow: 'hidden' },
   saveGrad: {
     flexDirection: 'row',
-    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    paddingVertical: 16,
   },
-  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
-
-  /* ── Delete ── */
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  deleteText: { fontSize: 15, fontWeight: '600' },
+  saveText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
