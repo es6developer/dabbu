@@ -14,6 +14,7 @@ import { ReferralScreen } from '../screens/referral/ReferralScreen';
 import { ThemeScreen } from '../screens/settings/ThemeScreen';
 import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
 import { ContactUsScreen } from '../screens/settings/ContactUsScreen';
+import { PrivacyScreen } from '../screens/settings/PrivacyScreen';
 import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
 import { FavoriteContactsScreen } from '../screens/settings/FavoriteContactsScreen';
@@ -42,6 +43,7 @@ export function SettingsNavigator() {
       <Stack.Screen name="Theme" component={ThemeScreen} options={{ title: 'Theme' }} />
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} options={{ title: 'Help Center' }} />
       <Stack.Screen name="ContactUs" component={ContactUsScreen} options={{ title: 'Contact Us' }} />
+      <Stack.Screen name="PrivacySettings" component={PrivacyScreen} options={{ title: 'Privacy' }} />
       <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} options={{ title: 'Privacy Policy' }} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Favorites" component={FavoriteContactsScreen} options={{ title: 'Favorites' }} />

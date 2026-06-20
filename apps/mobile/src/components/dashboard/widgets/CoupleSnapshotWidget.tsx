@@ -10,8 +10,8 @@ const fmt = (n: number) => '₹' + (n || 0).toLocaleString('en-IN', { maximumFra
 export function CoupleSnapshotWidget({ data, onPress }: { data: any; onPress?: () => void }) {
   const { colors, isDark } = useTheme();
   const { coupleSnapshot } = data || {};
-  const userContribution = Number(coupleSnapshot?.userContribution || 0);
-  const partnerContribution = Number(coupleSnapshot?.partnerContribution || 0);
+  const userContribution = Number(coupleSnapshot?.yourContribution?.amount ?? coupleSnapshot?.userContribution ?? 0);
+  const partnerContribution = Number(coupleSnapshot?.partnerContribution?.amount ?? coupleSnapshot?.partnerContribution ?? 0);
   const combinedIncome = Number(coupleSnapshot?.combinedIncome || 0);
   const combinedExpense = Number(coupleSnapshot?.combinedExpense || 0);
   const combinedSavings = Number(coupleSnapshot?.savings || coupleSnapshot?.combinedSavings || 0);
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     ...shadows.md,
     overflow: 'hidden',
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.md },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   iconBox: {
     width: 36,
     height: 36,
@@ -119,13 +119,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: { fontSize: 15, fontWeight: '700' },
-  barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   barItem: { flex: 1, gap: 2 },
   barLabel: { fontSize: 11, fontWeight: '500' },
   barValue: { fontSize: 16, fontWeight: '700' },
   barDivider: { width: 1, height: 32, marginHorizontal: 16 },
-  divider: { height: 1, marginBottom: spacing.md },
-  statsGrid: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  divider: { height: 1, marginBottom: 10 },
+  statsGrid: { flexDirection: 'row', gap: 6, marginBottom: 10 },
   statItem: { flex: 1, gap: 3, alignItems: 'center' },
   statLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
   statValue: { fontSize: 14, fontWeight: '700' },

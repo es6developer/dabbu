@@ -4,6 +4,8 @@ import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
 import { WalletHomeScreen } from '../screens/wallet/WalletHomeScreen';
+import { CreateGroupScreen } from '../screens/wallet/CreateGroupScreen';
+import { GroupDetailScreen } from '../screens/wallet/GroupDetailScreen';
 import { BillScannerScreen } from '../screens/transactions/BillScannerScreen';
 import { BillsListScreen } from '../screens/bills/BillsListScreen';
 import { BillDetailScreen } from '../screens/bills/BillDetailScreen';
@@ -30,6 +32,16 @@ export function WalletNavigator() {
       <Stack.Screen
         name="WalletHome"
         component={WalletHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateGroup"
+        component={CreateGroupScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GroupDetail"
+        component={GroupDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

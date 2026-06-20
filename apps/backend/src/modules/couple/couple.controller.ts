@@ -10,6 +10,10 @@ import { CoupleService } from './couple.service';
 class SendRequestDto { @IsString() @IsNotEmpty() phone: string; }
 class ToggleModeDto { @IsBoolean() @IsNotEmpty() isCoupleMode: boolean; }
 class JoinDto { @IsString() @IsNotEmpty() code: string; }
+class AddSharedSavingDto {
+  @IsNotEmpty() amount: number;
+  notes?: string;
+}
 
 @ApiTags('Couple')
 @ApiBearerAuth()
@@ -101,6 +105,13 @@ export class CoupleController {
   @ApiOperation({ summary: 'Get planner by type' })
   async getPlannerByType(@CurrentUser('id') userId: string, @Param('type') type: string) {
     return this.coupleService.getPlannerByType(userId, type);
+  }
+
+  @Post('shared-savings')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Add a shared saving record' })
+  async addSharedSaving(@CurrentUser('id') userId: string, @Body() dto: AddSharedSavingDto) {
+    return this.coupleService.addSharedSaving(userId, dto.amount, dto.notes);
   }
 
   @Get('coach')

@@ -47,6 +47,7 @@ export class TransactionsService {
         notes: dto.notes,
         tags: dto.tags || [],
         isRecurring: dto.isRecurring || false,
+        recurringId: dto.isRecurring ? (dto.recurringId || uuidv4()) : undefined,
         recurringFrequency: dto.recurringFrequency,
         receiptUrl: dto.receiptUrl,
         status: 'completed',

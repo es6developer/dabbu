@@ -14,7 +14,7 @@ import { CombinedWealthWidget } from './widgets/CombinedWealthWidget';
 import { CoupleSnapshotWidget } from './widgets/CoupleSnapshotWidget';
 import { SharedSavingsWidget } from './widgets/SharedSavingsWidget';
 import { CoupleHealthWidget } from './widgets/CoupleHealthWidget';
-import { SharedExpensesWidget } from './widgets/SharedExpensesWidget';
+
 import { CoupleAIWidget } from './widgets/CoupleAIWidget';
 import { CoupleGoalsWidget } from './widgets/CoupleGoalsWidget';
 import { CoupleTimelineWidget } from './widgets/CoupleTimelineWidget';
@@ -45,7 +45,6 @@ export type WidgetType =
   | 'coupleSnapshot'
   | 'sharedSavings'
   | 'coupleHealth'
-  | 'sharedExpenses'
   | 'coupleAI'
   | 'coupleGoals'
   | 'coupleTimeline'
@@ -195,13 +194,6 @@ registerWidget({
   defaultLabel: 'Couple Health',
   defaultIcon: 'heart-circle-outline',
   defaultHeight: 220,
-});
-registerWidget({
-  type: 'sharedExpenses',
-  component: SharedExpensesWidget,
-  defaultLabel: 'Shared Expenses',
-  defaultIcon: 'shoppingcart',
-  defaultHeight: 200,
 });
 registerWidget({
   type: 'coupleAI',

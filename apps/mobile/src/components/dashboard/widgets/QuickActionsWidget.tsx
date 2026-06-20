@@ -63,7 +63,15 @@ export function QuickActionsWidget({
 
   const handleAction = (action: (typeof actions)[0]) => {
     if (onNavigate) {
-      onNavigate(action.screen, { mode: 'couple' });
+      const [screen, qs] = action.screen.split('?');
+      const params: Record<string, any> = { mode: 'couple' };
+      if (qs) {
+        qs.split('&').forEach((p) => {
+          const [k, v] = p.split('=');
+          params[k] = v;
+        });
+      }
+      onNavigate(screen, params);
     }
   };
 

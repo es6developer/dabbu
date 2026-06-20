@@ -259,6 +259,9 @@ export class SharedFinanceService {
       include: {
         group: {
           include: {
+            creator: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+            },
             members: {
               where: { isActive: true },
               include: {
@@ -303,6 +306,9 @@ export class SharedFinanceService {
             include: {
               group: {
                 include: {
+                  creator: {
+                    select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+                  },
                   members: {
                     where: { isActive: true },
                     include: {

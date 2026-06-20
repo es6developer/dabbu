@@ -983,4 +983,20 @@ export class CoupleService {
       partnerAchievements: partnerBadges.length,
     };
   }
+
+  async addSharedSaving(userId: string, amount: number, notes?: string) {
+    const groupId = await this.findCoupleGroupId(userId);
+    if (!groupId) {
+      throw new NotFoundException('Couple group not found');
+    }
+    const saving = await this.prisma.coupleFinanceSaving.create({
+      data: {
+        groupId,
+        amount,
+        contributedBy: userId,
+        notes: notes || null,
+      },
+    });
+    return { id: saving.id, amount: Number(saving.amount), date: saving.date };
+  }
 }

@@ -45,6 +45,7 @@ export class CoupleDashboardService {
             'UPCOMING_BILLS',
             'RECENT_TRANSACTIONS',
             'QUICK_ACTIONS',
+            'SHARED_SAVINGS',
           ],
     );
 
@@ -63,6 +64,7 @@ export class CoupleDashboardService {
       UPCOMING_BILLS: () => this.getCombinedBills([userId, user.partnerId!]),
       RECENT_TRANSACTIONS: () => this.getCombinedTransactions([userId, user.partnerId!]),
       QUICK_ACTIONS: () => this.getQuickActions(),
+      SHARED_SAVINGS: () => this.getSharedSavings(userId),
     };
 
     const results = await Promise.all(
@@ -88,11 +90,11 @@ export class CoupleDashboardService {
     const [user, partner] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: userId },
-        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
+        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true, partnerLinkedAt: true },
       }),
       this.prisma.user.findUnique({
         where: { id: partnerId },
-        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
+        select: { firstName: true, lastName: true, avatarUrl: true, maritalStatus: true, partnerLinkedAt: true },
       }),
     ]);
     const profile = await this.prisma.coupleFinanceProfile.findFirst({
@@ -134,17 +136,27 @@ export class CoupleDashboardService {
       this.prisma.userNetWorth.findUnique({ where: { userId } }),
       this.prisma.userNetWorth.findUnique({ where: { userId: partnerId } }),
     ]);
-    const combined = {
-      totalAssets: Number(userNw?.totalAssets || 0) + Number(partnerNw?.totalAssets || 0),
-      totalLiabilities:
-        Number(userNw?.totalLiabilities || 0) + Number(partnerNw?.totalLiabilities || 0),
-    };
-    const netWorth = combined.totalAssets - combined.totalLiabilities;
+    const u = userNw || ({} as any);
+    const p = partnerNw || ({} as any);
+    const totalCash = Number(u.cash || 0) + Number(p.cash || 0);
+    const totalSavings = Number(u.bank || 0) + Number(p.bank || 0);
+    const totalInvestments = Number(u.investments || 0) + Number(p.investments || 0);
+    const totalProperty = Number(u.property || 0) + Number(p.property || 0);
+    const totalOtherAssets = Number(u.otherAssets || 0) + Number(p.otherAssets || 0);
+    const totalAssets = totalCash + totalSavings + totalInvestments + totalProperty + totalOtherAssets;
+    const totalLiabilities =
+      Number(u.homeLoan || 0) + Number(u.personalLoan || 0) + Number(u.creditCardDebt || 0) + Number(u.otherLiabilities || 0)
+      + Number(p.homeLoan || 0) + Number(p.personalLoan || 0) + Number(p.creditCardDebt || 0) + Number(p.otherLiabilities || 0);
+    const netWorth = totalAssets - totalLiabilities;
     return {
-      totalAssets: combined.totalAssets,
-      savings: 0,
-      investments: 0,
+      totalCash,
+      totalAssets,
+      savings: totalSavings,
+      totalSavings,
+      investments: totalInvestments,
+      totalInvestments: totalInvestments,
       netWorth,
+      totalLiabilities,
     };
   }
 
@@ -163,20 +175,12 @@ export class CoupleDashboardService {
         color: true,
       },
     });
-    const emojiMap: Record<string, string> = {
-      house: '🏠',
-      car: '🚗',
-      vacation: '✈️',
-      education: '📚',
-      wedding: '💒',
-      emergency: '🆘',
-      baby: '👶',
-      retirement: '🌴',
-      other: '🎯',
-    };
     return goals.map((g) => ({
+      id: g.id,
       name: g.name,
-      emoji: emojiMap[g.type || 'other'] || g.icon || '🎯',
+      type: g.type || 'other',
+      targetAmount: Number(g.targetAmount),
+      savedAmount: Number(g.currentAmount),
       progress:
         Number(g.targetAmount) > 0
           ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100)
@@ -199,12 +203,23 @@ export class CoupleDashboardService {
       }),
       this.prisma.coupleLevel.findUnique({ where: { groupId: profile.groupId } }),
     ]);
+    const userIds = [userId, partnerId];
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, firstName: true, lastName: true },
+    });
+    const userMap = new Map(users.map((u) => [u.id, u]));
     return {
       events: events.map((e) => ({
         id: e.id,
         type: e.eventType,
-        description: e.description || e.title,
+        title: e.title,
+        description: e.description || undefined,
+        amount: e.amount ? Number(e.amount) : undefined,
         date: e.createdAt,
+        user: e.userId && userMap.has(e.userId)
+          ? { name: `${userMap.get(e.userId)!.firstName || ''} ${userMap.get(e.userId)!.lastName || ''}`.trim() || 'Partner' }
+          : undefined,
       })),
       level: level?.level || 1,
       xp: level?.xp || 0,
@@ -282,14 +297,17 @@ export class CoupleDashboardService {
           )
         : 0;
     return {
+      overallScore: avgScore,
       score: avgScore,
-      subScores: [
-        avgSub('savingsRate'),
-        avgSub('budgetDiscipline'),
-        avgSub('goalProgress'),
-        avgSub('emergencyFund'),
-        100 - avgSub('debtRatio'),
-      ],
+      categories: {
+        savingsAlignment: avgSub('savingsRate'),
+        expenseAlignment: avgSub('budgetDiscipline'),
+        goalAlignment: avgSub('goalProgress'),
+        emergencyFund: avgSub('emergencyFund'),
+        debtManagement: 100 - avgSub('debtRatio'),
+      },
+      compatibilityScore: 0,
+      level: 1,
     };
   }
 
@@ -353,6 +371,27 @@ export class CoupleDashboardService {
       type: t.type === 'income' ? 'arrowdown' : 'arrowup',
       category: t.categoryId,
     }));
+  }
+
+  private async getSharedSavings(userId: string) {
+    const profile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
+      select: { groupId: true, savingsGoal: true },
+    });
+    if (!profile?.groupId) {
+      return { current: 0, target: 0, remaining: 0, expectedCompletion: null };
+    }
+    const records = await this.prisma.coupleFinanceSaving.findMany({
+      where: { groupId: profile.groupId },
+    });
+    const total = records.reduce((s, r) => s + Number(r.amount), 0);
+    const target = Number(profile.savingsGoal || 0);
+    return {
+      current: total,
+      target,
+      remaining: Math.max(0, target - total),
+      expectedCompletion: null,
+    };
   }
 
   private async getQuickActions() {

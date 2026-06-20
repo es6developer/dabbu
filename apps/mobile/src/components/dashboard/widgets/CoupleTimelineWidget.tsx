@@ -61,7 +61,9 @@ function formatDate(dateStr: string) {
 export function CoupleTimelineWidget({ data, onPress }: { data: any; onPress?: () => void }) {
   const { colors, isDark } = useTheme();
   const { coupleTimeline } = data || {};
-  const events = Array.isArray(coupleTimeline) ? coupleTimeline : [];
+  const events = Array.isArray(coupleTimeline)
+    ? coupleTimeline
+    : coupleTimeline?.events || [];
 
   if (!events.length) {
     return (

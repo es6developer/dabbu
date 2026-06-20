@@ -13,6 +13,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSpaceStore } from '../../store/spaceStore';
@@ -96,7 +97,6 @@ export function LifeDashboardScreen() {
   const [netWorth, setNetWorth] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
-  const [goals, setGoals] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [healthScore, setHealthScore] = useState<number | null>(null);
@@ -142,14 +142,13 @@ export function LifeDashboardScreen() {
 
       try {
         const statsP = api.get<any>('/transactions/stats?months=1', ctrl.signal);
-        const goalP = api.get<any>('/goals', ctrl.signal);
         const notifP = api.get<any>('/notifications/unread-count', ctrl.signal);
         const budgetsP = api.get<any>('/budgets', ctrl.signal).catch(() => []);
         const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal).catch(() => null);
         const dashboardP = api.get<any>('/dashboard/personal', ctrl.signal).catch(() => null);
 
-        const [statsRes, goalRes, notifRes, budgetsRes, wealthRes, dashboardRes] =
-          await Promise.allSettled([statsP, goalP, notifP, budgetsP, wealthP, dashboardP]);
+        const [statsRes, notifRes, budgetsRes, wealthRes, dashboardRes] =
+          await Promise.allSettled([statsP, notifP, budgetsP, wealthP, dashboardP]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -166,9 +165,6 @@ export function LifeDashboardScreen() {
           }
           if (d.healthScore) {
             setHealthScore(d.healthScore.score ?? null);
-          }
-          if (d.goals) {
-            setGoals(Array.isArray(d.goals) ? d.goals : []);
           }
           if (d.budgetsOverview) {
             setBudgets(Array.isArray(d.budgetsOverview) ? d.budgetsOverview : []);
@@ -192,10 +188,6 @@ export function LifeDashboardScreen() {
               setTotalBalance(bal);
             }
           }
-        }
-
-        if (goalRes.status === 'fulfilled') {
-          setGoals(listFromResponse(goalRes.value));
         }
 
         if (notifRes.status === 'fulfilled') {
@@ -442,6 +434,22 @@ export function LifeDashboardScreen() {
                 loadCoupleDashboard();
               }}
               onNavigate={(screen, params) => navigation.navigate(screen, params)}
+              onWidgetPress={(type) => {
+                const coupleNav: Record<string, string> = {
+                  coupleHero: 'CoupleSpace',
+                  combinedWealth: 'NetWorth',
+                  coupleSnapshot: 'CoupleSpace',
+                  sharedSavings: 'CoupleSavings',
+                  coupleHealth: 'HealthScore',
+                  coupleAI: 'DabbuAI',
+                  coupleGoals: 'CoupleGoals',
+                  coupleTimeline: 'CoupleTimeline',
+                  upcomingBills: 'CoupleBudgets',
+                  quickActions: '',
+                };
+                const screen = coupleNav[type];
+                if (screen) navigation.navigate(screen);
+              }}
               hideTitle
             />
           ) : (
@@ -543,6 +551,18 @@ export function LifeDashboardScreen() {
                 loadFamilyDashboard();
               }}
               onNavigate={(screen, params) => navigation.navigate(screen, params)}
+              onWidgetPress={(type) => {
+                const familyNav: Record<string, string> = {
+                  familyHero: 'FamilyHubTab',
+                  familyWealth: 'NetWorth',
+                  familySnapshot: 'FamilyHubTab',
+                  familyHealth: 'HealthScore',
+                  familyAI: 'DabbuAI',
+                  familyGoals: 'GoalsList',
+                };
+                const screen = familyNav[type];
+                if (screen) navigation.navigate(screen);
+              }}
               hideTitle
             />
           ) : (
@@ -589,7 +609,7 @@ export function LifeDashboardScreen() {
                 style={[styles.emptyCta, { backgroundColor: '#8B5CF6' }]}
                 activeOpacity={0.8}
               >
-                <AntDesign name="addusergroup" size={16} color="#FFF" />
+                <AntDesign name="team" size={16} color="#FFF" />
                 <Text style={styles.emptyCtaText}>Create Family</Text>
               </TouchableOpacity>
             </View>
@@ -610,7 +630,7 @@ export function LifeDashboardScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingTop: insets.top + 2, paddingBottom: 100 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -1062,8 +1082,8 @@ export function LifeDashboardScreen() {
                   Active Spaces
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('SpacesDashboard')}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
-                    Show All ({spaces.length})
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.brand.primary }}>
+                    See all ({spaces.length})
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1192,82 +1212,6 @@ export function LifeDashboardScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* ─── GOALS PREVIEW ─── */}
-          {goals.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-              <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
-                  Active Goals
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
-                    See All
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ gap: 8 }}>
-                {goals.slice(0, 3).map((g: any) => {
-                  const pct =
-                    g.targetAmount > 0
-                      ? Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100)
-                      : 0;
-                  return (
-                    <TouchableOpacity
-                      key={g.id}
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        navigation.navigate('HomeTab', {
-                          screen: 'GoalDetail',
-                          params: { goalId: g.id },
-                        })
-                      }
-                      style={[styles.goalCard, { backgroundColor: colors.bg.card }]}
-                    >
-                      <View style={styles.goalHeader}>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: '700',
-                            color: colors.text.primary,
-                            flex: 1,
-                          }}
-                          numberOfLines={1}
-                        >
-                          {g.name || g.title}
-                        </Text>
-                        <Text
-                          style={{ fontSize: 12, fontWeight: '700', color: colors.brand.primary }}
-                        >
-                          {fmtShort(g.currentAmount)} / {fmtShort(g.targetAmount)}
-                        </Text>
-                      </View>
-                      <View style={[styles.goalBarBg, { backgroundColor: colors.border.subtle }]}>
-                        <View
-                          style={[
-                            styles.goalBarFill,
-                            { width: `${pct}%`, backgroundColor: g.color || '#7C3AED' },
-                          ]}
-                        />
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontWeight: '600',
-                          color: colors.text.tertiary,
-                          marginTop: 2,
-                        }}
-                      >
-                        {pct}% complete
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
 
           {/* ─── ERROR STATE ─── */}
           {error && (
@@ -1559,30 +1503,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     lineHeight: 15,
-  },
-  goalCard: {
-    borderRadius: 16,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  goalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  goalBarBg: {
-    height: 5,
-    borderRadius: 99,
-    overflow: 'hidden',
-  },
-  goalBarFill: {
-    height: '100%',
-    borderRadius: 99,
   },
   errorCard: {
     flexDirection: 'row',

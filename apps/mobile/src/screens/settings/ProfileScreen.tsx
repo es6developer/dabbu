@@ -18,42 +18,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { Avatar } from '../../components/ui/Avatar';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { useUserStore } from '../../store/userStore';
 import { useLensStore, LensMode } from '../../store/lensStore';
 
-const LENS_OPTIONS: {
-  id: LensMode;
-  icon: React.ComponentProps<typeof AntDesign>['name'];
-  title: string;
-  desc: string;
-}[] = [
-  {
-    id: 'PERSONAL',
-    icon: 'user',
-    title: 'Personal Finance',
-    desc: 'Manage your personal finances, savings, and investments.',
-  },
-  {
-    id: 'PARTNERED',
-    icon: 'heart',
-    title: 'Couple Finance',
-    desc: 'Track finances together, split expenses, and share goals.',
-  },
-  {
-    id: 'FAMILY',
-    icon: 'team',
-    title: 'Family Finance',
-    desc: 'Manage family budgets, allowances, and shared goals.',
-  },
-  {
-    id: 'FULL',
-    icon: 'earth',
-    title: 'All (Recommended)',
-    desc: 'Access all features — personal, couple, family, and group.',
-  },
+const LENS_OPTIONS: { id: LensMode; icon: React.ComponentProps<typeof AntDesign>['name']; title: string; desc: string }[] = [
+  { id: 'PERSONAL', icon: 'user', title: 'Personal Finance', desc: 'Manage your personal finances, savings, and investments.' },
+  { id: 'PARTNERED', icon: 'heart', title: 'Couple Finance', desc: 'Track finances together, split expenses, and share goals.' },
+  { id: 'FAMILY', icon: 'team', title: 'Family Finance', desc: 'Manage family budgets, allowances, and shared goals.' },
+  { id: 'FULL', icon: 'earth', title: 'All (Recommended)', desc: 'Access all features — personal, couple, family, and group.' },
 ];
 
 const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
@@ -66,7 +40,7 @@ interface Preset {
 
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { accessToken, user, logout, updateAvatarUrl, completeProfileSetup } = useAuth();
 
@@ -78,18 +52,10 @@ export function ProfileScreen() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState(user?.email || '');
   const [upiId, setUpiId] = useState('');
-  const [presets, setPresets] = useState<Preset[]>([]);
-  const [presetsLoading, setPresetsLoading] = useState(true);
-  const [selectedSeed, setSelectedSeed] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [originalValues, setOriginalValues] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    upiId: '',
-  });
+  const [originalValues, setOriginalValues] = useState({ firstName: '', lastName: '', phone: '', upiId: '' });
   const [upiError, setUpiError] = useState('');
   const [upiValidating, setUpiValidating] = useState(false);
   const [upiValid, setUpiValid] = useState<boolean | null>(null);
@@ -101,8 +67,6 @@ export function ProfileScreen() {
     phone !== originalValues.phone ||
     upiId !== originalValues.upiId;
 
-  const isUpiValid = upiId.trim() === '' || UPI_PATTERN.test(upiId.trim());
-
   function validateUpi(value: string) {
     if (value.trim() && !UPI_PATTERN.test(value.trim())) {
       setUpiError('Enter a valid UPI ID (e.g. user@bank)');
@@ -111,16 +75,12 @@ export function ProfileScreen() {
     }
   }
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   async function loadProfile() {
     setLoading(true);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+      if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>('/users/profile');
       const data = res?.data || res;
       if (data) {
@@ -132,15 +92,8 @@ export function ProfileScreen() {
         setLastName(origLastName);
         setPhone(origPhone);
         setUpiId(origUpiId);
-        setOriginalValues({
-          firstName: origFirstName,
-          lastName: origLastName,
-          phone: origPhone,
-          upiId: origUpiId,
-        });
-        if (data.email) {
-          setEmail(data.email);
-        }
+        setOriginalValues({ firstName: origFirstName, lastName: origLastName, phone: origPhone, upiId: origUpiId });
+        if (data.email) setEmail(data.email);
         completeProfileSetup({
           firstName: data.firstName || '',
           lastName: data.lastName || '',
@@ -150,39 +103,14 @@ export function ProfileScreen() {
         });
       }
     } catch {
-      if (user?.phone) {
-        setPhone(user.phone);
-      }
+      if (user?.phone) setPhone(user.phone);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadPresets();
-  }, []);
-
-  useEffect(() => {
-    if (presets.length > 0 && user?.avatarUrl) {
-      const indexMatch = user.avatarUrl?.match(/\/avatars\/(\d+)/);
-      if (indexMatch) {
-        const urlIndex = parseInt(indexMatch[1], 10);
-        const urls = presets.map((p) => {
-          const m = p.url.match(/\/avatars\/(\d+)/);
-          return m ? parseInt(m[1], 10) : -1;
-        });
-        const matchIdx = urls.indexOf(urlIndex);
-        if (matchIdx >= 0) {
-          setSelectedSeed(presets[matchIdx].seed);
-        }
-      }
-    }
-  }, [presets, user?.avatarUrl]);
-
-  useEffect(() => {
-    if (upiTimer.current) {
-      clearTimeout(upiTimer.current);
-    }
+    if (upiTimer.current) clearTimeout(upiTimer.current);
     if (!upiId.trim() || !UPI_PATTERN.test(upiId.trim())) {
       setUpiValid(null);
       setUpiValidating(false);
@@ -191,9 +119,7 @@ export function ProfileScreen() {
     setUpiValidating(true);
     upiTimer.current = setTimeout(async () => {
       try {
-        const res = await api.get<any>(
-          `/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`,
-        );
+        const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`);
         setUpiValid(res?.valid === true);
         setUpiError(res?.valid ? '' : `UPI ID not found: ${res?.error || 'Invalid'}`);
       } catch {
@@ -202,55 +128,14 @@ export function ProfileScreen() {
         setUpiValidating(false);
       }
     }, 600);
-    return () => {
-      if (upiTimer.current) {
-        clearTimeout(upiTimer.current);
-      }
-    };
+    return () => { if (upiTimer.current) clearTimeout(upiTimer.current); };
   }, [upiId]);
 
-  async function loadPresets() {
-    setPresetsLoading(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.get<any>('/auth/avatar/presets');
-      setPresets(Array.isArray(res) ? res : res?.data || []);
-    } catch {
-      setPresets([]);
-    } finally {
-      setPresetsLoading(false);
-    }
-  }
-
-  const selectPreset = useCallback(
-    async (preset: Preset) => {
-      setSelectedSeed(preset.seed);
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
-        await api.post('/auth/avatar/select', { seed: preset.seed });
-        showToast('Avatar regenerated');
-        updateAvatarUrl(preset.url);
-      } catch (e: any) {
-        Alert.alert('Error', e.message || 'Failed to select avatar');
-      }
-    },
-    [accessToken, updateAvatarUrl],
-  );
-
   async function handleSaveProfile() {
-    if (!firstName.trim()) {
-      setError('First name is required');
-      return;
-    }
+    if (!firstName.trim()) { setError('First name is required'); return; }
     setError('');
     setSaving(true);
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+    if (accessToken) setAccessToken(accessToken);
     try {
       const cleanedPhone = phone.trim().replace(/[^0-9]/g, '');
       await api.patch('/users/profile', {
@@ -273,694 +158,217 @@ export function ProfileScreen() {
     }
   }
 
-  function handleDeleteAccount() {
-    Alert.alert(
-      'Delete Account',
-      'This action is irreversible. All your data will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert('Confirm Deletion', 'Type DELETE to confirm', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'DELETE',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    if (accessToken) {
-                      setAccessToken(accessToken);
-                    }
-                    await api.delete('/auth/profile');
-                    showToast('Profile deleted');
-                    await logout();
-                  } catch (e: any) {
-                    Alert.alert('Error', e.message || 'Failed to delete account');
-                  }
-                },
-              },
-            ]);
-          },
-        },
-      ],
-    );
-  }
-
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
-  const tabBarHeight = Platform.OS === 'ios' ? 90 : 80;
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingBottom: insets.bottom + 32,
-            paddingTop: insets.top + 4,
-          }}
-        >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingTop: insets.top + 4 }}>
           {loading ? (
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 60,
-              }}
-            >
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
               <ActivityIndicator size="large" color={colors.accent.primary} />
             </View>
           ) : (
             <>
-              {/* Avatar */}
-              <View style={{ alignItems: 'center', marginBottom: 24 }}>
-                <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <Avatar
-                    uri={user?.avatarUrl}
-                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                    size={100}
+              {/* Avatar Card */}
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+                <View style={[s.avatarCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                  <LinearGradient
+                    colors={isDark ? [colors.accent.primary + '10', colors.accent.primary + '04'] : [colors.accent.primary + '08', colors.accent.primary + '02']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
                   />
-                  <TouchableOpacity
-                    style={{
-                      position: 'absolute',
-                      bottom: -2,
-                      right: -2,
-                      width: 34,
-                      height: 34,
-                      borderRadius: 17,
-                      backgroundColor: colors.accent.primary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      ...shadows.sm,
-                      shadowColor: colors.accent.primary,
-                    }}
-                    activeOpacity={0.8}
-                    onPress={() => navigation.navigate('AvatarPicker')}
-                  >
-                    <AntDesign name="edit" size={14} color="#FFFFFF" />
-                  </TouchableOpacity>
+                  <View style={{ alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={{ position: 'relative', marginBottom: 12 }}
+                      activeOpacity={0.8}
+                      onPress={() => navigation.navigate('AvatarPicker')}
+                    >
+                      <View style={[s.editAvatarOuter, { backgroundColor: colors.accent.primary + '15', borderColor: colors.border.subtle }]}>
+                        <AntDesign name="camera" size={32} color={colors.accent.primary} />
+                      </View>
+                      <View style={[s.editAvatarBadge, { backgroundColor: colors.accent.primary }]}>
+                        <AntDesign name="edit" size={12} color="#FFFFFF" />
+                      </View>
+                    </TouchableOpacity>
+                    <Text style={[s.fullName, { color: colors.text.primary }]}>{fullName}</Text>
+                    <Text style={[s.emailText, { color: colors.text.tertiary }]}>{email || user?.email || ''}</Text>
+                  </View>
                 </View>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '700',
-                    color: colors.text.primary,
-                    letterSpacing: -0.3,
-                  }}
-                >
-                  {fullName}
-                </Text>
               </View>
 
               {/* Dashboard Lens Selection */}
               <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 4,
-                    paddingLeft: 2,
-                  }}
-                >
-                  Dashboard View
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginBottom: 14,
-                    paddingLeft: 2,
-                    lineHeight: 18,
-                  }}
-                >
-                  Choose how your dashboard looks and what data it shows
-                </Text>
-
-                <View style={{ gap: 10 }}>
-                  {LENS_OPTIONS.map((lens) => {
-                    const isActive = activeLens === lens.id;
-                    return (
-                      <TouchableOpacity
-                        key={lens.id}
-                        onPress={async () => {
-                          useLensStore.getState().setLens(lens.id);
-                          await updateUserLens(accessToken, lens.id);
-                        }}
-                        activeOpacity={0.8}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          padding: spacing.lg,
-                          borderRadius: borderRadius['2xl'],
-                          backgroundColor: colors.bg.card,
-                          borderWidth: 1.5,
-                          borderColor: isActive ? colors.accent.primary : colors.border.subtle,
-                          ...shadows.sm,
-                          shadowColor: isActive ? colors.accent.primary : undefined,
-                          shadowOpacity: isActive ? 0.12 : undefined,
-                          shadowRadius: isActive ? 8 : undefined,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {isActive && (
-                          <LinearGradient
-                            colors={[colors.accent.primary + '10', colors.accent.primary + '04']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                            }}
-                          />
-                        )}
-                        <View
-                          style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 14,
-                            backgroundColor: isActive
-                              ? colors.accent.primary + '20'
-                              : colors.border.subtle + '60',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: 14,
-                          }}
-                        >
-                          <AntDesign
-                            name={lens.icon}
-                            size={22}
-                            color={isActive ? colors.accent.primary : colors.text.tertiary}
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={{
-                              fontSize: 15,
-                              fontWeight: '700',
-                              color: colors.text.primary,
-                              marginBottom: 2,
-                            }}
-                          >
-                            {lens.title}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              fontWeight: '500',
-                              color: colors.text.tertiary,
-                              lineHeight: 16,
-                            }}
-                          >
-                            {lens.desc}
-                          </Text>
-                        </View>
-                        {isActive ? (
-                          <View
-                            style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: 12,
-                              backgroundColor: colors.accent.primary,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <AntDesign name="check" size={14} color="#FFFFFF" />
-                          </View>
-                        ) : (
-                          <View
-                            style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: 12,
-                              borderWidth: 2,
-                              borderColor: colors.border.default,
-                            }}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Avatar Presets */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 16 }}>
-                {presetsLoading ? (
-                  <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                    <ActivityIndicator size="small" color={colors.accent.primary} />
-                  </View>
-                ) : presets.length > 0 ? (
-                  <>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '800',
-                        color: colors.text.tertiary,
-                        letterSpacing: 0.8,
-                        textTransform: 'uppercase',
-                        marginBottom: 10,
-                        paddingLeft: 2,
-                      }}
-                    >
-                      Choose Avatar
-                    </Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', margin: -6 }}>
-                      {presets.map((preset) => (
-                        <View key={preset.seed} style={{ width: '16.666%', padding: 6 }}>
-                          <TouchableOpacity
-                            onPress={() => selectPreset(preset)}
-                            activeOpacity={0.7}
-                            disabled={selectedSeed === preset.seed}
-                            style={{
-                              borderRadius: 14,
-                              borderWidth: 2,
-                              borderColor:
-                                selectedSeed === preset.seed
-                                  ? colors.accent.primary
-                                  : colors.border.subtle,
-                              overflow: 'hidden',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <Avatar uri={preset.url} name={preset.name} size={48} />
-                            {selectedSeed === preset.seed && (
-                              <View
-                                style={{
-                                  position: 'absolute',
-                                  top: -4,
-                                  right: -4,
-                                  width: 22,
-                                  height: 22,
-                                  borderRadius: 11,
-                                  backgroundColor: colors.accent.primary,
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  borderWidth: 2,
-                                  borderColor: colors.bg.primary,
-                                }}
-                              >
-                                <AntDesign name="check" size={12} color="#FFFFFF" />
-                              </View>
-                            )}
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                    </View>
-                  </>
-                ) : null}
-              </View>
-
-              {/* Profile Form */}
-              <View
-                style={{
-                  marginHorizontal: spacing['2xl'],
-                  backgroundColor: colors.bg.card,
-                  borderRadius: borderRadius.xl,
-                  padding: 20,
-                  marginBottom: 16,
-                  ...shadows.md,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: colors.text.primary,
-                    marginBottom: 16,
-                  }}
-                >
-                  Personal Information
-                </Text>
-
-                {error ? (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: 12,
-                      borderRadius: 12,
-                      backgroundColor: `${colors.status.error}10`,
-                      marginBottom: 16,
-                    }}
-                  >
-                    <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '600',
-                        color: colors.status.error,
-                        flex: 1,
-                      }}
-                    >
-                      {error}
-                    </Text>
-                  </View>
-                ) : null}
-
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 8,
-                    marginTop: 4,
-                  }}
-                >
-                  First Name
-                </Text>
-                <TextInput
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-                    paddingHorizontal: 16,
-                    paddingVertical: 15,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: colors.border.default,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder="Enter your first name"
-                  placeholderTextColor={colors.text.tertiary}
-                />
-
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 8,
-                    marginTop: 16,
-                  }}
-                >
-                  Last Name
-                </Text>
-                <TextInput
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-                    paddingHorizontal: 16,
-                    paddingVertical: 15,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: colors.border.default,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder="Enter your last name"
-                  placeholderTextColor={colors.text.tertiary}
-                />
-
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 8,
-                    marginTop: 16,
-                  }}
-                >
-                  Email
-                </Text>
-                <View
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 15,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: colors.border.default,
-                    backgroundColor: colors.bg.tertiary,
-                  }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
-                    {email || user?.email || 'No email'}
-                  </Text>
-                </View>
-
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 8,
-                    marginTop: 16,
-                  }}
-                >
-                  Phone Number
-                </Text>
-                <TextInput
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-                    paddingHorizontal: 16,
-                    paddingVertical: 15,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: colors.border.default,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="Required — helps friends find you"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="phone-pad"
-                />
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginTop: 6,
-                    lineHeight: 16,
-                  }}
-                >
-                  Friends can find you via contact sync. Your number is never shared.
-                </Text>
-
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '800',
-                    color: colors.text.tertiary,
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    marginBottom: 8,
-                    marginTop: 16,
-                  }}
-                >
-                  UPI ID
-                </Text>
-                <View style={{ position: 'relative' }}>
-                  <TextInput
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '500',
-                      paddingHorizontal: 16,
-                      paddingVertical: 15,
-                      paddingRight: 44,
-                      borderRadius: borderRadius.md,
-                      borderWidth: 1,
-                      borderColor:
-                        upiValid === false
-                          ? colors.status.error
-                          : upiValid === true
-                            ? '#34C759'
-                            : upiError
-                              ? colors.status.error
-                              : colors.border.default,
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                    }}
-                    value={upiId}
-                    onChangeText={(t) => {
-                      setUpiId(t);
-                      setUpiValid(null);
-                      if (t.trim() && !UPI_PATTERN.test(t.trim())) {
-                        setUpiError('Enter a valid UPI ID (e.g. user@bank)');
-                      } else {
-                        setUpiError('');
-                      }
-                    }}
-                    onBlur={() => validateUpi(upiId)}
-                    placeholder="example@upi"
-                    placeholderTextColor={colors.text.tertiary}
-                    autoCapitalize="none"
+                <View style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                  <LinearGradient
+                    colors={isDark ? [colors.accent.primary + '06', 'transparent'] : [colors.accent.primary + '04', 'transparent']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
                   />
-                  {upiValidating ? (
-                    <View
-                      style={{
-                        position: 'absolute',
-                        right: 14,
-                        top: 0,
-                        bottom: 0,
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <ActivityIndicator size="small" color={colors.accent.primary} />
-                    </View>
-                  ) : upiValid === true ? (
-                    <View
-                      style={{
-                        position: 'absolute',
-                        right: 14,
-                        top: 0,
-                        bottom: 0,
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <AntDesign name="checkcircle" size={18} color="#34C759" />
-                    </View>
-                  ) : upiValid === false && upiId.trim() ? (
-                    <View
-                      style={{
-                        position: 'absolute',
-                        right: 14,
-                        top: 0,
-                        bottom: 0,
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <AntDesign name="closecircle" size={18} color={colors.status.error} />
-                    </View>
-                  ) : null}
-                </View>
-                {upiError ? (
-                  <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}
-                  >
-                    <AntDesign name="exclamationcircle" size={12} color={colors.status.error} />
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '500',
-                        color: colors.status.error,
-                        lineHeight: 16,
-                      }}
-                    >
-                      {upiError}
-                    </Text>
+                  <Text style={[s.sectionLabel, { color: colors.text.tertiary }]}>Dashboard View</Text>
+                  <Text style={[s.sectionDesc, { color: colors.text.tertiary }]}>Choose how your dashboard looks and what data it shows</Text>
+                  <View style={{ gap: 10, marginTop: 4 }}>
+                    {LENS_OPTIONS.map((lens) => {
+                      const isActive = activeLens === lens.id;
+                      return (
+                        <TouchableOpacity
+                          key={lens.id}
+                          onPress={async () => {
+                            useLensStore.getState().setLens(lens.id);
+                            await updateUserLens(accessToken, lens.id);
+                          }}
+                          activeOpacity={0.8}
+                          style={[s.lensCard, {
+                            backgroundColor: colors.bg.card,
+                            borderColor: isActive ? colors.accent.primary : colors.border.subtle,
+                            shadowColor: isActive ? colors.accent.primary : undefined,
+                            shadowOpacity: isActive ? 0.12 : undefined,
+                            shadowRadius: isActive ? 8 : undefined,
+                          }]}
+                        >
+                          {isActive && (
+                            <LinearGradient
+                              colors={[colors.accent.primary + '10', colors.accent.primary + '04']}
+                              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
+                            />
+                          )}
+                          <View style={[s.lensIcon, { backgroundColor: isActive ? colors.accent.primary + '20' : colors.border.subtle + '60' }]}>
+                            <AntDesign name={lens.icon} size={22} color={isActive ? colors.accent.primary : colors.text.tertiary} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={[s.lensTitle, { color: colors.text.primary }]}>{lens.title}</Text>
+                            <Text style={[s.lensDesc, { color: colors.text.tertiary }]}>{lens.desc}</Text>
+                          </View>
+                          {isActive ? (
+                            <View style={[s.checkCircle, { backgroundColor: colors.accent.primary }]}>
+                              <AntDesign name="check" size={14} color="#FFFFFF" />
+                            </View>
+                          ) : (
+                            <View style={[s.uncheckCircle, { borderColor: colors.border.default }]} />
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                ) : (
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      marginTop: 6,
-                      lineHeight: 16,
-                    }}
-                  >
-                    Set your UPI ID so group members can pay you directly.
-                  </Text>
-                )}
+                </View>
               </View>
 
-              {/* Danger Zone */}
-              <View
-                style={{
-                  marginHorizontal: spacing['2xl'],
-                  backgroundColor: colors.bg.card,
-                  borderRadius: borderRadius.xl,
-                  padding: 20,
-                  marginBottom: 16,
-                  ...shadows.sm,
-                }}
-              >
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
-                >
-                  <AntDesign name="warning" size={18} color={colors.status.error} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.status.error }}>
-                    Danger Zone
-                  </Text>
-                </View>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    lineHeight: 19,
-                    marginBottom: 16,
-                  }}
-                >
-                  Once you delete your account, there is no going back. Please be certain.
-                </Text>
+              {/* Privacy & Security */}
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
                 <TouchableOpacity
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: `${colors.status.error}30`,
-                    backgroundColor: `${colors.status.error}08`,
-                  }}
-                  onPress={handleDeleteAccount}
+                  onPress={() => navigation.navigate('PrivacySettings')}
+                  style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
                   activeOpacity={0.7}
                 >
-                  <AntDesign name="delete" size={16} color={colors.status.error} />
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.error }}>
-                    Delete Account
-                  </Text>
+                  <LinearGradient
+                    colors={isDark ? [colors.accent.primary + '06', 'transparent'] : [colors.accent.primary + '04', 'transparent']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
+                  />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={[s.lensIcon, { backgroundColor: colors.accent.primary + '12' }]}>
+                      <AntDesign name="Safety" size={20} color={colors.accent.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.lensTitle, { color: colors.text.primary }]}>Privacy & Security</Text>
+                      <Text style={[s.lensDesc, { color: colors.text.tertiary }]}>Manage permissions, data, and account settings</Text>
+                    </View>
+                    <AntDesign name="right" size={16} color={colors.text.tertiary} />
+                  </View>
                 </TouchableOpacity>
+              </View>
+
+              {/* Personal Info */}
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+                <View style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                  <Text style={[s.sectionLabel, { color: colors.text.tertiary }]}>Personal Information</Text>
+
+                  {error ? (
+                    <View style={[s.errorBox, { backgroundColor: colors.status.error + '10' }]}>
+                      <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
+                      <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+                    </View>
+                  ) : null}
+
+                  <View style={s.fieldGroup}>
+                    <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>First Name</Text>
+                    <TextInput
+                      style={[s.input, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, color: colors.text.primary }]}
+                      value={firstName} onChangeText={setFirstName} placeholder="Enter your first name" placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
+
+                  <View style={s.fieldGroup}>
+                    <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Last Name</Text>
+                    <TextInput
+                      style={[s.input, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, color: colors.text.primary }]}
+                      value={lastName} onChangeText={setLastName} placeholder="Enter your last name" placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
+
+                  <View style={s.fieldGroup}>
+                    <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Email</Text>
+                    <View style={[s.input, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default }]}>
+                      <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
+                        {email || user?.email || 'No email'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={s.fieldGroup}>
+                    <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Phone Number</Text>
+                    <TextInput
+                      style={[s.input, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, color: colors.text.primary }]}
+                      value={phone} onChangeText={setPhone} placeholder="Required — helps friends find you"
+                      placeholderTextColor={colors.text.tertiary} keyboardType="phone-pad"
+                    />
+                    <Text style={[s.hintText, { color: colors.text.tertiary }]}>Friends can find you via contact sync. Your number is never shared.</Text>
+                  </View>
+
+                  <View style={s.fieldGroup}>
+                    <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>UPI ID</Text>
+                    <View style={{ position: 'relative' }}>
+                      <TextInput
+                        style={[s.input, {
+                          backgroundColor: colors.bg.tertiary, color: colors.text.primary, paddingRight: 44,
+                          borderColor: upiValid === false ? colors.status.error : upiValid === true ? '#34C759' : upiError ? colors.status.error : colors.border.default,
+                        }]}
+                        value={upiId} onChangeText={(t) => { setUpiId(t); setUpiValid(null); if (t.trim() && !UPI_PATTERN.test(t.trim())) setUpiError('Enter a valid UPI ID (e.g. user@bank)'); else setUpiError(''); }}
+                        onBlur={() => validateUpi(upiId)} placeholder="example@upi" placeholderTextColor={colors.text.tertiary} autoCapitalize="none"
+                      />
+                      {upiValidating ? (
+                        <View style={s.inputIcon}><ActivityIndicator size="small" color={colors.accent.primary} /></View>
+                      ) : upiValid === true ? (
+                        <View style={s.inputIcon}><AntDesign name="checkcircle" size={18} color="#34C759" /></View>
+                      ) : upiValid === false && upiId.trim() ? (
+                        <View style={s.inputIcon}><AntDesign name="closecircle" size={18} color={colors.status.error} /></View>
+                      ) : null}
+                    </View>
+                    {upiError ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                        <AntDesign name="exclamationcircle" size={12} color={colors.status.error} />
+                        <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>{upiError}</Text>
+                      </View>
+                    ) : (
+                      <Text style={[s.hintText, { color: colors.text.tertiary, marginTop: 6 }]}>Set your UPI ID so group members can pay you directly.</Text>
+                    )}
+                  </View>
+                </View>
               </View>
 
               {/* Save Button */}
               <View style={{ marginHorizontal: spacing['2xl'], marginTop: 8, marginBottom: 16 }}>
                 <TouchableOpacity
-                  style={{
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    gap: 8,
-                    backgroundColor: colors.accent.primary,
-                    ...shadows.md,
-                    shadowColor: colors.accent.primary,
-                    opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1,
-                  }}
-                  onPress={handleSaveProfile}
-                  disabled={saving || loading || !hasChanges || !!upiError}
-                  activeOpacity={0.85}
+                  style={[s.saveBtn, { backgroundColor: colors.accent.primary, opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1 }]}
+                  onPress={handleSaveProfile} disabled={saving || loading || !hasChanges || !!upiError} activeOpacity={0.85}
                 >
                   {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
                     <>
                       <AntDesign name="checkcircleo" size={18} color="#FFFFFF" />
-                      <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                        Save Changes
-                      </Text>
+                      <Text style={s.saveText}>Save Changes</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -975,4 +383,27 @@ export function ProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  avatarCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing['2xl'], alignItems: 'center', ...shadows.md, overflow: 'hidden' },
+  editAvatarOuter: { width: 88, height: 88, borderRadius: 44, borderWidth: 2, alignItems: 'center', justifyContent: 'center', ...shadows.sm },
+  editAvatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5, borderColor: 'transparent' },
+  fullName: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
+  emailText: { fontSize: 13, fontWeight: '500' },
+  sectionCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
+  sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4, paddingLeft: 2 },
+  sectionDesc: { fontSize: 13, fontWeight: '500', marginBottom: 14, paddingLeft: 2, lineHeight: 18 },
+  lensCard: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: borderRadius['2xl'], borderWidth: 1.5, ...shadows.sm, overflow: 'hidden' },
+  lensIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  lensTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  lensDesc: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
+  checkCircle: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  uncheckCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 2 },
+  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 12, marginBottom: 16 },
+  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
+  fieldGroup: { marginBottom: 16 },
+  fieldLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
+  input: { fontSize: 16, fontWeight: '500', paddingHorizontal: 16, paddingVertical: 15, borderRadius: borderRadius.md, borderWidth: 1 },
+  hintText: { fontSize: 11, fontWeight: '500', lineHeight: 16, marginTop: 6 },
+  inputIcon: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
+  saveBtn: { borderRadius: 16, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, ...shadows.md },
+  saveText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

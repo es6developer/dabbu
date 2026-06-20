@@ -32,6 +32,12 @@ import { WeddingPlannerScreen } from '../screens/lifehub/WeddingPlannerScreen';
 import { LifeEventsListScreen } from '../screens/life-events/LifeEventsListScreen';
 import { LifeEventDetailScreen } from '../screens/life-events/LifeEventDetailScreen';
 import { CreateLifeEventScreen } from '../screens/life-events/CreateLifeEventScreen';
+import { CoupleSavingsScreen } from '../screens/couple/CoupleSavingsScreen';
+import { CoupleGoalsScreen } from '../screens/couple/CoupleGoalsScreen';
+import { CoupleTimelineScreen } from '../screens/couple/CoupleTimelineScreen';
+import { CoupleBudgetsScreen } from '../screens/couple/CoupleBudgetsScreen';
+import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -68,6 +74,12 @@ export function DashboardNavigator() {
       <Stack.Screen name="LifeEventsList" component={LifeEventsListScreen} options={{ headerShown: false }} />
       <Stack.Screen name="LifeEventDetail" component={LifeEventDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CreateLifeEvent" component={CreateLifeEventScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CoupleSavings" component={CoupleSavingsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CoupleGoals" component={CoupleGoalsScreen} options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="CoupleTimeline" component={CoupleTimelineScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CoupleBudgets" component={CoupleBudgetsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AddExpense" component={AddExpenseScreen} options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="CoupleSpace" component={CoupleSpaceScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

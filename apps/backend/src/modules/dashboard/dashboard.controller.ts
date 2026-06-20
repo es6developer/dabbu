@@ -53,6 +53,7 @@ export class DashboardController {
       UPCOMING_BILLS: 'upcomingBills',
       RECENT_TRANSACTIONS: 'recentTransactions',
       QUICK_ACTIONS: 'quickActions',
+      SHARED_SAVINGS: 'sharedSavings',
     };
     const family: Record<string, string> = {
       FAMILY_HERO: 'familyHero',
