@@ -84,7 +84,7 @@ export const useDabbuScoreStore = create<DabbuScoreStore>()(
         set({ historyLoading: true, error: null });
         try {
           const res = await api.get<any>('/dabbu-score/history');
-          const data = Array.isArray(res) ? res : res?.data ?? [];
+          const data = Array.isArray(res) ? res : (res?.data ?? []);
           set({ history: data, historyLoading: false });
         } catch (e: any) {
           set({ error: e?.message || 'Failed to load score history', historyLoading: false });
@@ -95,7 +95,7 @@ export const useDabbuScoreStore = create<DabbuScoreStore>()(
         set({ improvementsLoading: true, error: null });
         try {
           const res = await api.get<any>('/dabbu-score/improvements');
-          const data = Array.isArray(res) ? res : res?.data ?? [];
+          const data = Array.isArray(res) ? res : (res?.data ?? []);
           set({ improvements: data, improvementsLoading: false });
         } catch (e: any) {
           set({ error: e?.message || 'Failed to load improvements', improvementsLoading: false });
@@ -106,7 +106,12 @@ export const useDabbuScoreStore = create<DabbuScoreStore>()(
         set({ componentsLoading: true, error: null });
         try {
           const res = await api.get<any>('/dabbu-score/components');
-          const data = Array.isArray(res) ? res : res?.data ?? [];
+          const data =
+            res && typeof res === 'object' && !Array.isArray(res)
+              ? res
+              : Array.isArray(res)
+                ? res
+                : [];
           set({ components: data, componentsLoading: false });
         } catch (e: any) {
           set({ error: e?.message || 'Failed to load components', componentsLoading: false });
