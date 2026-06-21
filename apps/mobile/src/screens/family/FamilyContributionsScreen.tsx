@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 interface Contribution {
   id: string;
@@ -74,21 +75,24 @@ export default function FamilyContributionsScreen() {
   const [items, setItems] = useState<Contribution[]>([]);
   const [totals, setTotals] = useState<MemberTotal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<any>();
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/family-space/contributions').then((res: any) => {
-      const data = res?.data || res || {};
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/family-space/contributions');
+      const data = (res as any)?.data || res || {};
       const list = Array.isArray(data) ? data : data.contributions || data.items || [];
       const memberSummary = data.memberTotals || data.summary || [];
-      if (mounted) {
-        setItems(list);
-        setTotals(memberSummary);
-      }
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+      setItems(list);
+      setTotals(memberSummary);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
   const grandTotal = items.reduce((s, c) => s + c.amount, 0);

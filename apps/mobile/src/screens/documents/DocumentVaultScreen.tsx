@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -71,10 +72,10 @@ export function DocumentVaultScreen() {
   const [uploading, setUploading] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (refresh) {
         setRefreshing(true);
-      } else {
+      } else if (!silent) {
         setLoading(true);
       }
       try {
@@ -97,9 +98,9 @@ export function DocumentVaultScreen() {
     [accessToken],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
@@ -194,7 +195,7 @@ export function DocumentVaultScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadData(true)}
+            onRefresh={() => loadData(false, true)}
             tintColor={colors.accent.primary}
           />
         }

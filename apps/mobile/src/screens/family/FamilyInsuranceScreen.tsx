@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 interface Policy {
   id: string;
@@ -89,15 +90,20 @@ export default function FamilyInsuranceScreen() {
   const navigation = useNavigation<any>();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/family-space/insurance').then((res: any) => {
-      const data = res?.data || res || [];
-      if (mounted) setPolicies(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/family-space/insurance');
+      const data = (res as any)?.data || res || [];
+      setPolicies(Array.isArray(data) ? data : []);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const totalCoverage = policies.reduce((s, p) => s + (p.coverage || 0), 0);
   const totalPremium = policies.reduce((s, p) => s + (p.premium || 0), 0);

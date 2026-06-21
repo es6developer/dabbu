@@ -15,7 +15,8 @@ import {
   Linking,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -66,7 +67,7 @@ export function GroupExpensesScreen() {
   const [exporting, setExporting] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (!groupId) {
         setLoading(false);
         setError('No group selected');
@@ -74,7 +75,7 @@ export function GroupExpensesScreen() {
       }
       if (accessToken) setAccessToken(accessToken);
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else if (!silent) setLoading(true);
       setError(null);
       try {
         const [txRes, grpRes] = await Promise.all([
@@ -98,11 +99,7 @@ export function GroupExpensesScreen() {
     [accessToken, groupId],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const currentMember = useMemo(
     () => members.find((m: any) => m.userId === currentUser?.id),
@@ -292,7 +289,7 @@ export function GroupExpensesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />
         }
         ListHeaderComponent={
           <View>

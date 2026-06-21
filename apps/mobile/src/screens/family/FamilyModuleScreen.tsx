@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const MODULE_API_MAP: Record<string, string> = {
   members: '/family-space/members',
@@ -402,8 +403,8 @@ export function FamilyModuleScreen() {
   const icon = MODULE_ICONS[module] || 'grid-outline';
   const color = MODULE_COLORS[module] || colors.accent.primary;
 
-  const loadData = useCallback(async (refresh = false) => {
-    if (refresh) setRefreshing(true); else setLoading(true);
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     try {
       const res = await api.get(apiPath);
       setData((res as any)?.data || res);
@@ -413,7 +414,7 @@ export function FamilyModuleScreen() {
     }
   }, [apiPath, module]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
@@ -427,7 +428,7 @@ export function FamilyModuleScreen() {
           </View>
           <Text style={[styles.headerTitle, { color: colors.text.primary }]}>{title || module}</Text>
         </View>
-        <TouchableOpacity onPress={() => loadData(true)} style={styles.refreshBtn}>
+        <TouchableOpacity onPress={() => loadData(false, true)} style={styles.refreshBtn}>
           <AntDesign name="reload1" size={20} color={colors.text.secondary}  />
         </TouchableOpacity>
       </View>
@@ -438,7 +439,7 @@ export function FamilyModuleScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} />}
         >
           <ModuleContent module={module} data={data} />
         </ScrollView>

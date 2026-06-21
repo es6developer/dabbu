@@ -13,7 +13,8 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
@@ -51,7 +52,7 @@ export function SubscriptionCenterScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
 
-  useFocusEffect(
+  useSilentRefresh(
     useCallback(() => {
       refresh();
       getUsage();

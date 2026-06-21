@@ -1,13 +1,15 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
+  Platform,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,41 +19,53 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Avatar } from '../../components/ui/Avatar';
-import { palette } from '../../theme/colors';
+import { spacing as sp, borderRadius as br, shadows as sh } from '../../theme/design';
 
-const PURPLE = palette.brand.primary;
-const PURPLE_DARK = palette.brand.hover;
-
-const ICONS: { key: string; color: string }[] = [
-  { key: 'team', color: '#8B5CF6' },
-  { key: 'home', color: '#34C759' },
-  { key: 'car', color: '#38BDF8' },
-  { key: 'earth', color: '#60A5FA' },
-  { key: 'gift', color: '#F472B6' },
-  { key: 'shoppingcart', color: '#F59E0B' },
-  { key: 'rest', color: '#FF6B6B' },
-  { key: 'hearto', color: '#FF4D6A' },
-  { key: 'book', color: '#7C3AED' },
-  { key: 'enviroment', color: '#14B8A6' },
+const ICONS = [
+  { key: 'team', label: 'Friends', color: '#8B5CF6' },
+  { key: 'home', label: 'House', color: '#34C759' },
+  { key: 'car', label: 'Travel', color: '#38BDF8' },
+  { key: 'earth', label: 'Trip', color: '#60A5FA' },
+  { key: 'gift', label: 'Gift', color: '#F472B6' },
+  { key: 'shoppingcart', label: 'Shopping', color: '#F59E0B' },
+  { key: 'rest', label: 'Dining', color: '#FF6B6B' },
+  { key: 'hearto', label: 'Couple', color: '#FF4D6A' },
+  { key: 'book', label: 'Study', color: '#7C3AED' },
+  { key: 'bank', label: 'Office', color: '#14B8A6' },
 ];
+
+const DAYS_IN_MONTH = 30;
+
+function Label({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  return <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase', color: colors.text.tertiary, marginBottom: 10 }}>{children}</Text>;
+}
 
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { showToast } = useToast();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('team');
+  const [monthlyBudget, setMonthlyBudget] = useState('');
   const [members, setMembers] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [searchResults, setSearchResults] = useState<{ [key: number]: any[] }>({});
 
   const inputsRef = useRef<(TextInput | null)[]>([]);
+
+  const budgetNum = parseFloat(monthlyBudget) || 0;
+  const budgetBreakdown = useMemo(() => {
+    if (budgetNum <= 0) return null;
+    const perDay = budgetNum / DAYS_IN_MONTH;
+    const perWeek = perDay * 7;
+    return { perDay, perWeek };
+  }, [budgetNum]);
 
   const updateMember = useCallback((index: number, value: string) => {
     const digits = value.replace(/[^0-9]/g, '').slice(0, 10);
@@ -121,10 +135,12 @@ export function CreateExpenseGroupScreen() {
     setSaving(true);
     if (accessToken) setAccessToken(accessToken);
     try {
-      const payload: any = { name: name.trim(), currency: 'INR' };
+      const payload: any = { name: name.trim(), icon, currency: 'INR' };
+      if (description.trim()) payload.description = description.trim();
+      if (budgetNum > 0) payload.monthlyBudget = budgetNum;
       if (validPhones.length > 0) payload.memberPhones = validPhones;
       await api.post('/expense-groups', payload);
-      showToast('Group created');
+      showToast('Group created successfully');
       navigation.goBack();
     } catch (e: any) {
       setError(e.message || 'Failed to create group');
@@ -134,362 +150,296 @@ export function CreateExpenseGroupScreen() {
   }
 
   return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      {/* Header */}
-
-      <LinearGradient colors={[PURPLE, PURPLE_DARK]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-        <View style={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: 28 }}>
-          <View style={s.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <AntDesign  name="close" size={22} color="#FFF" />
-            </TouchableOpacity>
-            <Text style={s.headerTitle}>New Split Group</Text>
-            <View style={{ width: 34 }} />
-          </View>
-          <Text style={s.headerSub}>Create a circle to split expenses with your people</Text>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
+      <LinearGradient
+        colors={isDark ? ['#1A0A2E', colors.bg.primary] : [colors.bg.secondary, colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 0.3 }}
+        locations={[0, 1]}
+        style={{ flex: 1 }}
+      >
+        <View style={{ paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.bg.card, alignItems: 'center', justifyContent: 'center' }}>
+            <AntDesign name="close" size={18} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>Create Circle</Text>
+          <View style={{ width: 36 }} />
         </View>
-      </LinearGradient>
 
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20 }}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
         >
-          {error ? (
-            <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
-              <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
-            </View>
-          ) : null}
-
-          {/* Group Name */}
-          <View style={s.fieldBlock}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Group Name</Text>
-            <TextInput
-              style={[
-                s.input,
-                {
-                  backgroundColor: colors.bg.card,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. Goa Trip, Roommates"
-              placeholderTextColor={colors.text.tertiary}
-            />
-          </View>
-
-          {/* Description */}
-          <View style={s.fieldBlock}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Description (optional)</Text>
-            <TextInput
-              style={[
-                s.input,
-                {
-                  backgroundColor: colors.bg.card,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                  minHeight: 60,
-                  textAlignVertical: 'top',
-                },
-              ]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="What's this group for?"
-              placeholderTextColor={colors.text.tertiary}
-              multiline
-            />
-          </View>
-
-          {/* Icon Picker */}
-          <View style={s.fieldBlock}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Icon</Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.iconRow}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ padding: 24, paddingTop: 20, paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
             >
-              {ICONS.map((ic) => {
-                const active = icon === ic.key;
-                return (
-                  <TouchableOpacity
-                    key={ic.key}
-                    style={[
-                      s.iconBtn,
-                      {
-                        borderColor: active ? ic.color : colors.border.subtle,
-                        backgroundColor: active ? `${ic.color}18` : colors.bg.card,
-                      },
-                    ]}
-                    onPress={() => setIcon(ic.key)}
-                    activeOpacity={0.7}
-                  >
-                    <AntDesign
-                      name={ic.key as any}
-                      size={22}
-                      color={active ? ic.color : colors.text.tertiary}
-                    />
+              {error ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, backgroundColor: colors.status.error + '12', gap: 8, marginBottom: 20 }}>
+                  <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.error, flex: 1 }}>{error}</Text>
+                  <TouchableOpacity onPress={() => setError('')}>
+                    <AntDesign name="close" size={14} color={colors.status.error} />
                   </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Members */}
-          <View style={s.fieldBlock}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>
-              Members{' '}
-              <Text
-                style={{
-                  fontWeight: '400',
-                  textTransform: 'none',
-                  color: colors.text.tertiary,
-                  fontSize: 10,
-                }}
-              >
-                (max 2 on Free)
-              </Text>
-            </Text>
-            {members.map((phone, index) => (
-              <View key={index} style={{ marginBottom: 8 }}>
-                <View
-                  style={[
-                    s.memberRow,
-                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-                  ]}
-                >
-                  <View style={[s.memberAvatar, { backgroundColor: `${PURPLE}15` }]}>
-                    <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '700' }}>
-                      {(phone || '?')[0]}
-                    </Text>
-                  </View>
-                  <TextInput
-                    ref={(ref) => {
-                      inputsRef.current[index] = ref;
-                    }}
-                    style={[s.memberInput, { color: colors.text.primary }]}
-                    value={phone}
-                    onChangeText={(v) => updateMember(index, v)}
-                    placeholder="9876543210"
-                    placeholderTextColor={colors.text.tertiary}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    returnKeyType="done"
-                    onSubmitEditing={() => {
-                      index === members.length - 1 ? addRow() : inputsRef.current[index + 1]?.focus();
-                    }}
-                  />
-                  {phone.trim() ? (
-                    <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 4 }}>
-                      <AntDesign  name="closecircleo" size={18} color="#EF4444" />
-                    </TouchableOpacity>
-                  ) : null}
                 </View>
-                {searchResults[index]?.length > 0 && (
-                  <View
-                    style={[
-                      s.suggestions,
-                      { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-                    ]}
-                  >
-                    {searchResults[index].map((user: any) => (
-                      <TouchableOpacity
-                        key={user.id}
-                        style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
-                        onPress={() => selectUser(index, user)}
-                      >
-                        <View style={[s.suggestionAvatar, { backgroundColor: `${PURPLE}15` }]}>
-                          <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '800' }}>
-                            {user.firstName?.[0] || user.phone?.[0] || '?'}
-                          </Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={[s.suggestionName, { color: colors.text.primary }]}>
-                            {user.firstName || ''} {user.lastName || ''}
-                          </Text>
-                          <Text style={[s.suggestionDetail, { color: colors.text.tertiary }]}>
-                            {user.phone || ''}
-                            {user.email ? ` · ${user.email}` : ''}
-                          </Text>
-                        </View>
-                        <AntDesign  name="pluscircleo" size={20} color={PURPLE} />
-                      </TouchableOpacity>
-                    ))}
+              ) : null}
+
+              <View style={{ marginBottom: 24 }}>
+                <Label>Group Icon</Label>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {ICONS.map((ic) => {
+                      const active = icon === ic.key;
+                      return (
+                        <TouchableOpacity
+                          key={ic.key}
+                          activeOpacity={0.7}
+                          onPress={() => setIcon(ic.key)}
+                          style={{ alignItems: 'center', gap: 6 }}
+                        >
+                          <View style={{
+                            width: 52, height: 52, borderRadius: 26,
+                            alignItems: 'center', justifyContent: 'center',
+                            borderWidth: 2,
+                            backgroundColor: active ? ic.color + '18' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+                            borderColor: active ? ic.color : 'transparent',
+                          }}>
+                            <AntDesign name={ic.key as any} size={22} color={active ? ic.color : colors.text.tertiary} />
+                          </View>
+                          <Text style={{ fontSize: 10, fontWeight: active ? '700' : '500', color: active ? ic.color : colors.text.tertiary }}>{ic.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+
+              <View style={{ marginBottom: 16 }}>
+                <Label>Group Name <Text style={{ color: colors.status.error }}>*</Text></Label>
+                <View style={{
+                  flexDirection: 'row', alignItems: 'center',
+                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
+                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
+                }}>
+                  <AntDesign name="team" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />
+                  <TextInput
+                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, padding: 0 }}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="e.g. Goa Trip, Roommates"
+                    placeholderTextColor={colors.text.tertiary}
+                  />
+                </View>
+              </View>
+
+              <View style={{ marginBottom: 16 }}>
+                <Label>Description</Label>
+                <View style={{
+                  flexDirection: 'row', alignItems: 'flex-start',
+                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
+                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
+                  minHeight: 56,
+                }}>
+                  <AntDesign name="edit" size={18} color={colors.text.tertiary} style={{ marginRight: 10, marginTop: 2 }} />
+                  <TextInput
+                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, minHeight: 24, padding: 0 }}
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="What's this group for?"
+                    placeholderTextColor={colors.text.tertiary}
+                    multiline
+                  />
+                </View>
+              </View>
+
+              <View style={{ marginBottom: 16 }}>
+                <Label>Monthly Budget</Label>
+                <View style={{
+                  flexDirection: 'row', alignItems: 'center',
+                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
+                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
+                }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginRight: 8 }}>₹</Text>
+                  <TextInput
+                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, padding: 0 }}
+                    value={monthlyBudget}
+                    onChangeText={(t) => setMonthlyBudget(t.replace(/[^0-9]/g, ''))}
+                    placeholder="0"
+                    placeholderTextColor={colors.text.tertiary}
+                    keyboardType="numeric"
+                  />
+                </View>
+                {budgetBreakdown && (
+                  <View style={{
+                    marginTop: 12, borderRadius: 14, borderWidth: 1, borderColor: colors.border.subtle,
+                    padding: 16, backgroundColor: colors.bg.secondary,
+                  }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                      {[
+                        { value: `₹${budgetBreakdown.perDay.toFixed(0)}`, label: '/ day' },
+                        { value: `₹${budgetBreakdown.perWeek.toFixed(0)}`, label: '/ week' },
+                        { value: `₹${budgetNum.toLocaleString()}`, label: '/ month' },
+                      ].map((item, i) => (
+                        <React.Fragment key={item.label}>
+                          {i > 0 && <View style={{ width: 1, height: 28, backgroundColor: colors.border.subtle }} />}
+                          <View style={{ alignItems: 'center', gap: 2 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text.primary }}>{item.value}</Text>
+                            <Text style={{ fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, color: colors.text.tertiary }}>{item.label}</Text>
+                          </View>
+                        </React.Fragment>
+                      ))}
+                    </View>
+                    <View style={{ height: 4, borderRadius: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0', marginTop: 14, overflow: 'hidden' }}>
+                      <View style={{ width: `${Math.min(100, budgetNum > 0 ? 30 : 0)}%`, height: '100%', borderRadius: 2, backgroundColor: colors.brand.primary }} />
+                    </View>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 8, textAlign: 'center' }}>
+                      Track expenses against this budget after creating the group
+                    </Text>
                   </View>
                 )}
               </View>
-            ))}
-            <TouchableOpacity style={s.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-              <AntDesign  name="pluscircleo" size={18} color={PURPLE} />
-              <Text style={[s.addMemberText, { color: PURPLE }]}>Add another member</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Plan Info */}
-          <View
-            style={[
-              s.planInfo,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <AntDesign  name="Safety" size={14} color="#EF4444" />
-            <Text style={[s.planInfoText, { color: colors.text.tertiary }]}>
-              Free plan: 5 circles max · 2 members per circle
-            </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-            >
-              <Text style={{ color: PURPLE, fontSize: 13, fontWeight: '800' }}>Upgrade</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              <View style={{ marginBottom: 16 }}>
+                <Label>Members</Label>
+                {members.map((phone, index) => (
+                  <View key={index} style={{ marginBottom: 10 }}>
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center',
+                      borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
+                      backgroundColor: colors.bg.card, paddingRight: 8, minHeight: 52, gap: 10,
+                    }}>
+                      <View style={{
+                        width: 34, height: 34, borderRadius: 17,
+                        alignItems: 'center', justifyContent: 'center', marginLeft: 12,
+                        backgroundColor: colors.brand.primary + '15',
+                      }}>
+                        <Text style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '700' }}>
+                          {(phone || '?')[0]}
+                        </Text>
+                      </View>
+                      <TextInput
+                        ref={(ref) => { inputsRef.current[index] = ref; }}
+                        style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, paddingVertical: 13 }}
+                        value={phone}
+                        onChangeText={(v) => updateMember(index, v)}
+                        placeholder="Enter phone number"
+                        placeholderTextColor={colors.text.tertiary}
+                        keyboardType="phone-pad"
+                        maxLength={10}
+                        returnKeyType="done"
+                        onSubmitEditing={() => {
+                          index === members.length - 1 ? addRow() : inputsRef.current[index + 1]?.focus();
+                        }}
+                      />
+                      {phone.trim() ? (
+                        <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 6 }}>
+                          <AntDesign name="closecircle" size={18} color={colors.status.error} />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                    {searchResults[index]?.length > 0 && (
+                      <View style={{
+                        marginTop: 4, borderRadius: 14, borderWidth: 1, borderColor: colors.border.subtle,
+                        overflow: 'hidden', backgroundColor: colors.bg.elevated,
+                      }}>
+                        {searchResults[index].map((user: any) => (
+                          <TouchableOpacity
+                            key={user.id}
+                            style={{
+                              flexDirection: 'row', alignItems: 'center', gap: 10,
+                              paddingVertical: 10, paddingHorizontal: 12,
+                              borderBottomWidth: 0.5, borderBottomColor: colors.border.subtle,
+                            }}
+                            onPress={() => selectUser(index, user)}
+                          >
+                            <View style={{
+                              width: 34, height: 34, borderRadius: 17,
+                              alignItems: 'center', justifyContent: 'center',
+                              backgroundColor: colors.brand.primary + '15',
+                            }}>
+                              <Text style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '800' }}>
+                                {user.firstName?.[0] || user.phone?.[0] || '?'}
+                              </Text>
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                                {user.firstName || ''} {user.lastName || ''}
+                              </Text>
+                              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
+                                {user.phone || ''}{user.email ? ` · ${user.email}` : ''}
+                              </Text>
+                            </View>
+                            <AntDesign name="pluscircleo" size={20} color={colors.brand.primary} />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))}
+                <TouchableOpacity
+                  onPress={addRow}
+                  activeOpacity={0.7}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, paddingVertical: 10, paddingHorizontal: 4 }}
+                >
+                  <AntDesign name="pluscircleo" size={16} color={colors.brand.primary} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.brand.primary }}>Add Member</Text>
+                </TouchableOpacity>
+              </View>
 
-        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
-          <TouchableOpacity
-            onPress={handleCreate}
-            disabled={saving}
-            activeOpacity={0.85}
-            style={{ opacity: saving ? 0.6 : 1 }}
-          >
-            <LinearGradient
-              colors={[PURPLE, PURPLE_DARK]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.saveGrad}
-            >
-              <AntDesign name={(saving ? 'hourglass' : 'plus') as any} size={18} color="#FFF" />
-              <Text style={s.saveText}>{saving ? 'Creating...' : 'Create Split Group'}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </View>
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', gap: 8,
+                paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
+                borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary,
+                marginBottom: 16,
+              }}>
+                <AntDesign name="Safety" size={14} color={colors.status.error} />
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, flex: 1 }}>
+                  Free plan: 5 circles max · 2 members per circle
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+                  <LinearGradient
+                    colors={['#FF6B6B', '#EF4444']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 }}
+                  >
+                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>Upgrade</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                onPress={handleCreate}
+                disabled={saving}
+                activeOpacity={0.85}
+                style={{ borderRadius: 16, overflow: 'hidden', marginTop: 8, opacity: saving ? 0.6 : 1 }}
+              >
+                <LinearGradient
+                  colors={[colors.brand.primary, colors.brand.primary + 'dd']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    flexDirection: 'row', paddingVertical: 18,
+                    alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <>
+                      <AntDesign name="addusergroup" size={18} color="#FFF" />
+                      <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>Create Circle</Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </LinearGradient>
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  root: { flex: 1 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 14,
-    gap: 8,
-    marginBottom: 16,
-  },
-  errorText: { fontSize: 13, flex: 1 },
-  fieldBlock: { marginBottom: 20 },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  input: {
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  iconRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
-  iconBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingRight: 8,
-    minHeight: 54,
-    gap: 6,
-  },
-  memberAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  memberInput: { flex: 1, fontSize: 15, fontWeight: '600', paddingVertical: 13 },
-  addMemberBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-  },
-  addMemberText: { fontSize: 14, fontWeight: '600' },
-  suggestions: { marginTop: 4, borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  suggestionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  suggestionAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  suggestionName: { fontSize: 14, fontWeight: '700' },
-  suggestionDetail: { fontSize: 11, marginTop: 1, fontWeight: '500' },
-  saveBtn: {
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 18,
-    minHeight: 56,
-  },
-  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
-  saveGrad: {
-    flexDirection: 'row',
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 18,
-  },
-  planInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  planInfoText: { fontSize: 12, flex: 1, fontWeight: '500' },
-});

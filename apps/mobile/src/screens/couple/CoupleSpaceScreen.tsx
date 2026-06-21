@@ -2,12 +2,13 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 function fmt(v: number) {
   return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -40,6 +41,7 @@ export function CoupleSpaceScreen() {
   const { accessToken } = useAuth();
   const groupIdRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
@@ -84,10 +86,10 @@ export function CoupleSpaceScreen() {
 
   const [aiIntelligence, setAiIntelligence] = useState<any>(null);
 
-  const fetchDashboard = useCallback(async (isRefresh = false) => {
+  const fetchDashboard = useCallback(async (silent = false, refresh = false) => {
     if (!accessToken) return;
     setAccessToken(accessToken);
-    if (!isRefresh) setLoading(true);
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     setError(null);
     try {
       let groupId = groupIdRef.current;
@@ -114,12 +116,12 @@ export function CoupleSpaceScreen() {
     } catch (e: any) {
       if (mountedRef.current) setError(e?.message || 'Failed to load couple data');
     } finally {
-      if (mountedRef.current) setLoading(false);
+      if (mountedRef.current) { setLoading(false); setRefreshing(false); }
     }
   }, [accessToken, buildData]);
 
-  useFocusEffect(useCallback(() => {
-    fetchDashboard();
+  useSilentRefresh(useCallback((isInitial) => {
+    fetchDashboard(!isInitial);
   }, [fetchDashboard]));
 
   if (loading) {

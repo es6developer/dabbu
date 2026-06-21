@@ -13,6 +13,9 @@ import { CarPlannerScreen } from '../screens/lifehub/CarPlannerScreen';
 import { EducationPlannerScreen } from '../screens/lifehub/EducationPlannerScreen';
 import { VacationPlannerScreen } from '../screens/lifehub/VacationPlannerScreen';
 import { WeddingPlannerScreen } from '../screens/lifehub/WeddingPlannerScreen';
+import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
+import { CoupleReportsScreen } from '../screens/couple/CoupleReportsScreen';
+import FamilyReportsScreen from '../screens/family/FamilyReportsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +72,9 @@ export function LifeHubNavigator() {
       <Stack.Screen name="EducationPlanner" component={EducationPlannerScreen} options={{ headerShown: false }} />
       <Stack.Screen name="VacationPlanner" component={VacationPlannerScreen} options={{ headerShown: false }} />
       <Stack.Screen name="WeddingPlanner" component={WeddingPlannerScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Analytics" component={AnalyticsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CoupleReports" component={CoupleReportsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FamilyReports" component={FamilyReportsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

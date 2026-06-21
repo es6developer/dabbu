@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -43,9 +43,9 @@ export function BadgeWallScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (refresh) {setRefreshing(true);}
-      else {setLoading(true);}
+      else if (!silent) {setLoading(true);}
       try {
         if (accessToken) {setAccessToken(accessToken);}
         const [gamRes, checkRes] = await Promise.all([
@@ -63,9 +63,9 @@ export function BadgeWallScreen() {
     [accessToken],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
@@ -102,7 +102,7 @@ export function BadgeWallScreen() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => loadData(true)}
+          onRefresh={() => loadData(false, true)}
           tintColor={colors.accent.primary}
         />
       }

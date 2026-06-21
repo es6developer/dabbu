@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -23,14 +23,14 @@ export function SubscriptionScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (accessToken) {
         setAccessToken(accessToken);
       }
       warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
-      } else {
+      } else if (!silent) {
         setLoading(true);
       }
       const settleTimer = setTimeout(() => setLoading(false), 3000);
@@ -48,9 +48,9 @@ export function SubscriptionScreen() {
     [accessToken],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
@@ -81,7 +81,7 @@ export function SubscriptionScreen() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => loadData(true)}
+          onRefresh={() => loadData(false, true)}
           tintColor={colors.accent.primary}
         />
       }

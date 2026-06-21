@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { useAuth } from '../../store/AuthContext';
@@ -48,10 +49,10 @@ export function SettlementScreen() {
   const [batchSubmitting, setBatchSubmitting] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (!groupId) return;
       if (refresh) setRefreshing(true);
-      else { setLoading(true); setLoadingProgress(0); }
+      else if (!silent) { setLoading(true); setLoadingProgress(0); }
       const totalCalls = 2;
       let completed = 0;
       const tick = () => {
@@ -80,11 +81,7 @@ export function SettlementScreen() {
     [accessToken, groupId],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const visibleSettlements = settlements.filter(
     (s: any) => s.status !== 'checkcircle' && !completedSettlementIds.has(s.settlementId || s.id),
@@ -170,7 +167,7 @@ export function SettlementScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadData(true)}
+            onRefresh={() => loadData(false, true)}
             tintColor={colors.accent.primary}
           />
         }

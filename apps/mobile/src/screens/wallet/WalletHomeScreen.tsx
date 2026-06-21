@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
@@ -43,10 +44,11 @@ export function WalletHomeScreen() {
   const [recentTxns, setRecentTxns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const initialLoadDone = useRef(false);
 
-  const loadData = useCallback(async (showLoader = true) => {
-    if (showLoader && !initialLoadDone.current) {
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) {
+      setRefreshing(true);
+    } else if (!silent) {
       setLoading(true);
     }
     const ts = Date.now();
@@ -69,21 +71,18 @@ export function WalletHomeScreen() {
       const d = txnsRes.value as any;
       setRecentTxns(Array.isArray(d) ? d : d?.data || []);
     }
-    if (!initialLoadDone.current) {
-      initialLoadDone.current = true;
-    }
     setLoading(false);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData(initialLoadDone.current);
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData(false);
+    await loadData(false, true);
     setRefreshing(false);
   }, [loadData]);
 

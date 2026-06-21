@@ -3,7 +3,8 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } fr
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -28,17 +29,17 @@ export function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadNotifications();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadNotifications(!isInitial);
     }, []),
   );
 
-  async function loadNotifications(isRefresh = false) {
+  async function loadNotifications(silent = false, refresh = false) {
     try {
-      if (isRefresh) {
+      if (refresh) {
         setRefreshing(true);
-      } else {
+      } else if (!silent) {
         setLoading(true);
       }
       if (accessToken) {
@@ -160,7 +161,7 @@ export function NotificationsScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => loadNotifications(true)}
+              onRefresh={() => loadNotifications(false, true)}
               tintColor={colors.accent.primary}
             />
           }

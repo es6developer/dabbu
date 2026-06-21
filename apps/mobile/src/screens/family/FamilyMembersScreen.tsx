@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -225,7 +226,7 @@ function MemberCard({
                 <RoleBadge role={member.role} />
               </View>
               <Text style={[styles.joinedDate, { color: colors.text.tertiary }]}>
-                Joined {fmtDate(member.joinedAt)}
+                {member.profile.phone ? `📞 ${member.profile.phone}` : `Joined ${fmtDate(member.joinedAt)}`}
               </Text>
               <Text style={[styles.contributionAmount, { color: colors.text.primary }]}>
                 {fmt(member.totalContributed)} contributed
@@ -287,6 +288,23 @@ function MemberCard({
                   ))}
                 </View>
               )}
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: colors.accent.primary + '15' }]}
+                  onPress={() => {/* TODO: Edit member role */}}
+                >
+                  <AntDesign name="edit" size={14} color={colors.accent.primary} />
+                  <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: '#EF444415' }]}
+                  onPress={() => {/* TODO: Confirm remove */}}
+                >
+                  <AntDesign name="delete" size={14} color="#EF4444" />
+                  <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Remove</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </Animated.View>
@@ -302,6 +320,11 @@ export default function FamilyMembersScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addName, setAddName] = useState('');
+  const [addPhone, setAddPhone] = useState('');
+  const [addRole, setAddRole] = useState<Role>('Contributor');
+  const [adding, setAdding] = useState(false);
 
   const fetchMembers = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true);
@@ -330,6 +353,30 @@ export default function FamilyMembersScreen({ navigation }: any) {
     fetchMembers();
   }, [fetchMembers]);
 
+  const addMember = useCallback(async () => {
+    if (!addName.trim() || !addPhone.trim()) return;
+    setAdding(true);
+    try {
+      const [firstName, ...rest] = addName.trim().split(' ');
+      const lastName = rest.join(' ');
+      await api.post('/family/members/contact', {
+        phone: addPhone.trim(),
+        firstName,
+        lastName: lastName || '',
+        role: addRole,
+      });
+      setShowAddModal(false);
+      setAddName('');
+      setAddPhone('');
+      setAddRole('Contributor');
+      fetchMembers();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to add member');
+    } finally {
+      setAdding(false);
+    }
+  }, [addName, addPhone, addRole, fetchMembers]);
+
   const onRefresh = useCallback(() => {
     fetchMembers(true);
   }, [fetchMembers]);
@@ -340,10 +387,10 @@ export default function FamilyMembersScreen({ navigation }: any) {
         <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Family Members</Text>
         <TouchableOpacity
           style={[styles.inviteButton, { backgroundColor: colors.accent.primary }]}
-          onPress={() => navigation?.navigate('InviteMember')}
+          onPress={() => setShowAddModal(true)}
         >
           <AntDesign name="adduser" size={18} color={colors.text.inverse} />
-          <Text style={[styles.inviteButtonText, { color: colors.text.inverse }]}>Invite</Text>
+          <Text style={[styles.inviteButtonText, { color: colors.text.inverse }]}>Add Member</Text>
         </TouchableOpacity>
       </View>
 
@@ -384,10 +431,10 @@ export default function FamilyMembersScreen({ navigation }: any) {
           <Text style={[styles.stateText, { color: colors.text.secondary }]}>No members yet</Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
-            onPress={() => navigation?.navigate('InviteMember')}
+            onPress={() => setShowAddModal(true)}
           >
             <AntDesign name="adduser" size={16} color={colors.text.inverse} />
-            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Invite someone</Text>
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Add a member</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -410,6 +457,83 @@ export default function FamilyMembersScreen({ navigation }: any) {
             <MemberCard key={member.id} member={member} index={i} />
           ))}
         </ScrollView>
+      )}
+
+      {showAddModal && (
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.bg.primary }]}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Add Family Member</Text>
+
+            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Name</Text>
+            <View style={[styles.modalInput, { borderColor: colors.border.subtle }]}>
+              <AntDesign name="user" size={16} color={colors.text.tertiary} />
+              <TextInput
+                style={[styles.modalInputField, { color: colors.text.primary }]}
+                placeholder="Full name"
+                placeholderTextColor={colors.text.tertiary}
+                value={addName}
+                onChangeText={setAddName}
+              />
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Phone</Text>
+            <View style={[styles.modalInput, { borderColor: colors.border.subtle }]}>
+              <AntDesign name="phone" size={16} color={colors.text.tertiary} />
+              <TextInput
+                style={[styles.modalInputField, { color: colors.text.primary }]}
+                placeholder="+91 98765 43210"
+                placeholderTextColor={colors.text.tertiary}
+                value={addPhone}
+                onChangeText={setAddPhone}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Role</Text>
+            <View style={styles.rolePicker}>
+              {(['Contributor', 'Viewer', 'Admin'] as Role[]).map(r => (
+                <TouchableOpacity
+                  key={r}
+                  style={[
+                    styles.roleOption,
+                    addRole === r && { backgroundColor: colors.accent.primary + '20' },
+                  ]}
+                  onPress={() => setAddRole(r)}
+                >
+                  <Text
+                    style={[
+                      styles.roleOptionText,
+                      { color: addRole === r ? colors.accent.primary : colors.text.secondary },
+                    ]}
+                  >
+                    {r}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.bg.tertiary }]}
+                onPress={() => { setShowAddModal(false); setAddName(''); setAddPhone(''); }}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalBtn,
+                  { backgroundColor: colors.accent.primary, opacity: adding || !addName.trim() || !addPhone.trim() ? 0.5 : 1 },
+                ]}
+                onPress={addMember}
+                disabled={adding || !addName.trim() || !addPhone.trim()}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.text.inverse }]}>
+                  {adding ? 'Adding...' : 'Add'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -631,6 +755,96 @@ const styles = StyleSheet.create({
   },
   historyAmount: {
     fontSize: 14,
+    fontWeight: '600',
+  },
+
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  actionBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // Add Modal
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    zIndex: 1000,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
+    padding: 24,
+    gap: 6,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  modalInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  modalInputField: {
+    flex: 1,
+    fontSize: 15,
+    height: 48,
+  },
+  rolePicker: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  roleOption: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  roleOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalBtnText: {
+    fontSize: 15,
     fontWeight: '600',
   },
 });

@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const FAMILY_MODULES = [
   { key: 'dashboard', icon: 'grid-outline', label: 'Dashboard', color: '#7C3AED' },
@@ -50,8 +51,8 @@ export function FamilySpaceScreen() {
   const [aiReview, setAiReview] = useState<any>(null);
   const [aiSavings, setAiSavings] = useState<any>(null);
 
-  const loadData = useCallback(async (refresh = false) => {
-    if (refresh) setRefreshing(true); else setLoading(true);
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     try {
       const [famRes, reviewRes, savingsRes] = await Promise.all([
         api.get('/family/dashboard'),
@@ -66,7 +67,7 @@ export function FamilySpaceScreen() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const totalSaved = data?.totalSaved ?? 0;
   const monthlySaved = data?.monthlySaved ?? 0;
@@ -125,7 +126,7 @@ export function FamilySpaceScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />
           }
         >
           <View style={[styles.heroCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -48,12 +49,13 @@ export function StreaksScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (silent = false, refresh = false) => {
     const timeoutId = setTimeout(() => {
       setLoading(false);
       setRefreshing(false);
     }, 15000);
     try {
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       const [streaksRes, engRes] = await Promise.all([
         api.get<any>('/retention/streaks'),
         api.get<any>('/retention/engagement'),
@@ -78,7 +80,7 @@ export function StreaksScreen() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+  useSilentRefresh(useCallback((isInitial) => { fetchData(!isInitial); }, [fetchData]));
   useEffect(() => { fetchData(); }, []);
 
   const sortedStreaks = [...streaks].sort((a, b) => b.currentStreak - a.currentStreak);
@@ -95,7 +97,7 @@ export function StreaksScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(false, true)} />}
     >
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Your Streaks</Text>

@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -78,9 +79,9 @@ export function GroupDetailScreen() {
   const iconName = group?.icon || 'users';
   const accentColor = ICON_COLORS[iconName] || colors.accent.primary;
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (silent = false, refresh = false) => {
     try {
-      setLoading(true);
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       const ts = Date.now();
       const [groupRes, txnRes, catRes] = await Promise.all([
         api.get(`/expense-groups/${groupId}?_=${ts}`).catch(() => null),
@@ -105,19 +106,18 @@ export function GroupDetailScreen() {
       void 0;
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [groupId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
+    await loadData(false, true);
   }, [loadData]);
 
   const expenseTxns = useMemo(

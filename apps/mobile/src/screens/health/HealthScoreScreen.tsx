@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -30,16 +31,17 @@ export function HealthScoreScreen() {
   const { colors } = useTheme();
   const [score, setScore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false, refresh = false) => {
     try {
-      setLoading(true);
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       const res = await api.get('/ai/health-score');
       setScore((res as any)?.data || res);
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); setRefreshing(false); }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useSilentRefresh(useCallback((isInitial) => { load(!isInitial); }, [load]));
 
   const overall = score?.overallScore ?? 0;
   const hasScore = score && (score.components?.savingsRate > 0 || score.components?.debtRatio > 0 || score.components?.budgetDiscipline < 100 || score.components?.goalProgress < 100 || score.components?.billConsistency < 100 || score.components?.emergencyFund > 0);

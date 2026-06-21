@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 export function CoupleBudgetAdjustScreen() {
   const navigation = useNavigation<any>();
@@ -12,23 +13,26 @@ export function CoupleBudgetAdjustScreen() {
   const { colors } = useTheme();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [adjustments, setAdjustments] = useState<Record<string, string>>({});
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/budgets').then((res: any) => {
-      const data = res?.data || res || [];
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/budgets');
+      const data = (res as any)?.data || res || [];
       const list = Array.isArray(data) ? data : [];
-      if (mounted) {
-        setCategories(list);
-        const adj: Record<string, string> = {};
-        list.forEach((c: any) => { adj[c.id] = String(c.amount || ''); });
-        setAdjustments(adj);
-      }
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+      setCategories(list);
+      const adj: Record<string, string> = {};
+      list.forEach((c: any) => { adj[c.id] = String(c.amount || ''); });
+      setAdjustments(adj);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const handleSave = async () => {
     setSaving(true);

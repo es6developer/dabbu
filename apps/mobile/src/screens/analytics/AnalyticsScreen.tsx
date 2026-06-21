@@ -16,7 +16,7 @@ import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { API_URL } from '../../config/api';
+import { downloadAndShareFile } from '../../utils/exportFile';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CHART_W = SCREEN_W - 64;
@@ -43,7 +43,7 @@ export function AnalyticsScreen() {
   const [expenseReport, setExpenseReport] = useState<any>(null);
   const [incomeReport, setIncomeReport] = useState<any>(null);
   const [savingsReport, setSavingsReport] = useState<any>(null);
-  const [exporting, setExporting] = useState<'file1' | 'excel' | null>(null);
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | 'csv' | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'reports'>('overview');
   const [reportTab, setReportTab] = useState<'wallet' | 'arrowdown' | 'savings'>('wallet');
   const [aiReview, setAiReview] = useState<any>(null);
@@ -146,28 +146,24 @@ export function AnalyticsScreen() {
     loadData();
   }, [loadData]);
 
-  const handleExport = async (type: 'file1' | 'excel') => {
-    setExporting(type);
+  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+    setExporting(format);
     try {
+      if (accessToken) setAccessToken(accessToken);
       const range = getDateRange();
-      const res = await fetch(`${API_URL}/analytics/export/${type}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+      const reportType =
+        reportTab === 'wallet' ? 'expense' : reportTab === 'arrowdown' ? 'income' : 'savings';
+      await downloadAndShareFile(
+        '/reports/export',
+        {
+          type: 'monthly',
+          format,
+          startDate: range.startDate,
+          endDate: range.endDate,
         },
-        body: JSON.stringify({
-          ...range,
-          reportType:
-            reportTab === 'wallet' ? 'Expense' : reportTab === 'arrowdown' ? 'Income' : 'Savings',
-        }),
-      });
-      if (!res.ok) {
-        throw new Error('Export failed');
-      }
-      const blob = await res.blob();
-      // On mobile, we'd use expo-file-system + expo-sharing
-      // For now, show success
+        `dabbu-${reportType}-report-${new Date().toISOString().split('T')[0]}`,
+        format,
+      );
     } catch {
     } finally {
       setExporting(null);
@@ -570,34 +566,28 @@ export function AnalyticsScreen() {
 
             {/* Export buttons */}
             <View style={styles.exportRow}>
-              <TouchableOpacity
-                style={[styles.exportBtn, { backgroundColor: colors.status.errorLight }]}
-                onPress={() => handleExport('file1')}
-                disabled={exporting !== null}
-              >
-                {exporting === 'file1' ? (
-                  <ActivityIndicator size="small" color={colors.status.error} />
-                ) : (
-                  <>
-                    <AntDesign  name="filetext1" size={16} color={colors.status.error} />
-                    <Text style={[styles.exportText, { color: colors.status.error }]}>PDF</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.exportBtn, { backgroundColor: colors.status.successLight }]}
-                onPress={() => handleExport('excel')}
-                disabled={exporting !== null}
-              >
-                {exporting === 'excel' ? (
-                  <ActivityIndicator size="small" color={colors.status.success} />
-                ) : (
-                  <>
-                    <AntDesign  name="appstore1" size={16} color={colors.status.success} />
-                    <Text style={[styles.exportText, { color: colors.status.success }]}>Excel</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              {[
+                { format: 'pdf' as const, label: 'PDF', color: '#EF4444', bg: '#FEF2F2', icon: 'filetext1' },
+                { format: 'excel' as const, label: 'Excel', color: '#22C55E', bg: '#F0FDF4', icon: 'appstore1' },
+                { format: 'csv' as const, label: 'CSV', color: '#3B82F6', bg: '#EFF6FF', icon: 'paperclip' },
+              ].map((btn) => (
+                <TouchableOpacity
+                  key={btn.format}
+                  style={[styles.exportBtn, { backgroundColor: btn.bg, opacity: exporting === btn.format ? 0.6 : 1 }]}
+                  onPress={() => handleExport(btn.format)}
+                  disabled={exporting !== null}
+                  activeOpacity={0.7}
+                >
+                  {exporting === btn.format ? (
+                    <ActivityIndicator size="small" color={btn.color} />
+                  ) : (
+                    <>
+                      <AntDesign name={btn.icon as any} size={15} color={btn.color} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: btn.color }}>{btn.label}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ))}
             </View>
 
             {/* Expense Report */}

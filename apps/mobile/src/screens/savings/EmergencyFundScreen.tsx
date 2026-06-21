@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -18,21 +19,22 @@ export function EmergencyFundScreen() {
   const [monthlyExpense, setMonthlyExpense] = useState(0);
   const [savedAmount, setSavedAmount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editSaved, setEditSaved] = useState('0');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false, refresh = false) => {
     try {
-      setLoading(true);
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       const res = await api.get('/emergency-fund');
       const d = (res as any)?.data || res;
       setMonthlyExpense(d.monthlyExpense || 0);
       setSavedAmount(d.savedAmount || 0);
       setEditSaved(String(d.savedAmount || 0));
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); setRefreshing(false); }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useSilentRefresh(useCallback((isInitial) => { load(!isInitial); }, [load]));
 
   const monthlyExp = Math.max(monthlyExpense, 1);
   const coverageMonths = savedAmount / monthlyExp;

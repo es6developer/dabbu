@@ -3,7 +3,8 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } fr
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
@@ -33,17 +34,17 @@ export function RemindersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadReminders();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadReminders(!isInitial);
     }, []),
   );
 
-  const loadReminders = async (isRefresh = false) => {
+  const loadReminders = async (silent = false, refresh = false) => {
     try {
-      if (isRefresh) {
+      if (refresh) {
         setRefreshing(true);
-      } else {
+      } else if (!silent) {
         setLoading(true);
       }
       if (accessToken) {
@@ -182,7 +183,7 @@ export function RemindersScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => loadReminders(true)}
+              onRefresh={() => loadReminders(false, true)}
               tintColor={colors.accent.primary}
             />
           }

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -59,13 +60,13 @@ export function FullLensDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadData = useCallback(async (isRefresh = false) => {
+  const loadData = useCallback(async (silent = false, refresh = false) => {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    if (isRefresh) {
+    if (refresh) {
       setRefreshing(true);
-    } else {
+    } else if (!silent) {
       setLoading(true);
     }
     try {
@@ -84,9 +85,9 @@ export function FullLensDashboard() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
     }, [loadData]),
   );
 
@@ -144,7 +145,7 @@ export function FullLensDashboard() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => loadData(true)}
+              onRefresh={() => loadData(false, true)}
               tintColor="#D97706"
             />
           }

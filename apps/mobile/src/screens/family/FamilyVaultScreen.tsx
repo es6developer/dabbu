@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 interface VaultItem {
   id: string;
@@ -66,16 +67,21 @@ export default function FamilyVaultScreen() {
   const [vaultUnlocked, setVaultUnlocked] = useState(false);
   const [items, setItems] = useState<VaultItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/family-space/vault').then((res: any) => {
-      const data = res?.data || res || [];
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/family-space/vault');
+      const data = (res as any)?.data || res || [];
       const list = Array.isArray(data) ? data : data.items || data.vaultItems || [];
-      if (mounted) setItems(list);
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+      setItems(list);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const handleVaultToggle = () => {
     if (!vaultUnlocked) {

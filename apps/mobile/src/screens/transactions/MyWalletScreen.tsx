@@ -15,7 +15,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { API_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
@@ -79,11 +80,11 @@ export function MyWalletScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadData = useCallback(async (refresh = false) => {
+  const loadData = useCallback(async (silent = false, refresh = false) => {
     abortRef.current?.abort();
     const ctrl = new AbortController(); abortRef.current = ctrl;
     if (accessToken) setAccessToken(accessToken);
-    if (refresh) setRefreshing(true); else setLoading(true);
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     try {
       const [txnsRes, statsRes] = await Promise.all([
         api.get('/transactions?limit=100').catch(() => ({ data: [] })),
@@ -103,7 +104,7 @@ export function MyWalletScreen() {
     }
   }, [accessToken]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const safeCat = (t: any) => { const c = t.category; return typeof c === 'string' ? c : c?.name || ''; };
 
@@ -188,7 +189,7 @@ export function MyWalletScreen() {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} colors={[colors.accent.primary]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} colors={[colors.accent.primary]} />}
         contentContainerStyle={transactions.length === 0 && !search ? st.emptyContainer : { paddingBottom: 100, paddingHorizontal: spacing.xl }}
         ListHeaderComponent={
           <View>

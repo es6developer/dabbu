@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, palette } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -150,7 +151,7 @@ export function SharedGroupDetailScreen() {
   const [savingSettings, setSavingSettings] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (!groupId) {
         setError('Missing group');
         setLoading(false);
@@ -158,7 +159,7 @@ export function SharedGroupDetailScreen() {
       }
       if (refresh) {
         setRefreshing(true);
-      } else {
+      } else if (!silent) {
         setLoading(true);
       }
       setError(null);
@@ -199,11 +200,7 @@ export function SharedGroupDetailScreen() {
     [accessToken, groupId],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
@@ -482,7 +479,7 @@ export function SharedGroupDetailScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} />}
       >
         {/* Action Buttons */}
         <View style={s.actionRow}>

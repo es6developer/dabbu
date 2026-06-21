@@ -6,6 +6,7 @@ import { useAuth } from '../store/AuthContext';
 import {
   registerForPushNotifications,
   resetPushRegistration,
+  clearPushRegistrationState,
   setupAndroidChannels,
   addPushTokenListener,
 } from '../services/notifications';
@@ -144,6 +145,7 @@ export function useNotifications() {
 
   useEffect(() => {
     if (accessToken && user) {
+      clearPushRegistrationState();
       registerForPushNotifications(accessToken).catch(() => {});
       fetchUnreadCount();
     }
@@ -182,7 +184,6 @@ export function useNotifications() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        resetPushRegistration();
         if (accessToken) {
           registerForPushNotifications(accessToken).catch(() => {});
         }

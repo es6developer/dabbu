@@ -11,7 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -48,11 +49,11 @@ export function TripDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (!groupId) return;
 
       if (refresh) setRefreshing(true);
-      else { setLoading(true); setLoadingProgress(0); }
+      else if (!silent) { setLoading(true); setLoadingProgress(0); }
       const totalCalls = 2;
       let completed = 0;
       const tick = () => {
@@ -84,11 +85,7 @@ export function TripDashboardScreen() {
     [accessToken, groupId],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const totalSpent = useMemo(() => expenses.reduce((s, e) => s + Number(e.amount || 0), 0), [expenses]);
   const budget = Number(trip?.budget || 0);
@@ -129,7 +126,7 @@ export function TripDashboardScreen() {
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />}
       >
         <View style={[s.heroSection, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>

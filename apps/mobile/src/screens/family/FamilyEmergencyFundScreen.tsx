@@ -9,10 +9,11 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = width * 0.55;
@@ -73,15 +74,20 @@ export default function FamilyEmergencyFundScreen() {
   const navigation = useNavigation<any>();
   const [fund, setFund] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/family-space/emergency-fund').then((res: any) => {
-      const data = res?.data || res || {};
-      if (mounted) setFund(data);
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/family-space/emergency-fund');
+      const data = (res as any)?.data || res || {};
+      setFund(data);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const targetAmount = fund?.targetAmount || 500000;
   const savedAmount = fund?.savedAmount || 0;

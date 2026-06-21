@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -13,6 +13,8 @@ import { HomeNavigator } from './HomeNavigator';
 import { WalletNavigator } from './WalletNavigator';
 import { SpacesNavigator } from './SpacesNavigator';
 import { LifeHubNavigator } from './LifeHubNavigator';
+import { FamilyMembersNavigator } from './FamilyMembersNavigator';
+import { PartnerNavigator } from './PartnerNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 import { PRESS_SPRING } from './animations';
@@ -27,6 +29,22 @@ const ALL_TAB_CONFIGS = [
     activeIcon: 'home',
     component: HomeNavigator,
     lensKey: 'dashboard',
+  },
+  {
+    name: 'PartnerTab',
+    label: 'Partner',
+    icon: 'addusergroup',
+    activeIcon: 'addusergroup',
+    component: PartnerNavigator,
+    lensKey: 'partner',
+  },
+  {
+    name: 'FamilyMembersTab',
+    label: 'Family',
+    icon: 'team',
+    activeIcon: 'team',
+    component: FamilyMembersNavigator,
+    lensKey: 'family_members',
   },
   {
     name: 'SpacesTab',
@@ -77,7 +95,21 @@ export function MainTabNavigator() {
   const insets = useSafeAreaInsets();
   const { bottomBarVisible, quickActionVisible } = usePreferences();
   const [showActions, setShowActions] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const navigation = useNavigation<any>();
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const lens = useLens();
   const { activeLens, isTabVisible, quickActions: lensQuickActions } = lens;
@@ -86,6 +118,7 @@ export function MainTabNavigator() {
   const tabIcons = useMemo(() => lensMiddleware.getTabIcons(activeLens), [activeLens]);
 
   const visibleTabs = useMemo(() => {
+    const visibleTabNames = lensMiddleware.getVisibleTabs(activeLens);
     const tabs = ALL_TAB_CONFIGS.filter((t) => {
       if (t.name === 'ProfileTab') {
         return false;
@@ -93,7 +126,7 @@ export function MainTabNavigator() {
       if (lensMiddleware.getBlockedScreens(activeLens).includes(t.name)) {
         return false;
       }
-      return isTabVisible(t.lensKey);
+      return visibleTabNames.includes(t.name);
     });
 
     if (tabs.length === 0) {
@@ -104,7 +137,7 @@ export function MainTabNavigator() {
       const order = lensMiddleware.getTabOrder(activeLens);
       return (order[a.name] ?? 99) - (order[b.name] ?? 99);
     });
-  }, [activeLens, isTabVisible]);
+  }, [activeLens]);
 
   const quickActions = useMemo(() => {
     if (lensQuickActions && lensQuickActions.length > 0) {
@@ -306,6 +339,18 @@ export function MainTabNavigator() {
         color: '#3B82F6',
         onPress: () => navigation.navigate('WalletTab', { screen: 'AddInvestment' }),
       },
+      add_family_member: {
+        label: 'Family Members',
+        icon: 'addusergroup',
+        color: '#059669',
+        onPress: () => navigation.navigate('FamilyMembersTab', { screen: 'FamilyMembersHome' }),
+      },
+      add_timeline_event: {
+        label: 'Add Timeline Event',
+        icon: 'clockcircleo',
+        color: '#F43F5E',
+        onPress: () => navigation.navigate('PartnerTab', { screen: 'PartnerHome' }),
+      },
     };
     return availableKeys.map((key) => fullActions[key]).filter(Boolean);
   }, [activeLens, lensQuickActions, navigation, colors]);
@@ -330,6 +375,7 @@ export function MainTabNavigator() {
             isDark={isDark}
             showCenterButton={true}
             bottomBarVisible={bottomBarVisible}
+            keyboardVisible={keyboardVisible}
             onCenterPress={handleFabPress}
             onCenterLongPress={handleFabLongPress}
             visibleTabs={visibleTabs}
@@ -385,11 +431,22 @@ function IOSTabBar({
   isDark,
   showCenterButton,
   bottomBarVisible,
+  keyboardVisible,
   onCenterPress,
   onCenterLongPress,
   visibleTabs,
 }: any) {
   const insets = useSafeAreaInsets();
+  const keyboardAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(keyboardAnim, {
+      toValue: keyboardVisible ? 1 : 0,
+      useNativeDriver: true,
+      tension: 80,
+      friction: 12,
+    }).start();
+  }, [keyboardVisible, keyboardAnim]);
 
   if (!bottomBarVisible) {
     return null;
@@ -478,13 +535,19 @@ function IOSTabBar({
     outputRange: ['0deg', '45deg'],
   });
 
+  const tabBarTranslate = keyboardAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 120],
+  });
+
   return (
-    <View
+    <Animated.View
       style={[
         tabStyles.container,
         {
           paddingBottom: insets.bottom + 4,
           backgroundColor: isDark ? 'rgba(12,12,14,0.95)' : 'rgba(245,245,248,0.95)',
+          transform: [{ translateY: tabBarTranslate }],
         },
       ]}
     >
@@ -560,7 +623,7 @@ function IOSTabBar({
           </View>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

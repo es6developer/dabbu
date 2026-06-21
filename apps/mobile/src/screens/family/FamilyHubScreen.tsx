@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -9,6 +9,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { Avatar } from '../../components/ui/Avatar';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const HUB_CATEGORIES = [
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#F43F5E' },
@@ -46,23 +47,21 @@ export function FamilyHubScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-  const loadGroups = useCallback(async () => {
+  const loadGroups = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     try {
-      setLoading(true);
       const res = await api.get('/shared-finance/groups');
       const data = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.groups || [];
       setGroups(data);
     } catch { /* ignore */ } finally {
-      setLoading(false);
+      setLoading(false); setRefreshing(false);
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { loadGroups(); }, [loadGroups]));
+  useSilentRefresh(useCallback((isInitial) => { loadGroups(!isInitial); }, [loadGroups]));
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadGroups();
-    setRefreshing(false);
+    await loadGroups(false, true);
   }, [loadGroups]);
 
   const categorized = useMemo(() => {

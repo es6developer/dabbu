@@ -10,7 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -68,10 +69,10 @@ export function SharedCirclesScreen() {
   const H_PADDING = 20;
 
   const loadData = useCallback(
-    async (refresh = false) => {
+    async (silent = false, refresh = false) => {
       if (accessToken) setAccessToken(accessToken);
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else if (!silent) setLoading(true);
       setError(null);
       try {
         const res = await api.get<any>('/expense-groups/dashboard');
@@ -87,11 +88,7 @@ export function SharedCirclesScreen() {
     [accessToken],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const totalMembers = useMemo(
     () => groups.reduce((sum, g) => sum + (g.members?.length || g._count?.members || 0), 0),
@@ -268,7 +265,7 @@ export function SharedCirclesScreen() {
           groups.length === 0 ? s.emptyContainer : { paddingHorizontal: H_PADDING, paddingBottom: insets.bottom + 100 }
         }
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />
         }
         ListEmptyComponent={
           <View style={s.emptyState}>

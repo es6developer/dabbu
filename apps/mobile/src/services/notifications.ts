@@ -44,6 +44,11 @@ const REGISTER_TIMEOUT_MS = 15_000;
 export function resetPushRegistration(): void {
   lastRegisteredToken = null;
   isRegistering = false;
+}
+
+export function clearPushRegistrationState(): void {
+  lastRegisteredToken = null;
+  isRegistering = false;
   consecutiveFailures = 0;
   lastFailedAt = 0;
   lastAttemptAt = 0;

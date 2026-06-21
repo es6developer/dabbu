@@ -12,7 +12,8 @@ import {
   UIManager,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
@@ -302,8 +303,9 @@ export function BillsListScreen() {
   const [error, setError] = useState<string | null>(null);
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
 
-  const loadBills = useCallback(async () => {
+  const loadBills = useCallback(async (silent = false, refresh = false) => {
     try {
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       if (accessToken) {
         setAccessToken(accessToken);
       }
@@ -325,9 +327,9 @@ export function BillsListScreen() {
     }
   }, [accessToken]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadBills();
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadBills(!isInitial);
     }, [loadBills]),
   );
 
@@ -358,8 +360,7 @@ export function BillsListScreen() {
   }
 
   function onRefresh() {
-    setRefreshing(true);
-    loadBills();
+    loadBills(false, true);
   }
 
   if (loading && groups.length === 0) {

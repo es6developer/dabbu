@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 interface Category {
   id: string;
@@ -77,15 +78,20 @@ export default function FamilyBudgetScreen() {
   const navigation = useNavigation<any>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    let mounted = true;
-    api.get('/family-space/budget').then((res: any) => {
-      const data = res?.data || res || [];
-      if (mounted) setCategories(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
-    return () => { mounted = false; };
-  }, []));
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    try {
+      const res = await api.get('/family-space/budget');
+      const data = (res as any)?.data || res || [];
+      setCategories(Array.isArray(data) ? data : []);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const totalBudget = categories.reduce((s, c) => s + (c.limit || 0), 0);
   const totalSpent = categories.reduce((s, c) => s + (c.spent || 0), 0);

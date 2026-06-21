@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -62,6 +63,7 @@ export function NetWorthScreen() {
   });
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
@@ -75,42 +77,45 @@ export function NetWorthScreen() {
     };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        setLoading(true);
-        try {
-          if (accessToken) {
-            setAccessToken(accessToken);
-          }
-          const res = await api.get('/net-worth');
-          const body = res as any;
-          const data = body?.data ?? body;
-          if (data) {
-            setAssets({
-              bank: String(data.bank ?? ''),
-              cash: String(data.cash ?? ''),
-              gold: String(data.gold ?? ''),
-              property: String(data.property ?? ''),
-              investments: String(data.investments ?? ''),
-              fixedDeposits: String(data.fixedDeposits ?? ''),
-              epf: String(data.epf ?? ''),
-              crypto: String(data.crypto ?? ''),
-            });
-            setLiabilities({
-              homeLoan: String(data.homeLoan ?? ''),
-              personalLoan: String(data.personalLoan ?? ''),
-              creditCard: String(data.creditCardDebt ?? ''),
-              otherLoan: String(data.otherLiabilities ?? ''),
-            });
-          }
-        } catch {
-          /* ignore */
-        } finally {
-          setLoading(false);
-        }
-      })();
-    }, [accessToken]),
+  const loadData = useCallback(async (silent = false, refresh = false) => {
+    try {
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.get('/net-worth');
+      const body = res as any;
+      const data = body?.data ?? body;
+      if (data) {
+        setAssets({
+          bank: String(data.bank ?? ''),
+          cash: String(data.cash ?? ''),
+          gold: String(data.gold ?? ''),
+          property: String(data.property ?? ''),
+          investments: String(data.investments ?? ''),
+          fixedDeposits: String(data.fixedDeposits ?? ''),
+          epf: String(data.epf ?? ''),
+          crypto: String(data.crypto ?? ''),
+        });
+        setLiabilities({
+          homeLoan: String(data.homeLoan ?? ''),
+          personalLoan: String(data.personalLoan ?? ''),
+          creditCard: String(data.creditCardDebt ?? ''),
+          otherLoan: String(data.otherLiabilities ?? ''),
+        });
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [accessToken]);
+
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      loadData(!isInitial);
+    }, [loadData]),
   );
 
   async function save() {

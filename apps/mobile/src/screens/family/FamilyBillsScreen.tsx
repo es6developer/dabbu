@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -98,8 +99,8 @@ export default function FamilyBillsScreen() {
   const [data, setData] = useState<any>(null);
   const [wealth, setWealth] = useState<any>(null);
 
-  const fetchData = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+  const fetchData = useCallback(async (silent = false, refresh = false) => {
+    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
     try {
       const families = await api.get<any>('/family');
       const activeFamily = Array.isArray(families) ? families[0] : null;
@@ -123,11 +124,10 @@ export default function FamilyBillsScreen() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+  useSilentRefresh(useCallback((isInitial) => { fetchData(!isInitial); }, [fetchData]));
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchData(true);
+    fetchData(false, true);
   }, [fetchData]);
 
   const d = data || {};

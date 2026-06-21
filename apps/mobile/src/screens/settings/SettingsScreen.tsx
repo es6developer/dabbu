@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
@@ -129,7 +130,7 @@ export function SettingsScreen() {
     }
   }, [user?.isCouple, fetchCoupleRequests]);
 
-  useFocusEffect(
+  useSilentRefresh(
     React.useCallback(() => {
       if (!user?.isCouple) {
         fetchCoupleRequests()

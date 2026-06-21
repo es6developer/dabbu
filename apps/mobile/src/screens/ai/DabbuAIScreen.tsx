@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Animated } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -31,20 +32,21 @@ export function DabbuAIScreen() {
   const [chatMessages, setChatMessages] = useState<{ role: string; text: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const indicatorPos = useRef(new Animated.Value(0)).current;
   const tabW = 72;
   const CACHE_TTL = 60000;
   const lastFetchRef = useRef(0);
 
-  const loadData = useCallback(async (force = false) => {
+  const loadData = useCallback(async (silent = false, refresh = false) => {
     const now = Date.now();
-    if (!force && lastFetchRef.current && now - lastFetchRef.current < CACHE_TTL) {
+    if (!silent && lastFetchRef.current && now - lastFetchRef.current < CACHE_TTL) {
       return;
     }
     lastFetchRef.current = now;
     try {
-      setLoading(true);
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       const [insRes, healthRes, saveRes, predRes, dnaRes, anomalyRes, milestoneRes, feedRes] = await Promise.all([
         api.get('/ai/insights?section=dashboard').catch(() => ({})),
         api.get('/ai/health-score').catch(() => ({})),
@@ -67,10 +69,10 @@ export function DabbuAIScreen() {
       const feed = (feedRes as any)?.data || feedRes;
       setFeedCards(Array.isArray(feed?.cards) ? feed.cards : Array.isArray(feed) ? feed : []);
       setFeedSummary(feed?.summary || null);
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); setRefreshing(false); }
   }, []);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
 
   const switchTab = (tab: typeof TABS[number], idx: number) => {
     setActiveTab(tab);

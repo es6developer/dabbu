@@ -14,7 +14,8 @@ import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { API_URL } from '../../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -55,6 +56,7 @@ export function DocumentDetailScreen() {
 
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(!isUpload);
+  const [refreshing, setRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -66,16 +68,9 @@ export function DocumentDetailScreen() {
   const [issuer, setIssuer] = useState('');
   const [notes, setNotes] = useState('');
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!isUpload && id) {
-        loadDocument();
-      }
-    }, [id]),
-  );
-
-  const loadDocument = async () => {
+  const loadDocument = useCallback(async (silent = false, refresh = false) => {
     try {
+      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
       if (accessToken) {
         setAccessToken(accessToken);
       }
@@ -94,8 +89,17 @@ export function DocumentDetailScreen() {
       navigation.goBack();
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [accessToken, id]);
+
+  useSilentRefresh(
+    useCallback((isInitial) => {
+      if (!isUpload && id) {
+        loadDocument(!isInitial);
+      }
+    }, [id, loadDocument]),
+  );
 
   const handleSave = async () => {
     if (!name.trim()) {

@@ -108,15 +108,15 @@ const LENS_REDIRECT_MAP: Record<string, string> = {
 
 const LENS_TAB_VISIBILITY: Record<LensMode, string[]> = {
   PERSONAL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab'],
-  PARTNERED: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab'],
-  FAMILY: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab'],
+  PARTNERED: ['HomeTab', 'PartnerTab', 'WalletTab', 'LifeHubTab'],
+  FAMILY: ['HomeTab', 'FamilyMembersTab', 'SpacesTab', 'LifeHubTab'],
   FULL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab'],
 };
 
 const LENS_TAB_ORDER: Record<LensMode, Record<string, number>> = {
   PERSONAL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3 },
-  PARTNERED: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3 },
-  FAMILY: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3 },
+  PARTNERED: { HomeTab: 0, PartnerTab: 1, WalletTab: 2, LifeHubTab: 3 },
+  FAMILY: { HomeTab: 0, FamilyMembersTab: 1, SpacesTab: 2, LifeHubTab: 3 },
   FULL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3 },
 };
 
@@ -125,18 +125,18 @@ const LENS_TAB_LABELS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'Home',
     WalletTab: 'Wallet',
     SpacesTab: 'Spaces',
-    LifeHubTab: 'Goals',
+    LifeHubTab: 'Reports',
   },
   PARTNERED: {
     HomeTab: 'Home',
-    SpacesTab: 'Spaces',
+    PartnerTab: 'Partner',
     WalletTab: 'Wallet',
-    LifeHubTab: 'Planner',
+    LifeHubTab: 'Reports',
   },
   FAMILY: {
     HomeTab: 'Home',
+    FamilyMembersTab: 'Family',
     SpacesTab: 'Spaces',
-    WalletTab: 'Wallet',
     LifeHubTab: 'Reports',
   },
   FULL: {
@@ -152,18 +152,18 @@ const LENS_TAB_ICONS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'home',
     WalletTab: 'wallet',
     SpacesTab: 'team',
-    LifeHubTab: 'flag',
+    LifeHubTab: 'barschart',
   },
   PARTNERED: {
     HomeTab: 'home',
-    SpacesTab: 'team',
+    PartnerTab: 'addusergroup',
     WalletTab: 'wallet',
-    LifeHubTab: 'calendar',
+    LifeHubTab: 'barschart',
   },
   FAMILY: {
     HomeTab: 'home',
+    FamilyMembersTab: 'addusergroup',
     SpacesTab: 'team',
-    WalletTab: 'wallet',
     LifeHubTab: 'barschart',
   },
   FULL: {
@@ -179,19 +179,19 @@ const LENS_TAB_HOME_SCREENS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'LifeDashboard',
     WalletTab: 'WalletHome',
     SpacesTab: 'SpacesDashboard',
-    LifeHubTab: 'GoalsList',
+    LifeHubTab: 'Analytics',
   },
   PARTNERED: {
     HomeTab: 'LifeDashboard',
-    SpacesTab: 'SpacesDashboard',
+    PartnerTab: 'PartnerHome',
     WalletTab: 'WalletHome',
-    LifeHubTab: 'LifeHubHome',
+    LifeHubTab: 'CoupleReports',
   },
   FAMILY: {
     HomeTab: 'LifeDashboard',
+    FamilyMembersTab: 'FamilyMembersHome',
     SpacesTab: 'SpacesDashboard',
-    WalletTab: 'WalletHome',
-    LifeHubTab: 'LifeHubHome',
+    LifeHubTab: 'FamilyReports',
   },
   FULL: {
     HomeTab: 'LifeDashboard',
@@ -202,16 +202,22 @@ const LENS_TAB_HOME_SCREENS: Record<LensMode, Record<string, string>> = {
 };
 
 const LENS_QUICK_ACTION_FILTER: Record<LensMode, string[]> = {
-  PERSONAL: ['add_expense', 'add_income', 'add_goal', 'create_budget', 'pay_bill'],
+  PERSONAL: ['add_expense', 'add_income', 'add_goal', 'create_budget', 'pay_bill', 'export_report'],
   PARTNERED: [
     'add_shared_expense',
     'add_shared_income',
+    'add_income',
+    'add_expense',
     'contribute_goal',
+    'add_goal',
+    'create_budget',
     'settle_balance',
+    'add_timeline_event',
     'plan_expense',
+    'export_report',
   ],
-  FAMILY: ['add_household_expense', 'add_bill', 'add_goal', 'record_allowance', 'create_reminder'],
-  FULL: ['add_expense', 'create_space', 'add_goal', 'export_report', 'add_investment'],
+  FAMILY: ['add_family_expense', 'add_income', 'add_bill', 'add_goal', 'record_allowance', 'create_reminder', 'create_budget'],
+  FULL: ['add_expense', 'create_space', 'add_goal', 'export_report', 'add_investment', 'add_family_member', 'add_income'],
 };
 
 function getLensForTab(tabName: string): LensMode | null {
