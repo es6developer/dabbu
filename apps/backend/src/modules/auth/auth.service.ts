@@ -207,6 +207,7 @@ export class AuthService {
         isCouple: true,
         isCoupleMode: true,
         partnerLinkedAt: true,
+        activeLens: true,
         partner: {
           select: {
             id: true,

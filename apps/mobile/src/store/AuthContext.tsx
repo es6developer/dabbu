@@ -28,6 +28,7 @@ import {
 import { resetPushRegistration } from '../services/notifications';
 import { trackEventImmediate } from '../services/trackEvent';
 import { useToast } from './ToastContext';
+import { useLensStore } from './lensStore';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 const MIN_REFRESH_INTERVAL = 30_000;
@@ -65,6 +66,7 @@ interface User {
   isCoupleMode?: boolean;
   partner?: Partner | null;
   partnerLinkedAt?: string | null;
+  activeLens?: string;
 }
 
 interface AuthState {
@@ -389,6 +391,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const p = storage.current.setItem('accessToken', token);
     const p2 = storage.current.setItem('userData', JSON.stringify(user));
     Promise.all([p, p2]).catch(() => {});
+    if (user?.activeLens) {
+      useLensStore.getState().hydrateFromUser(user);
+    }
     setState({
       isAuthenticated: true,
       isLoading: false,
