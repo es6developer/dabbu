@@ -61,5 +61,5 @@ apps/admin/.next/
 .github/workflows/
 .vercel
 *.keystore
-dabbu-release.apk
-dabbu-features-flows.txt
+*.apk
+*.txt
