@@ -118,7 +118,12 @@ export class FamilyService {
         throw new ConflictException('User is already a family member');
       }
       return this.prisma.familyMember.create({
-        data: { familyId: dto.familyId, userId: existingUser.id, role: 'member' },
+        data: {
+          familyId: dto.familyId,
+          userId: existingUser.id,
+          role: 'member',
+          ...(dto.relationship ? { relationship: dto.relationship } : {}),
+        },
       });
     }
     return this.prisma.familyMember.create({
@@ -126,6 +131,7 @@ export class FamilyService {
         familyId: dto.familyId,
         userId,
         role: 'member',
+        ...(dto.relationship ? { relationship: dto.relationship } : {}),
       },
     });
   }

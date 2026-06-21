@@ -397,8 +397,30 @@ function setCached(key: string, data: any, ttl: number): void {
   persistCache();
 }
 
+const MUTATION_AFFECTED_PREFIXES: Record<string, string[]> = {
+  '/transactions': ['/transactions', '/accounts', '/dashboard', '/analytics', '/wealth', '/goals', '/budgets'],
+  '/expense-groups': ['/expense-groups', '/shared-finance', '/dashboard'],
+  '/goals': ['/goals', '/dashboard', '/wealth'],
+  '/budgets': ['/budgets', '/dashboard', '/analytics'],
+  '/accounts': ['/accounts', '/dashboard', '/wealth'],
+};
+
 function invalidateCacheForMutation(path: string): void {
-  const affectedPrefixes = Object.keys(CACHE_TTL).filter((p) => path.startsWith(p));
+  const affectedPrefixes: string[] = [];
+  for (const p of Object.keys(CACHE_TTL)) {
+    if (path.startsWith(p)) {
+      affectedPrefixes.push(p);
+    }
+  }
+  for (const [prefix, related] of Object.entries(MUTATION_AFFECTED_PREFIXES)) {
+    if (path.startsWith(prefix)) {
+      for (const rp of related) {
+        if (!affectedPrefixes.includes(rp)) {
+          affectedPrefixes.push(rp);
+        }
+      }
+    }
+  }
   if (affectedPrefixes.length === 0) {
     return;
   }

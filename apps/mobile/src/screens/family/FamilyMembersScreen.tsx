@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,26 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  FlatList,
+  ActivityIndicator,
   Animated,
   RefreshControl,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { Avatar } from '../../components/ui/Avatar';
+import {
+  fetchDeviceContacts,
+  requestRawPermission,
+  getRawPermissionStatus,
+  syncContacts,
+  DeviceContact,
+  ContactMatch,
+} from '../../services/contacts';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 16;
@@ -95,7 +107,7 @@ function fmt(v: number) {
 }
 
 function fmtDate(iso: string) {
-  if (!iso) return '';
+  if (!iso) { return ''; }
   const d = new Date(iso);
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -320,15 +332,24 @@ export default function FamilyMembersScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Add member modal state
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addName, setAddName] = useState('');
-  const [addPhone, setAddPhone] = useState('');
-  const [addRole, setAddRole] = useState<Role>('Contributor');
+  const [addStep, setAddStep] = useState<'contacts' | 'relationship'>('contacts');
+  const [contactQuery, setContactQuery] = useState('');
+  const [deviceContacts, setDeviceContacts] = useState<DeviceContact[]>([]);
+  const [matchedContacts, setMatchedContacts] = useState<ContactMatch[]>([]);
+  const [allContacts, setAllContacts] = useState<((ContactMatch & { kind: 'match' }) | (DeviceContact & { kind: 'device' }))[]>([]);
+  const [hasContactPermission, setHasContactPermission] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<{ name: string; phone: string; userId?: string } | null>(null);
+  const [selectedRelation, setSelectedRelation] = useState('');
+
+  const RELATIONSHIPS = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister', 'Other'];
 
   const fetchMembers = useCallback(async (refresh = false) => {
-    if (refresh) setRefreshing(true);
-    else setLoading(true);
+    if (refresh) { setRefreshing(true); }
+    else { setLoading(true); }
     setError(null);
     try {
       const families: Family[] = await api.get('/family');
@@ -353,29 +374,75 @@ export default function FamilyMembersScreen({ navigation }: any) {
     fetchMembers();
   }, [fetchMembers]);
 
-  const addMember = useCallback(async () => {
-    if (!addName.trim() || !addPhone.trim()) return;
+  // ── Contacts ──
+  const syncDeviceContacts = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const perm = await requestRawPermission();
+      if (!perm.granted) {
+        Alert.alert('Permission Required', 'Enable contact access to add family members from your phonebook.');
+        setSyncing(false);
+        return;
+      }
+      setHasContactPermission(true);
+      const { matched, unmatched } = await syncContacts();
+      setMatchedContacts(matched);
+      const untyped: (DeviceContact & { kind: 'device' })[] = unmatched.map((c) => ({ ...c, kind: 'device' as const }));
+      setDeviceContacts(unmatched);
+      setAllContacts([
+        ...matched.map((m) => ({ ...m, kind: 'match' as const })),
+        ...untyped,
+      ]);
+    } catch {
+      Alert.alert('Error', 'Failed to sync contacts');
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
+
+  const filteredContacts = useMemo(() => {
+    if (!contactQuery.trim()) return allContacts;
+    const q = contactQuery.toLowerCase();
+    return allContacts.filter((c) => {
+      const name = 'kind' in c ? (c as any).name || '' : '';
+      const phone = 'kind' in c ? (c as any).phone || '' : '';
+      return name.toLowerCase().includes(q) || phone.replace(/[^0-9]/g, '').includes(q.replace(/[^0-9]/g, ''));
+    });
+  }, [allContacts, contactQuery]);
+
+  // ── Add member ──
+  const handleSelectContact = useCallback((contact: { name: string; phone: string; userId?: string }) => {
+    setSelectedContact(contact);
+    setSelectedRelation('');
+    setAddStep('relationship');
+  }, []);
+
+  const handleConfirmAdd = useCallback(async () => {
+    if (!selectedContact || !selectedRelation) return;
     setAdding(true);
     try {
-      const [firstName, ...rest] = addName.trim().split(' ');
-      const lastName = rest.join(' ');
+      const families: Family[] = await api.get('/family');
+      const familyId = families?.[0]?.id;
+      if (!familyId) { throw new Error('No family found'); }
+      const nameParts = selectedContact.name.trim().split(' ');
       await api.post('/family/members/contact', {
-        phone: addPhone.trim(),
-        firstName,
-        lastName: lastName || '',
-        role: addRole,
+        familyId,
+        name: selectedContact.name,
+        phone: selectedContact.phone,
+        relationship: selectedRelation.toLowerCase(),
       });
       setShowAddModal(false);
-      setAddName('');
-      setAddPhone('');
-      setAddRole('Contributor');
+      setAddStep('contacts');
+      setContactQuery('');
+      setSelectedContact(null);
+      setSelectedRelation('');
       fetchMembers();
     } catch (err: any) {
-      setError(err?.message || 'Failed to add member');
+      Alert.alert('Error', err?.message || 'Failed to add member');
     } finally {
       setAdding(false);
     }
-  }, [addName, addPhone, addRole, fetchMembers]);
+  }, [selectedContact, selectedRelation, fetchMembers]);
 
   const onRefresh = useCallback(() => {
     fetchMembers(true);
@@ -386,11 +453,10 @@ export default function FamilyMembersScreen({ navigation }: any) {
       <View style={[styles.header, { paddingHorizontal: CARD_HORIZONTAL }]}>
         <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Family Members</Text>
         <TouchableOpacity
-          style={[styles.inviteButton, { backgroundColor: colors.accent.primary }]}
+          style={[styles.iconBtn, { backgroundColor: colors.accent.primary }]}
           onPress={() => setShowAddModal(true)}
         >
-          <AntDesign name="adduser" size={18} color={colors.text.inverse} />
-          <Text style={[styles.inviteButtonText, { color: colors.text.inverse }]}>Add Member</Text>
+          <AntDesign name="plus" size={18} color={colors.text.inverse} />
         </TouchableOpacity>
       </View>
 
@@ -461,77 +527,140 @@ export default function FamilyMembersScreen({ navigation }: any) {
 
       {showAddModal && (
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.bg.primary }]}>
-            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Add Family Member</Text>
-
-            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Name</Text>
-            <View style={[styles.modalInput, { borderColor: colors.border.subtle }]}>
-              <AntDesign name="user" size={16} color={colors.text.tertiary} />
-              <TextInput
-                style={[styles.modalInputField, { color: colors.text.primary }]}
-                placeholder="Full name"
-                placeholderTextColor={colors.text.tertiary}
-                value={addName}
-                onChangeText={setAddName}
-              />
+          <View style={[styles.modalCard, { backgroundColor: colors.bg.primary, maxHeight: '80%' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
+                {addStep === 'contacts' ? 'Add Family Member' : 'Set Relationship'}
+              </Text>
+              <TouchableOpacity onPress={() => { setShowAddModal(false); setAddStep('contacts'); setContactQuery(''); }}>
+                <AntDesign name="close" size={20} color={colors.text.tertiary} />
+              </TouchableOpacity>
             </View>
 
-            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Phone</Text>
-            <View style={[styles.modalInput, { borderColor: colors.border.subtle }]}>
-              <AntDesign name="phone" size={16} color={colors.text.tertiary} />
-              <TextInput
-                style={[styles.modalInputField, { color: colors.text.primary }]}
-                placeholder="+91 98765 43210"
-                placeholderTextColor={colors.text.tertiary}
-                value={addPhone}
-                onChangeText={setAddPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
+            {addStep === 'contacts' && (
+              <>
+                <View style={[styles.modalInput, { borderColor: colors.border.subtle, marginBottom: 12 }]}>
+                  <AntDesign name="search1" size={16} color={colors.text.tertiary} />
+                  <TextInput
+                    style={[styles.modalInputField, { color: colors.text.primary }]}
+                    placeholder="Search contacts..."
+                    placeholderTextColor={colors.text.tertiary}
+                    value={contactQuery}
+                    onChangeText={setContactQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
 
-            <Text style={[styles.modalLabel, { color: colors.text.secondary }]}>Role</Text>
-            <View style={styles.rolePicker}>
-              {(['Contributor', 'Viewer', 'Admin'] as Role[]).map(r => (
-                <TouchableOpacity
-                  key={r}
-                  style={[
-                    styles.roleOption,
-                    addRole === r && { backgroundColor: colors.accent.primary + '20' },
-                  ]}
-                  onPress={() => setAddRole(r)}
-                >
-                  <Text
-                    style={[
-                      styles.roleOptionText,
-                      { color: addRole === r ? colors.accent.primary : colors.text.secondary },
-                    ]}
+                {allContacts.length === 0 && !syncing && (
+                  <TouchableOpacity
+                    style={[styles.syncBtn, { borderColor: colors.accent.primary + '40' }]}
+                    onPress={syncDeviceContacts}
                   >
-                    {r}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                    <AntDesign name="team" size={16} color={colors.accent.primary} />
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>Sync Contacts</Text>
+                  </TouchableOpacity>
+                )}
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: colors.bg.tertiary }]}
-                onPress={() => { setShowAddModal(false); setAddName(''); setAddPhone(''); }}
-              >
-                <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalBtn,
-                  { backgroundColor: colors.accent.primary, opacity: adding || !addName.trim() || !addPhone.trim() ? 0.5 : 1 },
-                ]}
-                onPress={addMember}
-                disabled={adding || !addName.trim() || !addPhone.trim()}
-              >
-                <Text style={[styles.modalBtnText, { color: colors.text.inverse }]}>
-                  {adding ? 'Adding...' : 'Add'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {syncing && (
+                  <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                    <ActivityIndicator size="small" color={colors.accent.primary} />
+                    <Text style={{ marginTop: 8, fontSize: 13, color: colors.text.tertiary }}>Syncing contacts...</Text>
+                  </View>
+                )}
+
+                {allContacts.length > 0 && (
+                  <>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu · {deviceContacts.length} contacts
+                    </Text>
+                    <FlatList
+                      data={filteredContacts}
+                      keyExtractor={(_, i) => String(i)}
+                      keyboardShouldPersistTaps="handled"
+                      style={{ maxHeight: 320 }}
+                      renderItem={({ item }) => {
+                        const name = 'name' in item ? (item as any).name || '' : '';
+                        const phone = 'phone' in item ? (item as any).phone || '' : '';
+                        const isAppUser = item.kind === 'match';
+                        const userId = isAppUser ? (item as any).userId : '';
+                        return (
+                          <TouchableOpacity
+                            style={[styles.contactRow, { borderBottomColor: colors.border.subtle }]}
+                            onPress={() => handleSelectContact({ name, phone, userId })}
+                          >
+                            {isAppUser ? (
+                              <Avatar name={name} size={40} />
+                            ) : (
+                              <View style={[styles.contactAvatar, { backgroundColor: colors.bg.tertiary }]}>
+                                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.tertiary }}>
+                                  {name[0]?.toUpperCase() || '?'}
+                                </Text>
+                              </View>
+                            )}
+                            <View style={{ flex: 1, marginLeft: 10 }}>
+                              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{name}</Text>
+                              <Text style={{ fontSize: 12, color: colors.text.tertiary }} numberOfLines={1}>{phone}</Text>
+                            </View>
+                            {isAppUser && (
+                              <View style={[styles.statusBadge, { backgroundColor: '#22C55E20' }]}>
+                                <Text style={{ fontSize: 10, fontWeight: '600', color: '#22C55E' }}>On Dabbu</Text>
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      }}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
+            {addStep === 'relationship' && selectedContact && (
+              <>
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                  <Avatar name={selectedContact.name} size={56} />
+                  <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>{selectedContact.name}</Text>
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary }}>{selectedContact.phone}</Text>
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, marginBottom: 8 }}>What is their relationship to you?</Text>
+                <View style={styles.relationGrid}>
+                  {RELATIONSHIPS.map((r) => (
+                    <TouchableOpacity
+                      key={r}
+                      style={[
+                        styles.relationChip,
+                        { borderColor: selectedRelation === r ? colors.accent.primary : colors.border.subtle },
+                        selectedRelation === r && { backgroundColor: colors.accent.primary + '15' },
+                      ]}
+                      onPress={() => setSelectedRelation(r)}
+                    >
+                      <Text style={[
+                        styles.relationChipText,
+                        { color: selectedRelation === r ? colors.accent.primary : colors.text.secondary },
+                      ]}>{r}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={[styles.modalBtn, { backgroundColor: colors.bg.tertiary }]}
+                    onPress={() => { setAddStep('contacts'); setSelectedContact(null); }}
+                  >
+                    <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalBtn, { backgroundColor: colors.accent.primary, opacity: adding || !selectedRelation ? 0.5 : 1 }]}
+                    onPress={handleConfirmAdd}
+                    disabled={adding || !selectedRelation}
+                  >
+                    <Text style={[styles.modalBtnText, { color: colors.text.inverse }]}>
+                      {adding ? 'Adding...' : 'Add to Family'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       )}
@@ -555,17 +684,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.5,
   },
-  inviteButton: {
-    flexDirection: 'row',
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  inviteButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    justifyContent: 'center',
   },
   countPill: {
     alignSelf: 'flex-start',
@@ -817,18 +941,46 @@ const styles = StyleSheet.create({
     fontSize: 15,
     height: 48,
   },
-  rolePicker: {
+  syncBtn: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  roleOption: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginVertical: 12,
   },
-  roleOptionText: {
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  contactAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  relationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  relationChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  relationChipText: {
     fontSize: 14,
     fontWeight: '600',
   },

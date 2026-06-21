@@ -480,13 +480,14 @@ model Family {
 // ─── FAMILY MEMBERS ────────────────────────────────────────
 // Family membership mapping
 model FamilyMember {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  familyId  String   @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  role      String   @default("member") @db.VarChar(20) // owner, admin, member, viewer
-  joinedAt  DateTime @default(now())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  familyId     String   @db.VarChar(36)
+  userId       String   @db.VarChar(36)
+  role         String   @default("member") @db.VarChar(20) // owner, admin, member, viewer
+  relationship String?  @db.VarChar(30) // spouse, son, daughter, father, mother, brother, sister, other
+  joinedAt     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
