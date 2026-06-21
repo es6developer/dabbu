@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useRef, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  ReactNode,
+} from 'react';
 import { useColorScheme, Appearance, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette } from './colors';
@@ -106,7 +114,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
 
   useEffect(() => {
-    Animated.sequence([
+    const anim = Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0.3,
         duration: 80,
@@ -117,7 +125,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    anim.start();
+    return () => anim.stop();
   }, [activeLens, isDark]);
 
   let colors: typeof palette.dark;
@@ -152,9 +162,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, themeMode, setThemeMode, isDark }}>
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {children}
-      </Animated.View>
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>{children}</Animated.View>
     </ThemeContext.Provider>
   );
 }

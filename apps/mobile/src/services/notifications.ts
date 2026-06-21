@@ -35,14 +35,18 @@ try {
 
 let deviceId: string | null = null;
 let isRegistering = false;
+let registerStartedAt = 0;
 let lastRegisteredToken: string | null = null;
 let lastFailedAt = 0;
 let consecutiveFailures = 0;
+const REGISTER_TIMEOUT_MS = 15_000;
 
 export function resetPushRegistration(): void {
   lastRegisteredToken = null;
   isRegistering = false;
   consecutiveFailures = 0;
+  lastFailedAt = 0;
+  lastAttemptAt = 0;
 }
 
 const EAS_PROJECT_ID = '57a858a9-aa05-47d4-b908-e3d887e07597';
@@ -69,6 +73,15 @@ function getStableDeviceId(): string {
 
 async function setupAndroidChannels(): Promise<void> {
   const channels = [
+    {
+      id: 'default',
+      name: 'General',
+      description: 'General notifications',
+      importance: Notifications.AndroidImportance.HIGH,
+      color: BRAND_COLOR,
+      sound: 'default',
+      vibration: true,
+    },
     {
       id: 'transactions',
       name: 'Expenses & Payments',
@@ -167,6 +180,8 @@ async function setupAndroidChannels(): Promise<void> {
   }
 }
 
+export { setupAndroidChannels };
+
 let lastAttemptAt = 0;
 const MIN_THROTTLE_MS = 60_000;
 const INITIAL_BACKOFF_MS = 30_000;
@@ -174,12 +189,19 @@ const MAX_BACKOFF_MS = 300_000;
 const MAX_RETRIES = 3;
 
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
-  if (isRegistering || lastRegisteredToken === accessToken) {
+  const now = Date.now();
+
+  if (isRegistering) {
+    if (now - registerStartedAt > REGISTER_TIMEOUT_MS) {
+      isRegistering = false;
+    } else {
+      return;
+    }
+  }
+  if (lastRegisteredToken === accessToken) {
     return;
   }
-  const now = Date.now();
   if (now - lastAttemptAt < MIN_THROTTLE_MS) {
-    console.log(`Push registration throttled: <10s since last attempt, skipping`);
     return;
   }
   if (consecutiveFailures >= MAX_RETRIES) {
@@ -192,6 +214,7 @@ export async function registerForPushNotifications(accessToken: string): Promise
     return;
   }
   isRegistering = true;
+  registerStartedAt = now;
   lastAttemptAt = now;
 
   try {
@@ -222,16 +245,16 @@ export async function registerForPushNotifications(accessToken: string): Promise
     let pushToken: string;
     if (Platform.OS === 'android') {
       try {
-        const projectId = getProjectId();
-        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-        pushToken = tokenData.data;
+        const deviceToken = await Notifications.getDevicePushTokenAsync();
+        pushToken = deviceToken.data;
       } catch (e) {
-        console.warn('Android Expo push token failed, falling back to native FCM token:', e);
+        console.warn('Android native FCM token failed, falling back to Expo push token:', e);
         try {
-          const deviceToken = await Notifications.getDevicePushTokenAsync();
-          pushToken = deviceToken.data;
+          const projectId = getProjectId();
+          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+          pushToken = tokenData.data;
         } catch (e2) {
-          console.warn('Android native FCM token also failed:', e2);
+          console.warn('Android Expo push token also failed:', e2);
           return;
         }
       }

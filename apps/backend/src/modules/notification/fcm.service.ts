@@ -164,6 +164,10 @@ export class FcmService {
       if (this.expoAccessToken) {
         headers['Authorization'] = `Bearer ${this.expoAccessToken}`;
       }
+
+      const notifType = payload.data?.type as string | undefined;
+      const channel = this.getChannelForType(notifType);
+
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers,
@@ -173,8 +177,12 @@ export class FcmService {
           body: payload.notification.body,
           data: payload.data,
           sound: 'default',
-          channelId: 'default',
-          priority: 'high',
+          channelId: channel.channelId,
+          priority: channel.priority === 'max' ? 'high' : 'default',
+          badge: 1,
+          ...(payload.android?.notification?.color && {
+            color: payload.android.notification.color,
+          }),
         }),
       });
       const result = await response.json().catch(() => null);

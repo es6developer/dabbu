@@ -3,7 +3,12 @@ import { Platform, AppState, AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { registerForPushNotifications, resetPushRegistration, addPushTokenListener } from '../services/notifications';
+import {
+  registerForPushNotifications,
+  resetPushRegistration,
+  setupAndroidChannels,
+  addPushTokenListener,
+} from '../services/notifications';
 import { api, setAccessToken } from '../services/api';
 
 type NotificationType =
@@ -132,6 +137,12 @@ export function useNotifications() {
   );
 
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      setupAndroidChannels().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     if (accessToken && user) {
       registerForPushNotifications(accessToken).catch(() => {});
       fetchUnreadCount();
@@ -139,7 +150,9 @@ export function useNotifications() {
   }, [accessToken, user, fetchUnreadCount]);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      return;
+    }
     const sub = addPushTokenListener(() => {
       resetPushRegistration();
       registerForPushNotifications(accessToken).catch(() => {});
@@ -169,12 +182,16 @@ export function useNotifications() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        resetPushRegistration();
+        if (accessToken) {
+          registerForPushNotifications(accessToken).catch(() => {});
+        }
         fetchUnreadCount();
       }
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [fetchUnreadCount]);
+  }, [fetchUnreadCount, accessToken]);
 
   const clearInAppNotification = useCallback(() => {
     setInAppNotification(null);

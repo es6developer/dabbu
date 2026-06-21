@@ -37,23 +37,40 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [rendered, setRendered] = useState(visible);
 
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+
   useEffect(() => {
+    let mounted = true;
     if (visible) {
       setRendered(true);
       scaleAnim.setValue(0.85);
-      Animated.parallel([
+      const anim = Animated.parallel([
         Animated.spring(scaleAnim, { toValue: 1, friction: 7, tension: 60, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
-      ]).start();
+      ]);
+      animRef.current = anim;
+      anim.start();
     } else {
-      Animated.parallel([
+      const anim = Animated.parallel([
         Animated.timing(scaleAnim, { toValue: 0.85, duration: 120, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }),
-      ]).start(() => setRendered(false));
+      ]);
+      animRef.current = anim;
+      anim.start(() => {
+        if (mounted) {
+          setRendered(false);
+        }
+      });
     }
+    return () => {
+      mounted = false;
+      animRef.current?.stop();
+    };
   }, [visible]);
 
-  if (!rendered) return null;
+  if (!rendered) {
+    return null;
+  }
 
   const tabBarHeight = Platform.OS === 'ios' ? 82 + insets.bottom : 64;
 
@@ -86,16 +103,9 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
               }}
             >
               <Animated.View
-                style={[
-                  s.bubble,
-                  { backgroundColor: (action.color || '#636366') + '18' },
-                ]}
+                style={[s.bubble, { backgroundColor: (action.color || '#636366') + '18' }]}
               >
-                <AntDesign
-                  name={action.icon as any}
-                  size={24}
-                  color={action.color || '#1C1C1E'}
-                />
+                <AntDesign name={action.icon as any} size={24} color={action.color || '#1C1C1E'} />
               </Animated.View>
               <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
                 {action.label}

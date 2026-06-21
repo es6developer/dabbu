@@ -54,8 +54,7 @@ export function LensPickerScreen() {
   const updateLens = useLensStore((s) => s.updateLens);
   const loading = useLensStore((s) => s.isLoading);
   const { accessToken } = useAuth();
-
-  const handleSelect = async (lens: LensMode) => {
+  const handleSelect = (lens: LensMode) => {
     if (lens === activeLens) {
       navigation.goBack();
       return;

@@ -20,7 +20,14 @@ import { PRESS_SPRING } from './animations';
 const Tab = createBottomTabNavigator();
 
 const ALL_TAB_CONFIGS = [
-  { name: 'HomeTab', label: 'Home', icon: 'home', activeIcon: 'home', component: HomeNavigator, lensKey: 'dashboard' },
+  {
+    name: 'HomeTab',
+    label: 'Home',
+    icon: 'home',
+    activeIcon: 'home',
+    component: HomeNavigator,
+    lensKey: 'dashboard',
+  },
   {
     name: 'SpacesTab',
     label: 'Spaces',
@@ -81,7 +88,9 @@ export function MainTabNavigator() {
 
   const visibleTabs = useMemo(() => {
     const tabs = ALL_TAB_CONFIGS.filter((t) => {
-      if (lensMiddleware.getBlockedScreens(activeLens).includes(t.name)) return false;
+      if (lensMiddleware.getBlockedScreens(activeLens).includes(t.name)) {
+        return false;
+      }
       return isTabVisible(t.lensKey);
     });
 
@@ -98,7 +107,9 @@ export function MainTabNavigator() {
   const quickActions = useMemo(() => {
     if (lensQuickActions && lensQuickActions.length > 0) {
       return lensQuickActions.map((qa: any) => {
-        const tabConfig = ALL_TAB_CONFIGS.find((t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''));
+        const tabConfig = ALL_TAB_CONFIGS.find(
+          (t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''),
+        );
         const targetTab = tabConfig?.name || 'WalletTab';
         return {
           label: qa.label,
@@ -124,13 +135,15 @@ export function MainTabNavigator() {
         label: 'Add Income',
         icon: 'caretup',
         color: '#16A34A',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'income' } }),
+        onPress: () =>
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'income' } }),
       },
       add_shared_expense: {
         label: 'Shared Expense',
         icon: 'addusergroup',
         color: '#F43F5E',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared' } }),
+        onPress: () =>
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared' } }),
       },
       add_personal_expense: {
         label: 'Personal Expense',
@@ -142,7 +155,8 @@ export function MainTabNavigator() {
         label: 'Family Expense',
         icon: 'addusergroup',
         color: '#059669',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+        onPress: () =>
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
       },
       add_any_expense: {
         label: 'Add Expense',
@@ -154,7 +168,8 @@ export function MainTabNavigator() {
         label: 'Create Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'GoalsList' } }),
+        onPress: () =>
+          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'GoalsList' } }),
       },
       create_budget: {
         label: 'Create Budget',
@@ -166,13 +181,15 @@ export function MainTabNavigator() {
         label: 'Couple Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'CoupleGoals' } }),
+        onPress: () =>
+          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'CoupleGoals' } }),
       },
       add_family_goal: {
         label: 'Family Goal',
         icon: 'flag',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'FamilyGoals' } }),
+        onPress: () =>
+          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'FamilyGoals' } }),
       },
       add_bill: {
         label: 'Add Bill',
@@ -184,7 +201,8 @@ export function MainTabNavigator() {
         label: 'Allowance',
         icon: 'gift',
         color: '#8B5CF6',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Allowances' } }),
+        onPress: () =>
+          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Allowances' } }),
       },
       settle_balance: {
         label: 'Settle',
@@ -202,7 +220,8 @@ export function MainTabNavigator() {
         label: 'Reports',
         icon: 'barschart',
         color: '#22C55E',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Reports' } }),
+        onPress: () =>
+          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Reports' } }),
       },
     };
 
@@ -230,7 +249,11 @@ export function MainTabNavigator() {
         label: 'Shared Income',
         icon: 'pluscircle',
         color: '#22C55E',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared_income' } }),
+        onPress: () =>
+          navigation.navigate('WalletTab', {
+            screen: 'AddExpense',
+            params: { type: 'shared_income' },
+          }),
       },
       contribute_goal: {
         label: 'Contribute Goal',
@@ -248,7 +271,8 @@ export function MainTabNavigator() {
         label: 'Household Expense',
         icon: 'minuscircle',
         color: '#059669',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+        onPress: () =>
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
       },
       record_allowance: {
         label: 'Allowance',
@@ -321,34 +345,32 @@ export function MainTabNavigator() {
           const iconName = tabIcons[tab.name] || tab.icon;
           const activeIconName = tabIcons[tab.name] || tab.activeIcon;
           return (
-          <Tab.Screen
-            key={tab.name}
-            name={tab.name}
-            component={tab.component}
-            options={{
-              tabBarLabel: tabLabels[tab.name] || tab.label,
-              tabBarIcon: iconName
-                ? ({ focused, color }) => (
-                    <AntDesign
-                      name={(focused ? activeIconName : iconName) as any}
-                      size={22}
-                      color={color}
-                    />
-                  )
-                : () => null,
-            }}
-          />
+            <Tab.Screen
+              key={tab.name}
+              name={tab.name}
+              component={tab.component}
+              options={{
+                tabBarLabel: tabLabels[tab.name] || tab.label,
+                tabBarIcon: iconName
+                  ? ({ focused, color }) => (
+                      <AntDesign
+                        name={(focused ? activeIconName : iconName) as any}
+                        size={22}
+                        color={color}
+                      />
+                    )
+                  : () => null,
+              }}
+            />
           );
         })}
       </Tab.Navigator>
 
-      {quickActionVisible && (
-        <QuickActionSheet
-          visible={showActions}
-          onClose={() => setShowActions(false)}
-          actions={quickActions}
-        />
-      )}
+      <QuickActionSheet
+        visible={showActions}
+        onClose={() => setShowActions(false)}
+        actions={quickActions}
+      />
     </View>
   );
 }
