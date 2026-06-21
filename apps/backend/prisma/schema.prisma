@@ -128,7 +128,7 @@ model User {
   bottomMenuConfig      Json?   @db.Json // Array of tab configs [{id, visible, order}]
   preferredPrimaryColor String? @db.VarChar(20) // User's preferred accent color hex
   userType              String? @default("single") @db.VarChar(20) // single, couple, family, friends
-  activeLens            String  @default("PERSONAL") @db.VarChar(20) // PERSONAL, PARTNERED, FAMILY, FULL
+  activeLens            String  @default("FULL") @db.VarChar(20) // PERSONAL, PARTNERED, FAMILY, FULL
 
   // Relations
   sessions                     Session[]

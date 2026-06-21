@@ -285,7 +285,7 @@ export function FamilyLensDashboard() {
                 Utility Bills
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'BillsList' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: '#059669' }}>See All</Text>
               </TouchableOpacity>
@@ -320,6 +320,22 @@ export function FamilyLensDashboard() {
                     </Text>
                   </View>
                 ))}
+              {(!d.utilityBills || d.utilityBills.length === 0) && (!d.familyBills || d.familyBills.length === 0) && (
+                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No utility bills yet
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Add Bill
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -361,6 +377,22 @@ export function FamilyLensDashboard() {
                     </View>
                   </View>
                 ))}
+              {(!d.familyBudget || d.familyBudget.length === 0) && (
+                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="wallet" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No family budget set
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Budget
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -410,6 +442,22 @@ export function FamilyLensDashboard() {
                     </Text>
                   </View>
                 ))}
+              {(!d.familyGoals || d.familyGoals.length === 0) && (
+                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="flag" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No family goals yet
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Goal
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -446,6 +494,22 @@ export function FamilyLensDashboard() {
                   </View>
                 </View>
               ))}
+              {(!d.reminders || d.reminders.length === 0) && (
+                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="bells" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No reminders
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Add Reminder
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -489,7 +553,7 @@ export function FamilyLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Bill</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateGoal' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -499,7 +563,7 @@ export function FamilyLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Goal</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'Allowances' })}
+                onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -509,7 +573,7 @@ export function FamilyLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Allowance</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateReminder' })}
+                onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >

@@ -181,7 +181,7 @@ export function PersonalLensDashboard() {
           </View>
 
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <View style={[styles.balanceCard, { backgroundColor: '#7C3AED' }]}>
+            <View style={[styles.balanceCard, { backgroundColor: colors.brand.primary }]}>
               <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)' }}>
                 Monthly Balance
               </Text>
@@ -315,16 +315,19 @@ export function PersonalLensDashboard() {
                 ),
               )}
               {(!d.accountBalances || d.accountBalances.length === 0) && (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.text.tertiary,
-                    textAlign: 'center',
-                    paddingVertical: 20,
-                  }}
-                >
-                  No accounts linked yet
-                </Text>
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary }}>
+                    No accounts linked yet
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('WalletTab', { screen: 'MyWallet' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.brand.primary }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Link Account
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
           </View>
@@ -335,7 +338,7 @@ export function PersonalLensDashboard() {
                 Budget Progress
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'Budgets' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
                   See All
@@ -390,6 +393,14 @@ export function PersonalLensDashboard() {
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No budgets set
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.brand.primary }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Budget
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -401,7 +412,7 @@ export function PersonalLensDashboard() {
                 Upcoming Bills
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'BillsList' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
                   See All
@@ -439,6 +450,14 @@ export function PersonalLensDashboard() {
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No upcoming bills
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.brand.primary }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Add Bill
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -485,10 +504,10 @@ export function PersonalLensDashboard() {
                           height: 4,
                           backgroundColor:
                             g.progress >= 100
-                              ? '#22C55E'
-                              : g.progress >= 50
-                                ? '#F59E0B'
-                                : '#7C3AED',
+                          ? '#22C55E'
+                          : g.progress >= 50
+                            ? '#F59E0B'
+                            : colors.brand.primary,
                           borderRadius: 2,
                         }}
                       />
@@ -512,6 +531,14 @@ export function PersonalLensDashboard() {
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No goals yet
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.brand.primary }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Goal
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -601,7 +628,7 @@ export function PersonalLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Income</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateGoal' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -611,7 +638,7 @@ export function PersonalLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Goal</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'Budget' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -621,12 +648,12 @@ export function PersonalLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Create Budget</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'BillsList' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
-                <View style={[styles.qaIcon, { backgroundColor: '#7C3AED15' }]}>
-                  <AntDesign name="filetext1" size={22} color="#7C3AED" />
+                <View style={[styles.qaIcon, { backgroundColor: colors.brand.primary + '15' }]}>
+                  <AntDesign name="filetext1" size={22} color={colors.brand.primary} />
                 </View>
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Pay Bill</Text>
               </TouchableOpacity>

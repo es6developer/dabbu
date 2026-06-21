@@ -365,7 +365,7 @@ export class LensService {
       where: { id: userId },
       select: { activeLens: true },
     });
-    return (user?.activeLens as LensType) || 'PERSONAL';
+    return (user?.activeLens as LensType) || 'FULL';
   }
 
   async getCurrentLens(userId: string): Promise<LensState> {
@@ -377,7 +377,7 @@ export class LensService {
       select: { activeLens: true },
     });
 
-    const activeLens = (userLens?.activeLens as LensType) || 'PERSONAL';
+    const activeLens = (userLens?.activeLens as LensType) || 'FULL';
     const state = await this.buildLensState(userId, activeLens);
 
     await this.cache.setCurrentLens(userId, state);

@@ -35,6 +35,7 @@ export class BudgetsRepository extends BaseRepository<any, CreateBudgetDto, Upda
 
   async createBudget(
     userId: string,
+    spaceId: string | null,
     dto: {
       name: string;
       amount: number;
@@ -49,6 +50,7 @@ export class BudgetsRepository extends BaseRepository<any, CreateBudgetDto, Upda
     return this.prisma.budget.create({
       data: {
         userId,
+        spaceId,
         name: dto.name,
         amount: dto.amount,
         period: dto.period || 'monthly',

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
 import { NotificationEventsService } from '../notification/notification-events.service';
@@ -10,13 +11,16 @@ export class GoalsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly notificationEvents: NotificationEventsService,
   ) {}
 
   async create(userId: string, dto: CreateGoalDto) {
+    const spaceId = await this.lensData.getSpaceIdForLens(userId);
     const goal = await this.prisma.goal.create({
       data: {
         userId,
+        spaceId,
         name: dto.name,
         targetAmount: dto.targetAmount,
         type: dto.type || 'custom',

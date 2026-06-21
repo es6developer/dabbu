@@ -61,7 +61,7 @@ function trackLensSwitch(from: LensMode, to: LensMode) {
 export const useLensStore = create<LensStore>()(
   persist(
     (set, get) => ({
-      activeLens: 'PERSONAL' as LensMode,
+      activeLens: 'FULL' as LensMode,
       previousLens: null,
       availableLenses: [],
       config: null,

@@ -22,6 +22,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 // Common
 import { SecurityConfig } from './common/security/security.config';
 import { CacheModule } from './common/cache/cache.module';
+import { LensDataModule } from './common/lens/lens-data.module';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -147,6 +148,9 @@ import { LensAnalyticsModule } from './modules/lens-analytics/lens-analytics.mod
     // ─── Database ───────────────────────────────────
     DatabaseModule,
     PrismaModule,
+
+    // ─── Lens Data (shared) ─────────────────────────
+    LensDataModule,
 
     // ─── Application Modules ────────────────────────
     AuthModule,

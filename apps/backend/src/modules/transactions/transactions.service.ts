@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { NotificationEventsService } from '../notification/notification-events.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,10 +13,12 @@ export class TransactionsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly notificationEvents: NotificationEventsService,
   ) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
+    const spaceId = await this.lensData.getSpaceIdForLens(userId);
     let categoryId = dto.categoryId;
     if (!categoryId && dto.category) {
       const found = await this.prisma.transactionCategory.findFirst({
@@ -37,6 +40,7 @@ export class TransactionsService {
     const prismaTx = await this.prisma.transaction.create({
       data: {
         userId,
+        spaceId,
         accountId: dto.accountId || null,
         categoryId,
         expenseGroupId: dto.expenseGroupId || null,

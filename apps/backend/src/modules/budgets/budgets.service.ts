@@ -1,13 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { BudgetsRepository } from './budgets.repository';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 
 @Injectable()
 export class BudgetsService {
-  constructor(private readonly repo: BudgetsRepository) {}
+  constructor(
+    private readonly repo: BudgetsRepository,
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async create(userId: string, dto: CreateBudgetDto) {
+    const spaceId = await this.lensData.getSpaceIdForLens(userId);
     const now = new Date();
     const startDate = dto.startDate
       ? new Date(dto.startDate)
@@ -35,7 +42,7 @@ export class BudgetsService {
       }
     }
 
-    const budget = await this.repo.createBudget(userId, { ...dto, startDate, endDate });
+    const budget = await this.repo.createBudget(userId, spaceId, { ...dto, startDate, endDate });
     return this.formatBudget(budget);
   }
 

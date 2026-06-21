@@ -301,6 +301,22 @@ export function FullLensDashboard() {
                   </View>
                 </View>
               ))}
+              {(!d.goals || d.goals.length === 0) && (
+                <View style={[styles.goalRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="flag" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No goals yet
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#D97706' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Goal
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -347,6 +363,22 @@ export function FullLensDashboard() {
                   <AntDesign name="right" size={14} color={colors.text.tertiary} />
                 </View>
               ))}
+              {(!d.spaces || d.spaces.length === 0) && (
+                <View style={[styles.spaceRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="team" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No spaces yet
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#D97706' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Create Space
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -356,7 +388,7 @@ export function FullLensDashboard() {
                 Investments
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('WalletTab', { screen: 'Investments' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'InvestmentPlanner' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: '#D97706' }}>See All</Text>
               </TouchableOpacity>
@@ -392,6 +424,22 @@ export function FullLensDashboard() {
                     </View>
                   </View>
                 ))}
+              {(!d.investments || d.investments.length === 0) && (
+                <View style={[styles.investmentRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="linechart" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No investments tracked
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'InvestmentPlanner' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#D97706' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Add Investment
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -401,7 +449,7 @@ export function FullLensDashboard() {
                 Upcoming Bills
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'BillsList' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: '#D97706' }}>See All</Text>
               </TouchableOpacity>
@@ -473,6 +521,22 @@ export function FullLensDashboard() {
                   </Text>
                 </View>
               ))}
+              {(!d.bills || d.bills.length === 0) && (
+                <View style={[styles.billRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                  <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    No upcoming bills
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
+                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#D97706' }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                      Add Bill
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
 
@@ -527,7 +591,7 @@ export function FullLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Expense</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('SpacesTab', { screen: 'CreateSpace' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -537,7 +601,7 @@ export function FullLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Create Space</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateGoal' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -547,7 +611,7 @@ export function FullLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Goal</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'Reports' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'Analytics' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >

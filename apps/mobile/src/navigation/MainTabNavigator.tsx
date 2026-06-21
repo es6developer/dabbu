@@ -116,7 +116,7 @@ export function MainTabNavigator() {
         return {
           label: qa.label,
           icon: qa.icon || 'pluscircle',
-          color: qa.color || colors.accent?.primary || '#7C3AED',
+          color: qa.color || colors.accent?.primary || colors.brand?.primary || '#7C3AED',
           onPress: () => {
             const homeScreen = TAB_HOME_SCREENS[targetTab] || 'WalletHome';
             navigation.navigate(targetTab, { screen: qa.screen || homeScreen });
@@ -171,46 +171,46 @@ export function MainTabNavigator() {
         icon: 'flag',
         color: '#F59E0B',
         onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'GoalsList' } }),
+          navigation.navigate('HomeTab', { screen: 'GoalsList' }),
       },
       create_budget: {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'Budgets' }),
+        onPress: () => navigation.navigate('WalletTab', { screen: 'CoupleBudgets' }),
       },
       create_couple_goal: {
         label: 'Couple Goal',
         icon: 'flag',
         color: '#F59E0B',
         onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'CoupleGoals' } }),
+          navigation.navigate('HomeTab', { screen: 'CoupleGoals' }),
       },
       add_family_goal: {
         label: 'Family Goal',
         icon: 'flag',
         color: '#3B82F6',
         onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'FamilyGoals' } }),
+          navigation.navigate('HomeTab', { screen: 'GoalsList' }),
       },
       add_bill: {
         label: 'Add Bill',
         icon: 'filetext',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddBill' }),
+        onPress: () => navigation.navigate('WalletTab', { screen: 'BillsList' }),
       },
       allowance: {
         label: 'Allowance',
         icon: 'gift',
         color: '#8B5CF6',
         onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Allowances' } }),
+          navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' }),
       },
       settle_balance: {
         label: 'Settle',
         icon: 'swap',
         color: '#22C55E',
-        onPress: () => navigation.navigate('SpacesTab', { screen: 'Settlements' }),
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'Settlement' }),
       },
       switch_lens: {
         label: 'Switch Lens',
@@ -223,7 +223,7 @@ export function MainTabNavigator() {
         icon: 'barschart',
         color: '#22C55E',
         onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Reports' } }),
+          navigation.navigate('WalletTab', { screen: 'Analytics' }),
       },
     };
 
@@ -233,13 +233,13 @@ export function MainTabNavigator() {
         label: 'Add Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateGoal' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList' }),
       },
       create_budget: {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'Budgets' }),
+        onPress: () => navigation.navigate('WalletTab', { screen: 'CoupleBudgets' }),
       },
       pay_bill: {
         label: 'Pay Bill',
@@ -280,25 +280,25 @@ export function MainTabNavigator() {
         label: 'Allowance',
         icon: 'gift',
         color: '#8B5CF6',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Allowances' }),
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' }),
       },
       create_reminder: {
         label: 'Reminder',
         icon: 'bells',
         color: '#22C55E',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateReminder' }),
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' }),
       },
       create_space: {
         label: 'Create Space',
         icon: 'team',
         color: '#D97706',
-        onPress: () => navigation.navigate('SpacesTab', { screen: 'CreateSpace' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateSpace' }),
       },
       export_report: {
         label: 'Export Report',
         icon: 'barschart',
         color: '#22C55E',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'Reports' }),
+        onPress: () => navigation.navigate('WalletTab', { screen: 'Analytics' }),
       },
       add_investment: {
         label: 'Add Investment',
@@ -494,8 +494,8 @@ function IOSTabBar({
           tabStyles.outerWrapper,
           {
             backgroundColor: isDark ? 'rgba(22,22,26,0.9)' : 'rgba(255,255,255,0.9)',
-            borderColor: isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.12)',
-            shadowColor: isDark ? '#7C3AED' : '#7C3AED',
+            borderColor: isDark ? colors.accent?.primary + '33' : colors.accent?.primary + '1F',
+            shadowColor: colors.accent?.primary || '#7C3AED',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: isDark ? 0.2 : 0.08,
             shadowRadius: 12,
