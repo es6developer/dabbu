@@ -38,6 +38,8 @@ import { CoupleTimelineScreen } from '../screens/couple/CoupleTimelineScreen';
 import { CoupleBudgetsScreen } from '../screens/couple/CoupleBudgetsScreen';
 import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
+import { CreateFamilyWorkspaceScreen } from '../screens/family/CreateFamilyWorkspaceScreen';
+import { FamilyWorkspaceScreen } from '../screens/family/FamilyWorkspaceScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -80,6 +82,8 @@ export function DashboardNavigator() {
       <Stack.Screen name="CoupleBudgets" component={CoupleBudgetsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AddExpense" component={AddExpenseScreen} options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="CoupleSpace" component={CoupleSpaceScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CreateFamilyWorkspace" component={CreateFamilyWorkspaceScreen} options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="FamilyWorkspace" component={FamilyWorkspaceScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

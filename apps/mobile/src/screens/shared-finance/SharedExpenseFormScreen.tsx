@@ -25,9 +25,9 @@ import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'team' },
-  { key: 'percentage', label: '% Split', icon: 'percent' },
+  { key: 'percentage', label: '% Split', icon: 'piechart' },
   { key: 'exact', label: 'Exact', icon: 'wallet' },
-  { key: 'shares', label: 'Shares', icon: 'layers' },
+  { key: 'shares', label: 'Shares', icon: 'switcher' },
 ];
 
 const MM_COLORS = [

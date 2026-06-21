@@ -133,7 +133,7 @@ export const useLensStore = create<LensStore>()(
                 {
                   key: 'pay_bill',
                   label: 'Pay Bill',
-                  icon: 'filetext',
+                  icon: 'filetext1',
                   color: '#7C3AED',
                   sortOrder: 4,
                 },
@@ -224,7 +224,7 @@ export const useLensStore = create<LensStore>()(
                 {
                   key: 'add_bill',
                   label: 'Add Bill',
-                  icon: 'filetext',
+                  icon: 'filetext1',
                   color: '#F59E0B',
                   sortOrder: 1,
                 },
@@ -337,13 +337,17 @@ export const useLensStore = create<LensStore>()(
 
           const raw = res as any;
           const result = raw?.data ?? raw;
+          const activeLens = result?.activeLens || lens;
           if (result?.config) {
             set({
+              activeLens,
+              previousLens: prev,
               config: result.config,
               features: result.config.features || {},
               quickActions: result.config.dashboard?.quickActions || [],
             });
           } else {
+            set({ activeLens, previousLens: prev });
             await get().fetchConfig();
           }
 

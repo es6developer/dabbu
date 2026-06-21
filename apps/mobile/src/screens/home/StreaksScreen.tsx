@@ -13,7 +13,7 @@ const STREAK_ICONS: Record<string, { icon: string; color: string; label: string 
   weekly: { icon: 'calendar', color: '#6366f1', label: 'Weekly Activity' },
   monthly: { icon: 'caretup', color: '#22c55e', label: 'Monthly Consistency' },
   financial: { icon: 'wallet', color: '#8b5cf6', label: 'Financial Activity' },
-  savings: { icon: 'piggy-bank', color: '#ec4899', label: 'Savings Streak' },
+  savings: { icon: 'wallet', color: '#ec4899', label: 'Savings Streak' },
   goal_progress: { icon: 'flag', color: '#14b8a6', label: 'Goal Progress' },
   bill_payment: { icon: 'filetext1', color: '#eab308', label: 'Bill Payment' },
 };

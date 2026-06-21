@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -24,7 +25,7 @@ const ASSET_CATEGORIES = [
   { key: 'property', label: 'Property', icon: 'home' },
   { key: 'investments', label: 'Stocks & Mutual Funds', icon: 'linechart' },
   { key: 'fixedDeposits', label: 'Fixed Deposits', icon: 'lock' },
-  { key: 'epf', label: 'EPF / NPS', icon: 'safety' },
+  { key: 'epf', label: 'EPF / NPS', icon: 'Safety' },
   { key: 'crypto', label: 'Crypto', icon: 'rocket1' },
 ];
 
@@ -187,6 +188,7 @@ export function NetWorthScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await loadData(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}
         >
           <View
             style={[

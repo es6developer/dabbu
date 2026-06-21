@@ -20,20 +20,20 @@ function fmt(v: number) {
 
 function getCategoryIcon(cat: string): string {
   const map: Record<string, string> = {
-    Food: 'fast-food',
+    Food: 'rest',
     Transport: 'car',
-    Shopping: 'bag',
-    Bills: 'document-text',
-    Entertainment: 'film',
-    Health: 'fitness',
-    Education: 'school',
-    Travel: 'planner',
+    Shopping: 'shoppingcart',
+    Bills: 'filetext1',
+    Entertainment: 'playcircleo',
+    Health: 'hearto',
+    Education: 'book',
+    Travel: 'calendar',
     Groceries: 'shoppingcart',
     Rent: 'home',
     Salary: 'wallet',
     Investment: 'caretup',
     Utilities: 'bulb1',
-    Insurance: 'shield',
+    Insurance: 'Safety',
     Dining: 'rest',
     Other: 'ellipsis1',
   };

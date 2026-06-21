@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -63,7 +63,7 @@ export function EmergencyFundScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await load(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}>
         <View style={[styles.coverageCard, { backgroundColor: colors.card.balance }]}>
           <Text style={[styles.coverageLabel, { color: colors.text.secondary }]}>Current Coverage</Text>
           <Text style={[styles.coverageValue, { color: coverageMonths >= targetMonths ? colors.status.success : colors.status.warning }]}>

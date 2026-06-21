@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -55,6 +56,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
   const { insights, loading: aiLoading, fetchInsights } = useAIStore();
   const [tab, setTab] = useState<Tab>('overview');
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (spaceId) setActiveSpace(spaceId);
@@ -181,7 +183,7 @@ export function SpaceDetailScreen({ route, navigation }: any) {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await fetchSpaceDetail(accessToken); await fetchDashboard(accessToken); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}>
         {tab === 'overview' && (
           <View>
             {dashboard && (

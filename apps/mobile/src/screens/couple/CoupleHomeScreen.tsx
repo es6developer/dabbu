@@ -51,7 +51,7 @@ const QUICK_ACTIONS = [
   { key: 'Goals', icon: 'Trophy', label: 'Goals', color: '#A78BFA' },
   { key: 'Bills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
   { key: 'Settlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
-  { key: 'Reports', icon: 'bar-chart', label: 'Reports', color: '#4F46E5' },
+  { key: 'Reports', icon: 'barschart', label: 'Reports', color: '#4F46E5' },
   { key: 'LifePlans', icon: 'find', label: 'Planners', color: '#60A5FA' },
   { key: 'Timeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
   { key: 'AI', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
@@ -314,7 +314,7 @@ export function CoupleHomeScreen() {
                 <StatCard icon='caretup' label="Income" value={fmt(data?.monthlySnapshot?.income || 0)} color={colors.status.success} />
                 <StatCard icon="shoppingcart" label="Expenses" value={fmt(data?.monthlySnapshot?.expenses || 0)} color={colors.status.error} />
                 <StatCard icon="save" label="Savings" value={fmt(data?.monthlySnapshot?.savings || 0)} color={colors.status.info} />
-                <StatCard icon="pie-chart" label="Rate" value={`${data?.monthlySnapshot?.savingsRate || 0}%`} color={colors.accent.secondary} />
+                <StatCard icon="piechart" label="Rate" value={`${data?.monthlySnapshot?.savingsRate || 0}%`} color={colors.accent.secondary} />
               </View>
               {data?.monthlySnapshot?.change !== null && data.monthlySnapshot.change !== 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>

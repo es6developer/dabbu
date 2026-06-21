@@ -49,8 +49,8 @@ const ALL_TAB_CONFIGS = [
   {
     name: 'SpacesTab',
     label: 'Spaces',
-    icon: 'team',
-    activeIcon: 'team',
+    icon: 'appstore-o',
+    activeIcon: 'appstore-o',
     component: SpacesNavigator,
     lensKey: 'spaces',
   },
@@ -228,7 +228,7 @@ export function MainTabNavigator() {
       },
       add_bill: {
         label: 'Add Bill',
-        icon: 'filetext',
+        icon: 'filetext1',
         color: '#F59E0B',
         onPress: () => navigation.navigate('WalletTab', { screen: 'BillsList' }),
       },
@@ -276,7 +276,7 @@ export function MainTabNavigator() {
       },
       pay_bill: {
         label: 'Pay Bill',
-        icon: 'filetext',
+        icon: 'filetext1',
         color: '#7C3AED',
         onPress: () => navigation.navigate('WalletTab', { screen: 'BillsList' }),
       },

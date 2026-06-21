@@ -20,7 +20,7 @@ const SPACE_TYPES = [
   { type: 'COUPLE', label: 'Couple', icon: 'heart', color: '#F43F5E' },
   { type: 'FAMILY', label: 'Family', icon: 'team', color: '#059669' },
   { type: 'TRIP', label: 'Trip', icon: 'earth', color: '#0D9488' },
-  { type: 'BUSINESS', label: 'Business', icon: 'briefcase', color: '#4F46E5' },
+  { type: 'BUSINESS', label: 'Business', icon: 'solution1', color: '#4F46E5' },
   { type: 'CUSTOM', label: 'Custom', icon: 'addfile', color: '#F97316' },
 ];
 

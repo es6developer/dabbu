@@ -19,10 +19,10 @@ import {
 const CIRCLE_TYPES = [
   { label: 'Couple', value: 'couple', icon: 'heart', color: '#FF6B9D' },
   { label: 'Family', value: 'family', icon: 'home', color: '#F97316' },
-  { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
-  { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },
+  { label: 'Friends', value: 'friends', icon: 'team', color: '#34C759' },
+  { label: 'Roommates', value: 'roommates', icon: 'team', color: '#4F6EF7' },
   { label: 'Trip', value: 'trip', icon: 'earth', color: '#14B8A6' },
-  { label: 'Sports', value: 'sports', icon: 'football', color: '#FF6B6B' },
+  { label: 'Sports', value: 'sports', icon: 'playcircleo', color: '#FF6B6B' },
 ];
 
 const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;
@@ -120,7 +120,7 @@ export function CreateCircleScreen() {
         />
         <FormTextArea
           label="Description"
-          icon="document-text"
+          icon="filetext1"
           value={description}
           onChangeText={setDescription}
           placeholder="Add a description (optional)"

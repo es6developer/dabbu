@@ -43,7 +43,8 @@ export function FamilyLensDashboard() {
   const [dashboard, setDashboard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [hasFamily, setHasFamily] = useState<boolean | null>(null);
+  const [workspace, setWorkspace] = useState<any>(null);
+  const [wsLoading, setWsLoading] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
 
   const loadData = useCallback(async (silent = false, refresh = false) => {
@@ -56,12 +57,24 @@ export function FamilyLensDashboard() {
       setLoading(true);
     }
     try {
-      const res = await api.get<any>('/dashboard/lens', ctrl.signal);
-      const data = res?.data || res;
+      const [dashRes, wsRes] = await Promise.allSettled([
+        api.get<any>('/dashboard/lens', ctrl.signal),
+        (async () => {
+          const families: any[] = await api.get('/family');
+          const familyId = families?.[0]?.id;
+          if (!familyId) return null;
+          return api.get(`/family/workspace/${familyId}`);
+        })(),
+      ]);
       if (!ctrl.signal.aborted) {
-        setDashboard(data);
-        const d = data?.data || data;
-        setHasFamily(!!(d?.familyIncome !== undefined || d?.householdIncome !== undefined));
+        if (dashRes.status === 'fulfilled') {
+          setDashboard(dashRes.value?.data || dashRes.value);
+        }
+        if (wsRes.status === 'fulfilled') {
+          const w = (wsRes.value as any)?.data || wsRes.value;
+          setWorkspace(w || null);
+        }
+        setWsLoading(false);
       }
     } catch {
       /* silent */
@@ -110,7 +123,7 @@ export function FamilyLensDashboard() {
     );
   }
 
-  if (!hasFamily && (d as any)?.familyIncome === undefined) {
+  if (!wsLoading && !workspace) {
     return (
       <View style={styles.screen}>
         <LinearGradient
@@ -187,12 +200,7 @@ export function FamilyLensDashboard() {
               together.
             </Text>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('HomeTab', {
-                  screen: 'CreateSpace',
-                  params: { type: 'FAMILY' },
-                })
-              }
+              onPress={() => navigation.navigate('CreateFamilyWorkspace')}
               style={[styles.ctaBtn, { backgroundColor: '#059669' }]}
               activeOpacity={0.8}
             >

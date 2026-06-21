@@ -16,14 +16,14 @@ import {
 } from '../../components/forms';
 
 const GROUP_TYPES = [
-  { label: 'Friends', value: 'friends', icon: 'people', color: '#34C759' },
+  { label: 'Friends', value: 'friends', icon: 'team', color: '#34C759' },
   { label: 'Trip', value: 'trip', icon: 'earth', color: '#14B8A6' },
   { label: 'Family', value: 'family', icon: 'home', color: '#14B8A6' },
   { label: 'Couple', value: 'couple', icon: 'heart', color: '#FF6B9D' },
-  { label: 'Roommates', value: 'roommates', icon: 'business', color: '#4F6EF7' },
-  { label: 'Office', value: 'office', icon: 'briefcase', color: '#14B8A6' },
+  { label: 'Roommates', value: 'roommates', icon: 'team', color: '#4F6EF7' },
+  { label: 'Office', value: 'office', icon: 'solution1', color: '#14B8A6' },
   { label: 'Event', value: 'event', icon: 'calendar', color: '#FF6B6B' },
-  { label: 'Sports', value: 'sports', icon: 'football', color: '#FF6B6B' },
+  { label: 'Sports', value: 'sports', icon: 'playcircleo', color: '#FF6B6B' },
   { label: 'Apartment', value: 'apartment', icon: 'home', color: '#14B8A6' },
 ];
 
@@ -102,7 +102,7 @@ export function CreateSharedGroupScreen() {
       subtitle="Split expenses with friends, family, and more"
       icon="earth"
       footer={
-        <FormFooter title="Create Space" icon="people" loading={saving} onPress={handleCreate} />
+        <FormFooter title="Create Space" icon="team" loading={saving} onPress={handleCreate} />
       }
     >
       <FormError message={error} />
@@ -125,7 +125,7 @@ export function CreateSharedGroupScreen() {
         />
         <FormTextArea
           label="Description"
-          icon="document-text"
+          icon="filetext1"
           value={description}
           onChangeText={setDescription}
           placeholder="What's this space for?"

@@ -14,7 +14,7 @@ import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 const HUB_CATEGORIES = [
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#F43F5E' },
   { key: 'family', label: 'Family', icon: 'home', color: '#2563EB' },
-  { key: 'friends', label: 'Friends', icon: 'people', color: '#16A34A' },
+  { key: 'friends', label: 'Friends', icon: 'team', color: '#16A34A' },
   { key: 'trip', label: 'Trips', icon: 'earth', color: '#0D9488' },
 ] as const;
 

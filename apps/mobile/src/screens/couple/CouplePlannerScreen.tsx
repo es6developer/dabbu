@@ -39,10 +39,10 @@ const CATEGORY_ICONS: Record<string, string> = {
   travel: 'earth',
   wedding: 'heart',
   car: 'car',
-  baby: 'happy',
-  emergency: 'shield',
+  baby: 'smileo',
+  emergency: 'Safety',
   investment: 'caretup',
-  education: 'school',
+  education: 'book',
   other: 'flag',
 };
 

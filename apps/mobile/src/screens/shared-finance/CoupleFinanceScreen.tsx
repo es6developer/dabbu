@@ -53,10 +53,10 @@ function getCategoryIcon(cat: string): { icon: string; color: string } {
     Shopping: { icon: 'shoppingcart', color: '#F472B6' },
     Entertainment: { icon: 'play', color: '#14B8A6' },
     Medical: { icon: 'heart', color: '#FF4D4F' },
-    salary: { icon: 'briefcase', color: '#34C759' },
+    salary: { icon: 'solution1', color: '#34C759' },
     income: { icon: 'linechart', color: '#34C759' },
   };
-  return map[cat] || { icon: 'minuscirlceo', color: '#9CA3AF' };
+  return map[cat] || { icon: 'minuscircleo', color: '#9CA3AF' };
 }
 
 export function CoupleFinanceScreen() {

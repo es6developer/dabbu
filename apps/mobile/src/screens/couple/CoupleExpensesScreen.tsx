@@ -116,7 +116,7 @@ export function CoupleExpensesScreen() {
   function renderExpenseRow(item: any) {
     const catName = item.category?.name || item.category;
     const catInfo = {
-      icon: getCategoryIcon(catName, 'minuscirlceo'),
+      icon: getCategoryIcon(catName, 'minuscircleo'),
       color: getCategoryColor(catName),
     };
     const isOwn =

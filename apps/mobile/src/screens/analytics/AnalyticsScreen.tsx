@@ -360,7 +360,7 @@ export function AnalyticsScreen() {
                   label: 'Savings Rate',
                   value: `${Math.round(savingsRate)}%`,
                   color: colors.accent.primary,
-                  icon: 'pie-chart',
+                  icon: 'piechart',
                 },
               ].map((item, i) => (
                 <View

@@ -192,7 +192,7 @@ registerWidget({
   type: 'coupleHealth',
   component: CoupleHealthWidget,
   defaultLabel: 'Couple Health',
-  defaultIcon: 'heart-circle-outline',
+  defaultIcon: 'hearto',
   defaultHeight: 220,
 });
 registerWidget({
@@ -283,7 +283,7 @@ registerWidget({
   type: 'familyHealth',
   component: FamilyHealthWidget,
   defaultLabel: 'Family Health',
-  defaultIcon: 'heart-circle-outline',
+  defaultIcon: 'hearto',
   defaultHeight: 220,
 });
 

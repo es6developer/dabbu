@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   TextInput,
   Alert,
@@ -22,14 +23,14 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 
 const CATEGORIES = [
-  { key: 'aadhaar', label: 'Aadhaar', icon: 'id-card' },
+  { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
   { key: 'pan', label: 'PAN', icon: 'creditcard' },
-  { key: 'passport', label: 'Passport', icon: 'globe' },
+  { key: 'passport', label: 'Passport', icon: 'earth' },
   { key: 'driving_license', label: 'Driving License', icon: 'car' },
   { key: 'insurance', label: 'Insurance', icon: 'checkcircle' },
-  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'document-text' },
+  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'filetext1' },
   { key: 'warranty', label: 'Warranty', icon: 'filetext1' },
-  { key: 'medical', label: 'Medical', icon: 'medkit' },
+  { key: 'medical', label: 'Medical', icon: 'medicinebox' },
 ];
 
 function fmtDate(d: string | null) {
@@ -226,6 +227,7 @@ export function DocumentDetailScreen() {
         style={s.screen}
         contentContainerStyle={{ paddingTop: insets.top + 8 }}
         keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await loadDocument(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}
       >
         <View style={s.form}>
           <Text style={[s.sectionTitle, { color: colors.text.primary }]}>

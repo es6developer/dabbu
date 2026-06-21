@@ -20,7 +20,6 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
-import { useUserStore } from '../../store/userStore';
 import { useLensStore, LensMode } from '../../store/lensStore';
 
 const LENS_OPTIONS: { id: LensMode; icon: React.ComponentProps<typeof AntDesign>['name']; title: string; desc: string }[] = [
@@ -46,7 +45,6 @@ export function ProfileScreen() {
 
   const { showToast } = useToast();
   const { activeLens } = useLensStore();
-  const updateUserLens = useUserStore((s) => s.updateLens);
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
@@ -214,8 +212,7 @@ export function ProfileScreen() {
                         <TouchableOpacity
                           key={lens.id}
                           onPress={async () => {
-                            useLensStore.getState().setLens(lens.id);
-                            await updateUserLens(accessToken, lens.id);
+                            useLensStore.getState().updateLens(accessToken, lens.id);
                           }}
                           activeOpacity={0.8}
                           style={[s.lensCard, {

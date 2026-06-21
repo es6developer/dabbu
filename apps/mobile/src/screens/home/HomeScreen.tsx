@@ -136,7 +136,7 @@ const INSIGHT_ICONS: Record<string, string> = {
   Loans: 'caretdown',
   'Active Goals': 'flag',
   'Upcoming Bills': 'filetext1',
-  'Budget Health': 'pie-chart',
+  'Budget Health': 'piechart',
 };
 
 const QUICK_ACTIONS: {
@@ -147,9 +147,9 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Wallet', screen: 'AddExpense', params: { type: 'expense' } },
-  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Wallet', screen: 'AddExpense', params: { type: 'income' } },
-  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Home', screen: 'NetWorth' },
+  { label: 'Add Expense', icon: 'pluscircle', desc: 'Record a new expense', route: 'Wallet', screen: 'AddExpense', params: { type: 'expense' } },
+  { label: 'Add Income', icon: 'wallet', desc: 'Money received', route: 'Wallet', screen: 'AddExpense', params: { type: 'income' } },
+  { label: 'Transfer', icon: 'swap', desc: 'Move money between accounts', route: 'Home', screen: 'NetWorth' },
   { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Home', screen: 'GoalsList' },
 ];
 
@@ -599,7 +599,7 @@ export function HomeScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers" tip={loadingTip} />
+      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="switcher" tip={loadingTip} />
     );
   }
 

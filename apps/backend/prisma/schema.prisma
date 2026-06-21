@@ -139,6 +139,7 @@ model User {
   premiumEntitlements          PremiumEntitlement[]
   paymentTransactions          PaymentTransaction[]
   familyMemberships            FamilyMember[]
+  familyWorkspacesCreated      FamilyWorkspace[]              @relation("WorkspaceCreator")
   chatParticipants             ChatParticipant[]
   sentMessages                 ChatMessage[]                @relation("MessageSender")
   transactions                 Transaction[]
@@ -471,6 +472,7 @@ model Family {
   healthScores       FamilyHealthScore[]
   calendarEvents     FamilyCalendarEvent[]
   dashboardWidgets   DashboardWidget[]
+  workspace          FamilyWorkspace?
 
   @@index([code])
   @@index([ownerId])
@@ -497,6 +499,27 @@ model FamilyMember {
   @@index([familyId, role])
   @@index([userId])
   @@map("family_members")
+}
+
+// ─── FAMILY WORKSPACE ────────────────────────────────────
+// Dedicated workspace for family lens (not generic Space)
+model FamilyWorkspace {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  familyId    String   @unique @db.VarChar(36)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  icon        String?  @db.VarChar(50)
+  coverColor  String?  @db.VarChar(20)
+  createdBy   String   @db.VarChar(36)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  family  Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  creator User   @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+
+  @@index([familyId])
+  @@index([createdBy])
+  @@map("family_workspaces")
 }
 
 // ─── CHATS ─────────────────────────────────────────────────

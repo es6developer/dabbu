@@ -14,14 +14,14 @@ export type GoalConfig = {
 export const GOAL_CONFIGS: Record<string, GoalConfig> = {
   emergency: { icon: 'checkcircle', color: '#FF6B6B', emoji: '🛡️', tagline: 'Peace of mind' },
   vacation: { icon: 'dingding', color: '#00B894', emoji: '✈️', tagline: 'Adventure is calling' },
-  education: { icon: 'school', color: '#4F6EF7', emoji: '🎓', tagline: 'Invest in your future' },
+  education: { icon: 'book', color: '#4F6EF7', emoji: '🎓', tagline: 'Invest in your future' },
   home: { icon: 'home', color: '#F97316', emoji: '🏠', tagline: 'Your dream home awaits' },
-  car: { icon: 'car-sport', color: '#14B8A6', emoji: '🚗', tagline: 'Freedom on four wheels' },
+  car: { icon: 'car', color: '#14B8A6', emoji: '🚗', tagline: 'Freedom on four wheels' },
   wedding: { icon: 'heart', color: '#FF6B9D', emoji: '💍', tagline: 'Happily ever after' },
-  retirement: { icon: 'umbrella', color: '#247BA0', emoji: '🏖️', tagline: 'Golden years ahead' },
-  savings: { icon: 'piggy-bank', color: '#8B5CF6', emoji: '🐷', tagline: 'Every rupee counts' },
-  investment: { icon: 'trending-up', color: '#10B981', emoji: '📈', tagline: 'Grow your wealth' },
-  baby: { icon: 'happy', color: '#FF69B4', emoji: '👶', tagline: 'Welcome to the family' },
+  retirement: { icon: 'Safety', color: '#247BA0', emoji: '🏖️', tagline: 'Golden years ahead' },
+  savings: { icon: 'wallet', color: '#8B5CF6', emoji: '🐷', tagline: 'Every rupee counts' },
+  investment: { icon: 'linechart', color: '#10B981', emoji: '📈', tagline: 'Grow your wealth' },
+  baby: { icon: 'smileo', color: '#FF69B4', emoji: '👶', tagline: 'Welcome to the family' },
   custom: { icon: 'flag', color: '#14B8A6', emoji: '⭐', tagline: 'Your goal, your way' },
 };
 

@@ -211,8 +211,8 @@ export function SharedCirclesScreen() {
       {groups.length > 0 && (
         <View style={{ paddingHorizontal: H_PADDING, marginTop: 20 }}>
           <View style={s.statsRow}>
-            <StatCard icon="people" value={String(totalMembers)} label="Members" color={colors.accent.primary} />
-            <StatCard icon="layers" value={String(groups.length)} label="Circles" color={colors.status.success} />
+            <StatCard icon="team" value={String(totalMembers)} label="Members" color={colors.accent.primary} />
+            <StatCard icon="switcher" value={String(groups.length)} label="Circles" color={colors.status.success} />
             <StatCard icon='caretup' value={String(activeCount)} label="Active" color={colors.status.warning} />
           </View>
         </View>

@@ -31,7 +31,7 @@ const MODULE_ICONS: Record<string, string> = {
   contributions: 'caretup', budget: 'tago', investments: 'barschart',
   insurance: 'Safety', 'emergency-fund': 'warning', tasks: 'checkcircle',
   calendar: 'calendar', documents: 'folder1', 'ai-advisor': 'bulb1',
-  reports: 'filetext1', vault: 'lock', dashboard: 'grid-outline',
+  reports: 'filetext1', vault: 'lock',   dashboard: 'appstore-o',
 };
 
 const MODULE_COLORS: Record<string, string> = {
@@ -265,7 +265,7 @@ function RenderAIAdvisor({ data }: { data: any }) {
 function RenderTasks({ data }: { data: any[] }) {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  if (!data?.length) return <EmptyState icon="checkbox-outline" title="No tasks" subtitle="Add family tasks" />;
+  if (!data?.length) return <EmptyState icon="checksquareo" title="No tasks" subtitle="Add family tasks" />;
   return (
     <>
       {data.map((t: any, i: number) => (
@@ -374,9 +374,9 @@ function ModuleContent({ module, data }: { module: string; data: any }) {
 
 function RenderGeneric({ module, data }: { module: string; data: any }) {
   const { colors } = useTheme();
-  if (!data) return <EmptyState icon={MODULE_ICONS[module] || 'grid-outline'} title={`No ${module} data`} />;
+  if (!data) return <EmptyState icon={MODULE_ICONS[module] || 'appstore-o'} title={`No ${module} data`} />;
   const items = Array.isArray(data) ? data : data?.data || data?.items || [];
-  if (!items.length) return <EmptyState icon={MODULE_ICONS[module] || 'grid-outline'} title={`No ${module} data`} />;
+  if (!items.length) return <EmptyState icon={MODULE_ICONS[module] || 'appstore-o'} title={`No ${module} data`} />;
   return (
     <View style={{ gap: 8 }}>
       <Text style={{ color: colors.text.secondary, fontSize: 13, fontWeight: '600' }}>{items.length} items</Text>
@@ -400,7 +400,7 @@ export function FamilyModuleScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const apiPath = MODULE_API_MAP[module] || '/family-space';
-  const icon = MODULE_ICONS[module] || 'grid-outline';
+  const icon = MODULE_ICONS[module] || 'appstore-o';
   const color = MODULE_COLORS[module] || colors.accent.primary;
 
   const loadData = useCallback(async (silent = false, refresh = false) => {

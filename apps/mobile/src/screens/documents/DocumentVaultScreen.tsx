@@ -32,14 +32,14 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_ICONS: Record<string, string> = {
-  aadhaar: 'id-card',
+  aadhaar: 'idcard',
   pan: 'creditcard',
-  passport: 'globe',
+  passport: 'earth',
   driving_license: 'car',
   insurance: 'checkcircle',
-  vehicle_rc: 'document-text',
+  vehicle_rc: 'filetext1',
   warranty: 'filetext1',
-  medical: 'medkit',
+  medical: 'medicinebox',
 };
 
 function fmtDate(d: string | null) {

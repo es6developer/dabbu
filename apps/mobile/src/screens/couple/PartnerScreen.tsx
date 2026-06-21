@@ -136,7 +136,7 @@ export function PartnerScreen() {
 
   const TIMELINE_ICONS: Record<string, string> = {
     expense_added: 'minuscircle', goal_contribution: 'flag', salary_added: 'pluscircle',
-    bill_paid: 'filetext', investment_added: 'linechart', debt_cleared: 'checkcircle',
+    bill_paid: 'filetext1', investment_added: 'linechart', debt_cleared: 'checkcircle',
     milestone_reached: 'star', planner_progress: 'barschart', planner_started: 'play',
     income_added: 'pluscircle', savings_contribution: 'wallet', goal_created: 'flag',
     goal_completed: 'checkcircle', budget_set: 'wallet', custom: 'clockcircleo',

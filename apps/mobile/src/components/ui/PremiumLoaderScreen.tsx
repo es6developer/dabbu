@@ -28,7 +28,7 @@ export function PremiumLoaderScreen({
   progress,
   tip,
   title = 'Loading',
-  icon = 'layers',
+  icon = 'switcher',
 }: PremiumLoaderScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();

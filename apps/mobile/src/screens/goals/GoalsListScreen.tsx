@@ -30,16 +30,16 @@ type GoalConfig = {
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
-  vacation: { icon: 'airplane', color: '#00B894' },
-  education: { icon: 'school', color: '#4F6EF7' },
+  emergency: { icon: 'exclamationcircle', color: '#FF6B6B' },
+  vacation: { icon: 'earth', color: '#00B894' },
+  education: { icon: 'book', color: '#4F6EF7' },
   home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car-sport', color: '#14B8A6' },
+  car: { icon: 'car', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
-  retirement: { icon: 'umbrella', color: '#247BA0' },
-  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
-  investment: { icon: 'trending-up', color: '#10B981' },
-  baby: { icon: 'happy', color: '#FF69B4' },
+  retirement: { icon: 'Safety', color: '#247BA0' },
+  savings: { icon: 'wallet', color: '#8B5CF6' },
+  investment: { icon: 'linechart', color: '#10B981' },
+  baby: { icon: 'smileo', color: '#FF69B4' },
   custom: { icon: 'Trophy', color: '#14B8A6' },
 };
 
@@ -704,7 +704,7 @@ function GoalsEmptyState({
   return (
     <View style={s.emptyWrap}>
       <EmptyState
-        icon="trophy"
+        icon="Trophy"
         title="Set your first goal"
         message="Goals turn your dreams into a plan. Save for a vacation, build an emergency fund, or buy your dream home \u2014 Dabbu helps you track every step."
         actionLabel="Create Goal"

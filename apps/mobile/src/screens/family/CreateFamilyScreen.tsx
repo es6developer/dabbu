@@ -42,7 +42,7 @@ export function CreateFamilyScreen() {
     <FormScreen
       title="Create Family"
       subtitle="Build a private space for household money, reminders, goals, and shared decisions"
-      icon="people"
+      icon="team"
       accent={[colors.status.success, colors.accent.primary]}
       footer={
         <FormFooter title="Create Family" icon='plus' loading={saving} onPress={handleCreate} />

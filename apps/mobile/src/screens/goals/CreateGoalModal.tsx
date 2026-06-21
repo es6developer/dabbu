@@ -27,7 +27,7 @@ import {
 
 const GOAL_CONFIGS: Record<string, { label: string; icon: string; color: string }> = {
   custom: { label: 'Custom', icon: 'star', color: '#8B5CF6' },
-  emergency: { label: 'Emergency', icon: 'shield', color: '#EF4444' },
+  emergency: { label: 'Emergency', icon: 'Safety', color: '#EF4444' },
   travel: { label: 'Travel', icon: 'earth', color: '#3B82F6' },
   education: { label: 'Education', icon: 'book', color: '#F59E0B' },
   wedding: { label: 'Wedding', icon: 'heart', color: '#EC4899' },

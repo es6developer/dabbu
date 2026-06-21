@@ -188,7 +188,7 @@ export function PremiumAiPaywallScreen() {
       color: AI_COLORS.success,
     },
     {
-      icon: 'people' as const,
+      icon: 'team' as const,
       title: 'Family Health',
       desc: 'Score: 76/100',
       color: AI_COLORS.purple,

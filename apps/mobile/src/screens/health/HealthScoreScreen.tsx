@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -13,7 +13,7 @@ const COMPONENT_META: Record<string, { label: string; icon: string; desc: string
   debtRatio: { label: 'Debt Ratio', icon: 'creditcard', desc: 'Debt compared to total income' },
   budgetDiscipline: { label: 'Budget Discipline', icon: 'calculator', desc: 'How well you stick to budgets' },
   goalProgress: { label: 'Goal Progress', icon: 'flag', desc: 'Progress towards financial goals' },
-  billConsistency: { label: 'Bill Consistency', icon: 'document-text', desc: 'On-time bill payment record' },
+  billConsistency: { label: 'Bill Consistency', icon: 'filetext1', desc: 'On-time bill payment record' },
   emergencyFund: { label: 'Emergency Fund', icon: 'checkcircle', desc: 'Months of expenses covered' },
 };
 
@@ -61,7 +61,7 @@ export function HealthScoreScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await load(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}>
         <View style={[styles.scoreCard, { backgroundColor: colors.card.balance }]}>
           <View style={[styles.scoreRing, { borderColor: loading ? colors.border.subtle : levelMeta.color }]}>
             <Text style={[styles.scoreValue, { color: loading ? colors.text.tertiary : levelMeta.color }]}>
