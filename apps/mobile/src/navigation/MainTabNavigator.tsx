@@ -379,6 +379,7 @@ export function MainTabNavigator() {
             onCenterPress={handleFabPress}
             onCenterLongPress={handleFabLongPress}
             visibleTabs={visibleTabs}
+            activeLens={activeLens}
           />
         )}
         screenOptions={{
@@ -435,6 +436,7 @@ function IOSTabBar({
   onCenterPress,
   onCenterLongPress,
   visibleTabs,
+  activeLens,
 }: any) {
   const insets = useSafeAreaInsets();
   const keyboardAnim = useRef(new Animated.Value(0)).current;
@@ -483,7 +485,9 @@ function IOSTabBar({
       if (event.defaultPrevented) {
         return;
       }
-      const homeScreen = TAB_HOME_SCREENS[route.name];
+      const homeScreen = activeLens
+        ? lensMiddleware.getTabHomeScreen(activeLens, route.name)
+        : TAB_HOME_SCREENS[route.name];
       if (homeScreen) {
         navigation.navigate(route.name, { screen: homeScreen });
       } else {
