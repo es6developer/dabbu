@@ -137,17 +137,17 @@ const LENS_REDIRECT_MAP: Record<string, string> = {
 };
 
 const LENS_TAB_VISIBILITY: Record<LensMode, string[]> = {
-  PERSONAL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab', 'ProfileTab'],
-  PARTNERED: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab', 'ProfileTab'],
-  FAMILY: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab', 'ProfileTab'],
-  FULL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab', 'ProfileTab'],
+  PERSONAL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab'],
+  PARTNERED: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab'],
+  FAMILY: ['HomeTab', 'SpacesTab', 'WalletTab', 'LifeHubTab'],
+  FULL: ['HomeTab', 'WalletTab', 'SpacesTab', 'LifeHubTab'],
 };
 
 const LENS_TAB_ORDER: Record<LensMode, Record<string, number>> = {
-  PERSONAL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3, ProfileTab: 4 },
-  PARTNERED: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3, ProfileTab: 4 },
-  FAMILY: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3, ProfileTab: 4 },
-  FULL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3, ProfileTab: 4 },
+  PERSONAL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3 },
+  PARTNERED: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3 },
+  FAMILY: { HomeTab: 0, SpacesTab: 1, WalletTab: 2, LifeHubTab: 3 },
+  FULL: { HomeTab: 0, WalletTab: 1, SpacesTab: 2, LifeHubTab: 3 },
 };
 
 const LENS_TAB_LABELS: Record<LensMode, Record<string, string>> = {
@@ -156,28 +156,24 @@ const LENS_TAB_LABELS: Record<LensMode, Record<string, string>> = {
     WalletTab: 'Wallet',
     SpacesTab: 'Spaces',
     LifeHubTab: 'Goals',
-    ProfileTab: 'Settings',
   },
   PARTNERED: {
     HomeTab: 'Home',
     SpacesTab: 'Spaces',
-    WalletTab: 'Goals',
+    WalletTab: 'Wallet',
     LifeHubTab: 'Planner',
-    ProfileTab: 'Settings',
   },
   FAMILY: {
     HomeTab: 'Home',
     SpacesTab: 'Spaces',
-    WalletTab: 'Home',
+    WalletTab: 'Wallet',
     LifeHubTab: 'Reports',
-    ProfileTab: 'Settings',
   },
   FULL: {
     HomeTab: 'Home',
     WalletTab: 'Wallet',
     SpacesTab: 'Spaces',
     LifeHubTab: 'Goals',
-    ProfileTab: 'Settings',
   },
 };
 
@@ -187,28 +183,24 @@ const LENS_TAB_ICONS: Record<LensMode, Record<string, string>> = {
     WalletTab: 'wallet',
     SpacesTab: 'team',
     LifeHubTab: 'flag',
-    ProfileTab: 'setting',
   },
   PARTNERED: {
     HomeTab: 'home',
     SpacesTab: 'team',
-    WalletTab: 'flag',
+    WalletTab: 'wallet',
     LifeHubTab: 'calendar',
-    ProfileTab: 'setting',
   },
   FAMILY: {
     HomeTab: 'home',
     SpacesTab: 'team',
-    WalletTab: 'home',
+    WalletTab: 'wallet',
     LifeHubTab: 'barschart',
-    ProfileTab: 'setting',
   },
   FULL: {
     HomeTab: 'home',
     WalletTab: 'wallet',
     SpacesTab: 'team',
     LifeHubTab: 'flag',
-    ProfileTab: 'setting',
   },
 };
 
@@ -218,28 +210,24 @@ const LENS_TAB_HOME_SCREENS: Record<LensMode, Record<string, string>> = {
     WalletTab: 'WalletHome',
     SpacesTab: 'WalletHome',
     LifeHubTab: 'GoalsList',
-    ProfileTab: 'SettingsMain',
   },
   PARTNERED: {
     HomeTab: 'LifeDashboard',
     SpacesTab: 'SpacesDashboard',
     WalletTab: 'CoupleGoals',
     LifeHubTab: 'LifeHubHome',
-    ProfileTab: 'SettingsMain',
   },
   FAMILY: {
     HomeTab: 'LifeDashboard',
     SpacesTab: 'SpacesDashboard',
     WalletTab: 'WalletHome',
     LifeHubTab: 'LifeHubHome',
-    ProfileTab: 'SettingsMain',
   },
   FULL: {
     HomeTab: 'LifeDashboard',
     WalletTab: 'WalletHome',
     SpacesTab: 'SpacesDashboard',
     LifeHubTab: 'GoalsList',
-    ProfileTab: 'SettingsMain',
   },
 };
 

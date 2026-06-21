@@ -62,14 +62,13 @@ const ALL_TAB_CONFIGS = [
   },
 ];
 
-const FALLBACK_TABS = ['HomeTab', 'WalletTab', 'LifeHubTab', 'ProfileTab'];
+const FALLBACK_TABS = ['HomeTab', 'WalletTab', 'LifeHubTab'];
 
 const TAB_HOME_SCREENS: Record<string, string> = {
   HomeTab: 'Personal',
   WalletTab: 'WalletHome',
   LifeHubTab: 'LifeHubHome',
   SpacesTab: 'SpacesDashboard',
-  ProfileTab: 'SettingsMain',
 };
 
 export function MainTabNavigator() {
@@ -88,6 +87,9 @@ export function MainTabNavigator() {
 
   const visibleTabs = useMemo(() => {
     const tabs = ALL_TAB_CONFIGS.filter((t) => {
+      if (t.name === 'ProfileTab') {
+        return false;
+      }
       if (lensMiddleware.getBlockedScreens(activeLens).includes(t.name)) {
         return false;
       }
