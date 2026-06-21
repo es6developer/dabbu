@@ -47,6 +47,7 @@ export function resetPushRegistration(): void {
   consecutiveFailures = 0;
   lastFailedAt = 0;
   lastAttemptAt = 0;
+  permanentFailure = false;
 }
 
 const EAS_PROJECT_ID = '57a858a9-aa05-47d4-b908-e3d887e07597';
@@ -183,6 +184,7 @@ async function setupAndroidChannels(): Promise<void> {
 export { setupAndroidChannels };
 
 let lastAttemptAt = 0;
+let permanentFailure = false;
 const MIN_THROTTLE_MS = 60_000;
 const INITIAL_BACKOFF_MS = 30_000;
 const MAX_BACKOFF_MS = 300_000;
@@ -190,6 +192,10 @@ const MAX_RETRIES = 3;
 
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
   const now = Date.now();
+
+  if (permanentFailure) {
+    return;
+  }
 
   if (isRegistering) {
     if (now - registerStartedAt > REGISTER_TIMEOUT_MS) {
@@ -299,6 +305,15 @@ export async function registerForPushNotifications(accessToken: string): Promise
       if ((e as any)?.name !== 'AbortError') {
         lastFailedAt = Date.now();
         consecutiveFailures++;
+        const errMsg = (e as any)?.message || '';
+        if (
+          errMsg.includes('Session expired') ||
+          errMsg.includes('401') ||
+          errMsg.includes('Unauthorized')
+        ) {
+          permanentFailure = true;
+          lastRegisteredToken = accessToken;
+        }
         console.warn('Push notification registration failed:', e);
       }
     }
