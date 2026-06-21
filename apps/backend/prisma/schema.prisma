@@ -274,6 +274,12 @@ model User {
   aiReviews                    AiReview[]
   healthScores                 HealthScore[]
 
+  // Lens system
+  userLenses              UserLens[]
+  dashboardLayouts        UserDashboardLayout[]
+  lensSwitchLogs          LensSwitchLog[]
+  lensNotificationPrefs   LensNotificationPreference[]
+
   @@index([email])
   @@index([isActive])
   @@index([deletedAt])
@@ -4080,4 +4086,283 @@ model AiReview {
   @@index([spaceId])
   @@index([createdAt])
   @@map("ai_reviews")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LENS SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+enum LensType {
+  PERSONAL
+  PARTNERED
+  FAMILY
+  FULL
+}
+
+// ─── LENS ─────────────────────────────────────────────────
+// Master lens definitions
+model Lens {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  type        LensType @unique
+  name        String   @db.VarChar(50)
+  description String?  @db.VarChar(500)
+  icon        String?  @db.VarChar(100)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userLenses        UserLens[]
+  featureFlags      LensFeatureFlag[]
+  themeSettings     LensThemeSetting[]
+  dashboardConfig   LensDashboardConfig[]
+  navigationRules   LensNavigationRule[]
+  widgets           LensWidget[]
+  quickActions      LensQuickAction[]
+  recommendations   LensRecommendation[]
+  notificationPrefs LensNotificationPreference[]
+  dashboardLayouts  UserDashboardLayout[]
+
+  @@index([sortOrder])
+  @@map("lenses")
+}
+
+// ─── USER LENS ────────────────────────────────────────────
+// Per-user lens preferences and state
+model UserLens {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  lensId          String   @db.VarChar(36)
+  isOnboarded     Boolean  @default(false)
+  onboardingStep  String?  @db.VarChar(50)
+  lastSwitchedAt  DateTime?
+  switchedCount   Int      @default(0)
+  isCustomized    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lensId])
+  @@index([userId])
+  @@index([lensId])
+  @@map("user_lenses")
+}
+
+// ─── LENS FEATURE FLAG ───────────────────────────────────
+// What features each lens enables
+model LensFeatureFlag {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  lensId      String   @db.VarChar(36)
+  featureKey  String   @db.VarChar(100)
+  enabled     Boolean  @default(false)
+  config      Json?    @db.Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, featureKey])
+  @@index([lensId])
+  @@map("lens_feature_flags")
+}
+
+// ─── LENS THEME SETTING ──────────────────────────────────
+// Theme overrides per lens
+model LensThemeSetting {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  lensId      String   @db.VarChar(36)
+  paletteKey  String   @db.VarChar(50)
+  colorValue  String   @db.VarChar(20)
+  cssVar      String?  @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, paletteKey])
+  @@index([lensId])
+  @@map("lens_theme_settings")
+}
+
+// ─── LENS DASHBOARD CONFIG ───────────────────────────────
+// Widget configuration per lens
+model LensDashboardConfig {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  lensId      String   @db.VarChar(36)
+  widgetKey   String   @db.VarChar(100)
+  widgetType  String   @db.VarChar(50)
+  title       String   @db.VarChar(200)
+  size        String   @default("medium") @db.VarChar(20)
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  isLocked    Boolean  @default(false)
+  config      Json?    @db.Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, widgetKey])
+  @@index([lensId])
+  @@index([lensId, sortOrder])
+  @@map("lens_dashboard_configs")
+}
+
+// ─── LENS NAVIGATION RULE ────────────────────────────────
+// Bottom tab visibility and ordering per lens
+model LensNavigationRule {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  lensId      String   @db.VarChar(36)
+  tabKey      String   @db.VarChar(50)
+  isVisible   Boolean  @default(true)
+  isPriority  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  icon        String?  @db.VarChar(100)
+  label       String?  @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, tabKey])
+  @@index([lensId])
+  @@index([lensId, sortOrder])
+  @@map("lens_navigation_rules")
+}
+
+// ─── LENS WIDGET ─────────────────────────────────────────
+// Widget definitions available in each lens
+model LensWidget {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  lensId      String   @db.VarChar(36)
+  widgetKey   String   @db.VarChar(100)
+  widgetType  String   @db.VarChar(50)
+  title       String   @db.VarChar(200)
+  description String?  @db.VarChar(500)
+  size        String   @default("medium") @db.VarChar(20)
+  isDefault   Boolean  @default(false)
+  isRemovable Boolean  @default(true)
+  config      Json?    @db.Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, widgetKey])
+  @@index([lensId])
+  @@map("lens_widgets")
+}
+
+// ─── USER DASHBOARD LAYOUT ───────────────────────────────
+// Per-user widget customization within a lens
+model UserDashboardLayout {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  lensId    String   @db.VarChar(36)
+  widgetKey String   @db.VarChar(100)
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  size      String?  @db.VarChar(20)
+  config    Json?    @db.Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lensId, widgetKey])
+  @@index([userId, lensId])
+  @@index([userId, lensId, sortOrder])
+  @@map("user_dashboard_layouts")
+}
+
+// ─── LENS QUICK ACTION ───────────────────────────────────
+// Quick action button config per lens
+model LensQuickAction {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  lensId    String   @db.VarChar(36)
+  actionKey String   @db.VarChar(100)
+  label     String   @db.VarChar(100)
+  icon      String?  @db.VarChar(100)
+  color     String?  @db.VarChar(20)
+  sortOrder Int      @default(0)
+  screen    String?  @db.VarChar(200)
+  params    Json?    @db.Json
+  isDefault Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, actionKey])
+  @@index([lensId])
+  @@index([lensId, sortOrder])
+  @@map("lens_quick_actions")
+}
+
+// ─── LENS RECOMMENDATION ─────────────────────────────────
+// Smart recommendations shown per lens
+model LensRecommendation {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  lensId        String   @db.VarChar(36)
+  title         String   @db.VarChar(200)
+  description   String?  @db.Text
+  actionType    String   @db.VarChar(50)
+  actionPayload Json?    @db.Json
+  priority      Int      @default(0)
+  conditions    Json?    @db.Json
+  isActive      Boolean  @default(true)
+  dismissible   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+
+  @@index([lensId, isActive])
+  @@index([lensId, priority])
+  @@map("lens_recommendations")
+}
+
+// ─── LENS SWITCH LOG ─────────────────────────────────────
+// Audit trail for every lens switch
+model LensSwitchLog {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  fromLens  LensType
+  toLens    LensType
+  reason    String?  @db.VarChar(100)
+  metadata  Json?    @db.Json
+  clientInfo String? @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([toLens])
+  @@map("lens_switch_logs")
+}
+
+// ─── LENS NOTIFICATION PREFERENCE ────────────────────────
+// Which notification channels are active per lens
+model LensNotificationPreference {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  lensId         String   @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  channelKey     String   @db.VarChar(100)
+  enabled        Boolean  @default(true)
+  pushEnabled    Boolean  @default(true)
+  emailEnabled   Boolean  @default(false)
+  inAppEnabled   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  lens Lens @relation(fields: [lensId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([lensId, userId, channelKey])
+  @@index([lensId, userId])
+  @@map("lens_notification_preferences")
 }

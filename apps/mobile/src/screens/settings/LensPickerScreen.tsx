@@ -52,7 +52,7 @@ export function LensPickerScreen() {
   const activeLens = useLensStore((s) => s.activeLens);
   const setLens = useLensStore((s) => s.setLens);
   const updateLens = useLensStore((s) => s.updateLens);
-  const loading = useLensStore((s) => s.loading);
+  const loading = useLensStore((s) => s.isLoading);
   const { accessToken } = useAuth();
 
   const handleSelect = async (lens: LensMode) => {

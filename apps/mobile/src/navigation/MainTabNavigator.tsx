@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { usePreferences } from '../store/PreferencesContext';
+import { useLens } from '../hooks/useLens';
+import { lensMiddleware } from './lensMiddleware';
 import { HomeNavigator } from './HomeNavigator';
 import { WalletNavigator } from './WalletNavigator';
 import { SpacesNavigator } from './SpacesNavigator';
@@ -17,14 +19,23 @@ import { PRESS_SPRING } from './animations';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_CONFIG = [
-  { name: 'HomeTab', label: 'Home', icon: 'home', activeIcon: 'home', component: HomeNavigator },
+const ALL_TAB_CONFIGS = [
+  { name: 'HomeTab', label: 'Home', icon: 'home', activeIcon: 'home', component: HomeNavigator, lensKey: 'dashboard' },
+  {
+    name: 'SpacesTab',
+    label: 'Spaces',
+    icon: 'team',
+    activeIcon: 'team',
+    component: SpacesNavigator,
+    lensKey: 'spaces',
+  },
   {
     name: 'WalletTab',
     label: 'Wallet',
     icon: 'wallet',
     activeIcon: 'wallet',
     component: WalletNavigator,
+    lensKey: 'wallet',
   },
   {
     name: 'LifeHubTab',
@@ -32,23 +43,27 @@ const TAB_CONFIG = [
     icon: 'calendar',
     activeIcon: 'calendar',
     component: LifeHubNavigator,
+    lensKey: 'life_hub',
   },
   {
-    name: 'SpacesTab',
-    label: 'Spaces',
-    icon: 'team',
-    activeIcon: 'team',
-    component: SpacesNavigator,
+    name: 'ProfileTab',
+    label: 'Settings',
+    icon: 'setting',
+    activeIcon: 'setting',
+    component: SettingsNavigator,
+    lensKey: 'settings',
   },
 ];
 
-const HIDDEN_TABS: {
-  name: string;
-  label?: string;
-  icon?: string;
-  activeIcon?: string;
-  component: React.ComponentType<any>;
-}[] = [{ name: 'ProfileTab', component: SettingsNavigator }];
+const FALLBACK_TABS = ['HomeTab', 'WalletTab', 'LifeHubTab', 'ProfileTab'];
+
+const TAB_HOME_SCREENS: Record<string, string> = {
+  HomeTab: 'Personal',
+  WalletTab: 'WalletHome',
+  LifeHubTab: 'LifeHubHome',
+  SpacesTab: 'SpacesDashboard',
+  ProfileTab: 'SettingsMain',
+};
 
 export function MainTabNavigator() {
   const theme = useTheme();
@@ -58,58 +73,226 @@ export function MainTabNavigator() {
   const [showActions, setShowActions] = useState(false);
   const navigation = useNavigation<any>();
 
-  const quickActions = [
-    {
-      label: 'Life Dashboard',
-      icon: 'home',
-      color: '#8B5CF6',
-      onPress: () =>
-        navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'LifeDashboard' } }),
-    },
-    {
-      label: 'Add Expense',
-      icon: 'addusergroup',
-      color: '#DC2626',
-      onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense' }),
-    },
-    {
-      label: 'Add Income',
-      icon: 'caretup',
-      color: '#16A34A',
-      onPress: () =>
-        navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'income' } }),
-    },
-    {
-      label: 'Scan Bill',
-      icon: 'camerao',
-      color: '#14B8A6',
-      onPress: () => navigation.navigate('WalletTab', { screen: 'BillScanner' }),
-    },
-    {
-      label: 'Create Goal',
-      icon: 'flag',
-      color: '#F59E0B',
-      onPress: () =>
-        navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'GoalsList' } }),
-    },
-    {
-      label: 'Net Worth',
-      icon: 'barschart',
-      color: '#7C3AED',
-      onPress: () =>
-        navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'NetWorth' } }),
-    },
-  ];
+  const lens = useLens();
+  const { activeLens, isTabVisible, quickActions: lensQuickActions } = lens;
+
+  const tabLabels = useMemo(() => lensMiddleware.getTabLabels(activeLens), [activeLens]);
+  const tabIcons = useMemo(() => lensMiddleware.getTabIcons(activeLens), [activeLens]);
+
+  const visibleTabs = useMemo(() => {
+    const tabs = ALL_TAB_CONFIGS.filter((t) => {
+      if (lensMiddleware.getBlockedScreens(activeLens).includes(t.name)) return false;
+      return isTabVisible(t.lensKey);
+    });
+
+    if (tabs.length === 0) {
+      return ALL_TAB_CONFIGS.filter((t) => FALLBACK_TABS.includes(t.name));
+    }
+
+    return tabs.sort((a, b) => {
+      const order = lensMiddleware.getTabOrder(activeLens);
+      return (order[a.name] ?? 99) - (order[b.name] ?? 99);
+    });
+  }, [activeLens, isTabVisible]);
+
+  const quickActions = useMemo(() => {
+    if (lensQuickActions && lensQuickActions.length > 0) {
+      return lensQuickActions.map((qa: any) => {
+        const tabConfig = ALL_TAB_CONFIGS.find((t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''));
+        const targetTab = tabConfig?.name || 'WalletTab';
+        return {
+          label: qa.label,
+          icon: qa.icon || 'pluscircle',
+          color: qa.color || colors.accent?.primary || '#7C3AED',
+          onPress: () => {
+            const homeScreen = TAB_HOME_SCREENS[targetTab] || 'WalletHome';
+            navigation.navigate(targetTab, { screen: qa.screen || homeScreen });
+          },
+        };
+      });
+    }
+
+    const availableKeys = lensMiddleware.getAvailableQuickActions(activeLens);
+    const allActions: Record<string, any> = {
+      add_expense: {
+        label: 'Add Expense',
+        icon: 'addusergroup',
+        color: '#DC2626',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense' }),
+      },
+      add_income: {
+        label: 'Add Income',
+        icon: 'caretup',
+        color: '#16A34A',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'income' } }),
+      },
+      add_shared_expense: {
+        label: 'Shared Expense',
+        icon: 'addusergroup',
+        color: '#F43F5E',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared' } }),
+      },
+      add_personal_expense: {
+        label: 'Personal Expense',
+        icon: 'minuscircle',
+        color: '#64748B',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense' }),
+      },
+      add_family_expense: {
+        label: 'Family Expense',
+        icon: 'addusergroup',
+        color: '#059669',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+      },
+      add_any_expense: {
+        label: 'Add Expense',
+        icon: 'pluscircle',
+        color: '#7C3AED',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense' }),
+      },
+      create_goal: {
+        label: 'Create Goal',
+        icon: 'flag',
+        color: '#F59E0B',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'GoalsList' } }),
+      },
+      create_budget: {
+        label: 'Create Budget',
+        icon: 'wallet',
+        color: '#3B82F6',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'Budgets' }),
+      },
+      create_couple_goal: {
+        label: 'Couple Goal',
+        icon: 'flag',
+        color: '#F59E0B',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'CoupleGoals' } }),
+      },
+      add_family_goal: {
+        label: 'Family Goal',
+        icon: 'flag',
+        color: '#3B82F6',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'FamilyGoals' } }),
+      },
+      add_bill: {
+        label: 'Add Bill',
+        icon: 'filetext',
+        color: '#F59E0B',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddBill' }),
+      },
+      allowance: {
+        label: 'Allowance',
+        icon: 'gift',
+        color: '#8B5CF6',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Allowances' } }),
+      },
+      settle_balance: {
+        label: 'Settle',
+        icon: 'swap',
+        color: '#22C55E',
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'Settlements' }),
+      },
+      switch_lens: {
+        label: 'Switch Lens',
+        icon: 'swap',
+        color: '#D97706',
+        onPress: () => setShowActions(true),
+      },
+      cross_lens_report: {
+        label: 'Reports',
+        icon: 'barschart',
+        color: '#22C55E',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Personal', params: { screen: 'Reports' } }),
+      },
+    };
+
+    const fullActions: Record<string, any> = {
+      ...allActions,
+      add_goal: {
+        label: 'Add Goal',
+        icon: 'flag',
+        color: '#F59E0B',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateGoal' }),
+      },
+      create_budget: {
+        label: 'Create Budget',
+        icon: 'wallet',
+        color: '#3B82F6',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'Budgets' }),
+      },
+      pay_bill: {
+        label: 'Pay Bill',
+        icon: 'filetext',
+        color: '#7C3AED',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'BillsList' }),
+      },
+      add_shared_income: {
+        label: 'Shared Income',
+        icon: 'pluscircle',
+        color: '#22C55E',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared_income' } }),
+      },
+      contribute_goal: {
+        label: 'Contribute Goal',
+        icon: 'flag',
+        color: '#F59E0B',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleGoals' }),
+      },
+      plan_expense: {
+        label: 'Plan Expense',
+        icon: 'calendar',
+        color: '#7C3AED',
+        onPress: () => navigation.navigate('LifeHubTab', { screen: 'LifeHubHome' }),
+      },
+      add_household_expense: {
+        label: 'Household Expense',
+        icon: 'minuscircle',
+        color: '#059669',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+      },
+      record_allowance: {
+        label: 'Allowance',
+        icon: 'gift',
+        color: '#8B5CF6',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Allowances' }),
+      },
+      create_reminder: {
+        label: 'Reminder',
+        icon: 'bells',
+        color: '#22C55E',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateReminder' }),
+      },
+      create_space: {
+        label: 'Create Space',
+        icon: 'team',
+        color: '#D97706',
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'CreateSpace' }),
+      },
+      export_report: {
+        label: 'Export Report',
+        icon: 'barschart',
+        color: '#22C55E',
+        onPress: () => navigation.navigate('HomeTab', { screen: 'Reports' }),
+      },
+      add_investment: {
+        label: 'Add Investment',
+        icon: 'linechart',
+        color: '#3B82F6',
+        onPress: () => navigation.navigate('WalletTab', { screen: 'AddInvestment' }),
+      },
+    };
+    return availableKeys.map((key) => fullActions[key]).filter(Boolean);
+  }, [activeLens, lensQuickActions, navigation, colors]);
 
   const isDark = theme.isDark;
 
-  const handleFabPress = () => {
+  const handleFabPress = useCallback(() => {
     setShowActions(true);
-  };
+  }, []);
 
-  const handleFabLongPress = () => {
+  const handleFabLongPress = useCallback(() => {
     setShowActions(true);
-  };
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -123,6 +306,7 @@ export function MainTabNavigator() {
             bottomBarVisible={bottomBarVisible}
             onCenterPress={handleFabPress}
             onCenterLongPress={handleFabLongPress}
+            visibleTabs={visibleTabs}
           />
         )}
         screenOptions={{
@@ -133,17 +317,20 @@ export function MainTabNavigator() {
           tabBarStyle: { backgroundColor: colors.bg.primary, borderTopWidth: 0, elevation: 0 },
         }}
       >
-        {[...TAB_CONFIG, ...HIDDEN_TABS].map((tab) => (
+        {ALL_TAB_CONFIGS.map((tab) => {
+          const iconName = tabIcons[tab.name] || tab.icon;
+          const activeIconName = tabIcons[tab.name] || tab.activeIcon;
+          return (
           <Tab.Screen
             key={tab.name}
             name={tab.name}
             component={tab.component}
             options={{
-              tabBarLabel: tab.label,
-              tabBarIcon: tab.icon
+              tabBarLabel: tabLabels[tab.name] || tab.label,
+              tabBarIcon: iconName
                 ? ({ focused, color }) => (
                     <AntDesign
-                      name={(focused ? tab.activeIcon : tab.icon) as any}
+                      name={(focused ? activeIconName : iconName) as any}
                       size={22}
                       color={color}
                     />
@@ -151,7 +338,8 @@ export function MainTabNavigator() {
                 : () => null,
             }}
           />
-        ))}
+          );
+        })}
       </Tab.Navigator>
 
       {quickActionVisible && (
@@ -161,8 +349,6 @@ export function MainTabNavigator() {
           actions={quickActions}
         />
       )}
-
-      {/* Floating AI FAB — hidden */}
     </View>
   );
 }
@@ -177,8 +363,10 @@ function IOSTabBar({
   bottomBarVisible,
   onCenterPress,
   onCenterLongPress,
+  visibleTabs,
 }: any) {
   const insets = useSafeAreaInsets();
+
   if (!bottomBarVisible) {
     return null;
   }
@@ -214,15 +402,9 @@ function IOSTabBar({
       if (event.defaultPrevented) {
         return;
       }
-      const homeScreens: Record<string, string> = {
-        HomeTab: 'Personal',
-        WalletTab: 'WalletHome',
-        LifeHubTab: 'LifeHubHome',
-        SpacesTab: 'SpacesDashboard',
-        ProfileTab: 'SettingsMain',
-      };
-      if (homeScreens[route.name]) {
-        navigation.navigate(route.name, { screen: homeScreens[route.name] });
+      const homeScreen = TAB_HOME_SCREENS[route.name];
+      if (homeScreen) {
+        navigation.navigate(route.name, { screen: homeScreen });
       } else {
         navigation.navigate(route.name);
       }
@@ -263,7 +445,7 @@ function IOSTabBar({
     );
   }
 
-  const visibleRouteNames = TAB_CONFIG.map((t) => t.name);
+  const visibleRouteNames = (visibleTabs || []).map((t: any) => t.name);
   const visibleRoutes = state.routes.filter((r: any) => visibleRouteNames.includes(r.name));
   const midIndex = Math.floor(visibleRoutes.length / 2);
 
@@ -327,9 +509,7 @@ function IOSTabBar({
                   200,
                 );
               }}
-              onPress={() => {
-                onCenterPress();
-              }}
+              onPress={() => onCenterPress()}
               onLongPress={onCenterLongPress}
               delayLongPress={400}
             >

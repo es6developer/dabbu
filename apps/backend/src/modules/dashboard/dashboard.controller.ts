@@ -7,6 +7,7 @@ import { DashboardService } from './dashboard.service';
 import { PersonalDashboardService } from './personal-dashboard.service';
 import { CoupleDashboardService } from './couple-dashboard.service';
 import { FamilyDashboardService } from './family-dashboard.service';
+import { LensDashboardService } from './lens-dashboard.service';
 
 class ReorderWidgetsDto {
   @IsString({ each: true }) widgetTypes: string[];
@@ -27,6 +28,7 @@ export class DashboardController {
     private readonly personalService: PersonalDashboardService,
     private readonly coupleService: CoupleDashboardService,
     private readonly familyService: FamilyDashboardService,
+    private readonly lensDashboardService: LensDashboardService,
   ) {}
 
   private widgetTypeToKey(type: string, scope: string): string | null {
@@ -96,6 +98,18 @@ export class DashboardController {
       if (key && w.data) flat[key] = w.data;
     }
     return { mode: 'personal', ...flat };
+  }
+
+  @Get('lens')
+  @ApiOperation({ summary: 'Get lens-aware dashboard data based on user activeLens' })
+  async getLensDashboard(@CurrentUser('id') userId: string) {
+    const user = await this.dashboardService['prisma'].user.findUnique({
+      where: { id: userId },
+      select: { activeLens: true },
+    });
+    const activeLens = (user?.activeLens || 'PERSONAL') as string;
+    const data = await this.lensDashboardService.getLensDashboard(activeLens as any, userId);
+    return { lens: activeLens, data };
   }
 
   @Get('couple')

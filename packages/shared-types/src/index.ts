@@ -1409,3 +1409,121 @@ export interface FeedSummaryData {
   goalUpdates: number;
   topPriority: FeedCardType | null;
 }
+
+// ─── Lens System Types ───────────────────────────────────────
+export type LensMode = 'PERSONAL' | 'PARTNERED' | 'FAMILY' | 'FULL';
+
+export interface LensAvailability {
+  type: LensMode;
+  name: string;
+  description?: string;
+  icon?: string;
+  isActive: boolean;
+  isAvailable: boolean;
+  reason?: string;
+}
+
+export interface TabConfig {
+  key: string;
+  label: string;
+  icon: string;
+  sortOrder: number;
+  isVisible: boolean;
+  isPriority: boolean;
+}
+
+export interface NavigationConfig {
+  tabs: TabConfig[];
+  hiddenTabs: string[];
+  prioritizedTabs: string[];
+}
+
+export interface ThemeConfig {
+  primaryColor: string;
+  palette: string;
+  gradientStart: string;
+  gradientEnd: string;
+  darkPrimary: string;
+  darkGradientStart: string;
+  darkGradientEnd: string;
+  accentColor: string;
+  successColor: string;
+  warningColor: string;
+  errorColor: string;
+  infoColor: string;
+}
+
+export interface WidgetConfig {
+  key: string;
+  type: string;
+  title: string;
+  description?: string;
+  size: string;
+  sortOrder: number;
+  isVisible: boolean;
+  isLocked: boolean;
+  config?: Record<string, unknown>;
+}
+
+export interface QuickActionConfig {
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  sortOrder: number;
+  screen?: string;
+}
+
+export interface DashboardConfig {
+  widgets: WidgetConfig[];
+  quickActions: QuickActionConfig[];
+  layout: string;
+}
+
+export interface FeatureFlagState {
+  enabled: boolean;
+  config?: Record<string, unknown>;
+}
+
+export interface LensFullConfig {
+  navigation: NavigationConfig;
+  features: Record<string, FeatureFlagState>;
+  theme: ThemeConfig;
+  dashboard: DashboardConfig;
+}
+
+export interface LensState {
+  activeLens: LensMode;
+  previousLens: LensMode | null;
+  availableLenses: LensAvailability[];
+  config: LensFullConfig;
+  features: Record<string, FeatureFlagState>;
+  switchedAt: string | null;
+  switchedCount: number;
+}
+
+export interface WidgetData {
+  key: string;
+  type: string;
+  title: string;
+  data: unknown;
+  size: string;
+  sortOrder: number;
+}
+
+export interface DashboardWidgetData {
+  lens: LensMode;
+  widgets: WidgetData[];
+  quickActions: QuickActionConfig[];
+  generatedAt: string;
+}
+
+export interface LensRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  actionType: string;
+  actionPayload: Record<string, unknown>;
+  priority: number;
+  dismissible: boolean;
+}

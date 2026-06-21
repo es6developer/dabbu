@@ -6,6 +6,7 @@ import { DashboardService } from './dashboard.service';
 import { PersonalDashboardService } from './personal-dashboard.service';
 import { CoupleDashboardService } from './couple-dashboard.service';
 import { FamilyDashboardService } from './family-dashboard.service';
+import { LensDashboardService } from './lens-dashboard.service';
 
 @Module({
   imports: [PrismaModule, CacheModule],
@@ -15,7 +16,8 @@ import { FamilyDashboardService } from './family-dashboard.service';
     PersonalDashboardService,
     CoupleDashboardService,
     FamilyDashboardService,
+    LensDashboardService,
   ],
-  exports: [DashboardService, PersonalDashboardService, CoupleDashboardService, FamilyDashboardService],
+  exports: [DashboardService, PersonalDashboardService, CoupleDashboardService, FamilyDashboardService, LensDashboardService],
 })
 export class DashboardModule {}

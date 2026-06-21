@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useColorScheme, Appearance } from 'react-native';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, ReactNode } from 'react';
+import { useColorScheme, Appearance, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette } from './colors';
 import { typography } from './typography';
@@ -58,11 +58,26 @@ const ThemeContext = createContext<ThemeContextValue>({
   isDark: true,
 });
 
+const LENS_PALETTE_MAP: Record<string, { light: any; dark: any }> = {
+  PERSONAL: { light: palette.light, dark: palette.dark },
+  PARTNERED: { light: palette.coupleLight, dark: palette.coupleDark },
+  FAMILY: { light: palette.familyLight, dark: palette.familyDark },
+  FULL: { light: palette.fullLight, dark: palette.fullDark },
+};
+
+const LENS_PALETTE_NAMES: Record<string, string> = {
+  PERSONAL: 'default',
+  PARTNERED: 'couple',
+  FAMILY: 'family',
+  FULL: 'full',
+};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const deviceScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
   const [loaded, setLoaded] = useState(false);
   const activeLens = useLensStore((s) => s.activeLens);
+
   let coupleUser: { isCouple?: boolean; isCoupleMode?: boolean } | null = null;
   try {
     const { user } = useAuth();
@@ -71,6 +86,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     coupleUser = null;
   }
   const isCoupleMode = !!(coupleUser?.isCouple && coupleUser?.isCoupleMode);
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_MODE_KEY).then((stored) => {
@@ -87,17 +104,39 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.3,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [activeLens, isDark]);
+
   let colors: typeof palette.dark;
-  if (activeLens === 'FAMILY') {
-    colors = (isDark ? palette.familyDark : palette.familyLight) as unknown as typeof palette.dark;
-  } else if (activeLens === 'FULL') {
-    colors = (isDark ? palette.fullDark : palette.fullLight) as unknown as typeof palette.dark;
+  const lensPalette = LENS_PALETTE_MAP[activeLens || 'PERSONAL'];
+  if (lensPalette) {
+    colors = (isDark ? lensPalette.dark : lensPalette.light) as unknown as typeof palette.dark;
   } else if (activeLens === 'PARTNERED' || isCoupleMode) {
     colors = (isDark ? palette.coupleDark : palette.coupleLight) as unknown as typeof palette.dark;
   } else {
     colors = (isDark ? palette.dark : palette.light) as unknown as typeof palette.dark;
   }
-  const theme: Theme = { ...(isDark ? darkTheme : lightTheme), colors };
+
+  const theme: Theme = useMemo(
+    () => ({
+      ...(isDark ? darkTheme : lightTheme),
+      colors,
+    }),
+    [isDark, colors],
+  );
 
   useEffect(() => {
     if (themeMode === 'system') {
@@ -113,7 +152,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, themeMode, setThemeMode, isDark }}>
-      {children}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        {children}
+      </Animated.View>
     </ThemeContext.Provider>
   );
 }

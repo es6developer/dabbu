@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
+import { LensService } from '../lens/lens.service';
 import {
   SearchUsersDto,
   UpdateProfileDto,
@@ -15,7 +16,10 @@ import {
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly lensService: LensService,
+  ) {}
 
   @Get('search')
   @ApiOperation({ summary: 'Search users by name, email, or phone' })
@@ -57,7 +61,11 @@ export class UsersController {
   async updateLens(@CurrentUser('id') userId: string, @Body('lens') lens: string) {
     const valid = ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'];
     if (!valid.includes(lens)) throw new Error('Invalid lens. Must be one of: ' + valid.join(', '));
-    const user = await this.usersService.updateLens(userId, lens);
-    return { data: { activeLens: user.activeLens } };
+    const result = await this.lensService.changeLens(userId, {
+      lens: lens as any,
+      reason: 'manual',
+      metadata: { source: 'settings' },
+    });
+    return { data: { activeLens: result.activeLens } };
   }
 }

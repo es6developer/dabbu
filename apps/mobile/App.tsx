@@ -13,6 +13,7 @@ import {
   DarkTheme,
 } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
+import { LensProvider } from './src/providers/LensProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { ApiProgressBar } from './src/components/ui/ApiProgressBar';
 import { AuthProvider } from './src/store/AuthContext';
@@ -162,6 +163,7 @@ function AppInner(): React.ReactElement | null {
           <AuthProvider>
             <PremiumProvider>
             <ThemeProvider>
+            <LensProvider>
             <PreferencesProvider>
               <LockProvider>
                 <FavoritesProvider>
@@ -181,6 +183,7 @@ function AppInner(): React.ReactElement | null {
                   </FavoritesProvider>
                 </LockProvider>
               </PreferencesProvider>
+            </LensProvider>
             </ThemeProvider>
             </PremiumProvider>
           </AuthProvider>

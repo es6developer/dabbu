@@ -79,6 +79,9 @@ import { DabbuScoreModule } from './modules/dabbu-score/dabbu-score.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { SpacesModule } from './modules/spaces/spaces.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { LensModule } from './modules/lens/lens.module';
+import { LensPreferencesModule } from './modules/lens-preferences/lens-preferences.module';
+import { LensAnalyticsModule } from './modules/lens-analytics/lens-analytics.module';
 
 @Module({
   imports: [
@@ -201,6 +204,9 @@ import { AccountsModule } from './modules/accounts/accounts.module';
     DabbuScoreModule,
     MetricsModule,
     SpacesModule,
+    LensModule,
+    LensPreferencesModule,
+    LensAnalyticsModule,
   ],
   controllers: [],
   providers: [
