@@ -101,6 +101,32 @@ export class CoupleDashboardController {
     return this.service.addTimelineEvent(userId, body);
   }
 
+  @Put('timeline/:id')
+  @ApiOperation({ summary: 'Update timeline event' })
+  async updateTimelineEvent(
+    @CurrentUser('id') userId: string, @Param('id') eventId: string, @Body() body: any,
+  ) {
+    return this.service.updateTimelineEvent(userId, eventId, body);
+  }
+
+  @Delete('timeline/:id')
+  @ApiOperation({ summary: 'Delete timeline event' })
+  async deleteTimelineEvent(@CurrentUser('id') userId: string, @Param('id') eventId: string) {
+    return this.service.deleteTimelineEvent(userId, eventId);
+  }
+
+  @Get('profile')
+  @ApiOperation({ summary: 'Get couple profile' })
+  async getProfile(@CurrentUser('id') userId: string) {
+    return this.service.getProfile(userId);
+  }
+
+  @Put('profile')
+  @ApiOperation({ summary: 'Update couple profile' })
+  async updateProfile(@CurrentUser('id') userId: string, @Body() body: any) {
+    return this.service.updateProfile(userId, body);
+  }
+
   @Put('planners/:id')
   @ApiOperation({ summary: 'Update planner' })
   async updatePlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: any) {

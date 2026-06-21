@@ -931,6 +931,126 @@ export class CoupleDashboardService {
     return { message: 'Planner deleted' };
   }
 
+  async updateTimelineEvent(userId: string, eventId: string, body: any) {
+    const coupleInfo = await this.findCoupleGroupId(userId);
+    if (!coupleInfo) {
+      throw new NotFoundException('Couple not found');
+    }
+    const event = await (this.prisma as any).coupleTimelineEvent.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException('Timeline event not found');
+    }
+    return (this.prisma as any).coupleTimelineEvent.update({
+      where: { id: eventId },
+      data: {
+        title: body.title ?? event.title,
+        description: body.description ?? event.description,
+        eventType: body.eventType ?? event.eventType,
+        amount: body.amount ?? event.amount,
+        icon: body.icon ?? event.icon,
+      },
+    });
+  }
+
+  async deleteTimelineEvent(userId: string, eventId: string) {
+    const coupleInfo = await this.findCoupleGroupId(userId);
+    if (!coupleInfo) {
+      throw new NotFoundException('Couple not found');
+    }
+    const event = await (this.prisma as any).coupleTimelineEvent.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException('Timeline event not found');
+    }
+    await (this.prisma as any).coupleTimelineEvent.delete({ where: { id: eventId } });
+    return { message: 'Timeline event deleted' };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, partnerId: true, firstName: true, lastName: true },
+    });
+    if (!user?.partnerId) {
+      return { hasPartner: false, partner: null, relationship: null };
+    }
+    const [couple, profile, partner] = await Promise.all([
+      (this.prisma as any).couple.findFirst({
+        where: {
+          OR: [
+            { partner1Id: userId, partner2Id: user.partnerId },
+            { partner1Id: user.partnerId, partner2Id: userId },
+          ],
+          status: 'active',
+        },
+        select: { id: true, status: true },
+      }),
+      (this.prisma as any).coupleFinanceProfile.findFirst({
+        where: {
+          OR: [
+            { partner1Id: userId, partner2Id: user.partnerId },
+            { partner1Id: user.partnerId, partner2Id: userId },
+          ],
+        },
+        select: { groupId: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: user.partnerId },
+        select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true },
+      }),
+    ]);
+    if (!couple || !profile) {
+      return { hasPartner: false, partner: null, relationship: null };
+    }
+    return {
+      hasPartner: true,
+      partner: partner
+        ? { id: partner.id, name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim(), email: partner.email, avatarUrl: partner.avatarUrl }
+        : null,
+      relationship: {
+        coupleId: couple.id,
+        sinceDate: couple.createdAt,
+        status: couple.status,
+      },
+    };
+  }
+
+  async updateProfile(userId: string, body: any) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { partnerId: true },
+    });
+    if (!user?.partnerId) {
+      throw new NotFoundException('No partner found');
+    }
+    const couple = await (this.prisma as any).couple.findFirst({
+      where: {
+        OR: [
+          { partner1Id: userId, partner2Id: user.partnerId },
+          { partner1Id: user.partnerId, partner2Id: userId },
+        ],
+        status: 'active',
+      },
+    });
+    if (!couple) {
+      throw new NotFoundException('Couple not found');
+    }
+    if (body.sinceDate || body.maritalStatus || body.anniversaryDate) {
+      await (this.prisma as any).couple.update({
+        where: { id: couple.id },
+        data: {
+          sinceDate: body.sinceDate ? new Date(body.sinceDate) : undefined,
+          maritalStatus: body.maritalStatus,
+          anniversaryDate: body.anniversaryDate ? new Date(body.anniversaryDate) : undefined,
+        },
+      });
+    }
+    return { message: 'Profile updated' };
+  }
+
   async getAIReview(userId: string) {
     const coupleInfo = await this.findCoupleGroupId(userId);
     if (!coupleInfo) {

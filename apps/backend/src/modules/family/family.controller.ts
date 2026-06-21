@@ -6,6 +6,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { FamilyService } from './family.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
+import { AddMemberContactDto } from './dto/add-member-contact.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { CreateSharedReminderDto } from './dto/create-shared-reminder.dto';
@@ -37,6 +38,13 @@ export class FamilyController {
   @ApiOperation({ summary: 'Get family details with members' })
   async getFamily(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.familyService.getFamily(id, user.id);
+  }
+
+  @Post('members/contact')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a family member from device contact' })
+  async addMemberFromContact(@CurrentUser() user: JwtPayload, @Body() dto: AddMemberContactDto) {
+    return this.familyService.addMemberFromContact(user.id, dto);
   }
 
   @Post(':id/invite')

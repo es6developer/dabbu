@@ -9,6 +9,7 @@ import {
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
+import { AddMemberContactDto } from './dto/add-member-contact.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import * as crypto from 'crypto';
 import { NotificationService } from '../notification/notification.service';
@@ -101,6 +102,32 @@ export class FamilyService {
       },
     });
     return memberships.map((m) => m.family);
+  }
+
+  async addMemberFromContact(userId: string, dto: AddMemberContactDto) {
+    const family = await this.prisma.family.findUnique({ where: { id: dto.familyId } });
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    const existingUser = await this.prisma.user.findFirst({ where: { phone: dto.phone } });
+    if (existingUser) {
+      const alreadyMember = await this.prisma.familyMember.findUnique({
+        where: { familyId_userId: { familyId: dto.familyId, userId: existingUser.id } },
+      });
+      if (alreadyMember) {
+        throw new ConflictException('User is already a family member');
+      }
+      return this.prisma.familyMember.create({
+        data: { familyId: dto.familyId, userId: existingUser.id, role: 'member' },
+      });
+    }
+    return this.prisma.familyMember.create({
+      data: {
+        familyId: dto.familyId,
+        userId,
+        role: 'member',
+      },
+    });
   }
 
   async inviteMember(familyId: string, userId: string, dto: InviteMemberDto) {
