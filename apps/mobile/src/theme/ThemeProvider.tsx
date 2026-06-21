@@ -5,6 +5,7 @@ import { palette } from './colors';
 import { typography } from './typography';
 import { spacing, borderRadius, iconSizes } from './spacing';
 import { useAuth } from '../store/AuthContext';
+import { useLensStore } from '../store/lensStore';
 
 const THEME_MODE_KEY = '@dabbu_theme_mode';
 
@@ -61,6 +62,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const deviceScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
   const [loaded, setLoaded] = useState(false);
+  const activeLens = useLensStore((s) => s.activeLens);
   let coupleUser: { isCouple?: boolean; isCoupleMode?: boolean } | null = null;
   try {
     const { user } = useAuth();
@@ -85,15 +87,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
-  const baseTheme = isDark ? darkTheme : lightTheme;
-  const theme = isCoupleMode
-    ? {
-        ...baseTheme,
-        colors: (isDark
-          ? palette.coupleDark
-          : palette.coupleLight) as unknown as typeof palette.dark,
-      }
-    : baseTheme;
+  let colors: typeof palette.dark;
+  if (activeLens === 'FAMILY') {
+    colors = (isDark ? palette.familyDark : palette.familyLight) as unknown as typeof palette.dark;
+  } else if (activeLens === 'FULL') {
+    colors = (isDark ? palette.fullDark : palette.fullLight) as unknown as typeof palette.dark;
+  } else if (activeLens === 'PARTNERED' || isCoupleMode) {
+    colors = (isDark ? palette.coupleDark : palette.coupleLight) as unknown as typeof palette.dark;
+  } else {
+    colors = (isDark ? palette.dark : palette.light) as unknown as typeof palette.dark;
+  }
+  const theme: Theme = { ...(isDark ? darkTheme : lightTheme), colors };
 
   useEffect(() => {
     if (themeMode === 'system') {

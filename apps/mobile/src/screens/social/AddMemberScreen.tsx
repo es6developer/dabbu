@@ -48,7 +48,8 @@ export function AddMemberScreen() {
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
   const spaceId = route.params?.spaceId;
-  const groupType: 'shared-finance' | 'expense-group' | 'space' = route.params?.type || 'shared-finance';
+  const groupType: 'shared-finance' | 'expense-group' | 'space' =
+    route.params?.type || 'shared-finance';
   const existingMemberIds: string[] = route.params?.existingMemberIds || [];
 
   const [query, setQuery] = useState('');
@@ -216,7 +217,7 @@ export function AddMemberScreen() {
           onPress={() => navigation.goBack()}
           style={[styles.backBtn, { backgroundColor: colors.bg.card }]}
         >
-          <AntDesign  name="arrowleft" size={20} color={colors.text.primary} />
+          <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Add Member</Text>
         <View style={{ width: 36 }} />
@@ -232,7 +233,7 @@ export function AddMemberScreen() {
           { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
-        <AntDesign  name="search1" size={18} color={colors.text.tertiary} />
+        <AntDesign name="search1" size={18} color={colors.text.tertiary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}
           value={query}
@@ -248,7 +249,7 @@ export function AddMemberScreen() {
             onPress={() => setQuery('')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
+            <AntDesign name="closecircleo" size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -323,7 +324,7 @@ export function AddMemberScreen() {
               </View>
               {isFavorite(item.id) ? (
                 <View style={[styles.actionBtn, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
-                  <AntDesign  name="staro" size={14} color={colors.accent.primary} />
+                  <AntDesign name="staro" size={14} color={colors.accent.primary} />
                 </View>
               ) : (
                 <TouchableOpacity
@@ -354,7 +355,7 @@ export function AddMemberScreen() {
           ) : (
             <View style={styles.centerState}>
               <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
-                <AntDesign  name="search1" size={28} color={colors.text.tertiary} />
+                <AntDesign name="search1" size={28} color={colors.text.tertiary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                 No users found
@@ -363,7 +364,7 @@ export function AddMemberScreen() {
                 style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
                 onPress={() => handleInvite(query)}
               >
-                <AntDesign  name="sharealt" size={16} color={colors.accent.primary} />
+                <AntDesign name="sharealt" size={16} color={colors.accent.primary} />
                 <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
                   Send Invite
                 </Text>
@@ -391,14 +392,14 @@ export function AddMemberScreen() {
       return (
         <View style={styles.centerState}>
           <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
-            <AntDesign  name="cloudo" size={28} color="#FF4545" />
+            <AntDesign name="cloudo" size={28} color="#FF4545" />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.status.error }]}>{syncError}</Text>
           <TouchableOpacity
             style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
             onPress={handleSyncContacts}
           >
-            <AntDesign  name="reload1" size={16} color={colors.accent.primary} />
+            <AntDesign name="reload1" size={16} color={colors.accent.primary} />
             <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -409,7 +410,7 @@ export function AddMemberScreen() {
       return (
         <View style={styles.centerState}>
           <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
-            <AntDesign  name="team" size={28} color={colors.text.tertiary} />
+            <AntDesign name="team" size={28} color={colors.text.tertiary} />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
             Find friends on Dabbu
@@ -421,7 +422,7 @@ export function AddMemberScreen() {
             style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
             onPress={handleSyncContacts}
           >
-            <AntDesign  name="team" size={16} color={colors.accent.primary} />
+            <AntDesign name="team" size={16} color={colors.accent.primary} />
             <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
               Sync Contacts
             </Text>
@@ -434,7 +435,7 @@ export function AddMemberScreen() {
       return (
         <View style={styles.centerState}>
           <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
-            <AntDesign  name="user" size={28} color={colors.text.tertiary} />
+            <AntDesign name="user" size={28} color={colors.text.tertiary} />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
             No contacts found
@@ -446,7 +447,7 @@ export function AddMemberScreen() {
             style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
             onPress={() => handleInvite('')}
           >
-            <AntDesign  name="sharealt" size={16} color={colors.accent.primary} />
+            <AntDesign name="sharealt" size={16} color={colors.accent.primary} />
             <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
               Send Invite
             </Text>
@@ -463,7 +464,7 @@ export function AddMemberScreen() {
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <View style={styles.syncBanner}>
-            <AntDesign  name="team" size={16} color="#34C759" />
+            <AntDesign name="team" size={16} color="#34C759" />
             <Text style={[styles.syncBannerText, { color: colors.text.secondary }]}>
               {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
             </Text>
@@ -471,7 +472,7 @@ export function AddMemberScreen() {
               onPress={handleSyncContacts}
               style={[styles.resyncBtn, { backgroundColor: colors.bg.card }]}
             >
-              <AntDesign  name="reload1" size={16} color={colors.text.tertiary} />
+              <AntDesign name="reload1" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
         }
@@ -483,7 +484,20 @@ export function AddMemberScreen() {
           const userId = item.type === 'match' ? item.userId : '';
           return (
             <View style={styles.contactRow}>
-              <Avatar name={name} size={44} />
+              {isAppUser ? (
+                <Avatar name={name} size={44} />
+              ) : (
+                <View
+                  style={[
+                    styles.contactAvatarPlaceholder,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  <Text style={[styles.contactAvatarInitial, { color: colors.text.tertiary }]}>
+                    {name[0]?.toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
               <View style={styles.contactInfo}>
                 <Text
                   style={[styles.contactName, { color: colors.text.primary }]}
@@ -508,13 +522,15 @@ export function AddMemberScreen() {
               {isAppUser ? (
                 existingMemberIds.includes(userId) ? (
                   <View style={[styles.actionBtn, { backgroundColor: 'rgba(52,199,89,0.12)' }]}>
-                    <AntDesign  name="checkcircleo" size={16} color="#34C759" />
+                    <AntDesign name="checkcircleo" size={16} color="#34C759" />
                   </View>
                 ) : (
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: `${colors.accent.primary}18` }]}
                     onPress={() =>
-                      groupId || spaceId ? handleAddToGroup(userId, name) : addFavorite(userId, name, phone)
+                      groupId || spaceId
+                        ? handleAddToGroup(userId, name)
+                        : addFavorite(userId, name, phone)
                     }
                     disabled={addingId === userId}
                   >
@@ -629,6 +645,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+  contactAvatarPlaceholder: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contactAvatarInitial: { fontSize: 16, fontWeight: '700' },
   contactInfo: { flex: 1, justifyContent: 'center' },
   contactName: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

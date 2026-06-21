@@ -62,3 +62,4 @@ apps/admin/.next/
 .vercel
 *.keystore
 dabbu-release.apk
+dabbu-features-flows.txt

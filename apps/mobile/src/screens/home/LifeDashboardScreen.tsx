@@ -20,6 +20,7 @@ import { useSpaceStore } from '../../store/spaceStore';
 import { useDabbuScoreStore } from '../../store/dabbuScoreStore';
 import { useLensStore } from '../../store/lensStore';
 import { DashboardGrid } from '../../components/dashboard/DashboardGrid';
+import { Avatar } from '../../components/ui/Avatar';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -147,8 +148,13 @@ export function LifeDashboardScreen() {
         const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal).catch(() => null);
         const dashboardP = api.get<any>('/dashboard/personal', ctrl.signal).catch(() => null);
 
-        const [statsRes, notifRes, budgetsRes, wealthRes, dashboardRes] =
-          await Promise.allSettled([statsP, notifP, budgetsP, wealthP, dashboardP]);
+        const [statsRes, notifRes, budgetsRes, wealthRes, dashboardRes] = await Promise.allSettled([
+          statsP,
+          notifP,
+          budgetsP,
+          wealthP,
+          dashboardP,
+        ]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -371,14 +377,20 @@ export function LifeDashboardScreen() {
                 {userName}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
-              style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
-            >
-              <AntDesign name="user" size={20} color={colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
+                style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
+                <AntDesign name="appstore-o" size={16} color={colors.text.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
+                style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
+              >
+                <Avatar uri={user?.avatarUrl} name={userName} size={36} />
+              </TouchableOpacity>
+            </View>
             <ActivityIndicator size="large" color={colors.brand.primary} />
             <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
               Building your dashboard...
@@ -416,12 +428,20 @@ export function LifeDashboardScreen() {
                   {userName}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
-                style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
-              >
-                <AntDesign name="user" size={20} color={colors.text.secondary} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
+                  style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+                >
+                  <AntDesign name="appstore-o" size={16} color={colors.text.secondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
+                  style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
+                >
+                  <Avatar uri={user?.avatarUrl} name={userName} size={36} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           {coupleData ? (
@@ -448,7 +468,9 @@ export function LifeDashboardScreen() {
                   quickActions: '',
                 };
                 const screen = coupleNav[type];
-                if (screen) navigation.navigate(screen);
+                if (screen) {
+                  navigation.navigate(screen);
+                }
               }}
               hideTitle
             />
@@ -533,12 +555,20 @@ export function LifeDashboardScreen() {
                   {userName}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
-                style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
-              >
-                <AntDesign name="user" size={20} color={colors.text.secondary} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
+                  style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+                >
+                  <AntDesign name="appstore-o" size={16} color={colors.text.secondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })}
+                  style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
+                >
+                  <Avatar uri={user?.avatarUrl} name={userName} size={36} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           {familyData ? (
@@ -561,7 +591,9 @@ export function LifeDashboardScreen() {
                   familyGoals: 'GoalsList',
                 };
                 const screen = familyNav[type];
-                if (screen) navigation.navigate(screen);
+                if (screen) {
+                  navigation.navigate(screen);
+                }
               }}
               hideTitle
             />
@@ -673,10 +705,16 @@ export function LifeDashboardScreen() {
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
+                  style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+                >
+                  <AntDesign name="appstore-o" size={16} color={colors.text.secondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
                   onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
                   style={[styles.avatarBtn, { backgroundColor: colors.bg.card }]}
                 >
-                  <AntDesign name="user" size={20} color={colors.text.secondary} />
+                  <Avatar uri={user?.avatarUrl} name={userName} size={36} />
                 </TouchableOpacity>
               </View>
             </View>
