@@ -46,38 +46,46 @@ export function WalletHomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async (silent = false, refresh = false) => {
-    if (refresh) {
-      setRefreshing(true);
-    } else if (!silent) {
-      setLoading(true);
+    try {
+      if (refresh) {
+        setRefreshing(true);
+      } else if (!silent) {
+        setLoading(true);
+      }
+      const [groupsRes, statsRes, txnsRes] = await Promise.allSettled([
+        api.get(`/expense-groups`),
+        api.get(`/transactions/stats`),
+        api.get(`/transactions?limit=10&sortBy=date&sortOrder=desc`),
+      ]);
+      if (groupsRes.status === 'fulfilled') {
+        const d = groupsRes.value as any;
+        setGroups(Array.isArray(d) ? d : d?.data || []);
+      }
+      if (statsRes.status === 'fulfilled') {
+        const d = statsRes.value as any;
+        const s = d?.data || d || {};
+        setMonthlyIncome(Number(s.monthlyIncome || s.income || 0));
+        setMonthlyExpense(Number(s.monthlyExpense || s.expense || 0));
+      }
+      if (txnsRes.status === 'fulfilled') {
+        const d = txnsRes.value as any;
+        setRecentTxns(Array.isArray(d) ? d : d?.data || []);
+      }
+    } catch (e) {
+      console.error('[WalletHome] loadData error:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    const ts = Date.now();
-    const [groupsRes, statsRes, txnsRes] = await Promise.allSettled([
-      api.get(`/expense-groups?_=${ts}`),
-      api.get(`/transactions/stats?_=${ts}`),
-      api.get(`/transactions?limit=10&sortBy=date&sortOrder=desc&_=${ts}`),
-    ]);
-    if (groupsRes.status === 'fulfilled') {
-      const d = groupsRes.value as any;
-      setGroups(Array.isArray(d) ? d : d?.data || []);
-    }
-    if (statsRes.status === 'fulfilled') {
-      const d = statsRes.value as any;
-      const s = d?.data || d || {};
-      setMonthlyIncome(Number(s.monthlyIncome || s.income || 0));
-      setMonthlyExpense(Number(s.monthlyExpense || s.expense || 0));
-    }
-    if (txnsRes.status === 'fulfilled') {
-      const d = txnsRes.value as any;
-      setRecentTxns(Array.isArray(d) ? d : d?.data || []);
-    }
-    setLoading(false);
   }, []);
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
 
   const onRefresh = useCallback(async () => {

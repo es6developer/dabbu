@@ -64,9 +64,8 @@ export function SpacesDashboard() {
     } else if (!silent) {
       setLoading(true);
     }
-    const ts = Date.now();
     try {
-      const res = await api.get<any>(`/shared-finance/groups?_=${ts}`);
+      const res = await api.get<any>(`/shared-finance/groups`);
       const list = Array.isArray(res) ? res : res?.items || res?.data || [];
       setGroups(list);
     } catch {
@@ -77,9 +76,12 @@ export function SpacesDashboard() {
   }, []);
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
 
   const onRefresh = useCallback(async () => {

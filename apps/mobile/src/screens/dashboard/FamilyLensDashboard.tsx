@@ -62,7 +62,9 @@ export function FamilyLensDashboard() {
         (async () => {
           const families: any[] = await api.get('/family');
           const familyId = families?.[0]?.id;
-          if (!familyId) return null;
+          if (!familyId) {
+            return null;
+          }
           return api.get(`/family/workspace/${familyId}`);
         })(),
       ]);
@@ -87,9 +89,12 @@ export function FamilyLensDashboard() {
   }, []);
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
 
   const userName = user?.firstName || 'User';
@@ -267,6 +272,40 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
+          {workspace && (
+            <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('FamilyWorkspace', { familyId: workspace.familyId })
+                }
+                style={[styles.workspaceCard, { backgroundColor: colors.bg.card }]}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.wsIcon,
+                    { backgroundColor: (workspace.coverColor || '#059669') + '20' },
+                  ]}
+                >
+                  <AntDesign
+                    name={(workspace.icon || 'team') as any}
+                    size={20}
+                    color={workspace.coverColor || '#059669'}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                    {workspace.name}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    {workspace.description || 'Family workspace'}
+                  </Text>
+                </View>
+                <AntDesign name="right" size={16} color={colors.text.tertiary} />
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <View style={[styles.heroCard, { backgroundColor: '#059669' }]}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
@@ -329,22 +368,38 @@ export function FamilyLensDashboard() {
                     </Text>
                   </View>
                 ))}
-              {(!d.utilityBills || d.utilityBills.length === 0) && (!d.familyBills || d.familyBills.length === 0) && (
-                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
-                  <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
-                    No utility bills yet
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+              {(!d.utilityBills || d.utilityBills.length === 0) &&
+                (!d.familyBills || d.familyBills.length === 0) && (
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        backgroundColor: colors.bg.card,
+                        alignItems: 'center',
+                        paddingVertical: 24,
+                      },
+                    ]}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
-                      Add Bill
+                    <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
+                    <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                      No utility bills yet
                     </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
+                      style={{
+                        marginTop: 10,
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderRadius: 10,
+                        backgroundColor: '#059669',
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
+                        Add Bill
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
             </View>
           </View>
 
@@ -387,14 +442,25 @@ export function FamilyLensDashboard() {
                   </View>
                 ))}
               {(!d.familyBudget || d.familyBudget.length === 0) && (
-                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="wallet" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No family budget set
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: '#059669',
+                    }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       Create Budget
@@ -452,14 +518,25 @@ export function FamilyLensDashboard() {
                   </View>
                 ))}
               {(!d.familyGoals || d.familyGoals.length === 0) && (
-                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="flag" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No family goals yet
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: '#059669',
+                    }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       Create Goal
@@ -504,14 +581,25 @@ export function FamilyLensDashboard() {
                 </View>
               ))}
               {(!d.reminders || d.reminders.length === 0) && (
-                <View style={[styles.card, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="bells" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No reminders
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#059669' }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: '#059669',
+                    }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       Add Reminder
@@ -629,6 +717,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
+  },
+  workspaceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
+  },
+  wsIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyIcon: {
     width: 72,

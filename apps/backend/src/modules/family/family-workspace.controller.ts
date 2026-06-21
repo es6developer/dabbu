@@ -2,7 +2,7 @@ import { Controller, Post, Get, Put, Body, Param, UseGuards } from '@nestjs/comm
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
+import { JwtPayload } from '../auth/interfaces';
 import { FamilyWorkspaceService } from './family-workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 

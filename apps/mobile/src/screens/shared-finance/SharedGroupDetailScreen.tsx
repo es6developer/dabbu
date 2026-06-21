@@ -167,14 +167,13 @@ export function SharedGroupDetailScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const ts = Date.now();
         const [groupRes, expensesRes, activityRes, analyticsRes, insightsRes] =
           await Promise.allSettled([
-            api.get<any>(`/shared-finance/groups/${groupId}?_=${ts}`),
-            api.get<any>(`/shared-finance/groups/${groupId}/expenses?_=${ts}`),
-            api.get<any>(`/shared-finance/groups/${groupId}/settlements?_=${ts}`),
-            api.get<any>(`/shared-finance/groups/${groupId}/analytics?_=${ts}`).catch(() => null),
-            api.get<any>(`/shared-finance/groups/${groupId}/insights?_=${ts}`).catch(() => null),
+            api.get<any>(`/shared-finance/groups/${groupId}`),
+            api.get<any>(`/shared-finance/groups/${groupId}/expenses`),
+            api.get<any>(`/shared-finance/groups/${groupId}/settlements`),
+            api.get<any>(`/shared-finance/groups/${groupId}/analytics`).catch(() => null),
+            api.get<any>(`/shared-finance/groups/${groupId}/insights`).catch(() => null),
           ]);
         if (groupRes.status === 'fulfilled') {
           setGroup(groupRes.value);
@@ -200,7 +199,14 @@ export function SharedGroupDetailScreen() {
     [accessToken, groupId],
   );
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
@@ -479,7 +485,9 @@ export function SharedGroupDetailScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} />
+        }
       >
         {/* Action Buttons */}
         <View style={s.actionRow}>

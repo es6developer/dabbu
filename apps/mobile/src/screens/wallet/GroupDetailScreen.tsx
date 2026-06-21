@@ -79,41 +79,46 @@ export function GroupDetailScreen() {
   const iconName = group?.icon || 'users';
   const accentColor = ICON_COLORS[iconName] || colors.accent.primary;
 
-  const loadData = useCallback(async (silent = false, refresh = false) => {
-    try {
-      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
-      const ts = Date.now();
-      const [groupRes, txnRes, catRes] = await Promise.all([
-        api.get(`/expense-groups/${groupId}?_=${ts}`).catch(() => null),
-        api
-          .get(
-            `/transactions?expenseGroupId=${groupId}&limit=50&sortBy=date&sortOrder=desc&_=${ts}`,
-          )
-          .catch(() => ({ data: [] })),
-        api
-          .get(`/transactions/categories-summary?expenseGroupId=${groupId}&_=${ts}`)
-          .catch(() => null),
-      ]);
-      if (groupRes) {
-        const d = groupRes as any;
-        setGroup(d?.data || d);
+  const loadData = useCallback(
+    async (silent = false, refresh = false) => {
+      try {
+        if (refresh) {
+          setRefreshing(true);
+        } else if (!silent) {
+          setLoading(true);
+        }
+        const [groupRes, txnRes, catRes] = await Promise.all([
+          api.get(`/expense-groups/${groupId}`).catch(() => null),
+          api
+            .get(`/transactions?expenseGroupId=${groupId}&limit=50&sortBy=date&sortOrder=desc`)
+            .catch(() => ({ data: [] })),
+          api.get(`/transactions/categories-summary?expenseGroupId=${groupId}`).catch(() => null),
+        ]);
+        if (groupRes) {
+          const d = groupRes as any;
+          setGroup(d?.data || d);
+        }
+        const tr = txnRes as any;
+        setTransactions(Array.isArray(tr) ? tr : tr?.data || []);
+        const cd = catRes as any;
+        setCategories(Array.isArray(cd?.data) ? cd.data : []);
+      } catch {
+        void 0;
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      const tr = txnRes as any;
-      setTransactions(Array.isArray(tr) ? tr : tr?.data || []);
-      const cd = catRes as any;
-      setCategories(Array.isArray(cd?.data) ? cd.data : []);
-    } catch {
-      void 0;
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [groupId]);
+    },
+    [groupId],
+  );
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
 
   const onRefresh = useCallback(async () => {

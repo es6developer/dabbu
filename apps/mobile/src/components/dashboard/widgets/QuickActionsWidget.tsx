@@ -4,51 +4,122 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 import { spacing, borderRadius, shadows } from '../../../theme/design';
+import { useLensStore } from '../../../store/lensStore';
+import type { LensMode } from '../../../types';
 
-const actions = [
+interface QuickActionDef {
+  id: string;
+  label: string;
+  icon: React.ComponentProps<typeof AntDesign>['name'];
+  color: string;
+  screen: string;
+  params?: Record<string, any>;
+}
+
+const PERSONAL_ACTIONS: QuickActionDef[] = [
   {
     id: 'add_expense',
     label: 'Add Expense',
-    icon: 'minuscircle' as const,
+    icon: 'minuscircle',
     color: '#DC2626',
     screen: 'AddExpense',
   },
   {
     id: 'add_income',
     label: 'Add Income',
-    icon: 'pluscircle' as const,
+    icon: 'pluscircle',
     color: '#16A34A',
-    screen: 'AddExpense?type=income',
+    screen: 'AddExpense',
+    params: { type: 'income' },
   },
+  { id: 'create_goal', label: 'Create Goal', icon: 'flag', color: '#6366F1', screen: 'GoalsList' },
   {
-    id: 'create_goal',
-    label: 'Create Goal',
-    icon: 'flag' as const,
-    color: '#6366F1',
-    screen: 'CoupleGoals',
-  },
-  {
-    id: 'create_budget',
-    label: 'Create Budget',
-    icon: 'piechart' as const,
+    id: 'view_analytics',
+    label: 'Analytics',
+    icon: 'barschart',
     color: '#F59E0B',
-    screen: 'CoupleBudgets',
-  },
-  {
-    id: 'add_savings',
-    label: 'Add Savings',
-    icon: 'save' as const,
-    color: '#10B981',
-    screen: 'CoupleSavings',
-  },
-  {
-    id: 'timeline',
-    label: 'Timeline',
-    icon: 'clockcircleo' as const,
-    color: '#EC4899',
-    screen: 'CoupleTimeline',
+    screen: 'Analytics',
   },
 ];
+
+const PARTNERED_ACTIONS: QuickActionDef[] = [
+  {
+    id: 'add_shared_expense',
+    label: 'Shared Expense',
+    icon: 'addusergroup',
+    color: '#F43F5E',
+    screen: 'AddExpense',
+    params: { type: 'shared' },
+  },
+  {
+    id: 'add_shared_income',
+    label: 'Shared Income',
+    icon: 'pluscircle',
+    color: '#22C55E',
+    screen: 'AddExpense',
+    params: { type: 'shared_income' },
+  },
+  {
+    id: 'contribute_goal',
+    label: 'Contribute Goal',
+    icon: 'flag',
+    color: '#F59E0B',
+    screen: 'CoupleGoals',
+  },
+  { id: 'settle_balance', label: 'Settle', icon: 'swap', color: '#3B82F6', screen: 'Settlement' },
+];
+
+const FAMILY_ACTIONS: QuickActionDef[] = [
+  {
+    id: 'add_household_expense',
+    label: 'Household Expense',
+    icon: 'minuscircle',
+    color: '#059669',
+    screen: 'AddExpense',
+    params: { type: 'family' },
+  },
+  { id: 'add_bill', label: 'Add Bill', icon: 'filetext1', color: '#F59E0B', screen: 'AddBill' },
+  { id: 'add_goal', label: 'Add Goal', icon: 'flag', color: '#3B82F6', screen: 'GoalsList' },
+  {
+    id: 'record_allowance',
+    label: 'Allowance',
+    icon: 'gift',
+    color: '#8B5CF6',
+    screen: 'SpacesDashboard',
+  },
+];
+
+const FULL_ACTIONS: QuickActionDef[] = [
+  {
+    id: 'add_expense',
+    label: 'Add Expense',
+    icon: 'minuscircle',
+    color: '#DC2626',
+    screen: 'AddExpense',
+  },
+  {
+    id: 'create_space',
+    label: 'Create Space',
+    icon: 'team',
+    color: '#D97706',
+    screen: 'CreateSpace',
+  },
+  { id: 'add_goal', label: 'Add Goal', icon: 'flag', color: '#F59E0B', screen: 'GoalsList' },
+  {
+    id: 'add_investment',
+    label: 'Add Investment',
+    icon: 'linechart',
+    color: '#3B82F6',
+    screen: 'AddInvestment',
+  },
+];
+
+const LENS_ACTIONS: Record<LensMode, QuickActionDef[]> = {
+  PERSONAL: PERSONAL_ACTIONS,
+  PARTNERED: PARTNERED_ACTIONS,
+  FAMILY: FAMILY_ACTIONS,
+  FULL: FULL_ACTIONS,
+};
 
 export function QuickActionsWidget({
   data,
@@ -60,18 +131,12 @@ export function QuickActionsWidget({
   onNavigate?: (screen: string, params?: any) => void;
 }) {
   const { colors, isDark } = useTheme();
+  const activeLens = useLensStore((s) => s.activeLens);
+  const actions = LENS_ACTIONS[activeLens] || FULL_ACTIONS;
 
-  const handleAction = (action: (typeof actions)[0]) => {
+  const handleAction = (action: QuickActionDef) => {
     if (onNavigate) {
-      const [screen, qs] = action.screen.split('?');
-      const params: Record<string, any> = { mode: 'couple' };
-      if (qs) {
-        qs.split('&').forEach((p) => {
-          const [k, v] = p.split('=');
-          params[k] = v;
-        });
-      }
-      onNavigate(screen, params);
+      onNavigate(action.screen, action.params);
     }
   };
 
@@ -103,7 +168,7 @@ export function QuickActionsWidget({
         <Text style={[styles.title, { color: colors.text.primary }]}>Quick Actions</Text>
       </View>
       <View style={styles.grid}>
-        {actions.slice(0, 4).map((action) => (
+        {actions.map((action) => (
           <TouchableOpacity
             key={action.id}
             style={[

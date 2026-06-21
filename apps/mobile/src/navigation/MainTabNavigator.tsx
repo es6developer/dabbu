@@ -1,5 +1,13 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -99,12 +107,18 @@ export function MainTabNavigator() {
   const navigation = useNavigation<any>();
 
   useEffect(() => {
-    const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -140,7 +154,11 @@ export function MainTabNavigator() {
   }, [activeLens]);
 
   const quickActions = useMemo(() => {
-    if (lensQuickActions && lensQuickActions.length > 0) {
+    if (
+      lensQuickActions &&
+      lensQuickActions.length > 0 &&
+      lensQuickActions.some((qa: any) => qa.screen)
+    ) {
       return lensQuickActions.map((qa: any) => {
         const tabConfig = ALL_TAB_CONFIGS.find(
           (t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''),
@@ -203,8 +221,7 @@ export function MainTabNavigator() {
         label: 'Create Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'GoalsList' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList' }),
       },
       create_budget: {
         label: 'Create Budget',
@@ -216,15 +233,13 @@ export function MainTabNavigator() {
         label: 'Couple Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'CoupleGoals' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleGoals' }),
       },
       add_family_goal: {
         label: 'Family Goal',
         icon: 'flag',
         color: '#3B82F6',
-        onPress: () =>
-          navigation.navigate('HomeTab', { screen: 'GoalsList' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList' }),
       },
       add_bill: {
         label: 'Add Bill',
@@ -236,8 +251,7 @@ export function MainTabNavigator() {
         label: 'Allowance',
         icon: 'gift',
         color: '#8B5CF6',
-        onPress: () =>
-          navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' }),
+        onPress: () => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' }),
       },
       settle_balance: {
         label: 'Settle',
@@ -255,8 +269,7 @@ export function MainTabNavigator() {
         label: 'Reports',
         icon: 'barschart',
         color: '#22C55E',
-        onPress: () =>
-          navigation.navigate('WalletTab', { screen: 'Analytics' }),
+        onPress: () => navigation.navigate('WalletTab', { screen: 'Analytics' }),
       },
     };
 
