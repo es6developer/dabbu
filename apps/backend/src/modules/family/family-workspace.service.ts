@@ -33,7 +33,7 @@ export class FamilyWorkspaceService {
         name: dto.name,
         description: dto.description,
         icon: dto.icon || 'team',
-        coverColor: dto.coverColor || '#059669',
+        coverColor: dto.coverColor || '#0f6b6f',
         createdBy: userId,
       },
     });

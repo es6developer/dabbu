@@ -59,7 +59,6 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Req() req: any, @Headers('user-agent') userAgent?: string) {
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
     const result = await this.authService.login(dto, ip, userAgent);
-    this.notificationEvents.welcomeBack(result.user.id, { firstName: result.user.firstName }).catch(() => {});
     return { data: result };
   }
 
@@ -150,8 +149,6 @@ export class AuthController {
     );
     if (result.isNewUser) {
       this.notificationEvents.welcomeNewUser(result.user.id, { firstName: result.user.firstName }).catch(() => {});
-    } else {
-      this.notificationEvents.welcomeBack(result.user.id, { firstName: result.user.firstName }).catch(() => {});
     }
     return { data: result };
   }

@@ -19,7 +19,6 @@ interface PushPayload {
       sound?: string;
       color?: string;
       tag?: string;
-      group?: string;
       image?: string;
       ticker?: string;
       sticky?: boolean;
@@ -412,7 +411,6 @@ export class FcmService {
           sound: 'default',
           color: channel.color,
           tag: channel.tag,
-          group: channel.channelId,
           notificationCount: 0,
           visibility: 'public',
         },

@@ -352,6 +352,13 @@ export class NotificationService {
           this.logger.warn(
             `[testPush] Device ${device.id} (${device.platform}, ${device.deviceName}) token=${device.pushToken?.substring(0, 40)}... failed: ${result.error}`,
           );
+          if (result.error === 'INVALID_TOKEN') {
+            await this.prisma.device.update({
+              where: { id: device.id },
+              data: { isActive: false },
+            });
+            this.logger.warn(`Deactivated device ${device.id} — invalid push token`);
+          }
         }
       } catch (err: any) {
         this.logger.error(

@@ -43,6 +43,8 @@ export class FamilyDashboardService {
       investments,
       netWorths,
       familyInsights,
+      recentTransactions,
+      memberTransactions,
     ] = await Promise.all([
       this.prisma.transaction.aggregate({
         where: {
@@ -95,6 +97,26 @@ export class FamilyDashboardService {
       this.prisma.familyIntelligence.findFirst({
         where: { familyId: family.id },
         orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.transaction.findMany({
+        where: {
+          userId: { in: memberIds },
+          deletedAt: null,
+        },
+        orderBy: { date: 'desc' },
+        take: 20,
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          category: { select: { id: true, name: true } },
+        },
+      }),
+      this.prisma.transaction.findMany({
+        where: {
+          userId: { in: memberIds },
+          deletedAt: null,
+          date: { gte: monthStart, lte: monthEnd },
+        },
+        select: { userId: true, amount: true, type: true },
       }),
     ]);
 
@@ -156,6 +178,19 @@ export class FamilyDashboardService {
     const insights: string[] = familyInsights?.insights
       ? (familyInsights.insights as string[])
       : [];
+
+    const memberActivity: Record<string, { income: number; expense: number; count: number }> = {};
+    for (const txn of memberTransactions) {
+      if (!memberActivity[txn.userId]) {
+        memberActivity[txn.userId] = { income: 0, expense: 0, count: 0 };
+      }
+      if (txn.type === 'income') {
+        memberActivity[txn.userId].income += Number(txn.amount);
+      } else {
+        memberActivity[txn.userId].expense += Number(txn.amount);
+      }
+      memberActivity[txn.userId].count += 1;
+    }
 
     return {
       familyHero: {
@@ -262,6 +297,18 @@ export class FamilyDashboardService {
               investmentRatio: 0,
             },
           },
+      memberActivity,
+      recentTransactions: recentTransactions.map((t) => ({
+        id: t.id,
+        userId: t.userId,
+        amount: Number(t.amount),
+        type: t.type,
+        description: t.description,
+        category: t.category?.name || null,
+        date: t.date,
+        userName: t.user.firstName || t.user.lastName,
+        userAvatar: t.user.avatarUrl,
+      })),
     };
   }
 
@@ -294,6 +341,8 @@ export class FamilyDashboardService {
           investmentRatio: 0,
         },
       },
+      memberActivity: {},
+      recentTransactions: [],
     };
   }
 

@@ -93,8 +93,8 @@ async function main() {
         { widgetKey: 'couple_timeline', widgetType: 'timeline', title: 'Couple Timeline', size: 'medium', sortOrder: 6 },
       ],
       quickActions: [
-        { actionKey: 'add_shared_expense', label: 'Shared Expense', icon: 'pluscircle', color: '#F43F5E', sortOrder: 0, screen: 'AddSharedExpense' },
-        { actionKey: 'add_personal_expense', label: 'Personal Expense', icon: 'minuscircle', color: '#64748B', sortOrder: 1, screen: 'AddExpense' },
+        { actionKey: 'add_shared_expense', label: 'Shared Expense', icon: 'pluscircle', color: '#dd2d4a', sortOrder: 0, screen: 'AddSharedExpense' },
+        { actionKey: 'add_personal_expense', label: 'Personal Expense', icon: 'minuscircle', color: '#f26a8d', sortOrder: 1, screen: 'AddExpense' },
         { actionKey: 'create_couple_goal', label: 'Couple Goal', icon: 'flag', color: '#F59E0B', sortOrder: 2, screen: 'CreateCoupleGoal' },
         { actionKey: 'settle_balance', label: 'Settle Balance', icon: 'swap', color: '#22C55E', sortOrder: 3, screen: 'SettleBalance' },
       ],
@@ -141,10 +141,10 @@ async function main() {
         { widgetKey: 'family_calendar', widgetType: 'calendar', title: 'Family Calendar', size: 'medium', sortOrder: 6 },
       ],
       quickActions: [
-        { actionKey: 'add_family_expense', label: 'Family Expense', icon: 'pluscircle', color: '#059669', sortOrder: 0, screen: 'AddFamilyExpense' },
+        { actionKey: 'add_family_expense', label: 'Family Expense', icon: 'pluscircle', color: '#0f6b6f', sortOrder: 0, screen: 'AddFamilyExpense' },
         { actionKey: 'add_bill', label: 'Add Bill', icon: 'filetext', color: '#F59E0B', sortOrder: 1, screen: 'AddBill' },
-        { actionKey: 'add_family_goal', label: 'Family Goal', icon: 'flag', color: '#3B82F6', sortOrder: 2, screen: 'CreateFamilyGoal' },
-        { actionKey: 'allowance', label: 'Allowance', icon: 'gift', color: '#8B5CF6', sortOrder: 3, screen: 'Allowances' },
+        { actionKey: 'add_family_goal', label: 'Family Goal', icon: 'flag', color: '#3d7ea6', sortOrder: 2, screen: 'CreateFamilyGoal' },
+        { actionKey: 'allowance', label: 'Allowance', icon: 'gift', color: '#3d7ea6', sortOrder: 3, screen: 'Allowances' },
       ],
     },
     {
@@ -188,8 +188,8 @@ async function main() {
         { widgetKey: 'advanced_analytics', widgetType: 'chart', title: 'Advanced Analytics', size: 'large', sortOrder: 5 },
       ],
       quickActions: [
-        { actionKey: 'add_any_expense', label: 'Add Expense', icon: 'pluscircle', color: '#7C3AED', sortOrder: 0, screen: 'AddExpense' },
-        { actionKey: 'switch_lens', label: 'Switch Lens', icon: 'swap', color: '#D97706', sortOrder: 1 },
+        { actionKey: 'add_any_expense', label: 'Add Expense', icon: 'pluscircle', color: '#0077b6', sortOrder: 0, screen: 'AddExpense' },
+        { actionKey: 'switch_lens', label: 'Switch Lens', icon: 'swap', color: '#00b4d8', sortOrder: 1 },
         { actionKey: 'cross_lens_report', label: 'Cross-Lens Report', icon: 'barschart', color: '#22C55E', sortOrder: 2, screen: 'Reports' },
       ],
     },
