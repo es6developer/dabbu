@@ -395,6 +395,7 @@ model Reminder {
   snoozedUntil DateTime?
   isRecurring  Boolean   @default(false)
   categoryId   String?   @db.VarChar(36)
+  lensId       String?   @db.VarChar(20)
   deletedAt    DateTime?
   metadata     Json?     @db.Json
   createdAt    DateTime  @default(now())
@@ -408,6 +409,7 @@ model Reminder {
 
   @@index([userId, remindAt])
   @@index([userId, isSent])
+  @@index([lensId])
   @@index([remindAt, isSent])
   @@map("reminders")
 }
@@ -670,6 +672,7 @@ model Account {
   institution    String?   @db.VarChar(255)
   lastFourDigits String?   @db.VarChar(4)
   sortOrder      Int       @default(0)
+  lensId         String?   @db.VarChar(20)
   deletedAt      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -681,8 +684,6 @@ model Account {
   investments  Investment[]
 
   @@index([userId, isActive])
-  @@index([userId, type])
-  @@index([userId, isArchived])
   @@map("accounts")
 }
 
@@ -747,6 +748,7 @@ model Transaction {
   parentTransactionId String?   @db.VarChar(36)
   expenseGroupId      String?   @db.VarChar(36)
   spaceId             String?   @db.VarChar(36)
+  lensId              String?   @db.VarChar(20)
   metadata            Json?     @db.Json
   deletedAt           DateTime?
   createdAt           DateTime  @default(now())
@@ -769,6 +771,7 @@ model Transaction {
   @@index([userId, isReviewed])
   @@index([expenseGroupId, date])
   @@index([spaceId])
+  @@index([lensId])
   @@index([date, status])
   @@index([description(255)])
   @@fulltext([description, notes])
@@ -781,6 +784,7 @@ model Budget {
   id         String    @id @default(uuid()) @db.VarChar(36)
   userId     String    @db.VarChar(36)
   spaceId    String?   @db.VarChar(36)
+  lensId     String?   @db.VarChar(20)
   categoryId String?   @db.VarChar(36)
   name       String    @db.VarChar(255)
   amount     Decimal   @db.Decimal(15, 2)
@@ -803,6 +807,7 @@ model Budget {
   @@index([userId, isActive])
   @@index([userId, period])
   @@index([spaceId])
+  @@index([lensId])
   @@index([userId, startDate, endDate])
   @@index([categoryId, startDate, endDate])
   @@map("budgets")
@@ -855,6 +860,7 @@ model Goal {
   currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
   deadline            DateTime? @db.Date
   spaceId             String?   @db.VarChar(36)
+  lensId              String?   @db.VarChar(20)
   type                String    @default("custom") @db.VarChar(20) // emergency, vacation, education, home, car, wedding, retirement, baby, savings, investment, custom
   icon                String?   @db.VarChar(50)
   color               String?   @db.VarChar(50)
@@ -875,6 +881,7 @@ model Goal {
   @@index([userId, deadline])
   @@index([userId, type])
   @@index([spaceId])
+  @@index([lensId])
   @@index([name(255)])
   @@fulltext([name, notes])
   @@map("goals")

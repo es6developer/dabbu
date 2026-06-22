@@ -14,7 +14,10 @@ export class BudgetsService {
   ) {}
 
   async create(userId: string, dto: CreateBudgetDto) {
-    const spaceId = await this.lensData.getSpaceIdForLens(userId);
+    const [spaceId, lensId] = await Promise.all([
+      this.lensData.getSpaceIdForLens(userId),
+      this.lensData.getActiveLens(userId),
+    ]);
     const now = new Date();
     const startDate = dto.startDate
       ? new Date(dto.startDate)
@@ -42,19 +45,20 @@ export class BudgetsService {
       }
     }
 
-    const budget = await this.repo.createBudget(userId, spaceId, { ...dto, startDate, endDate });
+    const budget = await this.repo.createBudget(userId, spaceId, lensId, {
+      ...dto,
+      startDate,
+      endDate,
+    });
     return this.formatBudget(budget);
   }
 
   async findAll(userId: string) {
-    const activeLens = await this.lensData.getActiveLens(userId);
-    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
-    const where: any = { userId, deletedAt: null };
-    if (spaceIds.length > 0) {
-      where.spaceId = { in: spaceIds };
-    } else if (activeLens === 'PERSONAL') {
-      where.spaceId = null;
-    }
+    const where: any = {
+      userId,
+      deletedAt: null,
+      ...(await this.lensData.buildLensFilter(userId)),
+    };
     const budgets = await this.repo.findAllWithCategory(userId, where);
     return budgets.map((b) => this.formatBudget(b));
   }

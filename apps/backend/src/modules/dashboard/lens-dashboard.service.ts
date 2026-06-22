@@ -157,7 +157,7 @@ export class LensDashboardService {
         .aggregate({
           where: {
             userId,
-            spaceId: null,
+            lensId: 'PERSONAL',
             deletedAt: null,
             type: 'income',
             date: { gte: monthStart, lte: monthEnd },
@@ -169,7 +169,7 @@ export class LensDashboardService {
         .aggregate({
           where: {
             userId,
-            spaceId: null,
+            lensId: 'PERSONAL',
             deletedAt: null,
             type: 'expense',
             date: { gte: monthStart, lte: monthEnd },
@@ -180,7 +180,7 @@ export class LensDashboardService {
       this.prisma.userNetWorth.findUnique({ where: { userId } }).catch(() => null),
       this.prisma.goal
         .findMany({
-          where: { userId, spaceId: null, deletedAt: null, isCompleted: false },
+          where: { userId, lensId: 'PERSONAL', deletedAt: null, isCompleted: false },
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: {
@@ -204,7 +204,7 @@ export class LensDashboardService {
         .catch(() => []),
       this.prisma.budget
         .findMany({
-          where: { userId, spaceId: null, deletedAt: null },
+          where: { userId, lensId: 'PERSONAL', deletedAt: null },
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: { id: true, name: true, amount: true, spent: true },
@@ -286,7 +286,6 @@ export class LensDashboardService {
       return null;
     }
 
-    const ids = coupleSpaces.map((s) => s.id);
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -294,7 +293,8 @@ export class LensDashboardService {
     const incomeAggP = this.prisma.transaction
       .aggregate({
         where: {
-          spaceId: { in: ids },
+          userId,
+          lensId: 'PARTNERED',
           deletedAt: null,
           type: 'income',
           date: { gte: monthStart, lte: monthEnd },
@@ -305,7 +305,8 @@ export class LensDashboardService {
     const expenseAggP = this.prisma.transaction
       .aggregate({
         where: {
-          spaceId: { in: ids },
+          userId,
+          lensId: 'PARTNERED',
           deletedAt: null,
           type: 'expense',
           date: { gte: monthStart, lte: monthEnd },
@@ -315,7 +316,7 @@ export class LensDashboardService {
       .catch(() => ({ _sum: { amount: 0 } }));
     const goalsP = this.prisma.goal
       .findMany({
-        where: { spaceId: { in: ids }, deletedAt: null, isCompleted: false },
+        where: { userId, lensId: 'PARTNERED', deletedAt: null, isCompleted: false },
         orderBy: { createdAt: 'desc' },
         take: 10,
         select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true },
@@ -323,7 +324,7 @@ export class LensDashboardService {
       .catch(() => []);
     const budgetsP = this.prisma.budget
       .findMany({
-        where: { spaceId: { in: ids }, deletedAt: null },
+        where: { userId, lensId: 'PARTNERED', deletedAt: null },
         orderBy: { createdAt: 'desc' },
         take: 10,
         select: { id: true, name: true, amount: true, spent: true },
@@ -344,7 +345,7 @@ export class LensDashboardService {
     }[] = [];
     try {
       const members = await this.prisma.spaceMember.findMany({
-        where: { spaceId: { in: ids } },
+        where: { spaceId: { in: coupleSpaces.map((s) => s.id) } },
         select: {
           userId: true,
           role: true,
@@ -411,24 +412,9 @@ export class LensDashboardService {
       return null;
     }
 
-    const familySpaces = await this.prisma.space
-      .findMany({
-        where: { type: 'FAMILY', members: { some: { userId } } },
-        select: { id: true },
-      })
-      .catch(() => []);
-    const familySpaceIds = familySpaces.map((s) => s.id);
-
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    const budgetFilter: any = { userId, deletedAt: null };
-    if (familySpaceIds.length > 0) {
-      budgetFilter.spaceId = { in: familySpaceIds };
-    } else {
-      budgetFilter.spaceId = { equals: '__NONE__' };
-    }
 
     const [goals, bills, budgetData, reminders] = await Promise.all([
       this.prisma.familyGoal
@@ -456,7 +442,7 @@ export class LensDashboardService {
         .catch(() => []),
       this.prisma.budget
         .findMany({
-          where: budgetFilter,
+          where: { userId, lensId: 'FAMILY', deletedAt: null },
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: { id: true, name: true, amount: true, spent: true },

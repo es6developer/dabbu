@@ -41,4 +41,14 @@ export class LensDataService {
     });
     return user?.activeLens || 'PERSONAL';
   }
+
+  /** Build a Prisma where clause that filters data to the user's active lens.
+   *  For FULL lens, no filter is applied (all data visible). */
+  async buildLensFilter(userId: string): Promise<{ lensId?: string }> {
+    const lens = await this.getActiveLens(userId);
+    if (lens === 'FULL') {
+      return {};
+    }
+    return { lensId: lens };
+  }
 }

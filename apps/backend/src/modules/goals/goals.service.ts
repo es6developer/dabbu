@@ -16,11 +16,15 @@ export class GoalsService {
   ) {}
 
   async create(userId: string, dto: CreateGoalDto) {
-    const spaceId = await this.lensData.getSpaceIdForLens(userId);
+    const [spaceId, lensId] = await Promise.all([
+      this.lensData.getSpaceIdForLens(userId),
+      this.lensData.getActiveLens(userId),
+    ]);
     const goal = await this.prisma.goal.create({
       data: {
         userId,
         spaceId,
+        lensId,
         name: dto.name,
         targetAmount: dto.targetAmount,
         type: dto.type || 'custom',
@@ -45,14 +49,11 @@ export class GoalsService {
   }
 
   async findAll(userId: string) {
-    const activeLens = await this.lensData.getActiveLens(userId);
-    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
-    const where: any = { userId, deletedAt: null };
-    if (spaceIds.length > 0) {
-      where.spaceId = { in: spaceIds };
-    } else if (activeLens === 'PERSONAL') {
-      where.spaceId = null;
-    }
+    const where: any = {
+      userId,
+      deletedAt: null,
+      ...(await this.lensData.buildLensFilter(userId)),
+    };
     const goals = await this.prisma.goal.findMany({
       where,
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],

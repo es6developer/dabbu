@@ -36,6 +36,7 @@ export class BudgetsRepository extends BaseRepository<any, CreateBudgetDto, Upda
   async createBudget(
     userId: string,
     spaceId: string | null,
+    lensId: string | null,
     dto: {
       name: string;
       amount: number;
@@ -51,6 +52,7 @@ export class BudgetsRepository extends BaseRepository<any, CreateBudgetDto, Upda
       data: {
         userId,
         spaceId,
+        lensId,
         name: dto.name,
         amount: dto.amount,
         period: dto.period || 'monthly',

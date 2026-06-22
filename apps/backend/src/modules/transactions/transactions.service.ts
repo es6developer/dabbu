@@ -18,7 +18,10 @@ export class TransactionsService {
   ) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
-    const spaceId = await this.lensData.getSpaceIdForLens(userId);
+    const [spaceId, lensId] = await Promise.all([
+      this.lensData.getSpaceIdForLens(userId),
+      this.lensData.getActiveLens(userId),
+    ]);
     let categoryId = dto.categoryId;
     if (!categoryId && dto.category) {
       const found = await this.prisma.transactionCategory.findFirst({
@@ -41,6 +44,7 @@ export class TransactionsService {
       data: {
         userId,
         spaceId,
+        lensId,
         accountId: dto.accountId || null,
         categoryId,
         expenseGroupId: dto.expenseGroupId || null,
@@ -156,20 +160,12 @@ export class TransactionsService {
   }
 
   async findAll(userId: string, filter: TransactionFilterDto) {
-    const where: any = { deletedAt: null };
+    const where: any = { deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) };
 
     if (filter.expenseGroupId) {
       where.expenseGroupId = filter.expenseGroupId;
     } else {
       where.userId = userId;
-    }
-
-    const activeLens = await this.lensData.getActiveLens(userId);
-    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
-    if (spaceIds.length > 0) {
-      where.spaceId = { in: spaceIds };
-    } else if (activeLens === 'PERSONAL') {
-      where.spaceId = null;
     }
 
     if (filter.type) {
