@@ -14,6 +14,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
+import { getLockKeys } from '../../store/LockContext';
 import { ConfirmDialog } from '../../components/ui';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -63,7 +64,8 @@ export function AppLockScreen({ onUnlock }: Props) {
 
   async function verifyPin(entered: string) {
     try {
-      const stored = await SecureStore.getItemAsync('appPin');
+      const { appPin } = getLockKeys(user?.id);
+      const stored = await SecureStore.getItemAsync(appPin);
       if (entered !== stored) {
         triggerShake();
         setError('Incorrect PIN');
@@ -80,9 +82,10 @@ export function AppLockScreen({ onUnlock }: Props) {
 
   async function handleBiometric() {
     try {
+      const { biometricEnabled: biometricKey } = getLockKeys(user?.id);
       const [isEnrolled, biometricEnabled] = await Promise.all([
         LocalAuthentication.isEnrolledAsync(),
-        SecureStore.getItemAsync('biometricEnabled'),
+        SecureStore.getItemAsync(biometricKey),
       ]);
       if (!isEnrolled || biometricEnabled !== 'true') {
         return;

@@ -21,7 +21,7 @@ export function RootNavigator(): React.ReactElement | null {
   const { isLocked, unlockApp } = useAppLock();
   const { showToast } = useToast();
   const [phase, setPhase] = useState<'loading' | 'validating' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'>(
-    'loading',
+    isLocked ? 'lock' : 'loading',
   );
   const [maintenanceMessage, setMaintenanceMessage] = useState<string | undefined>();
   const [splashDone, setSplashDone] = useState(false);
@@ -44,6 +44,13 @@ export function RootNavigator(): React.ReactElement | null {
       })
       .catch(() => {});
   }, []);
+
+  // Show lock screen immediately when isLocked becomes true (app backgrounded)
+  useEffect(() => {
+    if (isLocked && phase !== 'lock' && phase !== 'loading' && phase !== 'validating') {
+      setPhase('lock');
+    }
+  }, [isLocked, phase]);
 
   useEffect(() => {
     if (maintenanceChecked.current === true && phase !== 'maintenance') {

@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { getLockKeys } from '../../store/LockContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const KEY_SIZE = (SCREEN_W - 64) / 3;
@@ -24,7 +25,7 @@ interface Props {
 export function PinSetupScreen({ onComplete }: Props) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const [step, setStep] = useState<'create' | 'confirm'>('create');
   const [pin, setPin] = useState<string[]>([]);
   const [confirmPin, setConfirmPin] = useState<string[]>([]);
@@ -88,8 +89,9 @@ export function PinSetupScreen({ onComplete }: Props) {
       return;
     }
     try {
-      await SecureStore.setItemAsync('appPin', created);
-      await SecureStore.setItemAsync('appLockEnabled', 'true');
+      const { appPin, appLockEnabled } = getLockKeys(user?.id);
+      await SecureStore.setItemAsync(appPin, created);
+      await SecureStore.setItemAsync(appLockEnabled, 'true');
       if (accessToken) {
         setAccessToken(accessToken);
         api.post('/auth/lock', { pin: created }).catch(() => {});

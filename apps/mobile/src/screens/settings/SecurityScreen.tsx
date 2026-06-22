@@ -16,6 +16,7 @@ import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
+import { getLockKeys } from '../../store/LockContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
@@ -23,7 +24,9 @@ import { useToast } from '../../store/ToastContext';
 
 export function SecurityScreen() {
   const { colors } = useTheme();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
+  const lockKeys = getLockKeys(user?.id);
+  const { appPin: appPinKey, appLockEnabled: appLockEnabledKey, biometricEnabled: biometricEnabledKey } = lockKeys;
   const { showToast } = useToast();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [lockEnabled, setLockEnabled] = useState(false);
@@ -65,11 +68,11 @@ export function SecurityScreen() {
         setBiometricEnabled(!!lockRes.biometricEnabled);
       }
     } catch (e) {
-      const storedBiometric = await SecureStore.getItemAsync('biometricEnabled');
+      const storedBiometric = await SecureStore.getItemAsync(biometricEnabledKey);
       setBiometricEnabled(storedBiometric === 'true');
-      const storedLock = await SecureStore.getItemAsync('appLockEnabled');
+      const storedLock = await SecureStore.getItemAsync(appLockEnabledKey);
       setLockEnabled(storedLock === 'true');
-      const existingPin = await SecureStore.getItemAsync('appPin');
+      const existingPin = await SecureStore.getItemAsync(appPinKey);
       setHasPin(!!existingPin);
     } finally {
       setLoading(false);
@@ -85,7 +88,7 @@ export function SecurityScreen() {
           return;
         }
       }
-      await SecureStore.setItemAsync('biometricEnabled', String(value));
+      await SecureStore.setItemAsync(biometricEnabledKey, String(value));
       setBiometricEnabled(value);
       api.post('/auth/lock', { biometricEnabled: value }).catch(() => {});
     } catch (e: any) {
@@ -95,12 +98,12 @@ export function SecurityScreen() {
 
   async function handleLockToggle(value: boolean) {
     try {
-      const existingPin = await SecureStore.getItemAsync('appPin');
+      const existingPin = await SecureStore.getItemAsync(appPinKey);
       if (value && !existingPin) {
         Alert.alert('Set PIN First', 'Please set up an App PIN before enabling Lock App.');
         return;
       }
-      await SecureStore.setItemAsync('appLockEnabled', String(value));
+      await SecureStore.setItemAsync(appLockEnabledKey, String(value));
       setLockEnabled(value);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to update lock setting');
@@ -123,8 +126,8 @@ export function SecurityScreen() {
     setSavingPin(true);
     try {
       await Promise.all([
-        SecureStore.setItemAsync('appPin', pin),
-        SecureStore.setItemAsync('appLockEnabled', 'true'),
+        SecureStore.setItemAsync(appPinKey, pin),
+        SecureStore.setItemAsync(appLockEnabledKey, 'true'),
         api.post('/auth/lock', { pin }).catch(() => {}),
       ]);
       setLockEnabled(true);
@@ -157,14 +160,14 @@ export function SecurityScreen() {
     }
     setSavingPin(true);
     try {
-      const currentPin = await SecureStore.getItemAsync('appPin');
+      const currentPin = await SecureStore.getItemAsync(appPinKey);
       if (oldPin !== currentPin) {
         Alert.alert('Error', 'Current PIN is incorrect');
         setSavingPin(false);
         return;
       }
       await Promise.all([
-        SecureStore.setItemAsync('appPin', pin),
+        SecureStore.setItemAsync(appPinKey, pin),
         api.post('/auth/lock', { oldPin, pin }).catch(() => {}),
       ]);
       Alert.alert('Success', 'PIN changed successfully');
@@ -193,8 +196,8 @@ export function SecurityScreen() {
             setSavingPin(true);
             try {
               await Promise.all([
-                SecureStore.deleteItemAsync('appPin'),
-                SecureStore.setItemAsync('appLockEnabled', 'false'),
+                SecureStore.deleteItemAsync(appPinKey),
+                SecureStore.setItemAsync(appLockEnabledKey, 'false'),
                 api.post('/auth/lock', { pin: '' }).catch(() => {}),
               ]);
               setLockEnabled(false);

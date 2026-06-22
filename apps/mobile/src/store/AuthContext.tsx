@@ -215,13 +215,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearAuth_ = useCallback(async () => {
     try {
+      const uid = stateRef.current.user?.id;
       await storage.current.deleteItemAsync('accessToken');
       await storage.current.deleteItemAsync('refreshToken');
       await storage.current.deleteItemAsync('sessionId');
       await storage.current.deleteItemAsync('userData');
-      await storage.current.deleteItemAsync('appPin');
-      await storage.current.deleteItemAsync('appLockEnabled');
-      await storage.current.deleteItemAsync('biometricEnabled');
+      if (uid) {
+        await storage.current.deleteItemAsync(`${uid}:appPin`);
+        await storage.current.deleteItemAsync(`${uid}:appLockEnabled`);
+        await storage.current.deleteItemAsync(`${uid}:biometricEnabled`);
+      } else {
+        await storage.current.deleteItemAsync('appPin');
+        await storage.current.deleteItemAsync('appLockEnabled');
+        await storage.current.deleteItemAsync('biometricEnabled');
+      }
       setAccessToken(null);
       await AsyncStorage.multiRemove([
         '@dabbu_preferences_cache',
