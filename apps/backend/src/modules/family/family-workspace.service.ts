@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
@@ -8,11 +13,19 @@ export class FamilyWorkspaceService {
 
   async create(userId: string, dto: CreateWorkspaceDto) {
     const family = await this.prisma.family.findUnique({ where: { id: dto.familyId } });
-    if (!family) throw new NotFoundException('Family not found');
-    if (family.ownerId !== userId) throw new ForbiddenException('Only family owner can create workspace');
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    if (family.ownerId !== userId) {
+      throw new ForbiddenException('Only family owner can create workspace');
+    }
 
-    const existing = await this.prisma.familyWorkspace.findUnique({ where: { familyId: dto.familyId } });
-    if (existing) throw new ConflictException('Family workspace already exists');
+    const existing = await this.prisma.familyWorkspace.findUnique({
+      where: { familyId: dto.familyId },
+    });
+    if (existing) {
+      throw new ConflictException('Family workspace already exists');
+    }
 
     return this.prisma.familyWorkspace.create({
       data: {
@@ -32,15 +45,28 @@ export class FamilyWorkspaceService {
 
   async findById(id: string) {
     const ws = await this.prisma.familyWorkspace.findUnique({ where: { id } });
-    if (!ws) throw new NotFoundException('Family workspace not found');
+    if (!ws) {
+      throw new NotFoundException('Family workspace not found');
+    }
     return ws;
   }
 
-  async update(id: string, userId: string, data: { name?: string; description?: string; icon?: string; coverColor?: string }) {
+  async update(
+    id: string,
+    userId: string,
+    data: { name?: string; description?: string; icon?: string; coverColor?: string },
+  ) {
     const ws = await this.prisma.familyWorkspace.findUnique({ where: { id } });
-    if (!ws) throw new NotFoundException('Family workspace not found');
+    if (!ws) {
+      throw new NotFoundException('Family workspace not found');
+    }
     const family = await this.prisma.family.findUnique({ where: { id: ws.familyId } });
-    if (family.ownerId !== userId) throw new ForbiddenException('Only family owner can update workspace');
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    if (family.ownerId !== userId) {
+      throw new ForbiddenException('Only family owner can update workspace');
+    }
 
     return this.prisma.familyWorkspace.update({ where: { id }, data });
   }

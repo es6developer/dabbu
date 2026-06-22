@@ -47,7 +47,15 @@ export class BudgetsService {
   }
 
   async findAll(userId: string) {
-    const budgets = await this.repo.findAllWithCategory(userId);
+    const activeLens = await this.lensData.getActiveLens(userId);
+    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
+    const where: any = { userId, deletedAt: null };
+    if (spaceIds.length > 0) {
+      where.spaceId = { in: spaceIds };
+    } else if (activeLens === 'PERSONAL') {
+      where.spaceId = null;
+    }
+    const budgets = await this.repo.findAllWithCategory(userId, where);
     return budgets.map((b) => this.formatBudget(b));
   }
 

@@ -15,12 +15,13 @@ export class LensDataService {
     }
 
     if (lens === 'PARTNERED' || lens === 'FAMILY') {
+      const mappedType = lens === 'PARTNERED' ? 'COUPLE' : lens;
       const spaces = await this.prisma.spaceMember.findMany({
         where: { userId },
         select: { space: { select: { id: true, type: true } } },
       });
       return spaces
-        .filter((s) => s.space.type === lens)
+        .filter((s) => s.space.type === mappedType)
         .map((s) => s.space.id)
         .slice(0, 1);
     }
@@ -31,5 +32,13 @@ export class LensDataService {
   async getSpaceIdForLens(userId: string, lens?: string): Promise<string | null> {
     const ids = await this.getSpaceIdsForLens(userId, lens);
     return ids[0] || null;
+  }
+
+  async getActiveLens(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { activeLens: true },
+    });
+    return user?.activeLens || 'PERSONAL';
   }
 }

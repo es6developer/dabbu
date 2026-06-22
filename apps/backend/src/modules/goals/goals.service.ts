@@ -45,8 +45,16 @@ export class GoalsService {
   }
 
   async findAll(userId: string) {
+    const activeLens = await this.lensData.getActiveLens(userId);
+    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
+    const where: any = { userId, deletedAt: null };
+    if (spaceIds.length > 0) {
+      where.spaceId = { in: spaceIds };
+    } else if (activeLens === 'PERSONAL') {
+      where.spaceId = null;
+    }
     const goals = await this.prisma.goal.findMany({
-      where: { userId, deletedAt: null },
+      where,
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     return goals.map((g) => this.formatGoal(g));

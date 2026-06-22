@@ -17,9 +17,9 @@ export class BudgetsRepository extends BaseRepository<any, CreateBudgetDto, Upda
     });
   }
 
-  async findAllWithCategory(userId: string) {
+  async findAllWithCategory(userId: string, where?: any) {
     return this.prisma.budget.findMany({
-      where: { userId, deletedAt: null },
+      where: where || { userId, deletedAt: null },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });

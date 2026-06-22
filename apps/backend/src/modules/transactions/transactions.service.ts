@@ -26,7 +26,7 @@ export class TransactionsService {
       });
       categoryId = found?.id || (await this.predictCategory(userId, dto)) || undefined;
     } else if (!categoryId) {
-      categoryId = await this.predictCategory(userId, dto) || undefined;
+      categoryId = (await this.predictCategory(userId, dto)) || undefined;
     }
 
     const metadata: Record<string, any> = { ...((dto as any).metadata || {}) };
@@ -51,7 +51,7 @@ export class TransactionsService {
         notes: dto.notes,
         tags: dto.tags || [],
         isRecurring: dto.isRecurring || false,
-        recurringId: dto.isRecurring ? (dto.recurringId || uuidv4()) : undefined,
+        recurringId: dto.isRecurring ? dto.recurringId || uuidv4() : undefined,
         recurringFrequency: dto.recurringFrequency,
         receiptUrl: dto.receiptUrl,
         status: 'completed',
@@ -136,7 +136,9 @@ export class TransactionsService {
       select: { amount: true },
     });
 
-    if (recentTxs.length < 2) return;
+    if (recentTxs.length < 2) {
+      return;
+    }
 
     const avgAmount = recentTxs.reduce((s, t) => s + Number(t.amount), 0) / recentTxs.length;
     const threshold = avgAmount * 2;
@@ -160,6 +162,14 @@ export class TransactionsService {
       where.expenseGroupId = filter.expenseGroupId;
     } else {
       where.userId = userId;
+    }
+
+    const activeLens = await this.lensData.getActiveLens(userId);
+    const spaceIds = await this.lensData.getSpaceIdsForLens(userId);
+    if (spaceIds.length > 0) {
+      where.spaceId = { in: spaceIds };
+    } else if (activeLens === 'PERSONAL') {
+      where.spaceId = null;
     }
 
     if (filter.type) {
@@ -228,9 +238,10 @@ export class TransactionsService {
       this.prisma.transaction.count({ where }),
     ]);
 
-    const data = (needsGroupFilter
-      ? rawData.filter((t) => (t.metadata as any)?.groupId === filter.groupId)
-      : rawData
+    const data = (
+      needsGroupFilter
+        ? rawData.filter((t) => (t.metadata as any)?.groupId === filter.groupId)
+        : rawData
     ).map((t) => ({
       ...t,
       paymentMethod: (t.metadata as any)?.paymentMethod || null,
@@ -282,7 +293,9 @@ export class TransactionsService {
         ...(dto.recurringFrequency !== undefined && { recurringFrequency: dto.recurringFrequency }),
         ...((dto as any).recurringId !== undefined && { recurringId: (dto as any).recurringId }),
         ...((dto as any).recurringEndDate !== undefined && {
-          recurringEndDate: (dto as any).recurringEndDate ? new Date((dto as any).recurringEndDate) : null,
+          recurringEndDate: (dto as any).recurringEndDate
+            ? new Date((dto as any).recurringEndDate)
+            : null,
         }),
         ...(dto.expenseGroupId !== undefined && { expenseGroupId: dto.expenseGroupId || null }),
         ...(dto.metadata !== undefined && { metadata: dto.metadata }),
@@ -387,7 +400,12 @@ export class TransactionsService {
       orderBy: { date: 'desc' },
       take: limit,
     });
-    return { data: transactions.map((t) => ({ ...t, paymentMethod: (t.metadata as any)?.paymentMethod || null })) };
+    return {
+      data: transactions.map((t) => ({
+        ...t,
+        paymentMethod: (t.metadata as any)?.paymentMethod || null,
+      })),
+    };
   }
 
   async getCategorySummary(
