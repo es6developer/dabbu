@@ -63,7 +63,7 @@ export class GoalsService {
 
   async findOne(userId: string, id: string) {
     const goal = await this.prisma.goal.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (!goal) {
       throw new NotFoundException('Goal not found');
@@ -73,7 +73,7 @@ export class GoalsService {
 
   async update(userId: string, id: string, dto: UpdateGoalDto) {
     const existing = await this.prisma.goal.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Goal not found');
@@ -100,7 +100,7 @@ export class GoalsService {
 
   async contribute(userId: string, id: string, amount: number) {
     const existing = await this.prisma.goal.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Goal not found');
@@ -186,7 +186,7 @@ export class GoalsService {
 
   async toggleComplete(userId: string, id: string) {
     const existing = await this.prisma.goal.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Goal not found');
@@ -216,7 +216,7 @@ export class GoalsService {
 
   async remove(userId: string, id: string) {
     const existing = await this.prisma.goal.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Goal not found');
@@ -326,7 +326,7 @@ export class GoalsService {
 
   async getStats(userId: string) {
     const goals = await this.prisma.goal.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
     });
 
     const totalSaved = goals.reduce((s, g) => s + Number(g.currentAmount), 0);

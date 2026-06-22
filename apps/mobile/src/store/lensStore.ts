@@ -1,3 +1,4 @@
+import { Platform, LayoutAnimation } from 'react-native';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +12,15 @@ import type {
   WidgetData,
   LensRecommendation,
 } from '../types';
+
+let SecureStore: any = {};
+if (Platform.OS !== 'web') {
+  try {
+    SecureStore = require('expo-secure-store');
+  } catch {
+    // secure store not available
+  }
+}
 
 // Re-export LensMode and LensAvailability for existing consumers
 export type { LensMode, LensAvailability };
@@ -47,6 +57,22 @@ interface LensStoreActions {
 
 type LensStore = LensStoreState & LensStoreActions;
 
+async function updateSecureStoreLens(lens: string) {
+  try {
+    if (!SecureStore.getItemAsync) return;
+    const raw = await SecureStore.getItemAsync('userData');
+    if (raw) {
+      const userData = JSON.parse(raw);
+      if (userData.activeLens !== lens) {
+        userData.activeLens = lens;
+        await SecureStore.setItemAsync('userData', JSON.stringify(userData));
+      }
+    }
+  } catch {
+    // silent
+  }
+}
+
 function trackLensSwitch(from: LensMode, to: LensMode) {
   try {
     api.post('/analytics/event', {
@@ -77,6 +103,7 @@ export const useLensStore = create<LensStore>()(
       error: null,
 
       setLens: (lens) => {
+        LayoutAnimation.configureNext({ duration: 300, update: { type: 'easeInEaseOut' } });
         const prev = get().activeLens;
         if (prev !== lens) {
           const localConfigs: Record<
@@ -320,6 +347,7 @@ export const useLensStore = create<LensStore>()(
       },
 
       updateLens: async (accessToken, lens, reason = 'manual') => {
+        LayoutAnimation.configureNext({ duration: 300, update: { type: 'easeInEaseOut' } });
         if (accessToken) {
           setAccessToken(accessToken);
         }
@@ -351,6 +379,7 @@ export const useLensStore = create<LensStore>()(
             await get().fetchConfig();
           }
 
+          updateSecureStoreLens(activeLens);
           trackLensSwitch(prev, lens);
         } catch (e: any) {
           set({ error: e?.message || 'Failed to persist lens switch on server' });
@@ -362,10 +391,12 @@ export const useLensStore = create<LensStore>()(
           user?.activeLens &&
           ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'].includes(user.activeLens)
         ) {
-          const current = get().activeLens;
+          const state = get();
           const newLens = user.activeLens as LensMode;
-          if (current !== newLens) {
-            set({ activeLens: newLens, previousLens: current });
+          // If user explicitly toggled lens before (previousLens was set),
+          // don't override with stale data from SecureStore
+          if (state.activeLens !== newLens && state.previousLens === null) {
+            set({ activeLens: newLens, previousLens: state.activeLens });
           }
         }
       },

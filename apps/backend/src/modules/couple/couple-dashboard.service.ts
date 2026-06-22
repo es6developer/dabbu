@@ -1,11 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class CoupleDashboardService {
   private readonly logger = new Logger(CoupleDashboardService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   private async findCoupleGroupId(
     userId: string,
@@ -92,11 +96,11 @@ export class CoupleDashboardService {
         select: { id: true, firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, date: { gte: monthStart, lte: monthEnd } },
+        where: { userId, deletedAt: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: partnerId, deletedAt: null, date: { gte: monthStart, lte: monthEnd } },
+        where: { userId: partnerId, deletedAt: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       groupId
@@ -150,7 +154,7 @@ export class CoupleDashboardService {
         : Promise.resolve([]),
       groupId
         ? this.prisma.bill.findMany({
-            where: { OR: [{ userId }, { userId: partnerId }], isPaid: false },
+            where: { OR: [{ userId }, { userId: partnerId }], isPaid: false, ...(await this.lensData.buildLensFilter(userId)) },
             orderBy: { dueDate: 'asc' },
             take: 10,
           })
@@ -187,6 +191,7 @@ export class CoupleDashboardService {
             deletedAt: null,
             type: 'income',
             date: { gte: monthStart, lte: monthEnd },
+            ...(await this.lensData.buildLensFilter(userId)),
           },
           _sum: { amount: true },
         })
@@ -200,6 +205,7 @@ export class CoupleDashboardService {
             deletedAt: null,
             type: 'income',
             date: { gte: monthStart, lte: monthEnd },
+            ...(await this.lensData.buildLensFilter(userId)),
           },
           _sum: { amount: true },
         })
@@ -213,6 +219,7 @@ export class CoupleDashboardService {
             deletedAt: null,
             type: 'expense',
             date: { gte: monthStart, lte: monthEnd },
+            ...(await this.lensData.buildLensFilter(userId)),
           },
           _sum: { amount: true },
         })
@@ -226,6 +233,7 @@ export class CoupleDashboardService {
             deletedAt: null,
             type: 'expense',
             date: { gte: monthStart, lte: monthEnd },
+            ...(await this.lensData.buildLensFilter(userId)),
           },
           _sum: { amount: true },
         })
@@ -1070,6 +1078,7 @@ export class CoupleDashboardService {
             userId: { in: [userId, partnerId] },
             date: { gte: monthStart, lte: monthEnd },
             deletedAt: null,
+            ...(await this.lensData.buildLensFilter(userId)),
           },
         }),
         this.prisma.transaction.findMany({
@@ -1077,6 +1086,7 @@ export class CoupleDashboardService {
             userId: { in: [userId, partnerId] },
             date: { gte: lastMonthStart, lte: lastMonthEnd },
             deletedAt: null,
+            ...(await this.lensData.buildLensFilter(userId)),
           },
         }),
         groupId

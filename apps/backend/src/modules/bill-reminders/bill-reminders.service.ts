@@ -1,16 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { CreateBillReminderDto } from './dto/create-bill-reminder.dto';
 import { UpdateBillReminderDto } from './dto/update-bill-reminder.dto';
 
 @Injectable()
 export class BillRemindersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
+
+  private async lensWhere(userId: string): Promise<{ lensId?: string }> {
+    return this.lensData.buildLensFilter(userId);
+  }
 
   async create(userId: string, dto: CreateBillReminderDto) {
+    const lensId = await this.lensData.getActiveLens(userId);
     const bill = await this.prisma.bill.create({
       data: {
         userId,
+        lensId,
         name: dto.name,
         amount: dto.amount,
         dueDate: new Date(dto.dueDate),
@@ -30,7 +40,7 @@ export class BillRemindersService {
 
   async findAll(userId: string) {
     const bills = await this.prisma.bill.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
       include: { category: true, account: true },
       orderBy: { dueDate: 'asc' },
     });
@@ -39,7 +49,7 @@ export class BillRemindersService {
 
   async findOne(userId: string, id: string) {
     const bill = await this.prisma.bill.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
       include: { category: true, account: true },
     });
     if (!bill) {
@@ -50,7 +60,7 @@ export class BillRemindersService {
 
   async update(userId: string, id: string, dto: UpdateBillReminderDto) {
     const existing = await this.prisma.bill.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Bill reminder not found');
@@ -110,7 +120,7 @@ export class BillRemindersService {
 
   async remove(userId: string, id: string) {
     const existing = await this.prisma.bill.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Bill reminder not found');
@@ -129,6 +139,7 @@ export class BillRemindersService {
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         isPaid: false,
         dueDate: { gte: now, lte: end },
       },
@@ -144,6 +155,7 @@ export class BillRemindersService {
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         isPaid: false,
         dueDate: { lt: now },
       },
@@ -155,7 +167,7 @@ export class BillRemindersService {
 
   async markPaid(userId: string, id: string, paidAmount?: number) {
     const existing = await this.prisma.bill.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Bill reminder not found');

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { NotificationService } from '../notification/notification.service';
 import {
   PredictionEngine,
@@ -83,6 +84,7 @@ export class AiService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly notificationService: NotificationService,
   ) {
     const aiConfig = this.config.get('ai');
@@ -96,6 +98,10 @@ export class AiService {
 
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  private async lensWhere(userId: string): Promise<{ lensId?: string }> {
+    return this.lensData.buildLensFilter(userId);
   }
 
   async generateInsights(section: string, context: Record<string, any>): Promise<AiInsight[]> {
@@ -834,7 +840,7 @@ ${JSON.stringify(context, null, 2)}`;
 
     const [txns, stats] = await Promise.all([
       this.prisma.transaction.findMany({
-        where: { userId, date: { gte: thirtyDaysAgo }, deletedAt: null },
+        where: { userId, date: { gte: thirtyDaysAgo }, deletedAt: null, ...(await this.lensWhere(userId)) },
         include: { category: { select: { name: true } } },
         orderBy: { date: 'desc' },
         take: 100,
@@ -1022,6 +1028,7 @@ ${JSON.stringify(context, null, 2)}`;
       const tx = await this.prisma.transaction.create({
         data: {
           userId,
+          lensId: await this.lensData.getActiveLens(userId),
           amount,
           type: 'expense',
           description: description || 'AI added expense',
@@ -1104,6 +1111,7 @@ ${JSON.stringify(context, null, 2)}`;
       const budget = await this.prisma.budget.create({
         data: {
           userId,
+          lensId: await this.lensData.getActiveLens(userId),
           name: `${categoryName} Budget`,
           amount: limit,
           period: 'monthly',
@@ -1189,7 +1197,7 @@ ${JSON.stringify(context, null, 2)}`;
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const txns = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: monthStart }, deletedAt: null },
+      where: { userId, date: { gte: monthStart }, deletedAt: null, ...(await this.lensWhere(userId)) },
       select: { amount: true, type: true, category: { select: { name: true } } },
     });
 
@@ -1395,17 +1403,17 @@ ${JSON.stringify(context, null, 2)}`;
     try {
       const [transactions, accounts, settlements, budgets, goals] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null },
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           take: 200,
           orderBy: { date: 'desc' },
         }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
           take: 100,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
       ]);
 
       const income = transactions
@@ -1475,15 +1483,15 @@ ${JSON.stringify(context, null, 2)}`;
     try {
       const [transactions, accounts, goals] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null },
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           take: 200,
           orderBy: { date: 'desc' },
         }),
         this.prisma.account.findMany({
-          where: { userId, deletedAt: null },
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           select: { balance: true },
         }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
       ]);
 
       const currentBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
@@ -1561,7 +1569,7 @@ ${JSON.stringify(context, null, 2)}`;
   async detectAnomalies(userId: string) {
     try {
       const transactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, type: 'expense' },
+        where: { userId, deletedAt: null, type: 'expense', ...(await this.lensWhere(userId)) },
         take: 500,
         orderBy: { date: 'desc' },
       });
@@ -1603,7 +1611,7 @@ ${JSON.stringify(context, null, 2)}`;
   async findSavingsOpportunities(userId: string) {
     try {
       const transactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, type: 'expense' },
+        where: { userId, deletedAt: null, type: 'expense', ...(await this.lensWhere(userId)) },
         take: 500,
         orderBy: { date: 'desc' },
       });
@@ -1650,7 +1658,7 @@ ${JSON.stringify(context, null, 2)}`;
       }
 
       const savingsTx = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
         take: 200,
         orderBy: { date: 'desc' },
       });
@@ -1709,9 +1717,9 @@ ${JSON.stringify(context, null, 2)}`;
   async suggestGoalRebalancing(userId: string) {
     try {
       const [goals, transactions] = await Promise.all([
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, isCompleted: false } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensWhere(userId)) } }),
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null },
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           orderBy: { date: 'desc' },
           take: 500,
         }),
@@ -1801,17 +1809,17 @@ ${JSON.stringify(context, null, 2)}`;
     try {
       const [transactions, budgets, bills, goals, settlements, accounts] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null },
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           take: 500,
           orderBy: { date: 'desc' },
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
         }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
       ]);
 
       const income = transactions
@@ -1922,8 +1930,8 @@ ${JSON.stringify(context, null, 2)}`;
         this.prisma.aiRecommendation.count({
           where: { userId, isImplemented: false, isDismissed: false },
         }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null, isPaid: false }, take: 10 }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null }, take: 10 }),
+        this.prisma.bill.findMany({ where: { userId, deletedAt: null, isPaid: false, ...(await this.lensWhere(userId)) }, take: 10 }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) }, take: 10 }),
       ]);
 
       if (anomalyCount === 0) {
@@ -2012,7 +2020,7 @@ ${JSON.stringify(context, null, 2)}`;
   async detectLifeEvents(userId: string) {
     try {
       const transactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
         take: 500,
         orderBy: { date: 'desc' },
       });
@@ -2190,8 +2198,8 @@ ${JSON.stringify(context, null, 2)}`;
   async checkMilestones(userId: string) {
     try {
       const [goals, transactions, settlements, streaks] = await Promise.all([
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.transaction.findMany({ where: { userId, deletedAt: null }, take: 500 }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.transaction.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) }, take: 500 }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
           take: 100,
@@ -2299,26 +2307,26 @@ ${JSON.stringify(context, null, 2)}`;
         await Promise.all([
           this.prisma.settings.findUnique({ where: { userId } }),
           this.prisma.transaction.aggregate({
-            where: { userId, date: { gte: todayStart }, type: 'expense', deletedAt: null },
+            where: { userId, date: { gte: todayStart }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
             _sum: { amount: true },
             _count: true,
           }),
           this.prisma.transaction.findMany({
-            where: { userId, date: { gte: weekAgo }, type: 'expense', deletedAt: null },
+            where: { userId, date: { gte: weekAgo }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
             select: { amount: true, description: true, date: true },
             orderBy: { date: 'desc' },
             take: 20,
           }),
           this.prisma.transaction.aggregate({
-            where: { userId, date: { gte: monthStart }, type: 'expense', deletedAt: null },
+            where: { userId, date: { gte: monthStart }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
             _sum: { amount: true },
           }),
           this.prisma.budget.findMany({
-            where: { userId, isActive: true },
+            where: { userId, isActive: true, ...(await this.lensWhere(userId)) },
             select: { name: true, amount: true, spent: true },
           }),
           this.prisma.goal.findMany({
-            where: { userId, deletedAt: null },
+            where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
             select: {
               id: true,
               name: true,
@@ -2459,7 +2467,7 @@ ${JSON.stringify(context, null, 2)}`;
       Promise.all(
         (
           await this.prisma.goal.findMany({
-            where: { userId, deletedAt: null },
+            where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
             select: { id: true },
           })
         ).map((g) => this.predictGoalCompletion(userId, g.id).catch(() => null)),
@@ -2493,13 +2501,13 @@ ${JSON.stringify(context, null, 2)}`;
         lifeEvents,
       ] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null, date: { gte: ninetyDaysAgo } },
+          where: { userId, deletedAt: null, date: { gte: ninetyDaysAgo }, ...(await this.lensWhere(userId)) },
           take: 2000,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null } }).catch(() => []),
+        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }).catch(() => []),
         this.prisma.aiAnomaly.findMany({
           where: { userId },
           orderBy: { createdAt: 'desc' },
@@ -2895,7 +2903,7 @@ ${JSON.stringify(context, null, 2)}`;
   ) {
     try {
       const accounts = await this.prisma.account.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
         select: { balance: true, type: true },
       });
       const currentSavings = accounts
@@ -2928,7 +2936,7 @@ ${JSON.stringify(context, null, 2)}`;
   ) {
     try {
       const accounts = await this.prisma.account.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
         select: { balance: true },
       });
       const totalAssets = accounts.reduce((s, a) => s + Number(a.balance), 0);
@@ -2964,7 +2972,7 @@ ${JSON.stringify(context, null, 2)}`;
   ) {
     try {
       const transactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, type: 'expense' },
+        where: { userId, deletedAt: null, type: 'expense', ...(await this.lensWhere(userId)) },
         take: 500,
       });
 
@@ -3016,17 +3024,17 @@ ${JSON.stringify(context, null, 2)}`;
 
       const [transactions, budgets, goals, bills, investments] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null, date: { gte: monthStart } },
+          where: { userId, deletedAt: null, date: { gte: monthStart }, ...(await this.lensWhere(userId)) },
           take: 500,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null } }),
+        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
         this.prisma.investment.findMany({ where: { userId, deletedAt: null } }),
       ]);
 
       const prevTransactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, date: { gte: prevMonthStart, lt: monthStart } },
+        where: { userId, deletedAt: null, date: { gte: prevMonthStart, lt: monthStart }, ...(await this.lensWhere(userId)) },
         take: 500,
       });
 
@@ -3187,11 +3195,11 @@ ${JSON.stringify(context, null, 2)}`;
     if (existing) return existing;
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+        where: { userId, type: 'income', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, ...(await this.lensWhere(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+        where: { userId, type: 'expense', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, ...(await this.lensWhere(userId)) },
         _sum: { amount: true },
       }),
     ]);
@@ -3217,14 +3225,14 @@ ${JSON.stringify(context, null, 2)}`;
     const cutoff = new Date(Date.now() - 90 * 86400000);
     const [recentTxns, monthlyStats] = await Promise.all([
       this.prisma.transaction.findMany({
-        where: { userId, date: { gte: cutoff }, deletedAt: null },
+        where: { userId, date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
         orderBy: { date: 'desc' },
         take: 20,
         include: { category: { select: { name: true } } },
       }),
       this.prisma.transaction.groupBy({
         by: ['type'],
-        where: { userId, date: { gte: cutoff }, deletedAt: null },
+        where: { userId, date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
         _sum: { amount: true },
       }),
     ]);
@@ -3293,16 +3301,16 @@ ${JSON.stringify(context, null, 2)}`;
 
     const [incomeAvg, expenseAvg, goals] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', date: { gte: cutoff }, deletedAt: null },
+        where: { userId, type: 'income', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
         _avg: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null },
+        where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
         _avg: { amount: true },
       }),
       goalId
         ? this.prisma.goal.findFirst({ where: { id: goalId, userId } })
-        : this.prisma.goal.findMany({ where: { userId, deletedAt: null } }),
+        : this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
     ]);
 
     const avgIncome = Number(incomeAvg._avg.amount || 0);
@@ -3348,7 +3356,7 @@ ${JSON.stringify(context, null, 2)}`;
 
     const categorySpending = await this.prisma.transaction.groupBy({
       by: ['categoryId'],
-      where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null },
+      where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
       _sum: { amount: true },
     });
 

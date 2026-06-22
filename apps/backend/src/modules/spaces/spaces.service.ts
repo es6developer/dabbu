@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class SpacesService {
   private readonly logger = new Logger(SpacesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async list(userId: string) {
     const memberships = await this.prisma.spaceMember.findMany({
@@ -76,12 +80,12 @@ export class SpacesService {
     await this.getById(spaceId, userId);
     const [transactions, goals] = await Promise.all([
       this.prisma.transaction.findMany({
-        where: { spaceId },
+        where: { spaceId, ...(await this.lensData.buildLensFilter(userId)) },
         orderBy: { date: 'desc' },
         take: 20,
       }),
       this.prisma.goal.findMany({
-        where: { spaceId },
+        where: { spaceId, ...(await this.lensData.buildLensFilter(userId)) },
       }),
     ]);
     const totalIncome = transactions
@@ -241,7 +245,7 @@ export class SpacesService {
   async getTransactions(spaceId: string, userId: string) {
     await this.getById(spaceId, userId);
     return this.prisma.transaction.findMany({
-      where: { spaceId },
+      where: { spaceId, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { date: 'desc' },
     });
   }
@@ -249,14 +253,14 @@ export class SpacesService {
   async getGoals(spaceId: string, userId: string) {
     await this.getById(spaceId, userId);
     return this.prisma.goal.findMany({
-      where: { spaceId },
+      where: { spaceId, ...(await this.lensData.buildLensFilter(userId)) },
     });
   }
 
   async getBudgets(spaceId: string, userId: string) {
     await this.getById(spaceId, userId);
     return this.prisma.budget.findMany({
-      where: { spaceId },
+      where: { spaceId, ...(await this.lensData.buildLensFilter(userId)) },
     });
   }
 

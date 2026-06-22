@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async getStats(userId: string) {
     const accounts = await this.prisma.account.findMany({
-      where: { userId, isDeleted: false, isActive: true },
+      where: { userId, isDeleted: false, isActive: true, ...(await this.lensData.buildLensFilter(userId)) },
       select: { balance: true, type: true, creditLimit: true, currency: true },
     });
 

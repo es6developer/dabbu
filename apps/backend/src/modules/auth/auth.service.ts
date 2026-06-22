@@ -646,7 +646,7 @@ export class AuthService {
     const accountIds: string[] = [];
     for (const acct of demoAccounts) {
       const created = await this.prisma.account.create({
-        data: { ...acct, userId, isActive: true },
+        data: { ...acct, userId, lensId: 'PERSONAL', isActive: true },
       });
       accountIds.push(created.id);
     }
@@ -822,6 +822,7 @@ export class AuthService {
           description: tx.description,
           date: txDate,
           status: 'completed',
+          lensId: 'PERSONAL',
         },
       });
     }

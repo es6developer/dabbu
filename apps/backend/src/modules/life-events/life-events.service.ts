@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 interface LifeEventPlan {
   title: string;
@@ -168,7 +169,10 @@ const EVENT_PLANS: Record<string, (events: any[]) => LifeEventPlan | null> = {
 export class LifeEventsService {
   private readonly logger = new Logger(LifeEventsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async list(userId: string) {
     return this.prisma.lifeEvent.findMany({
@@ -254,7 +258,7 @@ export class LifeEventsService {
     const existingTypes = new Set(existingEvents.map((e) => e.eventType));
 
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: cutoff } },
+      where: { userId, date: { gte: cutoff }, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { date: 'desc' },
     });
 
@@ -414,7 +418,7 @@ export class LifeEventsService {
         .reduce((s, t) => s + Number(t.amount), 0) / 3;
       const olderIncome = await this.prisma.transaction
         .aggregate({
-          where: { userId, type: 'income', date: { gte: olderCutoff, lt: cutoff } },
+          where: { userId, type: 'income', date: { gte: olderCutoff, lt: cutoff }, ...(await this.lensData.buildLensFilter(userId)) },
           _avg: { amount: true },
         })
         .then((r) => Number(r._avg.amount || 0));
@@ -438,7 +442,7 @@ export class LifeEventsService {
         const min = Math.min(...amounts);
         const previousIncome = await this.prisma.transaction
           .aggregate({
-            where: { userId, type: 'income', date: { lt: cutoff } },
+            where: { userId, type: 'income', date: { lt: cutoff }, ...(await this.lensData.buildLensFilter(userId)) },
             _avg: { amount: true },
           })
           .then((r) => Number(r._avg.amount || 0));
@@ -493,7 +497,7 @@ export class LifeEventsService {
     }
 
     const recentTransactions = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: new Date(Date.now() - 90 * 86400000) } },
+      where: { userId, date: { gte: new Date(Date.now() - 90 * 86400000) }, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { date: 'desc' },
       take: 50,
     });

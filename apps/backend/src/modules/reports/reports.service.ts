@@ -1,9 +1,13 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async getMonthlyReport(userId: string, months = 6, groupId?: string) {
     if (groupId) {
@@ -13,9 +17,11 @@ export class ReportsService {
     const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const transactions = await this.prisma.transaction.findMany({
-      where: {
+              where: {
         userId,
+        ...lensFilter,
         date: { gte: startDate, lte: endDate },
         deletedAt: null,
       },
@@ -98,8 +104,9 @@ export class ReportsService {
     const startDate = new Date(targetYear, 0, 1);
     const endDate = new Date(targetYear, 11, 31, 23, 59, 59);
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: startDate, lte: endDate }, deletedAt: null },
+      where: { userId, ...lensFilter, date: { gte: startDate, lte: endDate }, deletedAt: null },
       include: { category: true },
       orderBy: { date: 'asc' },
     });
@@ -152,8 +159,9 @@ export class ReportsService {
       ? new Date(startDate)
       : new Date(end.getFullYear(), end.getMonth() - 5, 1);
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: start, lte: end }, deletedAt: null, type: 'expense' },
+      where: { userId, ...lensFilter, date: { gte: start, lte: end }, deletedAt: null, type: 'expense' },
       include: { category: true },
     });
 
@@ -425,8 +433,10 @@ export class ReportsService {
       };
     }
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const where: any = {
       userId,
+      ...lensFilter,
       date: { gte: start, lte: end },
       deletedAt: null,
     };

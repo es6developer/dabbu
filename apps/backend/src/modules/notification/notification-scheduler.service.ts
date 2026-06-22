@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { NotificationEventsService } from './notification-events.service';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class NotificationSchedulerService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly notificationEvents: NotificationEventsService,
   ) {}
 
@@ -29,19 +31,20 @@ export class NotificationSchedulerService {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
         if (settings && settings.pushNotifications === false) {continue;}
+        const lensFilter = await this.lensData.buildLensFilter(user.id);
 
         const [todayTransactions, monthTransactions, budgets] = await Promise.all([
           this.prisma.transaction.aggregate({
-            where: { userId: user.id, date: { gte: todayStart }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: todayStart }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
             _count: true,
           }),
           this.prisma.transaction.aggregate({
-            where: { userId: user.id, date: { gte: monthStart }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: monthStart }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.budget.aggregate({
-            where: { userId: user.id, isActive: true },
+            where: { userId: user.id, ...lensFilter, isActive: true },
             _sum: { amount: true, spent: true },
           }),
         ]);
@@ -83,18 +86,19 @@ export class NotificationSchedulerService {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
         if (settings && (settings.pushNotifications === false || settings.weeklyReport === false)) {continue;}
+        const lensFilter = await this.lensData.buildLensFilter(user.id);
 
         const [weekExpenses, goals, upcomingReminders] = await Promise.all([
           this.prisma.transaction.aggregate({
-            where: { userId: user.id, date: { gte: weekStart }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: weekStart }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.goal.findMany({
-            where: { userId: user.id, deletedAt: null },
+            where: { userId: user.id, ...lensFilter, deletedAt: null },
             select: { name: true, targetAmount: true, currentAmount: true },
           }),
           this.prisma.reminder.count({
-            where: { userId: user.id, deletedAt: null, status: 'active', remindAt: { gte: now } },
+            where: { userId: user.id, ...lensFilter, deletedAt: null, status: 'active', remindAt: { gte: now } },
           }),
         ]);
 
@@ -117,12 +121,12 @@ export class NotificationSchedulerService {
         const [prevWeekCategoryAgg, thisWeekCategoryAgg] = await Promise.all([
           this.prisma.transaction.groupBy({
             by: ['categoryId'],
-            where: { userId: user.id, date: { gte: prevWeekStart, lt: weekStart }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: prevWeekStart, lt: weekStart }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.transaction.groupBy({
             by: ['categoryId'],
-            where: { userId: user.id, date: { gte: weekStart, lt: now }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: weekStart, lt: now }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
           }),
         ]);
@@ -167,33 +171,34 @@ export class NotificationSchedulerService {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
         if (settings && (settings.pushNotifications === false || settings.monthlyReport === false)) {continue;}
+        const lensFilter = await this.lensData.buildLensFilter(user.id);
 
         const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
         const [expenses, incomes, categoryAgg, prevMonthCategoryAgg, goals] = await Promise.all([
           this.prisma.transaction.aggregate({
-            where: { userId: user.id, date: { gte: monthStart, lte: monthEnd }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: monthStart, lte: monthEnd }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
-            where: { userId: user.id, date: { gte: monthStart, lte: monthEnd }, type: 'income', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: monthStart, lte: monthEnd }, type: 'income', deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.transaction.groupBy({
             by: ['categoryId'],
-            where: { userId: user.id, date: { gte: monthStart, lte: monthEnd }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: monthStart, lte: monthEnd }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
             orderBy: { _sum: { amount: 'desc' } },
             take: 5,
           }),
           this.prisma.transaction.groupBy({
             by: ['categoryId'],
-            where: { userId: user.id, date: { gte: prevMonthStart, lt: monthStart }, type: 'expense', deletedAt: null },
+            where: { userId: user.id, ...lensFilter, date: { gte: prevMonthStart, lt: monthStart }, type: 'expense', deletedAt: null },
             _sum: { amount: true },
             orderBy: { _sum: { amount: 'desc' } },
             take: 5,
           }),
           this.prisma.goal.findMany({
-            where: { userId: user.id, deletedAt: null },
+            where: { userId: user.id, ...lensFilter, deletedAt: null },
             select: { name: true, targetAmount: true, currentAmount: true },
           }),
         ]);

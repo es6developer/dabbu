@@ -8,6 +8,7 @@ import {
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { FcmService } from './fcm.service';
 import { NotificationGateway } from './notification.gateway';
 import { EmailService } from '../email/email.service';
@@ -24,6 +25,7 @@ export class NotificationService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly fcmService: FcmService,
     @Optional() private readonly emailService?: EmailService,
     @Optional() @InjectQueue('notification-queue') private readonly notificationQueue?: Queue | null,
@@ -756,24 +758,27 @@ export class NotificationService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const [totalReminders, completedReminders, overdueReminders, upcomingReminders] =
       await Promise.all([
-        this.prisma.reminder.count({ where: { userId, deletedAt: null } }),
+        this.prisma.reminder.count({ where: { userId, ...lensFilter, deletedAt: null } }),
         this.prisma.reminder.count({
           where: {
             userId,
+            ...lensFilter,
             deletedAt: null,
             status: 'completed',
             updatedAt: { gte: startOfMonth, lte: endOfMonth },
           },
         }),
         this.prisma.reminder.count({
-          where: { userId, deletedAt: null, status: { not: 'completed' }, dueDate: { lt: now } },
+          where: { userId, ...lensFilter, deletedAt: null, status: { not: 'completed' }, dueDate: { lt: now } },
         }),
         this.prisma.reminder.count({
           where: {
             userId,
+            ...lensFilter,
             deletedAt: null,
             status: 'pending',
             startDate: { gte: now, lte: endOfMonth },

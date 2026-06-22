@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { AnalyticsQueryDto, AnalyticsPeriod, ReportQueryDto, ExportQueryDto } from './dto/analytics-query.dto';
 
 interface TrackEventDto {
@@ -12,21 +13,27 @@ interface TrackEventDto {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async getDashboard(userId: string, query: AnalyticsQueryDto) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
+
     const [accountAgg, incomeAgg, expenseAgg, activeAccounts, upcomingBills, activeBudgets, recentTransactions, budgetsWithSpend] = await Promise.all([
       this.prisma.account.aggregate({
-        where: { userId, isArchived: false },
+        where: { userId, ...lensFilter, isArchived: false },
         _sum: { balance: true },
       }),
       this.prisma.transaction.aggregate({
         where: {
           userId,
+          ...lensFilter,
           type: 'income',
           date: { gte: startOfMonth, lt: startOfNextMonth },
         },
@@ -35,22 +42,23 @@ export class AnalyticsService {
       this.prisma.transaction.aggregate({
         where: {
           userId,
+          ...lensFilter,
           type: 'expense',
           date: { gte: startOfMonth, lt: startOfNextMonth },
         },
         _sum: { amount: true },
       }),
       this.prisma.account.count({
-        where: { userId, isArchived: false },
+        where: { userId, ...lensFilter, isArchived: false },
       }),
       this.prisma.bill.count({
-        where: { userId, isPaid: false },
+        where: { userId, ...lensFilter, isPaid: false },
       }),
       this.prisma.budget.count({
-        where: { userId, isActive: true },
+        where: { userId, ...lensFilter, isActive: true },
       }),
       this.prisma.transaction.findMany({
-        where: { userId },
+        where: { userId, ...lensFilter },
         orderBy: { date: 'desc' },
         take: 10,
         include: {
@@ -59,7 +67,7 @@ export class AnalyticsService {
         },
       }),
       this.prisma.budget.findMany({
-        where: { userId, isActive: true },
+        where: { userId, ...lensFilter, isActive: true },
         include: { category: true },
       }),
     ]);
@@ -105,10 +113,12 @@ export class AnalyticsService {
 
   async getSpendingTrend(userId: string, query: AnalyticsQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const transactions = await this.prisma.transaction.findMany({
       where: {
         userId,
+        ...lensFilter,
         type: 'expense',
         date: { gte: startDate, lte: endDate },
         ...(query.accountId && { accountId: query.accountId }),
@@ -132,9 +142,11 @@ export class AnalyticsService {
 
   async getCategoryBreakdown(userId: string, query: AnalyticsQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const whereClause: any = {
       userId,
+      ...lensFilter,
       type: 'expense',
       date: { gte: startDate, lte: endDate },
     };
@@ -177,10 +189,12 @@ export class AnalyticsService {
   async getCashFlow(userId: string, query: AnalyticsQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
     const period = query.period || AnalyticsPeriod.MONTHLY;
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const transactions = await this.prisma.transaction.findMany({
       where: {
         userId,
+        ...lensFilter,
         date: { gte: startDate, lte: endDate },
         type: { in: ['income', 'expense'] },
         ...(query.accountId && { accountId: query.accountId }),
@@ -209,15 +223,17 @@ export class AnalyticsService {
 
   async getNetWorth(userId: string, query: AnalyticsQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const [accounts, bills] = await Promise.all([
       this.prisma.account.findMany({
-        where: { userId, isArchived: false },
+        where: { userId, ...lensFilter, isArchived: false },
         select: { balance: true },
       }),
       this.prisma.bill.findMany({
         where: {
           userId,
+          ...lensFilter,
           isPaid: false,
           dueDate: { gte: startDate, lte: endDate },
         },
@@ -256,9 +272,10 @@ export class AnalyticsService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const budgets = await this.prisma.budget.findMany({
-      where: { userId, isActive: true },
+      where: { userId, ...lensFilter, isActive: true },
       include: { category: true },
     });
 
@@ -308,21 +325,23 @@ export class AnalyticsService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const [currentMonthExpenses, lastMonthExpenses, categoryTotals, avgTransaction] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: startOfMonth, lte: now } },
+        where: { userId, ...lensFilter, type: 'expense', date: { gte: startOfMonth, lte: now } },
         _sum: { amount: true },
         _count: true,
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: startOfLastMonth, lte: endOfLastMonth } },
+        where: { userId, ...lensFilter, type: 'expense', date: { gte: startOfLastMonth, lte: endOfLastMonth } },
         _sum: { amount: true },
       }),
       this.prisma.transaction.groupBy({
         by: ['categoryId'],
         where: {
           userId,
+          ...lensFilter,
           type: 'expense',
           categoryId: { not: null },
           date: { gte: startOfMonth, lte: now },
@@ -331,7 +350,7 @@ export class AnalyticsService {
         _count: true,
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense' },
+        where: { userId, ...lensFilter, type: 'expense' },
         _avg: { amount: true },
       }),
     ]);
@@ -379,6 +398,7 @@ export class AnalyticsService {
     const largeTransactions = await this.prisma.transaction.count({
       where: {
         userId,
+        ...lensFilter,
         type: 'expense',
         amount: { gt: avgAmount * 3 },
         date: { gte: startOfMonth },
@@ -411,8 +431,10 @@ export class AnalyticsService {
 
   async getExpenseReport(userId: string, query: ReportQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const whereBase: any = {
       userId,
+      ...lensFilter,
       type: 'expense',
       date: { gte: startDate, lte: endDate },
       deletedAt: null,
@@ -446,8 +468,10 @@ export class AnalyticsService {
 
   async getIncomeReport(userId: string, query: ReportQueryDto) {
     const { startDate, endDate } = this.resolveDateRange(query);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const whereBase: any = {
       userId,
+      ...lensFilter,
       type: 'income',
       date: { gte: startDate, lte: endDate },
       deletedAt: null,
@@ -540,17 +564,18 @@ export class AnalyticsService {
 
     const memberData = await Promise.all(
       members.map(async (member) => {
+        const memberLensFilter = await this.lensData.buildLensFilter(member.id);
         const [expenseAgg, incomeAgg, txCount] = await Promise.all([
           this.prisma.transaction.aggregate({
-            where: { userId: member.id, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
+            where: { userId: member.id, ...memberLensFilter, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
-            where: { userId: member.id, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
+            where: { userId: member.id, ...memberLensFilter, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
             _sum: { amount: true },
           }),
           this.prisma.transaction.count({
-            where: { userId: member.id, date: { gte: startDate, lte: endDate }, deletedAt: null },
+            where: { userId: member.id, ...memberLensFilter, date: { gte: startDate, lte: endDate }, deletedAt: null },
           }),
         ]);
         return {
@@ -575,17 +600,18 @@ export class AnalyticsService {
   }
 
   private async _buildPersonalMemberReport(userId: string, startDate: Date, endDate: Date) {
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const [expenseAgg, incomeAgg, txCount, categories] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
+        where: { userId, ...lensFilter, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
+        where: { userId, ...lensFilter, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
         _sum: { amount: true },
       }),
       this.prisma.transaction.count({
-        where: { userId, date: { gte: startDate, lte: endDate }, deletedAt: null },
+        where: { userId, ...lensFilter, date: { gte: startDate, lte: endDate }, deletedAt: null },
       }),
       this.getCategoryBreakdown(userId, { startDate: startDate.toISOString(), endDate: endDate.toISOString() } as any),
     ]);
@@ -618,20 +644,22 @@ export class AnalyticsService {
     const memberIds = group.members.map((m) => m.userId);
     if (!memberIds.includes(userId)) {throw new ForbiddenException('Not a member of this group');}
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
+
     const [expenseAgg, txCount] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId: { in: memberIds }, expenseGroupId: groupId, deletedAt: null },
+        where: { userId: { in: memberIds }, ...lensFilter, expenseGroupId: groupId, deletedAt: null },
         _sum: { amount: true },
       }),
       this.prisma.transaction.count({
-        where: { userId: { in: memberIds }, expenseGroupId: groupId, deletedAt: null },
+        where: { userId: { in: memberIds }, ...lensFilter, expenseGroupId: groupId, deletedAt: null },
       }),
     ]);
 
     const memberExpenses = await Promise.all(
       group.members.map(async (m) => {
         const agg = await this.prisma.transaction.aggregate({
-          where: { userId: m.userId, expenseGroupId: groupId, type: 'expense', deletedAt: null },
+          where: { userId: m.userId, ...lensFilter, expenseGroupId: groupId, type: 'expense', deletedAt: null },
           _sum: { amount: true },
         });
         return {
@@ -744,8 +772,9 @@ export class AnalyticsService {
     txSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7892C' } };
 
     const { startDate, endDate } = this.resolveDateRange(query as AnalyticsQueryDto);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: startDate, lte: endDate }, deletedAt: null },
+      where: { userId, ...lensFilter, date: { gte: startDate, lte: endDate }, deletedAt: null },
       include: { category: true },
       orderBy: { date: 'desc' },
       take: 500,
@@ -804,9 +833,12 @@ export class AnalyticsService {
         : ({} as AnalyticsQueryDto),
     );
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
+
     const transactions = await this.prisma.transaction.findMany({
       where: {
         userId,
+        ...lensFilter,
         type: 'expense',
         date: { gte: start, lte: end },
       },

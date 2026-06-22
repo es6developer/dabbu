@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class FamilyDashboardService {
@@ -9,6 +10,7 @@ export class FamilyDashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly lensData: LensDataService,
   ) {}
 
   async getWidgets(userId: string, familyId?: string) {
@@ -54,15 +56,15 @@ export class FamilyDashboardService {
     const fetchers: Record<string, () => Promise<any>> = {
       FAMILY_HERO: () => this.getFamilyHero(family),
       FAMILY_WEALTH: () => this.getFamilyWealth(family, memberIds),
-      FAMILY_SNAPSHOT: () => this.getFamilySnapshot(memberIds, monthStart, monthEnd),
+      FAMILY_SNAPSHOT: () => this.getFamilySnapshot(memberIds, monthStart, monthEnd, userId),
       FAMILY_CONTRIBUTIONS: () => this.getFamilyContributions(fid!, memberIds),
       FAMILY_INSIGHTS: () => this.getFamilyInsights(fid!),
       FAMILY_GOALS: () => this.getFamilyGoals(fid!),
       FAMILY_BILLS: () => this.getFamilyBills(fid!),
       FAMILY_HEALTH: () => this.getFamilyHealth(memberIds),
-      FAMILY_EXPENSES: () => this.getFamilyExpenses(memberIds, monthStart, monthEnd),
+      FAMILY_EXPENSES: () => this.getFamilyExpenses(memberIds, monthStart, monthEnd, userId),
       FAMILY_TIMELINE: () => this.getFamilyTimeline(fid!),
-      RECENT_TRANSACTIONS: () => this.getCombinedTransactions(memberIds),
+      RECENT_TRANSACTIONS: () => this.getCombinedTransactions(memberIds, userId),
       AI_INSIGHTS: () => this.getCombinedAiInsights(memberIds),
       QUICK_ACTIONS: () => this.getQuickActions(),
     };
@@ -98,14 +100,14 @@ export class FamilyDashboardService {
     };
   }
 
-  private async getFamilySnapshot(memberIds: string[], monthStart: Date, monthEnd: Date) {
+  private async getFamilySnapshot(memberIds: string[], monthStart: Date, monthEnd: Date, userId: string) {
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId: { in: memberIds }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: { userId: { in: memberIds }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: { in: memberIds }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: { userId: { in: memberIds }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
     ]);
@@ -217,10 +219,10 @@ export class FamilyDashboardService {
     }));
   }
 
-  private async getFamilyExpenses(memberIds: string[], monthStart: Date, monthEnd: Date) {
+  private async getFamilyExpenses(memberIds: string[], monthStart: Date, monthEnd: Date, userId: string) {
     const expenses = await this.prisma.transaction.groupBy({
       by: ['categoryId'],
-      where: { userId: { in: memberIds }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+      where: { userId: { in: memberIds }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
       _sum: { amount: true },
       orderBy: { _sum: { amount: 'desc' } },
       take: 10,
@@ -236,9 +238,9 @@ export class FamilyDashboardService {
     return expenses.map(e => ({ category: catMap.get(e.categoryId || '') || 'Other', amount: Number(e._sum?.amount || 0) }));
   }
 
-  private async getCombinedTransactions(memberIds: string[]) {
+  private async getCombinedTransactions(memberIds: string[], userId: string) {
     const txns = await this.prisma.transaction.findMany({
-      where: { userId: { in: memberIds }, deletedAt: null },
+      where: { userId: { in: memberIds }, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { date: 'desc' },
       take: 10,
       select: { id: true, description: true, amount: true, date: true, type: true, categoryId: true },

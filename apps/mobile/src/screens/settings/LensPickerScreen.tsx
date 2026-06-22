@@ -1,5 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +17,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useLensStore, LensMode } from '../../store/lensStore';
 import { useAuth } from '../../store/AuthContext';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const LENS_OPTIONS: Array<{
   key: LensMode;
@@ -54,7 +71,22 @@ export function LensPickerScreen() {
   const updateLens = useLensStore((s) => s.updateLens);
   const loading = useLensStore((s) => s.isLoading);
   const { accessToken } = useAuth();
+  const scaleAnims = useRef<Record<string, Animated.Value>>({});
+
+  const getScaleAnim = (key: string) => {
+    if (!scaleAnims.current[key]) {
+      scaleAnims.current[key] = new Animated.Value(1);
+    }
+    return scaleAnims.current[key];
+  };
+
   const handleSelect = (lens: LensMode) => {
+    LayoutAnimation.configureNext({
+      duration: 300,
+      update: { type: 'easeInEaseOut' },
+      create: { type: 'easeInEaseOut', property: 'opacity', duration: 200 },
+      delete: { type: 'easeInEaseOut', property: 'opacity', duration: 200 },
+    });
     if (lens === activeLens) {
       navigation.goBack();
       return;
@@ -62,6 +94,26 @@ export function LensPickerScreen() {
     setLens(lens);
     updateLens(accessToken, lens).catch(() => {});
     navigation.goBack();
+  };
+
+  const handlePressIn = (key: string) => {
+    const anim = getScaleAnim(key);
+    Animated.spring(anim, {
+      toValue: 0.97,
+      tension: 150,
+      friction: 12,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = (key: string) => {
+    const anim = getScaleAnim(key);
+    Animated.spring(anim, {
+      toValue: 1,
+      tension: 100,
+      friction: 14,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
@@ -93,84 +145,91 @@ export function LensPickerScreen() {
           {LENS_OPTIONS.map((option) => {
             const isActive = activeLens === option.key;
             const darkGrad = isDark ? ['#1C1C1E', '#141417'] : option.colors.gradient;
+            const scale = getScaleAnim(option.key);
             return (
-              <TouchableOpacity
+              <Animated.View
                 key={option.key}
-                activeOpacity={0.8}
-                onPress={() => handleSelect(option.key)}
-                disabled={loading}
-                style={[
-                  s.card,
-                  {
-                    backgroundColor: colors.bg.card,
-                    borderColor: isActive ? option.colors.primary : colors.border.subtle,
-                    borderWidth: isActive ? 2 : 1,
-                  },
-                ]}
+                style={[s.cardWrapper, { transform: [{ scale }] }]}
               >
-                <LinearGradient
-                  colors={darkGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={s.cardGradient}
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleSelect(option.key)}
+                  onPressIn={() => handlePressIn(option.key)}
+                  onPressOut={() => handlePressOut(option.key)}
+                  disabled={loading}
+                  style={[
+                    s.card,
+                    {
+                      backgroundColor: colors.bg.card,
+                      borderColor: isActive ? option.colors.primary : colors.border.subtle,
+                      borderWidth: isActive ? 2 : 1,
+                    },
+                  ]}
                 >
-                  <View style={s.cardContent}>
-                    <View style={s.cardTop}>
-                      <View
-                        style={[
-                          s.iconBox,
-                          {
-                            backgroundColor: isDark
-                              ? `${option.colors.primary}25`
-                              : option.colors.accent,
-                          },
-                        ]}
-                      >
-                        <AntDesign
-                          name={option.icon as any}
-                          size={28}
-                          color={option.colors.primary}
+                  <LinearGradient
+                    colors={darkGrad}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={s.cardGradient}
+                  >
+                    <View style={s.cardContent}>
+                      <View style={s.cardTop}>
+                        <View
+                          style={[
+                            s.iconBox,
+                            {
+                              backgroundColor: isDark
+                                ? `${option.colors.primary}25`
+                                : option.colors.accent,
+                            },
+                          ]}
+                        >
+                          <AntDesign
+                            name={option.icon as any}
+                            size={28}
+                            color={option.colors.primary}
+                          />
+                        </View>
+                        {isActive && (
+                          <View style={[s.activeBadge, { backgroundColor: option.colors.primary }]}>
+                            <AntDesign name="check" size={14} color="#FFF" />
+                          </View>
+                        )}
+                      </View>
+                      <Text style={[s.cardTitle, { color: colors.text.primary }]}>
+                        {option.label}
+                      </Text>
+                      <Text style={[s.cardDesc, { color: colors.text.tertiary }]}>
+                        {option.description}
+                      </Text>
+
+                      {/* Color preview dots */}
+                      <View style={s.colorRow}>
+                        <View style={[s.colorDot, { backgroundColor: option.colors.primary }]} />
+                        <View
+                          style={[s.colorDot, { backgroundColor: option.colors.primary + '80' }]}
+                        />
+                        <View
+                          style={[s.colorDot, { backgroundColor: option.colors.primary + '40' }]}
+                        />
+                        <View
+                          style={[s.colorDot, { backgroundColor: option.colors.primary + '20' }]}
                         />
                       </View>
+
                       {isActive && (
-                        <View style={[s.activeBadge, { backgroundColor: option.colors.primary }]}>
-                          <AntDesign name="check" size={14} color="#FFF" />
+                        <View
+                          style={[s.activeLabel, { backgroundColor: option.colors.primary + '15' }]}
+                        >
+                          <Text style={[s.activeLabelText, { color: option.colors.primary }]}>
+                            Active
+                          </Text>
                         </View>
                       )}
                     </View>
-                    <Text style={[s.cardTitle, { color: colors.text.primary }]}>
-                      {option.label}
-                    </Text>
-                    <Text style={[s.cardDesc, { color: colors.text.tertiary }]}>
-                      {option.description}
-                    </Text>
-
-                    {/* Color preview dots */}
-                    <View style={s.colorRow}>
-                      <View style={[s.colorDot, { backgroundColor: option.colors.primary }]} />
-                      <View
-                        style={[s.colorDot, { backgroundColor: option.colors.primary + '80' }]}
-                      />
-                      <View
-                        style={[s.colorDot, { backgroundColor: option.colors.primary + '40' }]}
-                      />
-                      <View
-                        style={[s.colorDot, { backgroundColor: option.colors.primary + '20' }]}
-                      />
-                    </View>
-
-                    {isActive && (
-                      <View
-                        style={[s.activeLabel, { backgroundColor: option.colors.primary + '15' }]}
-                      >
-                        <Text style={[s.activeLabelText, { color: option.colors.primary }]}>
-                          Active
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
             );
           })}
         </ScrollView>
@@ -181,6 +240,9 @@ export function LensPickerScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  cardWrapper: {
+    borderRadius: 20,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

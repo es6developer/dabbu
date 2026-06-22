@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { CreateExpenseGroupDto, UpdateExpenseGroupDto, AddMemberDto } from './expense-groups.dto';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/dto/create-notification.dto';
@@ -23,6 +24,7 @@ export class ExpenseGroupsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly notificationService: NotificationService,
   ) {}
 
@@ -432,7 +434,7 @@ export class ExpenseGroupsService {
 
     if (deleteTransactions) {
       await this.prisma.transaction.updateMany({
-        where: { expenseGroupId: id, userId: member.userId },
+        where: { expenseGroupId: id, userId: member.userId, ...(await this.lensData.buildLensFilter(member.userId)) },
         data: { deletedAt: new Date() },
       });
     }
@@ -479,7 +481,7 @@ export class ExpenseGroupsService {
 
     if (deleteTransactions) {
       await this.prisma.transaction.updateMany({
-        where: { expenseGroupId: id, userId },
+        where: { expenseGroupId: id, userId, ...(await this.lensData.buildLensFilter(userId)) },
         data: { deletedAt: new Date() },
       });
     }

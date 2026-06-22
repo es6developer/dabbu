@@ -10,6 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  LayoutAnimation,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
@@ -212,6 +213,10 @@ export function ProfileScreen() {
                         <TouchableOpacity
                           key={lens.id}
                           onPress={async () => {
+                            LayoutAnimation.configureNext({
+                              duration: 300,
+                              update: { type: 'easeInEaseOut' },
+                            });
                             useLensStore.getState().updateLens(accessToken, lens.id);
                           }}
                           activeOpacity={0.8}

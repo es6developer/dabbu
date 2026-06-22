@@ -5,6 +5,7 @@ import { NetWorthService } from '../net-worth/net-worth.service';
 import { GoalsService } from '../goals/goals.service';
 import { LoansRepository } from '../loans/loans.repository';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class WealthService {
@@ -15,9 +16,11 @@ export class WealthService {
     private readonly goalsService: GoalsService,
     private readonly loansRepo: LoansRepository,
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
   ) {}
 
   async getDashboard(userId: string) {
+    const lensFilter = await this.lensData.buildLensFilter(userId);
     const [healthScore, gamification, netWorth, goalStats, recentTxnCount, monthlyStats, loanLiabilities] =
       await Promise.all([
         this.aiService.computeHealthScore(userId).catch(() => null),
@@ -25,7 +28,7 @@ export class WealthService {
         this.netWorthService.get(userId).catch(() => null),
         this.goalsService.getStats(userId).catch(() => null),
         this.prisma.transaction.count({
-          where: { userId, deletedAt: null },
+          where: { userId, ...lensFilter, deletedAt: null },
         }),
         this.getMonthlyStats(userId),
         this.loansRepo.getTotalLiability(userId).catch(() => ({ totalLoanAmount: 0, totalPaid: 0 })),
@@ -108,11 +111,13 @@ export class WealthService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const [thisMonth, lastMonth] = await Promise.all([
       this.prisma.transaction.aggregate({
         where: {
           userId,
+          ...lensFilter,
           deletedAt: null,
           date: { gte: startOfMonth },
         },
@@ -121,6 +126,7 @@ export class WealthService {
       this.prisma.transaction.aggregate({
         where: {
           userId,
+          ...lensFilter,
           deletedAt: null,
           date: { gte: startOfLastMonth, lt: startOfMonth },
         },

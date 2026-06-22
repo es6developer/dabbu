@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Alert, LayoutAnimation } from 'react-native';
 import { useTheme } from '../../theme';
 import { useLens } from '../../hooks/useLens';
 import type { LensMode } from '../../types';
@@ -22,6 +22,10 @@ export function LensPicker({ visible, onClose }: LensPickerProps) {
   const [switching, setSwitching] = useState<LensMode | null>(null);
 
   const handleSelect = async (targetLens: LensMode) => {
+    LayoutAnimation.configureNext({
+      duration: 300,
+      update: { type: 'easeInEaseOut' },
+    });
     if (targetLens === lens.activeLens) {
       onClose();
       return;

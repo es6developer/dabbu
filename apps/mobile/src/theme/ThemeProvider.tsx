@@ -7,7 +7,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import { useColorScheme, Appearance, Animated } from 'react-native';
+import { useColorScheme, Appearance, Animated, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette } from './colors';
 import { typography } from './typography';
@@ -116,13 +116,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const anim = Animated.sequence([
       Animated.timing(fadeAnim, {
-        toValue: 0.3,
-        duration: 80,
+        toValue: 0,
+        duration: 100,
+        easing: Easing.in(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 200,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
     ]);

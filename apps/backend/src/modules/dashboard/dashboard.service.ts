@@ -4,6 +4,7 @@ import { CacheService } from '../../common/cache/cache.service';
 import { PersonalDashboardService } from './personal-dashboard.service';
 import { CoupleDashboardService } from './couple-dashboard.service';
 import { FamilyDashboardService } from './family-dashboard.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class DashboardService {
@@ -12,6 +13,7 @@ export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly lensData: LensDataService,
     private readonly personalService: PersonalDashboardService,
     private readonly coupleService: CoupleDashboardService,
     private readonly familyService: FamilyDashboardService,
@@ -203,21 +205,21 @@ export class DashboardService {
       this.prisma.userNetWorth.findUnique({ where: { userId } }).catch(() => null),
       this.prisma.healthScore.findUnique({ where: { entityType_entityId: { entityType: 'USER', entityId: userId } } }).catch(() => null),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, type: 'income', spaceId: null, date: { gte: monthStart, lte: monthEnd } },
+        where: { userId, deletedAt: null, type: 'income', spaceId: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, type: 'expense', spaceId: null, date: { gte: monthStart, lte: monthEnd } },
+        where: { userId, deletedAt: null, type: 'expense', spaceId: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
       this.prisma.goal.findMany({
-        where: { userId, deletedAt: null, spaceId: null, isCompleted: false },
+        where: { userId, deletedAt: null, spaceId: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true, icon: true, color: true },
       }).catch(() => []),
       this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, spaceId: null },
+        where: { userId, deletedAt: null, spaceId: null, ...(await this.lensData.buildLensFilter(userId)) },
         orderBy: { date: 'desc' },
         take: 5,
         select: { id: true, description: true, amount: true, date: true, type: true },
@@ -259,15 +261,15 @@ export class DashboardService {
 
     const [incomeAgg, expenseAgg, sharedGoals, members] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
       this.prisma.transaction.aggregate({
-        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
       this.prisma.goal.findMany({
-        where: { spaceId: { in: ids }, deletedAt: null, isCompleted: false },
+        where: { spaceId: { in: ids }, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true },
@@ -308,11 +310,11 @@ export class DashboardService {
 
     const [incomeAgg, expenseAgg] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
       this.prisma.transaction.aggregate({
-        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: { spaceId: { in: ids }, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }).catch(() => ({ _sum: { amount: 0 } })),
     ]);

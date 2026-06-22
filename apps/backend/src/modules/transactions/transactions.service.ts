@@ -134,7 +134,7 @@ export class TransactionsService {
 
   private async detectLargeExpense(userId: string, amount: number, tx: any) {
     const recentTxs = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null, type: 'expense' },
+      where: { userId, deletedAt: null, type: 'expense', ...(await this.lensWhere(userId)) },
       orderBy: { date: 'desc' },
       take: 20,
       select: { amount: true },
@@ -259,7 +259,7 @@ export class TransactionsService {
 
   async update(userId: string, id: string, dto: UpdateTransactionDto) {
     const existing = await this.prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Transaction not found');
@@ -304,7 +304,7 @@ export class TransactionsService {
 
   async remove(userId: string, id: string) {
     const existing = await this.prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Transaction not found');
@@ -316,11 +316,16 @@ export class TransactionsService {
     });
   }
 
+  private async lensWhere(userId: string): Promise<{ lensId?: string }> {
+    return this.lensData.buildLensFilter(userId);
+  }
+
   async search(userId: string, query: string, limit: number = 20) {
     const data = await this.prisma.transaction.findMany({
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         OR: [{ description: { contains: query } }, { notes: { contains: query } }],
       },
       include: { category: true },
@@ -335,7 +340,7 @@ export class TransactionsService {
     since.setMonth(since.getMonth() - months);
 
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null, date: { gte: since } },
+      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)), date: { gte: since } },
       include: { category: true },
       orderBy: { date: 'desc' },
     });
@@ -391,7 +396,7 @@ export class TransactionsService {
 
   async getRecent(userId: string, limit: number) {
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
       include: { category: true },
       orderBy: { date: 'desc' },
       take: limit,
@@ -410,7 +415,7 @@ export class TransactionsService {
     endDate?: string,
     expenseGroupId?: string,
   ) {
-    const where: any = { deletedAt: null, type: 'expense' };
+    const where: any = { deletedAt: null, type: 'expense', ...(await this.lensWhere(userId)) };
     if (expenseGroupId) {
       where.expenseGroupId = expenseGroupId;
     } else {
@@ -459,7 +464,7 @@ export class TransactionsService {
     since.setMonth(since.getMonth() - months);
 
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null, date: { gte: since } },
+      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)), date: { gte: since } },
     });
 
     const monthly: Record<string, { income: number; expense: number }> = {};
@@ -484,7 +489,7 @@ export class TransactionsService {
 
   async getRecurring(userId: string) {
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, isRecurring: true, deletedAt: null },
+      where: { userId, isRecurring: true, deletedAt: null, ...(await this.lensWhere(userId)) },
       include: { category: true, account: { select: { name: true } } },
       orderBy: { date: 'desc' },
     });
@@ -493,7 +498,7 @@ export class TransactionsService {
 
   async uploadReceipt(userId: string, id: string, file: any) {
     const existing = await this.prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
     if (!existing) {
       throw new NotFoundException('Transaction not found');
@@ -508,10 +513,16 @@ export class TransactionsService {
   }
 
   async createRecurring(userId: string, dto: CreateTransactionDto) {
+    const [spaceId, lensId] = await Promise.all([
+      this.lensData.getSpaceIdForLens(userId),
+      this.lensData.getActiveLens(userId),
+    ]);
     const recurringId = dto.recurringId || uuidv4();
     const tx = await this.prisma.transaction.create({
       data: {
         userId,
+        spaceId,
+        lensId,
         accountId: dto.accountId || null,
         categoryId: dto.categoryId || null,
         expenseGroupId: dto.expenseGroupId || null,
@@ -682,7 +693,7 @@ export class TransactionsService {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0, 23, 59, 59);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null, date: { gte: start, lte: end } },
+      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)), date: { gte: start, lte: end } },
       include: { category: true },
       orderBy: { date: 'asc' },
     });

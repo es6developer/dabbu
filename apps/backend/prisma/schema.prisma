@@ -820,6 +820,7 @@ model Bill {
   userId       String    @db.VarChar(36)
   accountId    String?   @db.VarChar(36)
   categoryId   String?   @db.VarChar(36)
+  lensId       String?   @db.VarChar(20)
   name         String    @db.VarChar(255)
   amount       Decimal   @db.Decimal(15, 2)
   dueDate      DateTime  @db.Date
@@ -843,6 +844,7 @@ model Bill {
 
   @@index([userId, dueDate])
   @@index([userId, isPaid])
+  @@index([lensId])
   @@index([dueDate, isPaid])
   @@index([name(255)])
   @@fulltext([name, notes, payee])

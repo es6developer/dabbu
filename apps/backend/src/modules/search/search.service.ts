@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async globalSearch(userId: string, query: string, options?: {
     types?: string[];
@@ -30,9 +34,12 @@ export class SearchService {
     const sanitized = query.replace(/[%_\\]/g, '\\$&');
     const searchFilter = sanitized;
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
+
     if (!types || types.includes('transactions')) {
       const txnWhere: any = {
         userId,
+        ...lensFilter,
         deletedAt: null,
         OR: [
           { description: { contains: searchFilter } },
@@ -65,6 +72,7 @@ export class SearchService {
     if (!types || types.includes('goals')) {
       const goalsWhere: any = {
         userId,
+        ...lensFilter,
         deletedAt: null,
         OR: [
           { name: { contains: searchFilter } },
@@ -82,6 +90,7 @@ export class SearchService {
     if (!types || types.includes('bills')) {
       const billsWhere: any = {
         userId,
+        ...lensFilter,
         deletedAt: null,
         OR: [
           { name: { contains: searchFilter } },
@@ -131,6 +140,7 @@ export class SearchService {
     if (!types || types.includes('budgets')) {
       const budgetsWhere: any = {
         userId,
+        ...lensFilter,
         deletedAt: null,
         name: { contains: searchFilter },
       };
@@ -150,10 +160,13 @@ export class SearchService {
   async getSuggestions(userId: string, query: string) {
     if (!query || query.length < 2) return [];
 
+    const lensFilter = await this.lensData.buildLensFilter(userId);
+
     const [txnDescriptions, goalNames, billNames] = await Promise.all([
       this.prisma.transaction.findMany({
         where: {
           userId,
+          ...lensFilter,
           description: { contains: query },
           deletedAt: null,
         },
@@ -164,6 +177,7 @@ export class SearchService {
       this.prisma.goal.findMany({
         where: {
           userId,
+          ...lensFilter,
           name: { contains: query },
           deletedAt: null,
         },
@@ -173,6 +187,7 @@ export class SearchService {
       this.prisma.bill.findMany({
         where: {
           userId,
+          ...lensFilter,
           name: { contains: query },
           deletedAt: null,
         },

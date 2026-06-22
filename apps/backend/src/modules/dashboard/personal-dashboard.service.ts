@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class PersonalDashboardService {
@@ -9,6 +10,7 @@ export class PersonalDashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly lensData: LensDataService,
   ) {}
 
   async getWidgets(userId: string) {
@@ -83,7 +85,7 @@ export class PersonalDashboardService {
 
   private async getBudgets(userId: string) {
     const budgets = await this.prisma.budget.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { createdAt: 'desc' },
       take: 10,
       select: { id: true, categoryId: true, amount: true, spent: true, category: { select: { name: true } } },
@@ -116,11 +118,11 @@ export class PersonalDashboardService {
   private async getThisMonth(userId: string, monthStart: Date, monthEnd: Date) {
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd } },
+        where: { userId, deletedAt: null, type: 'income', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd } },
+        where: { userId, deletedAt: null, type: 'expense', date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
     ]);
@@ -166,7 +168,7 @@ export class PersonalDashboardService {
 
   private async getGoals(userId: string) {
     const goals = await this.prisma.goal.findMany({
-      where: { userId, deletedAt: null, isCompleted: false },
+      where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: { id: true, name: true, targetAmount: true, currentAmount: true, type: true, icon: true, color: true },
@@ -180,7 +182,7 @@ export class PersonalDashboardService {
 
   private async getUpcomingBills(userId: string) {
     const bills = await this.prisma.bill.findMany({
-      where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: new Date() } },
+      where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: new Date() }, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { dueDate: 'asc' },
       take: 10,
       select: { id: true, name: true, amount: true, dueDate: true, categoryId: true },
@@ -194,7 +196,7 @@ export class PersonalDashboardService {
 
   private async getRecentTransactions(userId: string) {
     const txns = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: null, ...(await this.lensData.buildLensFilter(userId)) },
       orderBy: { date: 'desc' },
       take: 10,
       select: { id: true, description: true, amount: true, date: true, type: true, categoryId: true },

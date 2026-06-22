@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 interface ScoreBreakdown {
   [key: string]: number;
@@ -11,7 +12,10 @@ interface ScoreBreakdown {
 
 @Injectable()
 export class DabbuScoreService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async getScore(entityType: 'USER' | 'SPACE', entityId: string) {
     const existing = await this.prisma.healthScore.findUnique({
@@ -42,18 +46,19 @@ export class DabbuScoreService {
   async recalculate(userId: string) {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const lensFilter = await this.lensData.buildLensFilter(userId);
 
     const [incomeAgg, expenseAgg, goals] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', date: { gte: threeMonthsAgo }, deletedAt: null },
+        where: { userId, ...lensFilter, type: 'income', date: { gte: threeMonthsAgo }, deletedAt: null },
         _avg: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: threeMonthsAgo }, deletedAt: null },
+        where: { userId, ...lensFilter, type: 'expense', date: { gte: threeMonthsAgo }, deletedAt: null },
         _avg: { amount: true },
       }),
       this.prisma.goal.findMany({
-        where: { userId, deletedAt: null },
+        where: { userId, ...lensFilter, deletedAt: null },
         select: { targetAmount: true, currentAmount: true },
       }),
     ]);

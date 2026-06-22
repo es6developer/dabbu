@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { addDays, addWeeks, addMonths, addYears, startOfDay, endOfDay, isBefore } from 'date-fns';
 import { CreateReminderDto, UpdateReminderDto, ListRemindersQueryDto } from './dto';
 import { ReminderFrequency, ReminderStatus } from './interfaces';
@@ -8,15 +9,24 @@ import { ReminderFrequency, ReminderStatus } from './interfaces';
 export class ReminderService {
   private readonly logger = new Logger(ReminderService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
+  
+  private async lensWhere(userId: string): Promise<{ lensId?: string }> {
+    return this.lensData.buildLensFilter(userId);
+  }
 
   async create(userId: string, dto: CreateReminderDto) {
     const { recurring, ...reminderData } = dto;
+    const lensId = await this.lensData.getActiveLens(userId);
 
     return this.prisma.$transaction(async (tx) => {
       const reminder = await tx.reminder.create({
         data: {
           userId,
+          lensId,
           title: reminderData.title,
           description: reminderData.description || null,
           type: reminderData.type,
@@ -75,6 +85,7 @@ export class ReminderService {
     const where: any = {
       userId,
       deletedAt: null,
+      ...(await this.lensWhere(userId)),
     };
 
     if (query.type) {
@@ -129,7 +140,7 @@ export class ReminderService {
 
   async findOne(userId: string, id: string) {
     const reminder = await this.prisma.reminder.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
       include: {
         recurring: true,
         category: true,
@@ -144,7 +155,7 @@ export class ReminderService {
 
   async update(userId: string, id: string, dto: UpdateReminderDto) {
     const existing = await this.prisma.reminder.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
 
     if (!existing) {
@@ -253,7 +264,7 @@ export class ReminderService {
 
   async remove(userId: string, id: string) {
     const existing = await this.prisma.reminder.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
 
     if (!existing) {
@@ -270,7 +281,7 @@ export class ReminderService {
 
   async complete(userId: string, id: string) {
     const existing = await this.prisma.reminder.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
 
     if (!existing) {
@@ -295,7 +306,7 @@ export class ReminderService {
 
   async snooze(userId: string, id: string, until: string) {
     const existing = await this.prisma.reminder.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
 
     if (!existing) {
@@ -327,6 +338,7 @@ export class ReminderService {
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         status: { notIn: [ReminderStatus.COMPLETED, ReminderStatus.DISMISSED] },
         startDate: { gte: now, lte: futureDate },
       } as any,
@@ -345,6 +357,7 @@ export class ReminderService {
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         status: { notIn: [ReminderStatus.COMPLETED, ReminderStatus.DISMISSED] },
         startDate: { gte: todayStart, lte: todayEnd },
       } as any,
@@ -362,6 +375,7 @@ export class ReminderService {
       where: {
         userId,
         deletedAt: null,
+        ...(await this.lensWhere(userId)),
         status: { notIn: [ReminderStatus.COMPLETED, ReminderStatus.DISMISSED] },
         dueDate: { lt: now },
         OR: [{ snoozedUntil: null }, { snoozedUntil: { lt: now } }],
@@ -471,6 +485,7 @@ export class ReminderService {
             startDate: nextTriggerAt,
             dueDate: existing.dueDate ? addDays(nextTriggerAt, 1) : null,
             isRecurring: true,
+            lensId: existing.lensId,
             categoryId: existing.categoryId,
             metadata: existing.metadata as any,
           },

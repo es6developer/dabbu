@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 @Injectable()
 export class CoupleService {
@@ -15,6 +16,7 @@ export class CoupleService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
@@ -515,23 +517,23 @@ export class CoupleService {
       userGoalsList,
     ] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId: user.partnerId, deletedAt: null, date: { gte: startOfMonth } },
+        where: { userId: user.partnerId, deletedAt: null, date: { gte: startOfMonth }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, date: { gte: startOfMonth } },
+        where: { userId, deletedAt: null, date: { gte: startOfMonth }, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { amount: true },
       }),
       this.prisma.goal.aggregate({
-        where: { userId: user.partnerId, deletedAt: null, isCompleted: false },
+        where: { userId: user.partnerId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { currentAmount: true, targetAmount: true },
       }),
       this.prisma.goal.aggregate({
-        where: { userId, deletedAt: null, isCompleted: false },
+        where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
         _sum: { currentAmount: true, targetAmount: true },
       }),
       this.prisma.bill.findMany({
-        where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: now } },
+        where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: now }, ...(await this.lensData.buildLensFilter(userId)) },
         take: 5,
         orderBy: { dueDate: 'asc' },
         select: { id: true, name: true, amount: true, dueDate: true, category: true },
@@ -603,7 +605,7 @@ export class CoupleService {
       }),
       coupleProfile?.groupId
         ? this.prisma.goal.findMany({
-            where: { userId: user.partnerId, deletedAt: null, isCompleted: false },
+            where: { userId: user.partnerId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
             select: {
               id: true,
               name: true,
@@ -620,7 +622,7 @@ export class CoupleService {
         : Promise.resolve([]),
       coupleProfile?.groupId
         ? this.prisma.goal.findMany({
-            where: { userId, deletedAt: null, isCompleted: false },
+            where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
             select: {
               id: true,
               name: true,

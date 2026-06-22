@@ -1,13 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../common/prisma/prisma.service';
+import { LensDataService } from '../../../common/lens/lens-data.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class RecurringSchedulerService {
   private readonly logger = new Logger(RecurringSchedulerService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async processRecurringTransactions() {
@@ -56,6 +60,7 @@ export class RecurringSchedulerService {
         await this.prisma.transaction.create({
           data: {
             userId: latest.userId,
+            lensId: await this.lensData.getActiveLens(latest.userId),
             accountId: latest.accountId,
             categoryId: latest.categoryId,
             expenseGroupId: latest.expenseGroupId,
