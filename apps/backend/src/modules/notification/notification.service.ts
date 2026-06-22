@@ -19,7 +19,54 @@ import {
   NotificationChannel,
 } from './dto/create-notification.dto';
 
-@Injectable()
+const TYPE_EMOJI: Record<string, string> = {
+  expense: '💳',
+  expense_alert: '⚠️',
+  group_expense: '👥',
+  settlement_request: '🔄',
+  settlement_complete: '✅',
+  payment_sent: '💸',
+  budget_exceeded: '🔴',
+  budget_alert: '🟡',
+  goal_created: '🎯',
+  goal_milestone: '🏆',
+  goal_complete: '🎉',
+  goal_behind: '📉',
+  group_invite: '📨',
+  group_join: '👋',
+  group_remove: '🚫',
+  group_leave: '🚪',
+  member_added: '➕',
+  emi_reminder: '📅',
+  emi_overdue: '🚨',
+  subscription_reminder: '📋',
+  bill_reminder: '🧾',
+  friend_request: '🤝',
+  friend_accepted: '✅',
+  family_invite: '🏠',
+  family_remove: '🚫',
+  family_leave: '🚪',
+  daily_digest: '📊',
+  weekly_digest: '📈',
+  monthly_report: '📑',
+  ai_insight: '🤖',
+  system: '🔔',
+};
+
+function formatNotificationText(title?: string, message?: string, body?: string, type?: string): { title: string; message: string } {
+  const safeTitle = (title || '').trim();
+  const safeMessage = (message || body || '').trim();
+  const emoji = type ? TYPE_EMOJI[type] || '' : '';
+  return {
+    title: safeTitle || (emoji ? `${emoji} Notification` : 'Dabbu'),
+    message: safeMessage || (
+      type === 'daily_digest' ? 'Your daily financial summary is ready' :
+      type === 'weekly_digest' ? 'Your weekly report is ready' :
+      type === 'monthly_report' ? 'Your monthly financial report is ready' :
+      'You have a new update'
+    ),
+  };
+}
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
@@ -41,12 +88,15 @@ export class NotificationService {
       overdue?: boolean;
     },
   ) {
+    const { title: fmtTitle, message: fmtMessage } = formatNotificationText(
+      dto.title, dto.message, dto.body, dto.type,
+    );
     const notification = await this.prisma.notification.create({
       data: {
         userId: dto.userId,
         type: dto.type,
-        title: dto.title,
-        message: dto.message || dto.body || '',
+        title: fmtTitle,
+        message: fmtMessage,
         data: dto.data || undefined,
         priority: dto.priority || 'medium',
         category: dto.category || undefined,
@@ -66,7 +116,7 @@ export class NotificationService {
 
     const prefs = await this._getCategoryPrefs(dto.userId, dto.category || dto.type);
     if (prefs?.pushEnabled !== false) {
-      await this._sendPushToDevices(dto.userId, dto.title, dto.message || dto.body || '', {
+      await this._sendPushToDevices(dto.userId, fmtTitle, fmtMessage, {
         notificationId: notification.id,
         type: dto.type,
       });
@@ -79,8 +129,8 @@ export class NotificationService {
           await this.emailService.sendNotificationEmail(
             user.email,
             user.firstName || 'there',
-            dto.title,
-            dto.message || dto.body || '',
+            fmtTitle,
+            fmtMessage,
             dto.actionUrl,
           );
         }
@@ -249,18 +299,21 @@ export class NotificationService {
     data?: Record<string, any>,
   ): Promise<void> {
     const notificationType = (data?.type as string) || 'system';
+    const { title: fmtTitle, message: fmtBody } = formatNotificationText(
+      title, body, undefined, notificationType,
+    );
 
     const notification = await this.prisma.notification.create({
       data: {
         userId,
         type: notificationType,
-        title,
-        message: body,
+        title: fmtTitle,
+        message: fmtBody,
         data: data || undefined,
       },
     });
 
-    await this._sendPushToDevices(userId, title, body, {
+    await this._sendPushToDevices(userId, fmtTitle, fmtBody, {
       ...data,
       notificationId: notification.id,
     });

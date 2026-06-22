@@ -20,11 +20,15 @@ interface PushPayload {
       color?: string;
       tag?: string;
       image?: string;
+      icon?: string;
       ticker?: string;
       sticky?: boolean;
       visibility?: 'public' | 'private' | 'secret';
       notificationCount?: number;
       notificationTimeout?: string;
+      localOnly?: boolean;
+      defaultVibrateTimings?: boolean;
+      vibrateTimings?: number[];
     };
     fcmOptions?: {
       analyticsLabel?: string;
@@ -379,19 +383,21 @@ export class FcmService {
     data?: Record<string, any>,
     platform?: string,
   ): PushPayload {
-    const payload: PushPayload = {
-      notification: { title, body },
-      data: data ? this.serializeData(data) : undefined,
-    };
-
+    const safeTitle = (title || '').trim() || 'Dabbu';
+    const safeBody = (body || '').trim() || 'You have a new notification';
     const notifType = data?.type as string | undefined;
     const channel = this.getChannelForType(notifType);
+
+    const payload: PushPayload = {
+      notification: { title: safeTitle, body: safeBody },
+      data: data ? this.serializeData(data) : undefined,
+    };
 
     if (platform === 'ios') {
       payload.apns = {
         payload: {
           aps: {
-            alert: { title, body },
+            alert: { title: safeTitle, body: safeBody },
             sound: 'default',
             badge: 1,
             'content-available': 1,
@@ -411,6 +417,8 @@ export class FcmService {
           sound: 'default',
           color: channel.color,
           tag: channel.tag,
+          icon: 'notification_icon',
+          ticker: safeTitle,
           notificationCount: 0,
           visibility: 'public',
         },
@@ -418,8 +426,8 @@ export class FcmService {
     } else {
       payload.webpush = {
         notification: {
-          title,
-          body,
+          title: safeTitle,
+          body: safeBody,
           icon: '/favicon.ico',
           vibrate: [200, 100, 200],
           badge: '/favicon.ico',
