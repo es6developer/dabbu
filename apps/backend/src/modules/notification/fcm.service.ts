@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 const BRAND_COLOR = '#4F46E5';
 
 interface PushPayload {
-  notification: {
+  notification?: {
     title: string;
     body: string;
     image?: string;
@@ -168,6 +168,8 @@ export class FcmService {
         headers['Authorization'] = `Bearer ${this.expoAccessToken}`;
       }
 
+      const pushTitle = payload.data?.title || 'Dabbu';
+      const pushBody = payload.data?.body || '';
       const notifType = payload.data?.type as string | undefined;
       const channel = this.getChannelForType(notifType);
 
@@ -176,8 +178,8 @@ export class FcmService {
         headers,
         body: JSON.stringify({
           to: deviceToken,
-          title: payload.notification.title,
-          body: payload.notification.body,
+          title: pushTitle,
+          body: pushBody,
           data: payload.data,
           sound: 'default',
           channelId: channel.channelId,
@@ -388,12 +390,17 @@ export class FcmService {
     const notifType = data?.type as string | undefined;
     const channel = this.getChannelForType(notifType);
 
+    const enrichedData = {
+      ...(data || {}),
+      title: safeTitle,
+      body: safeBody,
+    };
     const payload: PushPayload = {
-      notification: { title: safeTitle, body: safeBody },
-      data: data ? this.serializeData(data) : undefined,
+      data: this.serializeData(enrichedData),
     };
 
     if (platform === 'ios') {
+      payload.notification = { title: safeTitle, body: safeBody };
       payload.apns = {
         payload: {
           aps: {
@@ -424,6 +431,7 @@ export class FcmService {
         },
       };
     } else {
+      payload.notification = { title: safeTitle, body: safeBody };
       payload.webpush = {
         notification: {
           title: safeTitle,
