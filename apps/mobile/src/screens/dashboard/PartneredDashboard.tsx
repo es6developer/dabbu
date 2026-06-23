@@ -28,7 +28,7 @@ export function PartneredDashboard() {
             backgroundColor: colors.bg.card,
             borderRadius: 16,
             borderLeftWidth: 3,
-            borderLeftColor: '#F43F5E',
+            borderLeftColor: colors.accent.primary,
           }}
         >
           <Text style={{ color: colors.text.primary, fontSize: 16, fontWeight: '600' }}>

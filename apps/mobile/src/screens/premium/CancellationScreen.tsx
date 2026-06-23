@@ -1,8 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
-  Animated, Alert, ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Animated, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +8,7 @@ import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { usePremium } from '../../store/PremiumContext';
 
+import { alertService } from "../../components/ui";
 const CANCEL_REASONS = [
   { id: 'PRICE', label: 'Too expensive', icon: 'wallet' },
   { id: 'USAGE', label: 'Not using enough', icon: 'clockcircleo' },
@@ -55,7 +53,7 @@ export function CancellationScreen() {
         setOffer(result);
         setStep('offer');
       } catch (e: any) {
-        Alert.alert('Error', e?.message || 'Failed to process');
+        alertService.alert('Error', e?.message || 'Failed to process');
       } finally {
         setLoading(false);
       }
@@ -71,7 +69,7 @@ export function CancellationScreen() {
       await refresh();
       setStep('confirmation');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to cancel subscription');
+      alertService.alert('Error', e?.message || 'Failed to cancel subscription');
     } finally {
       setLoading(false);
     }
@@ -82,11 +80,11 @@ export function CancellationScreen() {
     try {
       await api.post('/premium/cancellation/accept');
       await refresh();
-      Alert.alert('Offer Accepted!', 'Your special offer has been applied. Welcome back!', [
+      alertService.alert('Offer Accepted!', 'Your special offer has been applied. Welcome back!', [
         { text: 'Great!', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to apply offer');
+      alertService.alert('Error', e?.message || 'Failed to apply offer');
     } finally {
       setLoading(false);
     }

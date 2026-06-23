@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +9,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, typography as typographyStyles } from '../../theme';
 
+import { alertService } from "../../components/ui";
 interface NotificationItem {
   id: string;
   title: string;
@@ -128,7 +121,7 @@ export function NotificationCenterScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Delete Notification', 'Are you sure?', [
+    alertService.alert('Delete Notification', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',

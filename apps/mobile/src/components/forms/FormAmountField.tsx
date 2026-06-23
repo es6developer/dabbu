@@ -1,13 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Animated,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';

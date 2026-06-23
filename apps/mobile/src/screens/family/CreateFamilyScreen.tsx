@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -13,6 +12,7 @@ import {
   FormError,
 } from '../../components/forms';
 
+import { alertService } from "../../components/ui";
 export function CreateFamilyScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
@@ -29,7 +29,7 @@ export function CreateFamilyScreen() {
     if (accessToken) setAccessToken(accessToken);
     try {
       await api.post('/family', { name: name.trim(), description: description.trim() });
-      Alert.alert('Success', 'Family group created successfully!');
+      alertService.alert('Success', 'Family group created successfully!');
       navigation.goBack();
     } catch (e: any) {
       setError(e.message || 'Failed to create family');

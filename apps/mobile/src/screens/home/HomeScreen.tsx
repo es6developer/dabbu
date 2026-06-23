@@ -1,16 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  RefreshControl,
-  Keyboard,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Keyboard, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -720,7 +709,7 @@ export function HomeScreen() {
   return (
     <View style={page.screen}>
       <LinearGradient
-        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        colors={[colors.bg.gradientStart, colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         locations={[0, 0.3]}
@@ -744,7 +733,6 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
           <HomeHeader
             userName={userName}
-            streak={streak}
             unreadCount={unreadCount}
             userAvatar={user?.avatarUrl}
             userFullName={`${user?.firstName || ''} ${user?.lastName || ''}`}
@@ -994,13 +982,13 @@ export function HomeScreen() {
                   borderRadius: 16,
                   padding: 14,
                   borderLeftWidth: 3,
-                  borderLeftColor: '#8B5CF6',
+                  borderLeftColor: colors.accent.secondary,
                 }}
                 activeOpacity={0.8}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#8B5CF615', alignItems: 'center', justifyContent: 'center' }}>
-                    <AntDesign name="calendar" size={18} color="#8B5CF6" />
+                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent.secondary + '15', alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="calendar" size={18} color={colors.accent.secondary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>

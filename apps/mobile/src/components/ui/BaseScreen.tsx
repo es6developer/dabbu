@@ -1,12 +1,5 @@
 import React, { ReactNode } from 'react';
-import {
-  View,
-  StyleSheet,
-  ViewStyle,
-  ScrollView,
-  FlatList,
-  RefreshControl,
-} from 'react-native';
+import { View, StyleSheet, ViewStyle, ScrollView, FlatList, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, spacing } from '../../theme';

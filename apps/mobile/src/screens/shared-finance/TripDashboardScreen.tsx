@@ -1,15 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  Linking,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -20,6 +10,7 @@ import { useTheme } from '../../theme';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
+import { alertService } from "../../components/ui";
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -236,7 +227,7 @@ export function TripDashboardScreen() {
                         style={[s.settleBtn, { backgroundColor: colors.status.success }]}
                         onPress={() => {
                           const upiLink = `upi://pay?pa=${encodeURIComponent(b.upiId || '')}&pn=${encodeURIComponent(b.name)}&am=${Math.abs(b.balance)}&cu=INR&tn=Settling%20via%20Dabbu`;
-                          Linking.openURL(upiLink).catch(() => Alert.alert('Settle Up', `Pay ${fmt(Math.abs(b.balance))} to ${b.name}`));
+                          Linking.openURL(upiLink).catch(() => alertService.alert('Settle Up', `Pay ${fmt(Math.abs(b.balance))} to ${b.name}`));
                         }}
                       >
                         <Text style={s.settleBtnText}>Settle</Text>

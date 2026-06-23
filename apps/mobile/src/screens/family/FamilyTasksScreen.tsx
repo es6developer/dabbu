@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  RefreshControl,
-  PanResponder,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, RefreshControl, PanResponder, Dimensions, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -98,6 +87,7 @@ function formatDate(iso: string): string {
 }
 
 function TaskSkeleton() {
+  const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -117,13 +107,13 @@ function TaskSkeleton() {
   });
 
   return (
-    <View style={styles.skeletonCard}>
+    <View style={[styles.skeletonCard, { backgroundColor: colors.bg.secondary }]}>
       <View style={styles.skeletonRow}>
-        <Animated.View style={[styles.skeletonAvatar, { opacity }]} />
+        <Animated.View style={[styles.skeletonAvatar, { backgroundColor: colors.bg.tertiary, opacity }]} />
         <View style={{ flex: 1, gap: 8 }}>
-          <Animated.View style={[styles.skeletonLine, { width: '60%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '40%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '50%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '60%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '40%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '50%', opacity }]} />
         </View>
       </View>
     </View>
@@ -200,14 +190,14 @@ function SwipeableTaskCard({
 
   const nextAction =
     task.status === 'Completed'
-      ? { label: 'Reopen', status: 'Pending' as TaskStatus, color: '#F59E0B' }
+      ? { label: 'Reopen', status: 'Pending' as TaskStatus, color: colors.status.warning }
       : task.status === 'InProgress'
-        ? { label: 'Complete', status: 'Completed' as TaskStatus, color: '#22C55E' }
-        : { label: 'In Progress', status: 'InProgress' as TaskStatus, color: '#3B82F6' };
+        ? { label: 'Complete', status: 'Completed' as TaskStatus, color: colors.status.success }
+        : { label: 'In Progress', status: 'InProgress' as TaskStatus, color: colors.status.info };
 
   const secondaryAction =
     task.status === 'Pending'
-      ? { label: 'Complete', status: 'Completed' as TaskStatus, color: '#22C55E' }
+      ? { label: 'Complete', status: 'Completed' as TaskStatus, color: colors.status.success }
       : null;
 
   return (
@@ -220,11 +210,11 @@ function SwipeableTaskCard({
             disabled={updating}
           >
             {updating ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={colors.text.inverse} />
             ) : (
               <>
-                <AntDesign name="check" size={16} color="#FFFFFF" />
-                <Text style={styles.actionText}>Done</Text>
+                <AntDesign name="check" size={16} color={colors.text.inverse} />
+                <Text style={[styles.actionText, { color: colors.text.inverse }]}>Done</Text>
               </>
             )}
           </TouchableOpacity>
@@ -235,11 +225,11 @@ function SwipeableTaskCard({
           disabled={updating}
         >
           {updating ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={colors.text.inverse} />
           ) : (
             <>
-              <AntDesign name={task.status === 'Completed' ? 'reload1' : 'checkcircleo'} size={16} color="#FFFFFF" />
-              <Text style={styles.actionText}>{nextAction.label}</Text>
+              <AntDesign name={task.status === 'Completed' ? 'reload1' : 'checkcircleo'} size={16} color={colors.text.inverse} />
+              <Text style={[styles.actionText, { color: colors.text.inverse }]}>{nextAction.label}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -268,7 +258,7 @@ function SwipeableTaskCard({
                     {fullName}
                   </Text>
                 </View>
-                <View style={styles.dot} />
+                <View style={[styles.dot, { backgroundColor: colors.text.tertiary }]} />
                 <View style={styles.taskDateRow}>
                   <AntDesign name="calendar" size={10} color={colors.text.tertiary} />
                   <Text style={[styles.taskDate, { color: colors.text.tertiary }]}>
@@ -588,7 +578,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     padding: 16,
-    backgroundColor: '#1C1C1E',
   },
   skeletonRow: {
     flexDirection: 'row',
@@ -599,12 +588,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#27272A',
   },
   skeletonLine: {
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#27272A',
   },
   swipeContainer: {
     marginBottom: 10,
@@ -632,7 +619,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
   },
   actionText: {
-    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -689,7 +675,6 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: '#6B7280',
     marginHorizontal: 2,
   },
   taskDateRow: {

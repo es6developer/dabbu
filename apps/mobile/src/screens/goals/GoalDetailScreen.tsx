@@ -1,18 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  ScrollView,
-  Modal,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -24,25 +11,7 @@ import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
-type GoalConfig = {
-  icon: string;
-  color: string;
-};
-
-const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'Safety', color: '#FF6B6B' },
-  vacation: { icon: 'earth', color: '#00B894' },
-  education: { icon: 'book', color: '#4F6EF7' },
-  home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car', color: '#14B8A6' },
-  wedding: { icon: 'heart', color: '#FF6B9D' },
-  retirement: { icon: 'cloud', color: '#247BA0' },
-  savings: { icon: 'save', color: '#7C3AED' },
-  investment: { icon: 'linechart', color: '#10B981' },
-  baby: { icon: 'smileo', color: '#FF69B4' },
-  custom: { icon: 'flag', color: '#14B8A6' },
-};
-
+import { alertService } from "../../components/ui";
 const MILESTONES = [25, 50, 75, 100];
 
 function fmt(v: number) {
@@ -74,10 +43,6 @@ function getMotivationalTagline(pct: number): string {
     return 'Building momentum — keep going!';
   }
   return 'Every journey begins with a single step';
-}
-
-function getGoalConfig(type: string): GoalConfig {
-  return GOAL_CONFIGS[type] || GOAL_CONFIGS.custom;
 }
 
 function ProgressRing({
@@ -225,7 +190,7 @@ function QuickContributeModal({
   const handleSubmit = () => {
     const val = parseFloat(amount);
     if (!val || val <= 0) {
-      Alert.alert('Invalid', 'Enter a valid amount');
+      alertService.alert('Invalid', 'Enter a valid amount');
       return;
     }
     onContribute(val);
@@ -364,6 +329,29 @@ export function GoalDetailScreen() {
   const route = useRoute<RouteProp<{ GoalDetail: { goalId: string } }, 'GoalDetail'>>();
   const { goalId } = route.params;
 
+  type GoalConfig = {
+    icon: string;
+    color: string;
+  };
+
+  const GOAL_CONFIGS: Record<string, GoalConfig> = {
+    emergency: { icon: 'Safety', color: '#FF6B6B' },
+    vacation: { icon: 'earth', color: '#00B894' },
+    education: { icon: 'book', color: '#4F6EF7' },
+    home: { icon: 'home', color: '#F97316' },
+    car: { icon: 'car', color: '#14B8A6' },
+    wedding: { icon: 'heart', color: '#FF6B9D' },
+    retirement: { icon: 'cloud', color: '#247BA0' },
+    savings: { icon: 'save', color: colors.accent.primary },
+    investment: { icon: 'linechart', color: '#10B981' },
+    baby: { icon: 'smileo', color: '#FF69B4' },
+    custom: { icon: 'flag', color: '#14B8A6' },
+  };
+
+  function getGoalConfig(type: string): GoalConfig {
+    return GOAL_CONFIGS[type] || GOAL_CONFIGS.custom;
+  }
+
   const [goal, setGoal] = useState<any>(null);
   const [prediction, setPrediction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -391,7 +379,7 @@ export function GoalDetailScreen() {
       if (goalRes.status === 'fulfilled') setGoal(goalRes.value);
       if (predRes.status === 'fulfilled' && predRes.value?.data) setPrediction(predRes.value.data);
     } catch {
-      Alert.alert('Error', 'Failed to load goal');
+      alertService.alert('Error', 'Failed to load goal');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -448,7 +436,7 @@ export function GoalDetailScreen() {
   }
 
   const handleDelete = () => {
-    Alert.alert(
+    alertService.alert(
       'Delete Goal',
       `Are you sure you want to delete "${goal?.name}"? This action cannot be undone.`,
       [
@@ -465,7 +453,7 @@ export function GoalDetailScreen() {
               showToast('Goal deleted');
               navigation.goBack();
             } catch {
-              Alert.alert('Error', 'Failed to delete goal');
+              alertService.alert('Error', 'Failed to delete goal');
             }
           },
         },
@@ -483,7 +471,7 @@ export function GoalDetailScreen() {
       setGoal(updated);
       setShowContribute(false);
     } catch {
-      Alert.alert('Error', 'Failed to add amount');
+      alertService.alert('Error', 'Failed to add amount');
     } finally {
       setContributing(false);
     }
@@ -1010,8 +998,8 @@ export function GoalDetailScreen() {
               <TouchableOpacity
                 style={{ flex: 1, paddingVertical: 16, borderRadius: 14, backgroundColor: config.color, alignItems: 'center', opacity: editSaving ? 0.6 : 1 }}
                 onPress={async () => {
-                  if (!editName.trim()) { Alert.alert('Error', 'Name is required'); return; }
-                  if (!editTarget || Number(editTarget) <= 0) { Alert.alert('Error', 'Enter a valid target amount'); return; }
+                  if (!editName.trim()) { alertService.alert('Error', 'Name is required'); return; }
+                  if (!editTarget || Number(editTarget) <= 0) { alertService.alert('Error', 'Enter a valid target amount'); return; }
                   setEditSaving(true);
                   try {
                     await api.patch(`/goals/${goalId}`, {
@@ -1023,7 +1011,7 @@ export function GoalDetailScreen() {
                     setShowEdit(false);
                     loadGoal();
                   } catch (e: any) {
-                    Alert.alert('Error', e.message || 'Failed to update');
+                    alertService.alert('Error', e.message || 'Failed to update');
                   } finally {
                     setEditSaving(false);
                   }

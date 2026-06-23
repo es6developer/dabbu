@@ -1,15 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +9,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
+import { alertService } from "../../components/ui";
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CATEGORIES = [
   { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
@@ -127,7 +118,7 @@ export function DocumentVaultScreen() {
         fileName: asset.name || `document.${ext}`,
       });
     } catch {
-      Alert.alert('Error', 'Failed to pick document');
+      alertService.alert('Error', 'Failed to pick document');
     }
   };
 
@@ -135,7 +126,7 @@ export function DocumentVaultScreen() {
     const ImagePicker = await import('expo-image-picker');
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission Required', 'Camera access is needed to capture documents.');
+      alertService.alert('Permission Required', 'Camera access is needed to capture documents.');
       return;
     }
 

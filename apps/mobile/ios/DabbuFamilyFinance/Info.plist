@@ -32,6 +32,55 @@
         </array>
       </dict>
     </array>
+    <key>CFBundleIcons</key>
+    <dict>
+      <key>CFBundleAlternateIcons</key>
+      <dict>
+        <key>Personal</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>icon-personal</string>
+          </array>
+          <key>UIPrerenderedIcon</key>
+          <false/>
+        </dict>
+        <key>Couple</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>icon-couple</string>
+          </array>
+          <key>UIPrerenderedIcon</key>
+          <false/>
+        </dict>
+        <key>Family</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>icon-family</string>
+          </array>
+          <key>UIPrerenderedIcon</key>
+          <false/>
+        </dict>
+        <key>Full</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>icon-full</string>
+          </array>
+          <key>UIPrerenderedIcon</key>
+          <false/>
+        </dict>
+      </dict>
+      <key>CFBundlePrimaryIcon</key>
+      <dict>
+        <key>CFBundleIconFiles</key>
+        <array>
+          <string>AppIcon</string>
+        </array>
+      </dict>
+    </dict>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSRequiresIPhoneOS</key>

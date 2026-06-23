@@ -1,15 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -22,6 +12,7 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
 
+import { alertService } from "../../components/ui";
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -96,10 +87,10 @@ export function SettlementScreen() {
       if (supported) {
         await Linking.openURL(upiLink);
       } else {
-        Alert.alert('Pay via UPI', `Pay ${fmt(settlement.amount || 0)} to ${settlement.toName || 'Someone'}\nUPI: ${upiLink}`);
+        alertService.alert('Pay via UPI', `Pay ${fmt(settlement.amount || 0)} to ${settlement.toName || 'Someone'}\nUPI: ${upiLink}`);
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to open UPI');
+      alertService.alert('Error', e.message || 'Failed to open UPI');
     } finally {
       setSubmitting(null);
     }
@@ -115,14 +106,14 @@ export function SettlementScreen() {
       showToast(`${fmt(settlement.amount || 0)} settled in cash`);
       await loadData(true);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to mark as settled');
+      alertService.alert('Error', e.message || 'Failed to mark as settled');
     } finally {
       setSubmitting(null);
     }
   }
 
   function showToast(msg: string) {
-    Alert.alert('', msg);
+    alertService.alert('', msg);
   }
 
   async function handleBatchSettle() {
@@ -130,7 +121,7 @@ export function SettlementScreen() {
       (s: any) => s.fromUserId === currentUser?.id,
     );
     if (myPending.length === 0) {
-      Alert.alert('Nothing to settle', 'You have no pending payments.');
+      alertService.alert('Nothing to settle', 'You have no pending payments.');
       return;
     }
     setBatchSubmitting(true);
@@ -145,7 +136,7 @@ export function SettlementScreen() {
           settled++;
         } catch { /* skip failed ones */ }
       }
-      Alert.alert('Done', `${settled} of ${myPending.length} settlements completed.`);
+      alertService.alert('Done', `${settled} of ${myPending.length} settlements completed.`);
       await loadData(true);
     } finally {
       setBatchSubmitting(false);

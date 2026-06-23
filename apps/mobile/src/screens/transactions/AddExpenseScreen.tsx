@@ -7,8 +7,6 @@ import { useTheme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
 const CARD_W = (SCREEN_W - 60) / 2;
 
 interface OptionCard {
@@ -21,40 +19,40 @@ interface OptionCard {
   gradient: [string, string];
 }
 
-const OPTIONS: OptionCard[] = [
-  {
-    type: 'manual',
-    icon: 'edit',
-    title: 'Manual Entry',
-    description: 'Enter amount, category & description by hand.',
-    color: PURPLE,
-    gradient: [PURPLE, PURPLE_DARK],
-  },
-  {
-    type: 'camera',
-    icon: 'camera',
-    title: 'Scan Bill',
-    description: 'Snap a receipt. AI extracts everything automatically.',
-    badge: 'AI',
-    color: '#F59E0B',
-    gradient: ['#F59E0B', '#D97706'],
-  },
-  {
-    type: 'group',
-    icon: 'team',
-    title: 'Create Group',
-    description: 'Set up a circle to split expenses with friends & family.',
-    color: '#14B8A6',
-    gradient: ['#14B8A6', '#0D9488'],
-  },
-];
-
 export function AddExpenseScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
+
+  const OPTIONS: OptionCard[] = [
+    {
+      type: 'manual',
+      icon: 'edit',
+      title: 'Manual Entry',
+      description: 'Enter amount, category & description by hand.',
+      color: colors.accent.secondary,
+      gradient: [colors.accent.secondary, colors.accent.hover],
+    },
+    {
+      type: 'camera',
+      icon: 'camera',
+      title: 'Scan Bill',
+      description: 'Snap a receipt. AI extracts everything automatically.',
+      badge: 'AI',
+      color: '#F59E0B',
+      gradient: ['#F59E0B', '#D97706'],
+    },
+    {
+      type: 'group',
+      icon: 'team',
+      title: 'Create Group',
+      description: 'Set up a circle to split expenses with friends & family.',
+      color: '#14B8A6',
+      gradient: ['#14B8A6', '#0D9488'],
+    },
+  ];
 
   useEffect(() => {
     Animated.parallel([
@@ -82,14 +80,14 @@ export function AddExpenseScreen() {
       >
         {/* Header */}
         <View style={s.headerRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-            <AntDesign  name="close" size={22} color={PURPLE} />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.closeBtn, { backgroundColor: `${colors.accent.secondary}10` }]}>
+            <AntDesign  name="close" size={22} color={colors.accent.secondary} />
           </TouchableOpacity>
         </View>
 
         <View style={s.hero}>
-          <View style={s.heroIcon}>
-            <AntDesign  name="wallet" size={32} color={PURPLE} />
+          <View style={[s.heroIcon, { backgroundColor: `${colors.accent.secondary}12` }]}>
+            <AntDesign  name="wallet" size={32} color={colors.accent.secondary} />
           </View>
           <Text style={s.heroTitle}>Add expense</Text>
           <Text style={s.heroDesc}>Choose how you'd like to capture this spend.</Text>
@@ -161,7 +159,6 @@ const s = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 14,
-    backgroundColor: `${PURPLE}10`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -170,7 +167,6 @@ const s = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 20,
-    backgroundColor: `${PURPLE}12`,
     alignItems: 'center',
     justifyContent: 'center',
   },

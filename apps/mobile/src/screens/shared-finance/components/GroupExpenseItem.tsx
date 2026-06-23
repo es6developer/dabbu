@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../../services/api';
@@ -8,6 +8,7 @@ import { useToast } from '../../../store/ToastContext';
 import { setAccessToken } from '../../../services/api';
 import { fmt } from './groupUtils';
 
+import { alertService } from "../../../components/ui";
 interface Props {
   item: any;
   members: any[];
@@ -32,7 +33,7 @@ export function GroupExpenseItem({ item, members, isAdmin, colors, groupId, onRe
   const iPaid = item.paidBy === currentUser?.id;
 
   const handleDelete = () => {
-    Alert.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
+    alertService.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
@@ -43,7 +44,7 @@ export function GroupExpenseItem({ item, members, isAdmin, colors, groupId, onRe
             showToast('Expense deleted');
             onRefresh();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete');
+            alertService.alert('Error', e.message || 'Failed to delete');
           }
         },
       },
@@ -56,7 +57,7 @@ export function GroupExpenseItem({ item, members, isAdmin, colors, groupId, onRe
       onPress={() => { if (canModify) navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true }); }}
       onLongPress={() => {
         if (!canModify) return;
-        Alert.alert(item.description || 'Expense', 'Choose action', [
+        alertService.alert(item.description || 'Expense', 'Choose action', [
           { text: 'Edit', onPress: () => navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true }) },
           { text: 'Delete', style: 'destructive', onPress: handleDelete },
           { text: 'Cancel', style: 'cancel' },
@@ -87,7 +88,7 @@ export function GroupExpenseItem({ item, members, isAdmin, colors, groupId, onRe
         <TouchableOpacity style={[{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, alignSelf: 'center', marginLeft: 8, backgroundColor: '#34C759' }]}
           onPress={() => {
             const upiLink = `upi://pay?pa=${encodeURIComponent(payer.user.upiId)}&pn=${encodeURIComponent(payerName)}&am=${myShare}&cu=INR&tn=${encodeURIComponent(item.description || 'Expense')}`;
-            Linking.openURL(upiLink).catch(() => Alert.alert('Unable to open UPI', 'No UPI app found.'));
+            Linking.openURL(upiLink).catch(() => alertService.alert('Unable to open UPI', 'No UPI app found.'));
           }}>
           <AntDesign name="wallet" size={14} color="#FFF" />
           <Text style={[{ color: '#FFF', fontSize: 12, fontWeight: '700' }]}>Pay Now</Text>

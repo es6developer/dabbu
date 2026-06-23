@@ -62,8 +62,8 @@ function RenderMembers({ data }: { data: any[] }) {
             <Text style={[memberStyles.name, { color: colors.text.primary }]}>{m.user?.firstName || m.firstName} {m.user?.lastName || m.lastName || ''}</Text>
             <Text style={[memberStyles.role, { color: colors.text.tertiary }]}>{m.role || 'member'}</Text>
           </View>
-          <View style={[memberStyles.badge, { backgroundColor: m.role === 'owner' ? '#F59E0B20' : m.role === 'admin' ? '#3B82F620' : '#10B98120' }]}>
-            <Text style={[memberStyles.badgeText, { color: m.role === 'owner' ? '#F59E0B' : m.role === 'admin' ? '#3B82F6' : '#10B981' }]}>
+          <View style={[memberStyles.badge, { backgroundColor: m.role === 'owner' ? colors.status.warning + '20' : m.role === 'admin' ? colors.status.info + '20' : colors.status.success + '20' }]}>
+            <Text style={[memberStyles.badgeText, { color: m.role === 'owner' ? colors.status.warning : m.role === 'admin' ? colors.status.info : colors.status.success }]}>
               {m.role || 'member'}
             </Text>
           </View>
@@ -447,7 +447,6 @@ export function FamilyModuleScreen() {
     </View>
   );
 }
-
 
 const memberStyles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 14, marginBottom: 8 },

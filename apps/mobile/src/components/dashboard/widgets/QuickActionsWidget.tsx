@@ -122,11 +122,9 @@ const LENS_ACTIONS: Record<LensMode, QuickActionDef[]> = {
 };
 
 export function QuickActionsWidget({
-  data,
-  onPress: parentOnPress,
   onNavigate,
 }: {
-  data: any;
+  data?: any;
   onPress?: () => void;
   onNavigate?: (screen: string, params?: any) => void;
 }) {

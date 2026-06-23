@@ -1,15 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Alert,
-  Animated,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -24,6 +14,7 @@ import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
+import { alertService } from "../../components/ui";
 type SectionItem = { label: string; icon: string; screen: string; premium?: boolean; action?: 'lock' };
 
 interface SectionConfig { title: string; items: SectionItem[] }
@@ -134,11 +125,11 @@ export function SettingsScreen() {
       'CoupleSpace','Streaks','DataExport','Support','YearlySummary',
     ];
     if (!registered.includes(screen)) {
-      Alert.alert('Coming Soon', `${screen} settings will be available soon`);
+      alertService.alert('Coming Soon', `${screen} settings will be available soon`);
       return;
     }
     if (premium && !isPremium) {
-      Alert.alert('Premium Feature', 'This feature is available on Premium plan.', [
+      alertService.alert('Premium Feature', 'This feature is available on Premium plan.', [
         { text: 'Cancel', style: 'cancel' },
         { text: 'View Plans', onPress: () => navigation.navigate('SubscriptionCenter') },
       ]);
@@ -249,12 +240,12 @@ export function SettingsScreen() {
                           const result = await approveCoupleRequest(req.id);
                           if (result?.user) {
                             setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
-                            Alert.alert('Connected!', "You're in a couple! Couple Mode is active.", [
+                            alertService.alert('Connected!', "You're in a couple! Couple Mode is active.", [
                               { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
                             ]);
                           }
                         } catch (e: any) {
-                          Alert.alert('Error', e?.message || 'Failed to approve');
+                          alertService.alert('Error', e?.message || 'Failed to approve');
                         } finally { setProcessingReqId(null); }
                       }}
                     >

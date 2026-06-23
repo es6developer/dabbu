@@ -5,20 +5,22 @@ import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useLifeEventStore, LifeEventType } from '../../store/lifeEventStore';
 
-const EVENT_META: Record<LifeEventType, { emoji: string; color: string }> = {
-  HOUSE: { emoji: '🏠', color: '#F59E0B' },
-  BABY: { emoji: '👶', color: '#22C55E' },
-  WEDDING: { emoji: '💍', color: '#F43F5E' },
-  CAR: { emoji: '🚗', color: '#3B82F6' },
-  VACATION: { emoji: '🌴', color: '#06B6D4' },
-  EDUCATION: { emoji: '🎓', color: '#8B5CF6' },
-  RETIREMENT: { emoji: '📈', color: '#6366F1' },
-  BUSINESS: { emoji: '💼', color: '#F97316' },
-  MOVING: { emoji: '📦', color: '#14B8A6' },
-  JOB_CHANGE: { emoji: '💼', color: '#64748B' },
-  SALARY_INCREASE: { emoji: '💰', color: '#22C55E' },
-  CUSTOM: { emoji: '📌', color: '#7C3AED' },
-};
+function getEventMeta(colors: any): Record<LifeEventType, { emoji: string; color: string }> {
+  return {
+    HOUSE: { emoji: '🏠', color: colors.status.warning },
+    BABY: { emoji: '👶', color: colors.status.success },
+    WEDDING: { emoji: '💍', color: colors.accent.primary },
+    CAR: { emoji: '🚗', color: '#3B82F6' },
+    VACATION: { emoji: '🌴', color: '#06B6D4' },
+    EDUCATION: { emoji: '🎓', color: colors.accent.secondary },
+    RETIREMENT: { emoji: '📈', color: '#6366F1' },
+    BUSINESS: { emoji: '💼', color: '#F97316' },
+    MOVING: { emoji: '📦', color: '#14B8A6' },
+    JOB_CHANGE: { emoji: '💼', color: colors.text.tertiary },
+    SALARY_INCREASE: { emoji: '💰', color: colors.status.success },
+    CUSTOM: { emoji: '📌', color: colors.accent.primary },
+  };
+}
 
 export function LifeEventDetailScreen({ route, navigation }: any) {
   const { eventId } = route?.params ?? {};
@@ -26,6 +28,7 @@ export function LifeEventDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { events, confirmEvent, dismissEvent } = useLifeEventStore();
   const event = events.find((e) => e.id === eventId);
+  const eventMeta = getEventMeta(colors);
 
   if (!event) {
     return (
@@ -35,7 +38,7 @@ export function LifeEventDetailScreen({ route, navigation }: any) {
     );
   }
 
-  const meta = EVENT_META[event.eventType] || EVENT_META.CUSTOM;
+  const meta = eventMeta[event.eventType] || eventMeta.CUSTOM;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>

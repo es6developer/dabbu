@@ -1,17 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  TextInput,
-  Dimensions,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, ScrollView, TextInput, Dimensions, Animated } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import Svg, { Rect, Line } from 'react-native-svg';
 
@@ -21,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 
+import { alertService } from "../../components/ui";
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FRAME_SIZE = SCREEN_WIDTH - 64;
 const CORNER_LENGTH = 24;
@@ -196,7 +185,7 @@ export function BillScannerScreen() {
     const ImagePicker = await import('expo-image-picker');
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission Required', 'Camera access is needed to scan bills.');
+      alertService.alert('Permission Required', 'Camera access is needed to scan bills.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -214,7 +203,7 @@ export function BillScannerScreen() {
     const ImagePicker = await import('expo-image-picker');
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission Required', 'Gallery access is needed to select images.');
+      alertService.alert('Permission Required', 'Gallery access is needed to select images.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({

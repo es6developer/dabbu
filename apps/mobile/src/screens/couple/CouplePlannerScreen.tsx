@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  RefreshControl,
-  TextInput,
-  Modal,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, RefreshControl, TextInput, Modal, StyleSheet, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,17 +12,19 @@ import { spacing, borderRadius } from '../../theme/design';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2;
 
-const CATEGORY_COLORS: Record<string, string> = {
-  home: '#FF6B6B',
-  travel: '#60A5FA',
-  wedding: '#5AC8FA',
-  car: '#34C759',
-  baby: '#FF8A65',
-  emergency: '#F59E0B',
-  investment: '#14B8A6',
-  education: '#7C3AED',
-  other: '#64748B',
-};
+function getCategoryColors(colors: any): Record<string, string> {
+  return {
+    home: '#FF6B6B',
+    travel: '#60A5FA',
+    wedding: '#5AC8FA',
+    car: '#34C759',
+    baby: '#FF8A65',
+    emergency: colors.status.warning,
+    investment: '#14B8A6',
+    education: colors.accent.primary,
+    other: colors.text.tertiary,
+  };
+}
 
 const CATEGORY_ICONS: Record<string, string> = {
   home: 'home',
@@ -46,13 +38,13 @@ const CATEGORY_ICONS: Record<string, string> = {
   other: 'flag',
 };
 
-function PlannerCard({ item, onPress }: { item: any; onPress: () => void }) {
+function PlannerCard({ item, onPress, categoryColors }: { item: any; onPress: () => void; categoryColors: Record<string, string> }) {
   const { colors } = useTheme();
   const target = Number(item.targetAmount || 0);
   const current = Number(item.currentSavings || 0);
   const progress = target > 0 ? (current / target) * 100 : 0;
   const cat = item.category || 'other';
-  const color = CATEGORY_COLORS[cat] || '#64748B';
+  const color = categoryColors[cat] || colors.text.tertiary;
   const icon = item.icon || CATEGORY_ICONS[cat] || 'flag';
 
   return (
@@ -121,6 +113,7 @@ export function CouplePlannerScreen() {
   const [contributing, setContributing] = useState(false);
   const { showToast } = useToast();
   const { colors } = useTheme();
+  const categoryColors = getCategoryColors(colors);
 
   const fetchPlanners = useCallback(async (refresh = false) => {
     if (refresh) {
@@ -240,7 +233,7 @@ export function CouplePlannerScreen() {
             tintColor={colors.accent.primary}
           />
         }
-        renderItem={({ item }) => <PlannerCard item={item} onPress={() => contribute(item.id)} />}
+        renderItem={({ item }) => <PlannerCard item={item} onPress={() => contribute(item.id)} categoryColors={categoryColors} />}
         ListEmptyComponent={
           <View style={{ padding: 60, alignItems: 'center', gap: 12 }}>
             <View
@@ -306,7 +299,7 @@ export function CouplePlannerScreen() {
               onChangeText={(t) => setForm((f: Record<string, any>) => ({ ...f, targetAmount: t }))}
             />
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-              {Object.keys(CATEGORY_COLORS).map((cat) => (
+              {Object.keys(categoryColors).map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={{
@@ -314,9 +307,9 @@ export function CouplePlannerScreen() {
                     paddingVertical: 6,
                     borderRadius: 20,
                     backgroundColor:
-                      form.category === cat ? `${CATEGORY_COLORS[cat]}30` : colors.bg.tertiary,
+                      form.category === cat ? `${categoryColors[cat]}30` : colors.bg.tertiary,
                     borderWidth: 1,
-                    borderColor: form.category === cat ? CATEGORY_COLORS[cat] : colors.border.default,
+                    borderColor: form.category === cat ? categoryColors[cat] : colors.border.default,
                   }}
                   onPress={() => setForm((f: Record<string, any>) => ({ ...f, category: cat }))}
                 >
@@ -324,7 +317,7 @@ export function CouplePlannerScreen() {
                     style={{
                       fontSize: 12,
                       fontWeight: '600',
-                      color: form.category === cat ? CATEGORY_COLORS[cat] : colors.text.secondary,
+                      color: form.category === cat ? categoryColors[cat] : colors.text.secondary,
                     }}
                   >
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -418,7 +411,7 @@ export function CouplePlannerScreen() {
                   padding: 14,
                   borderRadius: 14,
                   backgroundColor:
-                    contributeAmount && parseFloat(contributeAmount) > 0 ? '#7C3AED' : '#1E293B',
+                    contributeAmount && parseFloat(contributeAmount) > 0 ? colors.accent.primary : '#1E293B',
                   alignItems: 'center',
                 }}
                 disabled={!contributeAmount || parseFloat(contributeAmount) <= 0 || contributing}

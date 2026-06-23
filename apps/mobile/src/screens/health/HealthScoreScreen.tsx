@@ -8,27 +8,27 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
-const COMPONENT_META: Record<string, { label: string; icon: string; desc: string }> = {
-  savingsRate: { label: 'Savings Rate', icon: 'caretup', desc: 'Percentage of income saved each month' },
-  debtRatio: { label: 'Debt Ratio', icon: 'creditcard', desc: 'Debt compared to total income' },
-  budgetDiscipline: { label: 'Budget Discipline', icon: 'calculator', desc: 'How well you stick to budgets' },
-  goalProgress: { label: 'Goal Progress', icon: 'flag', desc: 'Progress towards financial goals' },
-  billConsistency: { label: 'Bill Consistency', icon: 'filetext1', desc: 'On-time bill payment record' },
-  emergencyFund: { label: 'Emergency Fund', icon: 'checkcircle', desc: 'Months of expenses covered' },
-};
-
-const LEVEL_META: Record<string, { label: string; color: string }> = {
-  critical: { label: 'Critical', color: '#EF4444' },
-  building: { label: 'Building', color: '#F59E0B' },
-  stable: { label: 'Stable', color: '#22C55E' },
-  thriving: { label: 'Thriving', color: '#7C3AED' },
-  exceptional: { label: 'Exceptional', color: '#06B6D4' },
-};
-
 export function HealthScoreScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { colors } = useTheme();
+
+  const COMPONENT_META: Record<string, { label: string; icon: string; desc: string }> = {
+    savingsRate: { label: 'Savings Rate', icon: 'caretup', desc: 'Percentage of income saved each month' },
+    debtRatio: { label: 'Debt Ratio', icon: 'creditcard', desc: 'Debt compared to total income' },
+    budgetDiscipline: { label: 'Budget Discipline', icon: 'calculator', desc: 'How well you stick to budgets' },
+    goalProgress: { label: 'Goal Progress', icon: 'flag', desc: 'Progress towards financial goals' },
+    billConsistency: { label: 'Bill Consistency', icon: 'filetext1', desc: 'On-time bill payment record' },
+    emergencyFund: { label: 'Emergency Fund', icon: 'checkcircle', desc: 'Months of expenses covered' },
+  };
+
+  const LEVEL_META: Record<string, { label: string; color: string }> = {
+    critical: { label: 'Critical', color: colors.status.error },
+    building: { label: 'Building', color: colors.status.warning },
+    stable: { label: 'Stable', color: colors.status.success },
+    thriving: { label: 'Thriving', color: colors.accent.primary },
+    exceptional: { label: 'Exceptional', color: '#06B6D4' },
+  };
   const [score, setScore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

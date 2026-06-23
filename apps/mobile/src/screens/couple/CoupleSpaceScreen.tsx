@@ -164,7 +164,7 @@ export function CoupleSpaceScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={isDark ? ['#1A0A12', colors.bg.primary] : ['#FFE4E8', colors.bg.primary]}
+        colors={[colors.bg.gradientStart, colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         locations={[0, 0.3]}

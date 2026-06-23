@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
-  Animated,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Animated, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -17,14 +8,6 @@ import { api } from '../../services/api';
 const { width } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_WIDTH = (width - 20 * 2 - CARD_GAP) / 2;
-const COLORS = {
-  expenses: '#EF4444',
-  income: '#22C55E',
-  accounts: '#3B82F6',
-  settlement: '#F97316',
-  contribution: '#8B5CF6',
-  whoPaid: '#14B8A6',
-};
 
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -122,6 +105,15 @@ function WidgetCard({
 export function CoupleFinance({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+
+  const COLORS = {
+    expenses: colors.status.error,
+    income: colors.status.success,
+    accounts: '#3B82F6',
+    settlement: '#F97316',
+    contribution: colors.accent.secondary,
+    whoPaid: '#14B8A6',
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<any>(null);

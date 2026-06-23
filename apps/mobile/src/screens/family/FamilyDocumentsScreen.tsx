@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -64,13 +55,14 @@ function formatDate(iso: string): string {
 }
 
 function SkeletonGrid() {
+  const { colors } = useTheme();
   return (
     <View style={styles.skeletonContainer}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <View key={i} style={styles.skeletonCard}>
-          <View style={styles.skeletonIcon} />
-          <View style={styles.skeletonLine} />
-          <View style={[styles.skeletonLine, { width: '50%' }]} />
+        <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.bg.tertiary }]}>
+          <View style={[styles.skeletonIcon, { backgroundColor: colors.skeleton.base }]} />
+          <View style={[styles.skeletonLine, { backgroundColor: colors.skeleton.base }]} />
+          <View style={[styles.skeletonLine, { backgroundColor: colors.skeleton.base, width: '50%' }]} />
         </View>
       ))}
     </View>
@@ -468,7 +460,6 @@ const styles = StyleSheet.create({
   skeletonCard: {
     width: CARD_WIDTH,
     borderRadius: 16,
-    backgroundColor: 'rgba(128,128,128,0.08)',
     paddingVertical: 18,
     paddingHorizontal: 10,
     alignItems: 'center',
@@ -477,14 +468,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: 'rgba(128,128,128,0.12)',
     marginBottom: 10,
   },
   skeletonLine: {
     width: '80%',
     height: 10,
     borderRadius: 5,
-    backgroundColor: 'rgba(128,128,128,0.12)',
     marginBottom: 4,
   },
   emptyState: {

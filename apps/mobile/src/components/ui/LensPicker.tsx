@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Alert, LayoutAnimation } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, LayoutAnimation } from 'react-native';
 import { useTheme } from '../../theme';
 import { useLens } from '../../hooks/useLens';
+import { useToast } from '../../store/ToastContext';
 import type { LensMode } from '../../types';
+import { alertService } from "./";
 
 const LENS_DETAILS: Record<LensMode, { label: string; description: string; icon: string }> = {
   PERSONAL: { label: 'Personal', description: 'Your personal finances', icon: 'user' },
@@ -19,6 +21,7 @@ interface LensPickerProps {
 export function LensPicker({ visible, onClose }: LensPickerProps) {
   const { colors } = useTheme();
   const lens = useLens();
+  const { showToast } = useToast();
   const [switching, setSwitching] = useState<LensMode | null>(null);
 
   const handleSelect = async (targetLens: LensMode) => {
@@ -33,7 +36,7 @@ export function LensPicker({ visible, onClose }: LensPickerProps) {
 
     if (!lens.canAccess(targetLens)) {
       const lensInfo = LENS_DETAILS[targetLens];
-      Alert.alert(
+      alertService.alert(
         `${lensInfo.label} Not Available`,
         `To use the ${lensInfo.label} lens, you need to set up a ${targetLens === 'PARTNERED' ? 'partner connection' : 'family group'} first.`,
       );
@@ -43,8 +46,10 @@ export function LensPicker({ visible, onClose }: LensPickerProps) {
     setSwitching(targetLens);
     try {
       await lens.switchLens(null, targetLens);
+      const iconLabel = LENS_DETAILS[targetLens].label;
+      showToast(`App icon updated to ${iconLabel} lens`, 'success');
     } catch (err: any) {
-      Alert.alert('Switch Failed', err?.message || 'Could not switch lens');
+      alertService.alert('Switch Failed', err?.message || 'Could not switch lens');
     } finally {
       setSwitching(null);
       onClose();

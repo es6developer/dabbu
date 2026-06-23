@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  Linking,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -18,11 +7,13 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { useGoogleAuth, getGoogleIdToken } from '../../services/google-auth';
+import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 
 export function SignupScreen() {
   const navigation = useNavigation<any>();
   const { googleLogin } = useAuth();
   const { colors } = useTheme();
+  const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -98,7 +89,7 @@ export function SignupScreen() {
           <View style={s.brand}>
             <View style={[s.logoContainer, { backgroundColor: colors.bg.secondary }]}>
               <Image
-                source={require('../../../assets/logo.png')}
+                source={logoSource}
                 style={s.logoImage}
                 resizeMode="contain"
               />

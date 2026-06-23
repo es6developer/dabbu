@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,6 +89,7 @@ function HealthRing({ score, size = RING_SIZE, strokeWidth = RING_STROKE }: { sc
 }
 
 function SkeletonLoader() {
+  const { colors } = useTheme();
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -116,10 +108,10 @@ function SkeletonLoader() {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 20, gap: 16, paddingTop: 60 }}>
-        <Animated.View style={{ height: 32, width: 160, borderRadius: 8, backgroundColor: '#27272A', opacity }} />
-        <Animated.View style={{ height: 200, borderRadius: 24, backgroundColor: '#27272A', opacity }} />
+        <Animated.View style={{ height: 32, width: 160, borderRadius: 8, backgroundColor: colors.skeleton.base, opacity }} />
+        <Animated.View style={{ height: 200, borderRadius: 24, backgroundColor: colors.skeleton.base, opacity }} />
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Animated.View key={i} style={{ height: 120, borderRadius: 20, backgroundColor: '#27272A', opacity }} />
+          <Animated.View key={i} style={{ height: 120, borderRadius: 20, backgroundColor: colors.skeleton.base, opacity }} />
         ))}
       </View>
     </View>
@@ -144,14 +136,16 @@ function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; d
   );
 }
 
-const SECTION_CONFIG: Record<string, { icon: string; color: string }> = {
-  spending: { icon: 'swap', color: '#F59E0B' },
-  investment: { icon: 'linechart', color: '#A78BFA' },
-  insurance: { icon: 'Safety', color: '#60A5FA' },
-  goals: { icon: 'flag', color: '#4ADE80' },
-  emergency: { icon: 'save', color: '#FB923C' },
-  savings: { icon: 'bulb1', color: '#EC4899' },
-};
+function getSectionConfig(colors: any): Record<string, { icon: string; color: string }> {
+  return {
+    spending: { icon: 'swap', color: colors.status.warning },
+    investment: { icon: 'linechart', color: colors.accent.tertiary },
+    insurance: { icon: 'Safety', color: '#60A5FA' },
+    goals: { icon: 'flag', color: colors.status.success },
+    emergency: { icon: 'save', color: '#FB923C' },
+    savings: { icon: 'bulb1', color: '#EC4899' },
+  };
+}
 
 function SectionCard({
   icon,
@@ -220,6 +214,7 @@ export default function FamilyAIAdvisorScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const sectionConfig = getSectionConfig(colors);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [healthScore, setHealthScore] = useState<any>(null);
@@ -335,7 +330,7 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 1: Family Spending Review */}
         <AnimatedSection delay={100}>
-          <SectionCard icon={SECTION_CONFIG.spending.icon} color={SECTION_CONFIG.spending.color} title="Family Spending Review">
+          <SectionCard icon={sectionConfig.spending.icon} color={sectionConfig.spending.color} title="Family Spending Review">
             <View style={styles.statGrid}>
               <View style={styles.statCol}>
                 <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Monthly Income</Text>
@@ -382,7 +377,7 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 2: Investment Review */}
         <AnimatedSection delay={150}>
-          <SectionCard icon={SECTION_CONFIG.investment.icon} color={SECTION_CONFIG.investment.color} title="Investment Review">
+          <SectionCard icon={sectionConfig.investment.icon} color={sectionConfig.investment.color} title="Investment Review">
             <View style={styles.statGrid}>
               <View style={styles.statCol}>
                 <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Total Portfolio</Text>
@@ -401,7 +396,7 @@ export default function FamilyAIAdvisorScreen() {
               <View style={styles.bulletList}>
                 {investment.recommendations.map((rec: string, i: number) => (
                   <View key={i} style={styles.bulletRow}>
-                    <Text style={[styles.bullet, { color: SECTION_CONFIG.investment.color }]}>•</Text>
+                    <Text style={[styles.bullet, { color: sectionConfig.investment.color }]}>•</Text>
                     <Text style={[styles.bulletText, { color: colors.text.secondary }]}>{rec}</Text>
                   </View>
                 ))}
@@ -412,12 +407,12 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 3: Insurance Review */}
         <AnimatedSection delay={200}>
-          <SectionCard icon={SECTION_CONFIG.insurance.icon} color={SECTION_CONFIG.insurance.color} title="Insurance Review">
+          <SectionCard icon={sectionConfig.insurance.icon} color={sectionConfig.insurance.color} title="Insurance Review">
             {insurance.coverageGaps && insurance.coverageGaps.length > 0 && (
               <View style={styles.bulletList}>
                 {insurance.coverageGaps.map((gap: string, i: number) => (
                   <View key={i} style={styles.bulletRow}>
-                    <Text style={[styles.bullet, { color: SECTION_CONFIG.insurance.color }]}>•</Text>
+                    <Text style={[styles.bullet, { color: sectionConfig.insurance.color }]}>•</Text>
                     <Text style={[styles.bulletText, { color: colors.text.secondary }]}>{gap}</Text>
                   </View>
                 ))}
@@ -428,8 +423,8 @@ export default function FamilyAIAdvisorScreen() {
                 <Text style={[styles.subSectionTitle, { color: colors.text.tertiary }]}>Recommendations</Text>
                 {insurance.recommendations.map((rec: string, i: number) => (
                   <View key={i} style={styles.pillRow}>
-                    <View style={[styles.pill, { backgroundColor: `${SECTION_CONFIG.insurance.color}18`, borderColor: `${SECTION_CONFIG.insurance.color}30` }]}>
-                      <Text style={[styles.pillText, { color: SECTION_CONFIG.insurance.color }]}>{rec}</Text>
+                    <View style={[styles.pill, { backgroundColor: `${sectionConfig.insurance.color}18`, borderColor: `${sectionConfig.insurance.color}30` }]}>
+                      <Text style={[styles.pillText, { color: sectionConfig.insurance.color }]}>{rec}</Text>
                     </View>
                   </View>
                 ))}
@@ -440,7 +435,7 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 4: Goal Forecasting */}
         <AnimatedSection delay={250}>
-          <SectionCard icon={SECTION_CONFIG.goals.icon} color={SECTION_CONFIG.goals.color} title="Goal Forecasting">
+          <SectionCard icon={sectionConfig.goals.icon} color={sectionConfig.goals.color} title="Goal Forecasting">
             {goals.items && goals.items.length > 0 ? (
               goals.items.map((goal: any, i: number) => {
                 const pct = Math.min(goal.progress ?? 0, 100);
@@ -470,7 +465,7 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 5: Emergency Fund Analysis */}
         <AnimatedSection delay={300}>
-          <SectionCard icon={SECTION_CONFIG.emergency.icon} color={SECTION_CONFIG.emergency.color} title="Emergency Fund Analysis">
+          <SectionCard icon={sectionConfig.emergency.icon} color={sectionConfig.emergency.color} title="Emergency Fund Analysis">
             <View style={styles.statGrid}>
               <View style={styles.statCol}>
                 <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Months Covered</Text>
@@ -495,11 +490,11 @@ export default function FamilyAIAdvisorScreen() {
 
         {/* Section 6: Savings Opportunities */}
         <AnimatedSection delay={350}>
-          <SectionCard icon={SECTION_CONFIG.savings.icon} color={SECTION_CONFIG.savings.color} title="Savings Opportunities">
+          <SectionCard icon={sectionConfig.savings.icon} color={sectionConfig.savings.color} title="Savings Opportunities">
             {tips.length > 0 ? (
               tips.map((tip: any, i: number) => (
                 <View key={i} style={styles.tipRow}>
-                  <View style={[styles.tipDot, { backgroundColor: SECTION_CONFIG.savings.color }]} />
+                  <View style={[styles.tipDot, { backgroundColor: sectionConfig.savings.color }]} />
                   <View style={styles.tipContent}>
                     <Text style={[styles.tipTitle, { color: colors.text.primary }]}>{tip.title}</Text>
                     <Text style={[styles.tipDesc, { color: colors.text.secondary }]}>{tip.description}</Text>

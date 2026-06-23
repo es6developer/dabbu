@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, RefreshControl, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +12,7 @@ import { usePremium, UsageInfo } from '../../store/PremiumContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PlanTier, TIER_COLORS } from '../../config/entitlements';
 
+import { alertService } from "../../components/ui";
 export function SubscriptionCenterScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -90,9 +81,9 @@ export function SubscriptionCenterScreen() {
     setProcessing(true);
     try {
       await resume();
-      Alert.alert('Reactivated!', 'Your subscription has been reactivated.');
+      alertService.alert('Reactivated!', 'Your subscription has been reactivated.');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to reactivate');
+      alertService.alert('Error', e?.message || 'Failed to reactivate');
     } finally {
       setProcessing(false);
     }
@@ -467,9 +458,9 @@ export function SubscriptionCenterScreen() {
                 try {
                   setProcessing(true);
                   await restorePurchases();
-                  Alert.alert('Restored!', 'Your subscription has been restored.');
+                  alertService.alert('Restored!', 'Your subscription has been restored.');
                 } catch (e: any) {
-                  Alert.alert('Error', e?.message || 'No previous purchase found');
+                  alertService.alert('Error', e?.message || 'No previous purchase found');
                 } finally {
                   setProcessing(false);
                 }

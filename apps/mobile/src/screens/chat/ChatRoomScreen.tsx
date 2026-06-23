@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, FlatList, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';

@@ -6,17 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
-import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
-import { Avatar } from '../../components/ui/Avatar';
-import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
-const HUB_CATEGORIES = [
-  { key: 'couple', label: 'Couple', icon: 'heart', color: '#F43F5E' },
-  { key: 'family', label: 'Family', icon: 'home', color: '#2563EB' },
-  { key: 'friends', label: 'Friends', icon: 'team', color: '#16A34A' },
-  { key: 'trip', label: 'Trips', icon: 'earth', color: '#0D9488' },
-] as const;
+import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 function fmtCompact(v: number) {
   if (v >= 10000000) return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
@@ -40,7 +32,13 @@ export function FamilyHubScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { user } = useAuth();
+
+  const HUB_CATEGORIES = [
+    { key: 'couple', label: 'Couple', icon: 'heart', color: colors.accent.primary },
+    { key: 'family', label: 'Family', icon: 'home', color: '#2563EB' },
+    { key: 'friends', label: 'Friends', icon: 'team', color: '#16A34A' },
+    { key: 'trip', label: 'Trips', icon: 'earth', color: '#0D9488' },
+  ] as const;
   const couple = useCoupleMode();
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,8 +75,6 @@ export function FamilyHubScreen() {
   const filteredGroups = activeFilter
     ? categorized[activeFilter] || []
     : groups;
-
-  const currentUserId = user?.id || '';
 
   function renderGroupCard(group: any) {
     const type = (group.type || group.groupType || 'friends').toLowerCase();

@@ -49,6 +49,7 @@ export { TransactionCard } from './TransactionCard';
 export { CircleCard } from './CircleCard';
 export { SplitSummaryCard } from './SplitSummaryCard';
 export { ConfirmDialog } from './ConfirmDialog';
+export { alertService, useCustomAlert, AlertProvider, type AlertButton, type AlertType } from './CustomAlert';
 export { Toast } from './Toast';
 export { AiInsightCard } from './AiInsightCard';
 export { StatTile } from './StatTile';

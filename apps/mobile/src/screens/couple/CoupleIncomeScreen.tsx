@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Alert,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +10,7 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 const { width: SCREEN_W } = Dimensions.get('window');
 
 function fmt(v: number) {
@@ -112,7 +104,7 @@ export function CoupleIncomeScreen() {
       setIncomes(incomeList);
     } catch (e: any) {
       if (e.message !== 'Session expired. Please login again.') {
-        Alert.alert('Error', e.message || 'Failed to load data');
+        alertService.alert('Error', e.message || 'Failed to load data');
       }
     } finally {
       setLoading(false);

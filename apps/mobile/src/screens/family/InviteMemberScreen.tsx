@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-  Share,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Share } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
+import { alertService } from "../../components/ui";
 export function InviteMemberScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
@@ -53,7 +44,7 @@ export function InviteMemberScreen() {
   async function handleShareCode() {
     const code = inviteCode;
     if (!code) {
-      Alert.alert('No Code', 'No invite code available. Create a family first.');
+      alertService.alert('No Code', 'No invite code available. Create a family first.');
       return;
     }
     try {
@@ -68,7 +59,7 @@ export function InviteMemberScreen() {
 
   async function handleCopyCode() {
     if (inviteCode) {
-      Alert.alert(
+      alertService.alert(
         'Invite Code',
         `Share this code: ${inviteCode}\n\nYour invite code is: ${inviteCode}`,
       );
@@ -87,7 +78,7 @@ export function InviteMemberScreen() {
         setAccessToken(accessToken);
       }
       await api.post('/family/join', { inviteCode: joinCode.trim() });
-      Alert.alert('Success', 'You have joined the family!');
+      alertService.alert('Success', 'You have joined the family!');
       setJoinCode('');
       loadFamily();
     } catch (e: any) {
@@ -105,7 +96,7 @@ export function InviteMemberScreen() {
       await api.delete(`/family/invitations/${inviteId}`);
       setPendingInvites((prev) => prev.filter((inv) => inv.id !== inviteId));
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to cancel invitation');
+      alertService.alert('Error', e.message || 'Failed to cancel invitation');
     }
   }
 

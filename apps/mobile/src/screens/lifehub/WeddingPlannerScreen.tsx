@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useLifeEventStore } from '../../store/lifeEventStore';
 
+import { alertService } from "../../components/ui";
 const WEDDING_BUDGETS = [
   { label: 'Intimate (50 guests)', cost: 500000 },
   { label: 'Medium (150 guests)', cost: 1500000 },
@@ -63,12 +64,12 @@ export function WeddingPlannerScreen({ navigation }: any) {
         spaceId,
         source: 'planner_created',
       });
-      Alert.alert('Wedding Plan Created', 'Your Wedding Space, Goal, and Life Event have been created. Start saving today!', [
+      alertService.alert('Wedding Plan Created', 'Your Wedding Space, Goal, and Life Event have been created. Start saving today!', [
         { text: 'View Plan', onPress: () => navigation?.navigate('LifeEventsList') },
         { text: 'OK' },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create wedding plan');
+      alertService.alert('Error', e?.message || 'Failed to create wedding plan');
     } finally {
       setCreating(false);
     }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
+import { alertService } from "../../components/ui";
 export function CoupleBudgetAdjustScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -42,10 +43,10 @@ export function CoupleBudgetAdjustScreen() {
           amount ? api.patch(`/budgets/${id}`, { amount: parseFloat(amount) }) : Promise.resolve()
         ),
       );
-      Alert.alert('Budget Updated', 'Your budget adjustments have been saved.');
+      alertService.alert('Budget Updated', 'Your budget adjustments have been saved.');
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to save adjustments');
+      alertService.alert('Error', e?.message || 'Failed to save adjustments');
     } finally {
       setSaving(false);
     }

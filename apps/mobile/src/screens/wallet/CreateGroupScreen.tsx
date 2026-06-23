@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -17,20 +9,20 @@ import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { useToast } from '../../store/ToastContext';
 
-const GROUP_ICONS: { icon: string; label: string; color: string }[] = [
-  { icon: 'users', label: 'General', color: '#6366F1' },
-  { icon: 'home', label: 'Household', color: '#22C55E' },
-  { icon: 'heart', label: 'Couple', color: '#EC4899' },
-  { icon: 'team', label: 'Friends', color: '#3B82F6' },
-  { icon: 'bank', label: 'Business', color: '#8B5CF6' },
-  { icon: 'earth', label: 'Travel', color: '#06B6D4' },
-  { icon: 'book', label: 'Education', color: '#3B82F6' },
-  { icon: 'shoppingcart', label: 'Shopping', color: '#F97316' },
-];
-
 export function CreateGroupScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+
+  const GROUP_ICONS: { icon: string; label: string; color: string }[] = [
+    { icon: 'users', label: 'General', color: '#6366F1' },
+    { icon: 'home', label: 'Household', color: '#22C55E' },
+    { icon: 'heart', label: 'Couple', color: '#EC4899' },
+    { icon: 'team', label: 'Friends', color: '#3B82F6' },
+    { icon: 'bank', label: 'Business', color: colors.accent.secondary },
+    { icon: 'earth', label: 'Travel', color: '#06B6D4' },
+    { icon: 'book', label: 'Education', color: '#3B82F6' },
+    { icon: 'shoppingcart', label: 'Shopping', color: '#F97316' },
+  ];
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
 

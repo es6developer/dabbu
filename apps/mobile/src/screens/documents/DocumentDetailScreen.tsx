@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, TextInput, ActivityIndicator, Image } from 'react-native';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { API_URL } from '../../config/api';
@@ -22,6 +11,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 const CATEGORIES = [
   { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
   { key: 'pan', label: 'PAN', icon: 'creditcard' },
@@ -86,7 +76,7 @@ export function DocumentDetailScreen() {
       setIssuer(doc.issuer || '');
       setNotes(doc.notes || '');
     } catch {
-      Alert.alert('Error', 'Failed to load document');
+      alertService.alert('Error', 'Failed to load document');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -104,7 +94,7 @@ export function DocumentDetailScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Required', 'Document name is required');
+      alertService.alert('Required', 'Document name is required');
       return;
     }
     setSaving(true);
@@ -139,7 +129,7 @@ export function DocumentDetailScreen() {
         }
 
         await api.post('/documents/upload', formData);
-        Alert.alert('Uploaded', 'Document uploaded successfully', [
+        alertService.alert('Uploaded', 'Document uploaded successfully', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
@@ -152,10 +142,10 @@ export function DocumentDetailScreen() {
           issuer: issuer || undefined,
           notes: notes || undefined,
         });
-        Alert.alert('Saved', 'Document updated successfully');
+        alertService.alert('Saved', 'Document updated successfully');
       }
     } catch {
-      Alert.alert('Error', 'Failed to save document');
+      alertService.alert('Error', 'Failed to save document');
     } finally {
       setSaving(false);
     }
@@ -182,17 +172,17 @@ export function DocumentDetailScreen() {
       if (await sharing.isAvailableAsync()) {
         await sharing.shareAsync(download.uri);
       } else {
-        Alert.alert('Downloaded', `File saved to ${download.uri}`);
+        alertService.alert('Downloaded', `File saved to ${download.uri}`);
       }
     } catch {
-      Alert.alert('Error', 'Failed to download document');
+      alertService.alert('Error', 'Failed to download document');
     } finally {
       setDownloading(false);
     }
   };
 
   const handleDelete = () => {
-    Alert.alert('Delete Document', 'Are you sure you want to delete this document?', [
+    alertService.alert('Delete Document', 'Are you sure you want to delete this document?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -206,7 +196,7 @@ export function DocumentDetailScreen() {
             showToast('Document deleted');
             navigation.goBack();
           } catch {
-            Alert.alert('Error', 'Failed to delete document');
+            alertService.alert('Error', 'Failed to delete document');
           }
         },
       },

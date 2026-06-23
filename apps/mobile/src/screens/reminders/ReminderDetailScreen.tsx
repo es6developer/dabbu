@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
+import { alertService } from "../../components/ui";
 const SNOOZE_OPTIONS = [
   { label: '5 minutes', value: 5 },
   { label: '15 minutes', value: 15 },
@@ -52,10 +53,10 @@ export function ReminderDetailScreen() {
         setAccessToken(accessToken);
       }
       await api.post(`/reminders/${reminderId}/complete`);
-      Alert.alert('Completed', 'Reminder marked as complete');
+      alertService.alert('Completed', 'Reminder marked as complete');
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to complete reminder');
+      alertService.alert('Error', e.message || 'Failed to complete reminder');
     } finally {
       setActionLoading(false);
     }
@@ -70,17 +71,17 @@ export function ReminderDetailScreen() {
       }
       const until = new Date(Date.now() + minutes * 60000).toISOString();
       await api.post(`/reminders/${reminderId}/snooze`, { until });
-      Alert.alert('Snoozed', `Reminder snoozed for ${minutes} minutes`);
+      alertService.alert('Snoozed', `Reminder snoozed for ${minutes} minutes`);
       loadReminder();
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to snooze reminder');
+      alertService.alert('Error', e.message || 'Failed to snooze reminder');
     } finally {
       setActionLoading(false);
     }
   }
 
   async function handleDelete() {
-    Alert.alert('Delete Reminder', 'Are you sure?', [
+    alertService.alert('Delete Reminder', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -94,7 +95,7 @@ export function ReminderDetailScreen() {
             await api.delete(`/reminders/${reminderId}`);
             navigation.goBack();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete reminder');
+            alertService.alert('Error', e.message || 'Failed to delete reminder');
           } finally {
             setActionLoading(false);
           }

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, Dimensions, StatusBar, ImageSourcePropType } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, {
   Circle,
   Defs,
@@ -19,6 +20,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { getLensLogo } from '../../utils/lensLogo';
 
 const { width: W, height: H } = Dimensions.get('window');
 const LOGO_SZ = 80;
@@ -66,6 +68,21 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const brandTranslate = useSharedValue(16);
   const taglineOpacity = useSharedValue(0);
   const taglineTranslate = useSharedValue(10);
+  const [logoSrc, setLogoSrc] = useState<ImageSourcePropType>(getLensLogo(null));
+
+  useEffect(() => {
+    AsyncStorage.getItem('dabbu-lens-storage').then((raw) => {
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          const lens = parsed?.state?.activeLens;
+          if (lens) setLogoSrc(getLensLogo(lens));
+        } catch {
+          // ignore parse errors
+        }
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
@@ -104,7 +121,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
 
       <Animated.View style={[s.logoWrap, logoAnim]}>
         <View style={[s.logoInner, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-          <Image source={require('../../../assets/logo.png')} style={s.logoImg} resizeMode="contain" />
+          <Image source={logoSrc} style={s.logoImg} resizeMode="contain" />
         </View>
       </Animated.View>
 

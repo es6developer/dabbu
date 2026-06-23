@@ -1,17 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Animated,
-  Image,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Animated, Image, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
@@ -19,6 +7,7 @@ import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 import { spacing, borderRadius, shadows, sectionHeader, animation } from '../../theme/design';
+import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 
 export function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -26,6 +15,7 @@ export function LoginScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { response, promptAsync } = useGoogleAuth();
+  const logoSource = useLastLensLogo();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,7 +78,7 @@ export function LoginScreen() {
             {/* Brand */}
             <View style={{ alignItems: 'center', marginBottom: spacing['5xl'] }}>
               <View style={s.logoWrap}>
-                <Image source={require('../../../assets/logo.png')} style={{ width: 48, height: 48 }} resizeMode="contain" />
+                <Image source={logoSource} style={{ width: 48, height: 48 }} resizeMode="contain" />
               </View>
               <Text style={[s.title, { color: colors.text.primary }]}>Welcome back</Text>
               <Text style={[s.subtitle, { color: colors.text.secondary }]}>Sign in to your account</Text>

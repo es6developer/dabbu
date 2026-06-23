@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Platform,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -22,6 +12,7 @@ import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingC
 import { useToast } from '../../store/ToastContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { alertService } from "../../components/ui";
 const CATEGORIES = [
   'Groceries',
   'Dining',
@@ -117,7 +108,7 @@ export function BillDetailScreen() {
         throw new Error('Bill not found');
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to load bill');
+      alertService.alert('Error', e.message || 'Failed to load bill');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -149,7 +140,7 @@ export function BillDetailScreen() {
 
   async function handleSave() {
     if (!merchant.trim()) {
-      Alert.alert('Validation', 'Merchant name is required.');
+      alertService.alert('Validation', 'Merchant name is required.');
       return;
     }
     setSaving(true);
@@ -167,20 +158,20 @@ export function BillDetailScreen() {
       };
       const res = await api.patch<any>(`/bills/${billId}`, payload);
       if (res) {
-        Alert.alert('Saved', 'Bill updated successfully.');
+        alertService.alert('Saved', 'Bill updated successfully.');
         navigation.goBack();
       } else {
         throw new Error('Save failed');
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Could not save changes.');
+      alertService.alert('Error', e.message || 'Could not save changes.');
     } finally {
       setSaving(false);
     }
   }
 
   function confirmDelete() {
-    Alert.alert(
+    alertService.alert(
       'Delete Bill',
       'Are you sure you want to delete this bill? This action cannot be undone.',
       [
@@ -197,7 +188,7 @@ export function BillDetailScreen() {
       showToast('Bill deleted');
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Could not delete bill.');
+      alertService.alert('Error', e.message || 'Could not delete bill.');
     } finally {
       setDeleting(false);
     }

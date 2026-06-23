@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BaseScreen } from '../../components/ui/BaseScreen';
@@ -10,6 +10,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 type ToggleKey =
   | 'expenseAlerts'
   | 'groupAlerts'
@@ -227,7 +228,7 @@ export function NotificationSettingsScreen() {
         showToast('Preferences saved');
       } catch {
         setToggles(toggles);
-        Alert.alert('Error', 'Failed to save preference');
+        alertService.alert('Error', 'Failed to save preference');
       } finally {
         setSaving(false);
       }

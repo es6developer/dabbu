@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Animated,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Animated, StyleSheet, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,14 +12,16 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - spacing.xl * 2 - spacing.md) / 2;
 
-const TEMPLATES = [
-  { type: 'HOUSE', icon: 'home', label: 'House', color: '#60A5FA' },
-  { type: 'CAR', icon: 'car', label: 'Car', color: '#34C759' },
-  { type: 'BABY', icon: 'smileo', label: 'Baby Fund', color: '#FF8A65' },
-  { type: 'VACATION', icon: 'earth', label: 'Vacation', color: '#F59E0B' },
-  { type: 'WEDDING', icon: 'heart', label: 'Wedding', color: '#F43F5E' },
-  { type: 'INVESTMENT', icon: 'linechart', label: 'Investment', color: '#A78BFA' },
-];
+function getTemplates(colors: any) {
+  return [
+    { type: 'HOUSE', icon: 'home', label: 'House', color: '#60A5FA' },
+    { type: 'CAR', icon: 'car', label: 'Car', color: '#34C759' },
+    { type: 'BABY', icon: 'smileo', label: 'Baby Fund', color: '#FF8A65' },
+    { type: 'VACATION', icon: 'earth', label: 'Vacation', color: colors.status.warning },
+    { type: 'WEDDING', icon: 'heart', label: 'Wedding', color: colors.accent.primary },
+    { type: 'INVESTMENT', icon: 'linechart', label: 'Investment', color: colors.accent.tertiary },
+  ];
+}
 
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -110,6 +103,7 @@ function GoalsSkeleton() {
 export function CoupleGoalsScreen({ navigation: nav }: any) {
   const navigation = nav || useNavigation<any>();
   const { colors, isDark } = useTheme();
+  const templates = getTemplates(colors);
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
@@ -219,7 +213,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 10 }}
               >
-                {TEMPLATES.map((t, i) => (
+                {templates.map((t, i) => (
                   <TouchableOpacity
                     key={t.type}
                     activeOpacity={0.8}
@@ -261,7 +255,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                     const target = Number(goal.targetAmount || goal.target || 0);
                     const saved = Number(goal.savedAmount || goal.currentAmount || 0);
                     const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
-                    const catIcon = TEMPLATES.find(
+                    const catIcon = templates.find(
                       (t) => t.type === goal.category || t.label === goal.category,
                     );
                     const icon = catIcon?.icon || 'Trophy';

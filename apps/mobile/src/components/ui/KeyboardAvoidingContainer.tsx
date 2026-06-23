@@ -1,15 +1,5 @@
 import React, { ReactNode, useRef } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Keyboard,
-  TouchableWithoutFeedback,
-  View,
-  ScrollViewProps,
-  LayoutChangeEvent,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Keyboard, TouchableWithoutFeedback, View, ScrollViewProps, LayoutChangeEvent } from 'react-native';
 
 interface KeyboardAvoidingContainerProps extends ScrollViewProps {
   children: ReactNode;

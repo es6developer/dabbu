@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
@@ -22,6 +13,7 @@ import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 export function SecurityScreen() {
   const { colors } = useTheme();
   const { accessToken, user } = useAuth();
@@ -84,7 +76,7 @@ export function SecurityScreen() {
       if (value) {
         const isEnrolled = await LocalAuthentication.isEnrolledAsync();
         if (!isEnrolled) {
-          Alert.alert('Not Available', 'Biometric authentication is not set up on this device');
+          alertService.alert('Not Available', 'Biometric authentication is not set up on this device');
           return;
         }
       }
@@ -92,7 +84,7 @@ export function SecurityScreen() {
       setBiometricEnabled(value);
       api.post('/auth/lock', { biometricEnabled: value }).catch(() => {});
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to update biometric setting');
+      alertService.alert('Error', e.message || 'Failed to update biometric setting');
     }
   }
 
@@ -100,27 +92,27 @@ export function SecurityScreen() {
     try {
       const existingPin = await SecureStore.getItemAsync(appPinKey);
       if (value && !existingPin) {
-        Alert.alert('Set PIN First', 'Please set up an App PIN before enabling Lock App.');
+        alertService.alert('Set PIN First', 'Please set up an App PIN before enabling Lock App.');
         return;
       }
       await SecureStore.setItemAsync(appLockEnabledKey, String(value));
       setLockEnabled(value);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to update lock setting');
+      alertService.alert('Error', e.message || 'Failed to update lock setting');
     }
   }
 
   async function handleSetupPin() {
     if (!pin || pin.length < 4) {
-      Alert.alert('Error', 'PIN must be 4 digits');
+      alertService.alert('Error', 'PIN must be 4 digits');
       return;
     }
     if (pin.length > 4) {
-      Alert.alert('Error', 'PIN must be 4 digits');
+      alertService.alert('Error', 'PIN must be 4 digits');
       return;
     }
     if (pin !== pinConfirm) {
-      Alert.alert('Error', 'PINs do not match');
+      alertService.alert('Error', 'PINs do not match');
       return;
     }
     setSavingPin(true);
@@ -132,14 +124,14 @@ export function SecurityScreen() {
       ]);
       setLockEnabled(true);
       setHasPin(true);
-      Alert.alert('Success', 'PIN set up successfully. Lock App is now enabled.');
+      alertService.alert('Success', 'PIN set up successfully. Lock App is now enabled.');
       setShowPinSetup(false);
       setPin('');
       setPinConfirm('');
       setOldPin('');
       setPinAction(null);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to set PIN');
+      alertService.alert('Error', e.message || 'Failed to set PIN');
     } finally {
       setSavingPin(false);
     }
@@ -147,22 +139,22 @@ export function SecurityScreen() {
 
   async function handleChangePin() {
     if (!oldPin) {
-      Alert.alert('Error', 'Please enter your current PIN');
+      alertService.alert('Error', 'Please enter your current PIN');
       return;
     }
     if (!pin || pin.length < 4) {
-      Alert.alert('Error', 'New PIN must be 4 digits');
+      alertService.alert('Error', 'New PIN must be 4 digits');
       return;
     }
     if (pin !== pinConfirm) {
-      Alert.alert('Error', 'PINs do not match');
+      alertService.alert('Error', 'PINs do not match');
       return;
     }
     setSavingPin(true);
     try {
       const currentPin = await SecureStore.getItemAsync(appPinKey);
       if (oldPin !== currentPin) {
-        Alert.alert('Error', 'Current PIN is incorrect');
+        alertService.alert('Error', 'Current PIN is incorrect');
         setSavingPin(false);
         return;
       }
@@ -170,21 +162,21 @@ export function SecurityScreen() {
         SecureStore.setItemAsync(appPinKey, pin),
         api.post('/auth/lock', { oldPin, pin }).catch(() => {}),
       ]);
-      Alert.alert('Success', 'PIN changed successfully');
+      alertService.alert('Success', 'PIN changed successfully');
       setShowPinSetup(false);
       setPin('');
       setPinConfirm('');
       setOldPin('');
       setPinAction(null);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to change PIN');
+      alertService.alert('Error', e.message || 'Failed to change PIN');
     } finally {
       setSavingPin(false);
     }
   }
 
   async function handleRemovePin() {
-    Alert.alert(
+    alertService.alert(
       'Remove PIN',
       'Are you sure you want to remove your app PIN? Lock App will be disabled.',
       [
@@ -204,9 +196,9 @@ export function SecurityScreen() {
               setHasPin(false);
               setShowPinSetup(false);
               setPinAction(null);
-              Alert.alert('Removed', 'App PIN has been removed');
+              alertService.alert('Removed', 'App PIN has been removed');
             } catch (e: any) {
-              Alert.alert('Error', e.message || 'Failed to remove PIN');
+              alertService.alert('Error', e.message || 'Failed to remove PIN');
             } finally {
               setSavingPin(false);
             }
@@ -226,7 +218,7 @@ export function SecurityScreen() {
       showToast('Session removed');
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to revoke session');
+      alertService.alert('Error', e.message || 'Failed to revoke session');
     }
   }
 
@@ -620,10 +612,10 @@ export function SecurityScreen() {
           try {
             const sessionId = await SecureStore.getItemAsync('sessionId');
             await api.post('/auth/sessions/logout-all', { currentSessionId: sessionId || '' });
-            Alert.alert('Success', 'All other sessions logged out');
+            alertService.alert('Success', 'All other sessions logged out');
             loadData();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to logout sessions');
+            alertService.alert('Error', e.message || 'Failed to logout sessions');
           }
         }}
         onCancel={() => setShowLogoutAllDialog(false)}

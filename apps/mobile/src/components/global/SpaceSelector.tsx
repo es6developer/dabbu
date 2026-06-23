@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useSpaceStore, Space } from '../../store/spaceStore';

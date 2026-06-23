@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useLifeEventStore } from '../../store/lifeEventStore';
 
+import { alertService } from "../../components/ui";
 const PLANNER_CONFIG: Record<string, { type: string; icon: string; color: string }> = {
   House: { type: 'HOUSE', icon: 'home', color: '#F59E0B' },
   Baby: { type: 'BABY', icon: 'smileo', color: '#22C55E' },
@@ -31,7 +32,7 @@ export function CouplePlannerFormScreen() {
 
   const handleCreate = async () => {
     if (!targetAmount || parseFloat(targetAmount) <= 0) {
-      Alert.alert('Enter target amount');
+      alertService.alert('Enter target amount');
       return;
     }
     setSaving(true);
@@ -55,12 +56,12 @@ export function CouplePlannerFormScreen() {
         spaceId,
         source: 'planner_created',
       });
-      Alert.alert(`${plannerType} Plan Created`, 'Your Space, Goal, and Life Event are ready!', [
+      alertService.alert(`${plannerType} Plan Created`, 'Your Space, Goal, and Life Event are ready!', [
         { text: 'View', onPress: () => navigation.replace('LifePlans') },
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create plan');
+      alertService.alert('Error', e?.message || 'Failed to create plan');
     } finally {
       setSaving(false);
     }

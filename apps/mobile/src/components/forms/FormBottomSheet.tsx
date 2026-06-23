@@ -1,17 +1,5 @@
 import React, { useEffect, useRef, ReactNode, useCallback } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  PanResponder,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { View, Text, Modal, Animated, StyleSheet, TouchableOpacity, Dimensions, PanResponder, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';

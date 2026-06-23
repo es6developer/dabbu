@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 

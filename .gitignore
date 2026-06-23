@@ -28,6 +28,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Audit / generated reports
+dead_code.txt
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

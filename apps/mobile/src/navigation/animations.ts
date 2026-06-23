@@ -4,16 +4,16 @@ import { Platform } from 'react-native';
 
 /**
  * Apple-native spring-driven screen transitions.
- * - iOS: slide_from_right with 400ms (Apple default spring duration)
+ * - iOS: slide_from_right with 350ms (slightly faster than default for snappier feel)
  * - Android: slide_from_right for iOS-consistent feel
  * - gesture back enabled for native iOS-like swipe
- * - 400ms matches Apple's UINavigationController spring transition
+ * - 350ms for a responsive premium feel
  */
 export function iosTransitionOptions(theme: Theme): NativeStackNavigationOptions {
   const { colors, typography } = theme;
   return {
     animation: 'slide_from_right',
-    animationDuration: 400,
+    animationDuration: 350,
     animationTypeForReplace: 'push',
     gestureEnabled: true,
     gestureDirection: 'horizontal',
@@ -79,6 +79,30 @@ export const CARD_SPRING = {
  */
 export const PRESS_SPRING = {
   tension: 200,
+  friction: 16,
+  useNativeDriver: true,
+} as const;
+
+/**
+ * Smooth spring for tab content transitions (page moves on tab switch).
+ * tension: 120 (responsive but not too bouncy)
+ * friction: 14 (smooth settle)
+ * useNativeDriver: true
+ */
+export const TAB_SPRING = {
+  tension: 120,
+  friction: 14,
+  useNativeDriver: true,
+} as const;
+
+/**
+ * Entry spring for screens/content appearing on mount.
+ * tension: 80 (soft and smooth)
+ * friction: 16 (very little bounce)
+ * useNativeDriver: true
+ */
+export const ENTRY_SPRING = {
+  tension: 80,
   friction: 16,
   useNativeDriver: true,
 } as const;

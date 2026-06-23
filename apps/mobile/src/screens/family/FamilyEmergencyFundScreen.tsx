@@ -1,18 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  RefreshControl,
-} from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
@@ -22,60 +13,230 @@ const STROKE_WIDTH = 12;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-interface CircularProgressProps {
-  progress: number;
-  size: number;
-  strokeWidth: number;
-  color: string;
-}
-
-const CircularProgress: React.FC<CircularProgressProps> = ({
-  progress,
-  size,
-  strokeWidth,
-  color,
-}) => {
-  const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
-
-  return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: strokeWidth,
-          borderColor: '#2C2C2E',
-          position: 'absolute',
-        }}
-      />
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: strokeWidth,
-          borderColor: 'transparent',
-          borderTopColor: color,
-          borderRightColor: color,
-          transform: [{ rotate: `${progress * 360}deg` }],
-          position: 'absolute',
-        }}
-      />
-      <View style={{ alignItems: 'center' }}>
-        <Text style={styles.circlePercent}>{Math.round(progress * 100)}%</Text>
-        <Text style={styles.circleLabel}>Funded</Text>
-      </View>
-    </View>
-  );
-};
-
 export default function FamilyEmergencyFundScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const [fund, setFund] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text.primary,
+      letterSpacing: -0.5,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 130,
+    },
+    circleCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 20,
+      padding: 30,
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    circlePercent: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: colors.text.primary,
+    },
+    circleLabel: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+      marginTop: 2,
+    },
+    amountContainer: {
+      marginTop: 20,
+      alignItems: 'center',
+    },
+    savedAmount: {
+      fontSize: 34,
+      fontWeight: '700',
+      color: colors.status.success,
+      letterSpacing: -0.5,
+    },
+    targetText: {
+      fontSize: 16,
+      color: colors.text.tertiary,
+      marginTop: 4,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 16,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 14,
+      padding: 16,
+      alignItems: 'center',
+    },
+    statIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text.primary,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.text.tertiary,
+      textAlign: 'center',
+    },
+    infoCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 16,
+      gap: 12,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    infoText: {
+      fontSize: 14,
+      color: colors.text.primary,
+      flex: 1,
+    },
+    infoHighlight: {
+      fontWeight: '700',
+      color: colors.status.success,
+    },
+    progressDetailCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 16,
+    },
+    progressDetailTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text.primary,
+      marginBottom: 12,
+    },
+    progressDetailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    progressDetailLabel: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+    },
+    progressDetailValue: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text.primary,
+    },
+    progressDivider: {
+      height: 1,
+      backgroundColor: colors.bg.tertiary,
+      marginVertical: 8,
+    },
+    bottomBar: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      paddingBottom: 32,
+      backgroundColor: colors.bg.primary,
+      borderTopWidth: 1,
+      borderTopColor: colors.bg.secondary,
+    },
+    contributeButton: {
+      flexDirection: 'row',
+      backgroundColor: colors.status.success,
+      borderRadius: 14,
+      paddingVertical: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+    },
+    contributeText: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.bg.primary,
+    },
+  }), [colors]);
+
+  const CircularProgress: React.FC<{
+    progress: number;
+    size: number;
+    strokeWidth: number;
+    color: string;
+  }> = ({
+    progress,
+    size,
+    strokeWidth,
+    color,
+  }) => {
+    return (
+      <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: strokeWidth,
+            borderColor: colors.bg.tertiary,
+            position: 'absolute',
+          }}
+        />
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: strokeWidth,
+            borderColor: 'transparent',
+            borderTopColor: color,
+            borderRightColor: color,
+            transform: [{ rotate: `${progress * 360}deg` }],
+            position: 'absolute',
+          }}
+        />
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.circlePercent}>{Math.round(progress * 100)}%</Text>
+          <Text style={styles.circleLabel}>Funded</Text>
+        </View>
+      </View>
+    );
+  };
 
   const loadData = useCallback(async (silent = false, refresh = false) => {
     if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
@@ -105,7 +266,7 @@ export default function FamilyEmergencyFundScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size="large" color={colors.status.success} />
       </View>
     );
   }
@@ -114,7 +275,7 @@ export default function FamilyEmergencyFundScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <AntDesign name="Safety" size={24} color="#10B981" />
+          <AntDesign name="Safety" size={24} color={colors.status.success} />
           <Text style={styles.headerTitle}>Emergency Fund</Text>
         </View>
       </View>
@@ -123,14 +284,14 @@ export default function FamilyEmergencyFundScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor="#10B981" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.status.success} />}
       >
         <View style={styles.circleCard}>
           <CircularProgress
             progress={progress}
             size={CIRCLE_SIZE}
             strokeWidth={STROKE_WIDTH}
-            color="#10B981"
+            color={colors.status.success}
           />
           <View style={styles.amountContainer}>
             <Text style={styles.savedAmount}>{formatCurrency(savedAmount)}</Text>
@@ -140,8 +301,8 @@ export default function FamilyEmergencyFundScreen() {
 
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: '#10B98120' }]}>
-              <AntDesign name="arrowup" size={18} color="#10B981" />
+            <View style={[styles.statIcon, { backgroundColor: colors.status.success + '20' }]}>
+              <AntDesign name="arrowup" size={18} color={colors.status.success} />
             </View>
             <Text style={styles.statValue}>{formatCurrency(monthlyContribution)}</Text>
             <Text style={styles.statLabel}>Monthly Contribution</Text>
@@ -157,7 +318,7 @@ export default function FamilyEmergencyFundScreen() {
 
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <AntDesign name="checkcircle" size={16} color="#10B981" />
+            <AntDesign name="checkcircle" size={16} color={colors.status.success} />
             <Text style={styles.infoText}>
               Great start! You've saved <Text style={styles.infoHighlight}>{formatCurrency(savedAmount)}</Text>
             </Text>
@@ -169,9 +330,9 @@ export default function FamilyEmergencyFundScreen() {
             </Text>
           </View>
           <View style={styles.infoRow}>
-            <AntDesign name="star" size={16} color="#8B5CF6" />
+            <AntDesign name="star" size={16} color={colors.accent.secondary} />
             <Text style={styles.infoText}>
-              Target: <Text style={[styles.infoHighlight, { color: '#8B5CF6' }]}>{targetMonths} months</Text> of expenses covered
+              Target: <Text style={[styles.infoHighlight, { color: colors.accent.secondary }]}>{targetMonths} months</Text> of expenses covered
             </Text>
           </View>
         </View>
@@ -193,7 +354,7 @@ export default function FamilyEmergencyFundScreen() {
           <View style={styles.progressDivider} />
           <View style={styles.progressDetailRow}>
             <Text style={styles.progressDetailLabel}>Progress</Text>
-            <Text style={[styles.progressDetailValue, { color: '#10B981' }]}>
+            <Text style={[styles.progressDetailValue, { color: colors.status.success }]}>
               {Math.round(progress * 100)}%
             </Text>
           </View>
@@ -205,183 +366,10 @@ export default function FamilyEmergencyFundScreen() {
           style={styles.contributeButton}
           onPress={() => navigation.navigate('Goals')}
         >
-          <AntDesign name="plus" size={20} color="#0A0A0A" />
+          <AntDesign name="plus" size={20} color={colors.bg.primary} />
           <Text style={styles.contributeText}>Contribute Now</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0A0A',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#F9FAFB',
-    letterSpacing: -0.5,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 130,
-  },
-  circleCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
-    padding: 30,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  circlePercent: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-  circleLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  amountContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  savedAmount: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#10B981',
-    letterSpacing: -0.5,
-  },
-  targetText: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-  },
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#F9FAFB',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  infoCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#F9FAFB',
-    flex: 1,
-  },
-  infoHighlight: {
-    fontWeight: '700',
-    color: '#10B981',
-  },
-  progressDetailCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-  },
-  progressDetailTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F9FAFB',
-    marginBottom: 12,
-  },
-  progressDetailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  progressDetailLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  progressDetailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#F9FAFB',
-  },
-  progressDivider: {
-    height: 1,
-    backgroundColor: '#2C2C2E',
-    marginVertical: 8,
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 32,
-    backgroundColor: '#0A0A0A',
-    borderTopWidth: 1,
-    borderTopColor: '#1C1C1E',
-  },
-  contributeButton: {
-    flexDirection: 'row',
-    backgroundColor: '#10B981',
-    borderRadius: 14,
-    paddingVertical: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  contributeText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0A0A0A',
-  },
-});

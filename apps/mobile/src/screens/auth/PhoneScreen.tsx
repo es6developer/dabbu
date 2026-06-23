@@ -1,24 +1,16 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 
 export function PhoneScreen() {
   const { user, updatePhone } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const logoSource = useLastLensLogo();
   const [phone, setPhone] = useState(user?.phone || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -75,7 +67,7 @@ export function PhoneScreen() {
         >
           <View style={styles.center}>
             <Image
-              source={require('../../../assets/logo.png')}
+              source={logoSource}
               style={[styles.logo, { tintColor: colors.accent.primary }]}
               resizeMode="contain"
             />

@@ -1,16 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Platform,
-  Keyboard,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -20,19 +9,6 @@ import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing as sp, borderRadius as br, shadows as sh } from '../../theme/design';
-
-const ICONS = [
-  { key: 'team', label: 'Friends', color: '#8B5CF6' },
-  { key: 'home', label: 'House', color: '#34C759' },
-  { key: 'car', label: 'Travel', color: '#38BDF8' },
-  { key: 'earth', label: 'Trip', color: '#60A5FA' },
-  { key: 'gift', label: 'Gift', color: '#F472B6' },
-  { key: 'shoppingcart', label: 'Shopping', color: '#F59E0B' },
-  { key: 'rest', label: 'Dining', color: '#FF6B6B' },
-  { key: 'hearto', label: 'Couple', color: '#FF4D6A' },
-  { key: 'book', label: 'Study', color: '#7C3AED' },
-  { key: 'bank', label: 'Office', color: '#14B8A6' },
-];
 
 const DAYS_IN_MONTH = 30;
 
@@ -46,6 +22,19 @@ export function CreateExpenseGroupScreen() {
   const { accessToken } = useAuth();
   const { showToast } = useToast();
   const { colors, isDark } = useTheme();
+
+  const ICONS = [
+    { key: 'team', label: 'Friends', color: colors.accent.secondary },
+    { key: 'home', label: 'House', color: '#34C759' },
+    { key: 'car', label: 'Travel', color: '#38BDF8' },
+    { key: 'earth', label: 'Trip', color: '#60A5FA' },
+    { key: 'gift', label: 'Gift', color: '#F472B6' },
+    { key: 'shoppingcart', label: 'Shopping', color: '#F59E0B' },
+    { key: 'rest', label: 'Dining', color: '#FF6B6B' },
+    { key: 'hearto', label: 'Couple', color: '#FF4D6A' },
+    { key: 'book', label: 'Study', color: colors.accent.primary },
+    { key: 'bank', label: 'Office', color: '#14B8A6' },
+  ];
   const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');

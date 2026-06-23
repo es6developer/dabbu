@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { usePremium } from '../../store/PremiumContext';
 import { useAppLock } from '../../store/LockContext';
 import { borderRadius, PADDING } from '../../theme/design';
 
+import { alertService } from "../../components/ui";
 type GroupItem = { label: string; icon: string; screen: string; premium?: boolean; action?: 'lock' };
 type GroupData = { title: string; items: GroupItem[] };
 
@@ -32,11 +33,11 @@ export function SettingsGroupScreen() {
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
     if (action === 'lock') { lockApp(); return; }
     if (!REGISTERED_SCREENS.includes(screen)) {
-      Alert.alert('Coming Soon', `${screen} settings will be available soon`);
+      alertService.alert('Coming Soon', `${screen} settings will be available soon`);
       return;
     }
     if (premium && !isPremium) {
-      Alert.alert('Premium Feature', 'This feature is available on Premium plan.', [
+      alertService.alert('Premium Feature', 'This feature is available on Premium plan.', [
         { text: 'Cancel', style: 'cancel' },
         { text: 'View Plans', onPress: () => navigation.navigate('SubscriptionCenter') },
       ]);

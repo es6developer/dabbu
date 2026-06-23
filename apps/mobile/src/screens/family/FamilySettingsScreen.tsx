@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
@@ -16,6 +8,7 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
+import { alertService } from "../../components/ui";
 export function FamilySettingsScreen() {
   const { colors } = useTheme();
   const { accessToken, user } = useAuth();
@@ -63,7 +56,7 @@ export function FamilySettingsScreen() {
         setAccessToken(accessToken);
       }
       await api.patch(`/family/${family.id}`, { name: familyName.trim() });
-      Alert.alert('Success', 'Family name updated');
+      alertService.alert('Success', 'Family name updated');
     } catch (e: any) {
       setError(e.message || 'Failed to update family name');
     } finally {
@@ -72,7 +65,7 @@ export function FamilySettingsScreen() {
   }
 
   async function handleRemoveMember(memberId: string, memberName: string) {
-    Alert.alert('Remove Member', `Remove ${memberName} from the family?`, [
+    alertService.alert('Remove Member', `Remove ${memberName} from the family?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
@@ -85,7 +78,7 @@ export function FamilySettingsScreen() {
             await api.delete(`/family/${family.id}/members/${memberId}`);
             setMembers((prev) => prev.filter((m) => (m.userId || m.id) !== memberId));
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to remove member');
+            alertService.alert('Error', e.message || 'Failed to remove member');
           }
         },
       },
@@ -93,7 +86,7 @@ export function FamilySettingsScreen() {
   }
 
   function handleLeaveFamily() {
-    Alert.alert('Leave Family', 'Are you sure you want to leave this family?', [
+    alertService.alert('Leave Family', 'Are you sure you want to leave this family?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Leave',
@@ -106,7 +99,7 @@ export function FamilySettingsScreen() {
             await api.post(`/family/${family.id}/leave`);
             loadFamily();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to leave family');
+            alertService.alert('Error', e.message || 'Failed to leave family');
           }
         },
       },
@@ -114,7 +107,7 @@ export function FamilySettingsScreen() {
   }
 
   function handleDeleteFamily() {
-    Alert.alert(
+    alertService.alert(
       'Delete Family',
       'This will permanently delete the family and all associated data. Are you sure?',
       [
@@ -123,7 +116,7 @@ export function FamilySettingsScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Confirm Deletion', 'Type DELETE to confirm', [
+            alertService.alert('Confirm Deletion', 'Type DELETE to confirm', [
               { text: 'Cancel', style: 'cancel' },
               {
                 text: 'DELETE',
@@ -134,10 +127,10 @@ export function FamilySettingsScreen() {
                       setAccessToken(accessToken);
                     }
                     await api.delete(`/family/${family.id}`);
-                    Alert.alert('Deleted', 'Family has been deleted');
+                    alertService.alert('Deleted', 'Family has been deleted');
                     loadFamily();
                   } catch (e: any) {
-                    Alert.alert('Error', e.message || 'Failed to delete family');
+                    alertService.alert('Error', e.message || 'Failed to delete family');
                   }
                 },
               },

@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +8,7 @@ import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 const TAB_W = (width - 40 - 8) / 3;
 
@@ -401,9 +393,9 @@ export function CoupleReportsScreen() {
             onPress={async () => {
               try {
                 const res = await api.post<any>('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'budgets'] });
-                Alert.alert('Export Ready', 'Your data has been exported. Check the Data Export section in Settings to download.');
+                alertService.alert('Export Ready', 'Your data has been exported. Check the Data Export section in Settings to download.');
               } catch {
-                Alert.alert('Export Failed', 'Please try again or use the Data Export in Settings.');
+                alertService.alert('Export Failed', 'Please try again or use the Data Export in Settings.');
               }
             }}
           >
@@ -419,7 +411,6 @@ export function CoupleReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-
 
   periodRow: {
     flexDirection: 'row',

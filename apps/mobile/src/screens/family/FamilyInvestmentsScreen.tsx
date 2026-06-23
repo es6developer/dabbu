@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -16,29 +8,33 @@ import { api } from '../../services/api';
 const CARD_H = 96;
 const SKELETON_COUNT = 4;
 
-const TYPE_ICONS: Record<string, { icon: keyof typeof AntDesign.glyphMap; color: string }> = {
-  mutual_funds: { icon: 'barschart', color: '#3B82F6' },
-  stocks: { icon: 'linechart', color: '#22C55E' },
-  gold: { icon: 'star', color: '#F59E0B' },
-  fd: { icon: 'wallet', color: '#14B8A6' },
-  crypto: { icon: 'rocket1', color: '#A78BFA' },
-  property: { icon: 'home', color: '#F97316' },
-  pf: { icon: 'Safety', color: '#6366F1' },
-  nps: { icon: 'user', color: '#EC4899' },
-  other: { icon: 'question', color: '#9CA3AF' },
-};
+function getTypeIcons(colors: any): Record<string, { icon: keyof typeof AntDesign.glyphMap; color: string }> {
+  return {
+    mutual_funds: { icon: 'barschart', color: '#3B82F6' },
+    stocks: { icon: 'linechart', color: colors.status.success },
+    gold: { icon: 'star', color: colors.status.warning },
+    fd: { icon: 'wallet', color: '#14B8A6' },
+    crypto: { icon: 'rocket1', color: colors.accent.tertiary },
+    property: { icon: 'home', color: '#F97316' },
+    pf: { icon: 'Safety', color: '#6366F1' },
+    nps: { icon: 'user', color: '#EC4899' },
+    other: { icon: 'question', color: colors.text.tertiary },
+  };
+}
 
-const ALLOCATION_COLORS: Record<string, string> = {
-  mutual_funds: '#3B82F6',
-  stocks: '#22C55E',
-  gold: '#F59E0B',
-  fd: '#14B8A6',
-  crypto: '#A78BFA',
-  property: '#F97316',
-  pf: '#6366F1',
-  nps: '#EC4899',
-  other: '#9CA3AF',
-};
+function getAllocationColors(colors: any): Record<string, string> {
+  return {
+    mutual_funds: '#3B82F6',
+    stocks: colors.status.success,
+    gold: colors.status.warning,
+    fd: '#14B8A6',
+    crypto: colors.accent.tertiary,
+    property: '#F97316',
+    pf: '#6366F1',
+    nps: '#EC4899',
+    other: colors.text.tertiary,
+  };
+}
 
 const ALLOCATION_LABELS: Record<string, string> = {
   mutual_funds: 'MF',
@@ -91,13 +87,15 @@ function InvestmentCard({
   item,
   index,
   animatedValues,
+  typeIcons,
 }: {
   item: any;
   index: number;
   animatedValues: Animated.Value[];
+  typeIcons: Record<string, { icon: keyof typeof AntDesign.glyphMap; color: string }>;
 }) {
   const { colors } = useTheme();
-  const config = TYPE_ICONS[item.type] || TYPE_ICONS.other;
+  const config = typeIcons[item.type] || typeIcons.other;
   const isPositive = item.returns >= 0;
   const opacity = animatedValues[index];
   if (!opacity) return null;
@@ -188,6 +186,8 @@ function InvestmentCard({
 
 export default function FamilyInvestmentsScreen({ navigation }: any) {
   const { colors } = useTheme();
+  const typeIcons = getTypeIcons(colors);
+  const allocationColors = getAllocationColors(colors);
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -329,13 +329,13 @@ export default function FamilyInvestmentsScreen({ navigation }: any) {
       key,
       label,
       value: (assetAllocation as any)[key] || 0,
-      color: ALLOCATION_COLORS[key] || '#9CA3AF',
+      color: allocationColors[key] || colors.text.tertiary,
     }))
     .filter((e) => e.value > 0)
     .sort((a, b) => b.value - a.value);
 
   const renderItem = ({ item, index }: { item: any; index: number }) => (
-    <InvestmentCard item={item} index={index} animatedValues={animatedValues} />
+    <InvestmentCard item={item} index={index} animatedValues={animatedValues} typeIcons={typeIcons} />
   );
 
   const ListHeader = (

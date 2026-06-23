@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +8,7 @@ import { SplitSummaryCard } from '../../components/ui/SplitSummaryCard';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { palette } from '../../theme/colors';
 
+import { alertService } from "../../components/ui";
 const { width: SCREEN_W } = Dimensions.get('window');
 const PURPLE = palette.brand.primary;
 const PURPLE_DARK = palette.brand.hover;
@@ -68,18 +60,18 @@ export function SplitExpenseScreen() {
 
   function handleCreateSplit() {
     if (!expenseName.trim()) {
-      Alert.alert('Error', 'Please enter an expense name');
+      alertService.alert('Error', 'Please enter an expense name');
       return;
     }
     if (totalAmount <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      alertService.alert('Error', 'Please enter a valid amount');
       return;
     }
     if (activeMembers.length < 2) {
-      Alert.alert('Error', 'Please select at least 2 members');
+      alertService.alert('Error', 'Please select at least 2 members');
       return;
     }
-    Alert.alert('Success', 'Split created successfully!');
+    alertService.alert('Success', 'Split created successfully!');
     navigation.goBack();
   }
 

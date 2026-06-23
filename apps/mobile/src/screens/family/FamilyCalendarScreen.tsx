@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated } from 'react-native';
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -67,6 +59,7 @@ function EventTypeBadge({ type }: { type: string }) {
 }
 
 function EventCardSkeleton() {
+  const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -94,13 +87,13 @@ function EventCardSkeleton() {
   });
 
   return (
-    <View style={styles.skeletonCard}>
+    <View style={[styles.skeletonCard, { backgroundColor: colors.bg.secondary }]}>
       <View style={styles.skeletonRow}>
-        <Animated.View style={[styles.skeletonIcon, { opacity }]} />
+        <Animated.View style={[styles.skeletonIcon, { backgroundColor: colors.bg.tertiary, opacity }]} />
         <View style={{ flex: 1, gap: 8 }}>
-          <Animated.View style={[styles.skeletonLine, { width: '55%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '35%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '70%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '55%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '35%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '70%', opacity }]} />
         </View>
       </View>
     </View>
@@ -357,7 +350,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     padding: 16,
-    backgroundColor: '#1C1C1E',
   },
   skeletonRow: {
     flexDirection: 'row',
@@ -368,12 +360,10 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 12,
-    backgroundColor: '#27272A',
   },
   skeletonLine: {
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#27272A',
   },
   eventCard: {
     borderRadius: 16,

@@ -1,18 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Alert,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, TextInput, Modal, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +8,7 @@ import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 const LEDGE_ICON = 40;
 
@@ -80,7 +68,7 @@ export function CoupleSavingsScreen() {
 
   async function handleAddSavings() {
     if (!addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) {
-      Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
+      alertService.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
     setSubmitting(true);
@@ -102,7 +90,7 @@ export function CoupleSavingsScreen() {
       await fetchSavings(true);
       showToast('Contribution added');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add savings');
+      alertService.alert('Error', e?.message || 'Failed to add savings');
     } finally {
       setSubmitting(false);
     }

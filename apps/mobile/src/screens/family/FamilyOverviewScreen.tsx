@@ -259,7 +259,7 @@ export function FamilyOverviewScreen({ navigation }: any) {
               <View style={styles.wealthGrid}>
                 {[
                   { label: 'Savings', value: wealth.totalSavings || 0, color: '#22C55E' },
-                  { label: 'Investments', value: wealth.totalInvestments || 0, color: '#A78BFA' },
+                  { label: 'Investments', value: wealth.totalInvestments || 0, color: colors.accent.secondary },
                   { label: 'Property', value: wealth.totalProperties || 0, color: '#60A5FA' },
                   { label: 'Assets', value: wealth.totalAssets || 0, color: '#F59E0B' },
                   { label: 'Loans', value: wealth.totalLoans || 0, color: '#EF4444' },
@@ -282,7 +282,7 @@ export function FamilyOverviewScreen({ navigation }: any) {
               <MiniStat icon="caretup" label="Income" value={fmtShort(snapshot.income || 0)} color="#22C55E" />
               <MiniStat icon="shoppingcart" label="Expenses" value={fmtShort(snapshot.expense || 0)} color="#EF4444" />
               <MiniStat icon="save" label="Savings" value={fmtShort(snapshot.savings || 0)} color="#60A5FA" />
-              <MiniStat icon="piechart" label="Savings %" value={`${savingsRate}%`} color="#A78BFA" />
+              <MiniStat icon="piechart" label="Savings %" value={`${savingsRate}%`} color={colors.accent.secondary} />
             </View>
           </View>
 

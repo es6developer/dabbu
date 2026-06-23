@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -11,6 +11,7 @@ import {
   FormFooter,
 } from '../../components/forms';
 
+import { alertService } from "../../components/ui";
 export function CreateChatScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -19,15 +20,15 @@ export function CreateChatScreen() {
   const [saving, setSaving] = useState(false);
 
   async function handleCreate() {
-    if (!title.trim()) { Alert.alert('Error', 'Chat title is required'); return; }
+    if (!title.trim()) { alertService.alert('Error', 'Chat title is required'); return; }
     setSaving(true);
     if (accessToken) setAccessToken(accessToken);
     try {
       await api.post('/chat', { title: title.trim(), type: 'direct', participantIds: [] });
-      Alert.alert('Success', 'Chat created!');
+      alertService.alert('Success', 'Chat created!');
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to create chat');
+      alertService.alert('Error', e.message || 'Failed to create chat');
     } finally {
       setSaving(false);
     }

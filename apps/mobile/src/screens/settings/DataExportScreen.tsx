@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -8,6 +8,7 @@ import { spacing, borderRadius } from '../../theme/design';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+import { alertService } from "../../components/ui";
 export function DataExportScreen() {
   const { colors: c } = useTheme();
   const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
@@ -34,18 +35,18 @@ export function DataExportScreen() {
           await Sharing.shareAsync(path, { mimeType: 'application/json' });
         }
       }
-      Alert.alert('Export Complete', 'Your data has been exported successfully.');
+      alertService.alert('Export Complete', 'Your data has been exported successfully.');
       const hRes = await api.get<any>('/compliance/exports');
       setHistory(hRes.data || []);
     } catch (err: any) {
-      Alert.alert('Export Failed', err?.response?.data?.message || err.message);
+      alertService.alert('Export Failed', err?.response?.data?.message || err.message);
     } finally {
       setExporting(false);
     }
   };
 
   const handleDeleteRequest = () => {
-    Alert.alert(
+    alertService.alert(
       'Delete Account',
       'Are you sure? This will schedule account deletion in 7 days. You can cancel within this period.',
       [
@@ -56,9 +57,9 @@ export function DataExportScreen() {
           onPress: async () => {
             try {
               await api.post('/compliance/delete-account');
-              Alert.alert('Deletion Scheduled', 'Your account will be deleted in 7 days.');
+              alertService.alert('Deletion Scheduled', 'Your account will be deleted in 7 days.');
             } catch (err: any) {
-              Alert.alert('Error', err?.response?.data?.message || err.message);
+              alertService.alert('Error', err?.response?.data?.message || err.message);
             }
           },
         },

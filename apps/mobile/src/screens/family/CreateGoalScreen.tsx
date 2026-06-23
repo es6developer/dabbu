@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const CATEGORIES = ['House', 'Education', 'Marriage', 'Vacation', 'Baby', 'Emergency', 'Vehicle', 'Investment'];
 
 export function CreateGoalScreen() {
@@ -25,11 +25,11 @@ export function CreateGoalScreen() {
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Goal name is required');
+      alertService.alert('Validation', 'Goal name is required');
       return;
     }
     if (!targetAmount.trim() || isNaN(Number(targetAmount)) || Number(targetAmount) <= 0) {
-      Alert.alert('Validation', 'Enter a valid target amount');
+      alertService.alert('Validation', 'Enter a valid target amount');
       return;
     }
     setLoading(true);
@@ -44,7 +44,7 @@ export function CreateGoalScreen() {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create goal');
+      alertService.alert('Error', e?.message || 'Failed to create goal');
     } finally {
       setLoading(false);
     }

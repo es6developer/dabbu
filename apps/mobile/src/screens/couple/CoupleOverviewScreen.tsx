@@ -173,7 +173,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
       const anniversary = new Date(since);
       anniversary.setFullYear(today.getFullYear());
       if (anniversary < today) { anniversary.setFullYear(today.getFullYear() + 1); }
-      events.push({ icon: 'heart', label: 'Anniversary', date: anniversary.toISOString(), color: '#F43F5E' });
+      events.push({ icon: 'heart', label: 'Anniversary', date: anniversary.toISOString(), color: colors.accent.primary });
     }
     return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 5);
   }, [since]);
@@ -271,7 +271,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
                 {[
                   { label: 'Cash', value: wealth.totalCash || 0, color: '#22C55E' },
                   { label: 'Savings', value: wealth.totalSavings || 0, color: '#60A5FA' },
-                  { label: 'Investments', value: wealth.totalInvestments || 0, color: '#A78BFA' },
+                  { label: 'Investments', value: wealth.totalInvestments || 0, color: colors.accent.secondary },
                   { label: 'Assets', value: wealth.totalAssets || 0, color: '#F59E0B' },
                   { label: 'Loans', value: wealth.totalLiabilities || 0, color: '#EF4444' },
                 ].map((item) => (
@@ -293,7 +293,7 @@ export function CoupleOverviewScreen({ navigation }: any) {
               <MiniStat icon="caretup" label="Income" value={fmtShort(snapshot.combinedIncome || 0)} color="#22C55E" />
               <MiniStat icon="shoppingcart" label="Expenses" value={fmtShort(snapshot.combinedExpense || 0)} color="#EF4444" />
               <MiniStat icon="save" label="Savings" value={fmtShort(snapshot.savings || 0)} color="#60A5FA" />
-              <MiniStat icon="piechart" label="Savings %" value={`${savingsRate}%`} color="#A78BFA" />
+              <MiniStat icon="piechart" label="Savings %" value={`${savingsRate}%`} color={colors.accent.secondary} />
             </View>
           </View>
 

@@ -1,13 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -28,14 +20,16 @@ interface CardConfig {
   navigateTo: string;
 }
 
-const CARDS: CardConfig[] = [
-  { key: 'sharedExpenses', label: 'Shared Expenses', icon: 'wallet', accent: '#EF4444', navigateTo: 'Bills' },
-  { key: 'sharedIncome', label: 'Shared Income', icon: 'caretdown', accent: '#22C55E', navigateTo: 'Bills' },
-  { key: 'familyBudget', label: 'Family Budget', icon: 'piechart', accent: '#3B82F6', navigateTo: 'Budget' },
-  { key: 'contributions', label: 'Contribution Tracking', icon: 'addusergroup', accent: '#A78BFA', navigateTo: 'Contributions' },
-  { key: 'monthlyAnalysis', label: 'Monthly Analysis', icon: 'linechart', accent: '#F97316', navigateTo: 'Reports' },
-  { key: 'cashFlow', label: 'Cash Flow', icon: 'swap', accent: '#14B8A6', navigateTo: 'Reports' },
-];
+function getCards(colors: any): CardConfig[] {
+  return [
+    { key: 'sharedExpenses', label: 'Shared Expenses', icon: 'wallet', accent: colors.status.error, navigateTo: 'Bills' },
+    { key: 'sharedIncome', label: 'Shared Income', icon: 'caretdown', accent: colors.status.success, navigateTo: 'Bills' },
+    { key: 'familyBudget', label: 'Family Budget', icon: 'piechart', accent: '#3B82F6', navigateTo: 'Budget' },
+    { key: 'contributions', label: 'Contribution Tracking', icon: 'addusergroup', accent: colors.accent.tertiary, navigateTo: 'Contributions' },
+    { key: 'monthlyAnalysis', label: 'Monthly Analysis', icon: 'linechart', accent: '#F97316', navigateTo: 'Reports' },
+    { key: 'cashFlow', label: 'Cash Flow', icon: 'swap', accent: '#14B8A6', navigateTo: 'Reports' },
+  ];
+}
 
 function fmtShort(v: number): string {
   if (v >= 10000000) return '₹' + (v / 10000000).toFixed(1) + 'Cr';
@@ -144,6 +138,7 @@ export default function FamilyBillsScreen() {
   const monthlySavings = d.monthlySavings ?? w.monthlySavings ?? 0;
   const netFlow = d.netFlow ?? w.netFlow ?? (totalIncome - totalExpenses);
 
+  const cards = getCards(colors);
   const cardValues: Record<string, { value: string; subtext: string }> = {
     sharedExpenses: {
       value: fmtShort(totalExpenses),
@@ -197,7 +192,7 @@ export default function FamilyBillsScreen() {
           </View>
         ) : (
           <View style={styles.grid}>
-            {CARDS.map((card) => {
+            {cards.map((card) => {
               const cv = cardValues[card.key];
               return (
                 <MoneyCard

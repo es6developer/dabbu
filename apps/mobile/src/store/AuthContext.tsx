@@ -241,6 +241,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore clear errors
     }
     clearCache();
+    useLensStore.setState({
+      activeLens: 'PERSONAL',
+      previousLens: null,
+      error: null,
+      switchedCount: 0,
+      switchedAt: null,
+    });
   }, []);
 
   const logout = useCallback(async () => {

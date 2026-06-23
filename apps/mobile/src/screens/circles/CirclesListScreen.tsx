@@ -1,13 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Animated, RefreshControl } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';

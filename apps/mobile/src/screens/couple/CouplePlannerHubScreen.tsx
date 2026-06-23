@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View, Text, TouchableOpacity, ScrollView, RefreshControl,
-  StyleSheet, Animated, Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, StyleSheet, Animated, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import Svg, { Circle as SvgCircle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

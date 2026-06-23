@@ -1,17 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  LayoutAnimation,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +11,7 @@ import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { useLensStore, LensMode } from '../../store/lensStore';
 
+import { alertService } from "../../components/ui";
 const LENS_OPTIONS: { id: LensMode; icon: React.ComponentProps<typeof AntDesign>['name']; title: string; desc: string }[] = [
   { id: 'PERSONAL', icon: 'user', title: 'Personal Finance', desc: 'Manage your personal finances, savings, and investments.' },
   { id: 'PARTNERED', icon: 'heart', title: 'Couple Finance', desc: 'Track finances together, split expenses, and share goals.' },
@@ -45,7 +34,7 @@ export function ProfileScreen() {
   const { accessToken, user, logout, updateAvatarUrl, completeProfileSetup } = useAuth();
 
   const { showToast } = useToast();
-  const { activeLens } = useLensStore();
+  const { activeLens, isSwitching } = useLensStore();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
@@ -149,7 +138,7 @@ export function ProfileScreen() {
         phone: cleanedPhone,
         upiId: upiId.trim() || undefined,
       });
-      Alert.alert('Success', 'Profile updated successfully');
+      alertService.alert('Success', 'Profile updated successfully');
     } catch (e: any) {
       setError(e.message || 'Failed to update profile');
     } finally {
@@ -209,41 +198,45 @@ export function ProfileScreen() {
                   <View style={{ gap: 10, marginTop: 4 }}>
                     {LENS_OPTIONS.map((lens) => {
                       const isActive = activeLens === lens.id;
+                      const lensColors: Record<string, { primary: string; secondary: string }> = {
+                        PERSONAL: { primary: '#7C3AED', secondary: '#A78BFA' },
+                        PARTNERED: { primary: '#dd2d4a', secondary: '#f26a8d' },
+                        FAMILY: { primary: '#0f6b6f', secondary: '#3d7ea6' },
+                        FULL: { primary: '#0077b6', secondary: '#00b4d8' },
+                      };
+                      const lc = lensColors[lens.id] || lensColors.PERSONAL;
                       return (
                         <TouchableOpacity
                           key={lens.id}
-                          onPress={async () => {
-                            LayoutAnimation.configureNext({
-                              duration: 300,
-                              update: { type: 'easeInEaseOut' },
-                            });
+                          onPress={() => {
                             useLensStore.getState().updateLens(accessToken, lens.id);
                           }}
                           activeOpacity={0.8}
                           style={[s.lensCard, {
                             backgroundColor: colors.bg.card,
-                            borderColor: isActive ? colors.accent.primary : colors.border.subtle,
-                            shadowColor: isActive ? colors.accent.primary : undefined,
-                            shadowOpacity: isActive ? 0.12 : undefined,
-                            shadowRadius: isActive ? 8 : undefined,
+                            borderColor: isActive ? lc.primary : colors.border.subtle,
+                            shadowColor: isActive ? lc.primary : undefined,
+                            shadowOpacity: isActive ? 0.15 : undefined,
+                            shadowRadius: isActive ? 10 : undefined,
+                            shadowOffset: isActive ? { width: 0, height: 2 } : undefined,
                           }]}
                         >
                           {isActive && (
                             <LinearGradient
-                              colors={[colors.accent.primary + '10', colors.accent.primary + '04']}
+                              colors={[lc.primary + '12', lc.primary + '04']}
                               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                               style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
                             />
                           )}
-                          <View style={[s.lensIcon, { backgroundColor: isActive ? colors.accent.primary + '20' : colors.border.subtle + '60' }]}>
-                            <AntDesign name={lens.icon} size={22} color={isActive ? colors.accent.primary : colors.text.tertiary} />
+                          <View style={[s.lensIcon, { backgroundColor: isActive ? lc.primary + '20' : colors.border.subtle + '60' }]}>
+                            <AntDesign name={lens.icon} size={22} color={isActive ? lc.primary : colors.text.tertiary} />
                           </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={[s.lensTitle, { color: colors.text.primary }]}>{lens.title}</Text>
+                            <Text style={[s.lensTitle, { color: isActive ? colors.text.primary : colors.text.secondary }]}>{lens.title}</Text>
                             <Text style={[s.lensDesc, { color: colors.text.tertiary }]}>{lens.desc}</Text>
                           </View>
                           {isActive ? (
-                            <View style={[s.checkCircle, { backgroundColor: colors.accent.primary }]}>
+                            <View style={[s.checkCircle, { backgroundColor: lc.primary }]}>
                               <AntDesign name="check" size={14} color="#FFFFFF" />
                             </View>
                           ) : (
@@ -379,6 +372,14 @@ export function ProfileScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      {isSwitching && (
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 32, alignItems: 'center', gap: 16, ...shadows.lg }}>
+            <ActivityIndicator size="large" color={colors.accent.primary} />
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.secondary }}>Switching lens...</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const EVENT_TYPES = ['Birthday', 'EMI', 'Bill Due', 'Insurance Renewal', 'School Fee', 'Goal Milestone', 'Reminder', 'Custom'];
 const COLOR_OPTIONS = ['#6366F1', '#F59E0B', '#EF4444', '#10B981', '#EC4899', '#06B6D4'];
 
@@ -27,11 +27,11 @@ export function CreateCalendarEventScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Validation', 'Event title is required');
+      alertService.alert('Validation', 'Event title is required');
       return;
     }
     if (!startDate.trim()) {
-      Alert.alert('Validation', 'Start date is required');
+      alertService.alert('Validation', 'Start date is required');
       return;
     }
     setLoading(true);
@@ -47,7 +47,7 @@ export function CreateCalendarEventScreen() {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create event');
+      alertService.alert('Error', e?.message || 'Failed to create event');
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Modal,
-  TextInput,
-  Platform,
-  Alert,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Modal, TextInput, Platform, Animated, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +11,7 @@ import { useToast } from '../../store/ToastContext';
 
 import { getCategoryIcon } from '../../config/categoryIcons';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 
 function fmt(v: number) {
@@ -123,18 +111,18 @@ export function CoupleBillsScreen() {
       showToast('Bill marked as paid');
       fetchBills(true);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to mark bill as paid');
+      alertService.alert('Error', e?.message || 'Failed to mark bill as paid');
     }
   };
 
   const handleAddBill = async () => {
     if (!formName.trim() || !formAmount.trim()) {
-      Alert.alert('Validation', 'Name and amount are required.');
+      alertService.alert('Validation', 'Name and amount are required.');
       return;
     }
     const amount = parseFloat(formAmount);
     if (isNaN(amount) || amount <= 0) {
-      Alert.alert('Validation', 'Please enter a valid amount.');
+      alertService.alert('Validation', 'Please enter a valid amount.');
       return;
     }
     setSubmitting(true);
@@ -144,7 +132,7 @@ export function CoupleBillsScreen() {
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
       if (!coupleGroup) {
-        Alert.alert('Error', 'No couple space found.');
+        alertService.alert('Error', 'No couple space found.');
         return;
       }
       const half = amount / 2;
@@ -170,7 +158,7 @@ export function CoupleBillsScreen() {
       resetForm();
       showToast('Bill added');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add bill');
+      alertService.alert('Error', e?.message || 'Failed to add bill');
     } finally {
       setSubmitting(false);
     }

@@ -1,8 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
-  RefreshControl, TextInput, Alert, Modal,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +8,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
+import { alertService } from "../../components/ui";
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -74,12 +72,12 @@ export function PartnerScreen() {
       setShowAddEvent(false);
       setEventTitle('');
       setEventDesc('');
-    } catch { Alert.alert('Error', 'Failed to add event'); }
+    } catch { alertService.alert('Error', 'Failed to add event'); }
     finally { setSubmitting(false); }
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    Alert.alert('Delete Event', 'Are you sure?', [
+    alertService.alert('Delete Event', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
@@ -87,7 +85,7 @@ export function PartnerScreen() {
           try {
             await api.delete(`/couple/timeline/${eventId}`);
             setTimeline((prev) => prev.filter((e: any) => e.id !== eventId));
-          } catch { Alert.alert('Error', 'Failed to delete event'); }
+          } catch { alertService.alert('Error', 'Failed to delete event'); }
         },
       },
     ]);
@@ -96,10 +94,10 @@ export function PartnerScreen() {
   if (loading) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-        <LinearGradient colors={isDark ? ['#1F0A2E', colors.bg.primary] : ['#FCE7F3', colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+        <LinearGradient colors={[colors.bg.gradientStart, colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
           <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>Partner</Text>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color={colors.brand.primary} />
+            <ActivityIndicator size="large" color={colors.accent.primary} />
           </View>
         </LinearGradient>
       </View>
@@ -112,17 +110,17 @@ export function PartnerScreen() {
   if (!hasPartner) {
     return (
       <View style={styles.screen}>
-        <LinearGradient colors={isDark ? ['#1F0A2E', colors.bg.primary] : ['#FCE7F3', colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1 }}>
+        <LinearGradient colors={[colors.bg.gradientStart, colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1 }}>
           <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
             <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>Partner</Text>
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 }}>
-            <View style={[styles.emptyIcon, { backgroundColor: '#F43F5E15' }]}>
-              <AntDesign name="addusergroup" size={36} color="#F43F5E" />
+            <View style={[styles.emptyIcon, { backgroundColor: colors.accent.primary + '15' }]}>
+              <AntDesign name="addusergroup" size={36} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>No Partner Connected</Text>
             <Text style={{ fontSize: 14, color: colors.text.tertiary, textAlign: 'center', lineHeight: 20 }}>Connect with your partner to manage shared finances, goals, and timeline together.</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('AddPartner')} style={{ marginTop: 8, paddingVertical: 14, paddingHorizontal: 32, borderRadius: 16, backgroundColor: '#F43F5E' }}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddPartner')} style={{ marginTop: 8, paddingVertical: 14, paddingHorizontal: 32, borderRadius: 16, backgroundColor: colors.accent.primary }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>Connect Partner</Text>
             </TouchableOpacity>
           </View>
@@ -144,21 +142,21 @@ export function PartnerScreen() {
 
   return (
     <View style={styles.screen}>
-      <LinearGradient colors={isDark ? ['#1F0A2E', colors.bg.primary] : ['#FCE7F3', colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1 }}>
+      <LinearGradient colors={[colors.bg.gradientStart, colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} locations={[0, 0.3]} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 100 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor="#F43F5E" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />}
         >
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <View style={styles.headerRow}>
               <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>Partner</Text>
-              <View style={[styles.lensBadge, { backgroundColor: '#F43F5E20' }]}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#F43F5E' }}>COUPLE</Text>
+              <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>COUPLE</Text>
               </View>
             </View>
           </View>
 
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <LinearGradient colors={['#F43F5E', '#BE185D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.profileCard}>
+            <LinearGradient colors={[colors.accent.primary, colors.accent.hover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.profileCard}>
               <View style={styles.partnerAvatar}>
                 <AntDesign name="user" size={32} color="#FFF" />
               </View>
@@ -186,7 +184,7 @@ export function PartnerScreen() {
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <View style={styles.sectionHeader}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Timeline</Text>
-              <TouchableOpacity onPress={() => setShowAddEvent(true)} style={[styles.addBtn, { backgroundColor: '#F43F5E' }]}>
+              <TouchableOpacity onPress={() => setShowAddEvent(true)} style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}>
                 <AntDesign name="plus" size={14} color="#FFF" />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>Add Event</Text>
               </TouchableOpacity>
@@ -200,8 +198,8 @@ export function PartnerScreen() {
               <View style={{ gap: 8 }}>
                 {timeline.map((event: any) => (
                   <View key={event.id} style={[styles.eventCard, { backgroundColor: colors.bg.card }]}>
-                    <View style={[styles.eventIcon, { backgroundColor: '#F43F5E15' }]}>
-                      <AntDesign name={(TIMELINE_ICONS[event.eventType] || 'clockcircleo') as any} size={18} color="#F43F5E" />
+                    <View style={[styles.eventIcon, { backgroundColor: colors.accent.primary + '15' }]}>
+                      <AntDesign name={(TIMELINE_ICONS[event.eventType] || 'clockcircleo') as any} size={18} color={colors.accent.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>{event.title}</Text>
@@ -254,7 +252,7 @@ export function PartnerScreen() {
                 ].map((t) => (
                   <TouchableOpacity key={t.key}
                     onPress={() => setEventType(t.key)}
-                    style={[styles.typeChip, { backgroundColor: eventType === t.key ? '#F43F5E' : colors.bg.secondary }]}
+                    style={[styles.typeChip, { backgroundColor: eventType === t.key ? colors.accent.primary : colors.bg.secondary }]}
                   >
                     <AntDesign name={t.icon as any} size={14} color={eventType === t.key ? '#FFF' : colors.text.secondary} />
                     <Text style={{ fontSize: 12, fontWeight: '600', color: eventType === t.key ? '#FFF' : colors.text.secondary }}>{t.label}</Text>
@@ -263,7 +261,7 @@ export function PartnerScreen() {
               </View>
             </ScrollView>
             <TouchableOpacity onPress={handleAddEvent} disabled={submitting || !eventTitle.trim()}
-              style={[styles.submitBtn, { backgroundColor: '#F43F5E', opacity: submitting || !eventTitle.trim() ? 0.5 : 1 }]}
+              style={[styles.submitBtn, { backgroundColor: colors.accent.primary, opacity: submitting || !eventTitle.trim() ? 0.5 : 1 }]}
             >
               {submitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>Add Event</Text>}
             </TouchableOpacity>

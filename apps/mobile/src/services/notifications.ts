@@ -12,7 +12,6 @@ const ACCENT_BLUE = '#3B82F6';
 const ACCENT_PURPLE = '#7C3AED';
 const ACCENT_TEAL = '#14B8A6';
 const ACCENT_GRAY = '#6B7280';
-
 const CHANNEL_GROUPS: Record<string, { name: string; description?: string }> = {
   transactions: { name: 'Transactions', description: 'Expenses, payments & settlements' },
   social: { name: 'Social', description: 'Groups, family & friends activity' },
@@ -23,11 +22,25 @@ const CHANNEL_GROUPS: Record<string, { name: string; description?: string }> = {
 
 try {
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
+    handleNotification: async (notification) => {
+      const { title, body, data } = notification.request.content;
+      const notifTitle = title || (data?.title as string) || 'Dabbu';
+      const notifBody = body || (data?.body as string) || (data?.message as string) || '';
+      console.log(
+        `[PUSH] title="${notifTitle}" body="${notifBody.substring(0, 100)}" type=${data?.type ?? ''}`,
+      );
+      Notifications.presentNotificationAsync({
+        title: notifTitle,
+        body: notifBody,
+        data: data,
+        sound: true,
+      }).catch(() => {});
+      return {
+        shouldShowAlert: false,
+        shouldPlaySound: false,
+        shouldSetBadge: true,
+      };
+    },
   });
 } catch (_e) {
   void _e;
@@ -85,7 +98,6 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'General notifications',
       importance: Notifications.AndroidImportance.HIGH,
       color: BRAND_COLOR,
-      sound: 'default',
       vibration: true,
     },
     {
@@ -94,7 +106,6 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'Personal expenses, shared expenses & payment confirmations',
       importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_ORANGE,
-      sound: 'default',
       vibration: true,
     },
     {
@@ -103,7 +114,6 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'Settlement requests, payments & receipts',
       importance: Notifications.AndroidImportance.HIGH,
       color: BRAND_COLOR,
-      sound: 'default',
       vibration: true,
     },
     {
@@ -112,16 +122,14 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'Group invitations, member activity & shared finance',
       importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_BLUE,
-      sound: 'default',
       vibration: true,
     },
     {
       id: 'goals',
       name: 'Goals & Milestones',
       description: 'Goal progress, milestones & achievements',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_GREEN,
-      sound: 'default',
       vibration: false,
     },
     {
@@ -130,7 +138,6 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'Budget thresholds, spending alerts & warnings',
       importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_RED,
-      sound: 'default',
       vibration: true,
     },
     {
@@ -139,25 +146,22 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'EMI, subscription & bill reminders',
       importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_PURPLE,
-      sound: 'default',
       vibration: true,
     },
     {
       id: 'insights',
       name: 'AI Insights & Reports',
       description: 'Daily AI insights, weekly digests & monthly reports',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
       color: ACCENT_TEAL,
-      sound: 'default',
       vibration: false,
     },
     {
       id: 'social',
       name: 'Friends & Family',
       description: 'Friend requests, family invites & referrals',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: Notifications.AndroidImportance.HIGH,
       color: BRAND_COLOR,
-      sound: 'default',
       vibration: false,
     },
     {
@@ -166,7 +170,6 @@ async function setupAndroidChannels(): Promise<void> {
       description: 'App updates, account changes & security alerts',
       importance: Notifications.AndroidImportance.LOW,
       color: ACCENT_GRAY,
-      sound: 'default',
       vibration: false,
     },
   ];
@@ -178,7 +181,6 @@ async function setupAndroidChannels(): Promise<void> {
         importance: ch.importance,
         vibrationPattern: ch.vibration ? [0, 200, 150, 200] : undefined,
         lightColor: ch.color,
-        sound: ch.sound,
       });
     } catch (_e) {
       void _e;

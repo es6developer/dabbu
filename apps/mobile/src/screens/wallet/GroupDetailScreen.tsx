@@ -1,14 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,6 +9,7 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -228,7 +220,7 @@ export function GroupDetailScreen() {
           <View style={[s.heroIcon, { backgroundColor: accentColor + '20' }]}>
             <AntDesign name={iconName as any} size={22} color={accentColor} />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
             <Text style={[s.heroName, { color: colors.text.primary }]} numberOfLines={1}>
               {group?.name || 'Group'}
             </Text>
@@ -240,7 +232,7 @@ export function GroupDetailScreen() {
           <TouchableOpacity
             style={[s.backBtn]}
             onPress={() => {
-              Alert.alert('Group Options', undefined, [
+              alertService.alert('Group Options', undefined, [
                 {
                   text: 'Manage Members',
                   onPress: () =>
@@ -446,7 +438,7 @@ export function GroupDetailScreen() {
                             colors.status.error,
                             colors.status.success,
                             colors.status.warning,
-                            '#8B5CF6',
+                            colors.accent.secondary,
                           ][i % 5],
                         },
                       ]}
@@ -476,9 +468,9 @@ export function GroupDetailScreen() {
                                 colors.accent.primary,
                                 colors.status.error,
                                 colors.status.success,
-                                colors.status.warning,
-                                '#8B5CF6',
-                              ][i % 5],
+                            colors.status.warning,
+                            colors.accent.secondary,
+                          ][i % 5],
                             },
                           ]}
                         />
@@ -704,7 +696,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.lg,
   },
   heroIcon: {
     width: 44,

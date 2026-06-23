@@ -2,15 +2,15 @@ import { useMemo, useCallback } from 'react';
 import { useAuth } from '../store/AuthContext';
 
 export const COUPLE_COLORS = {
-  bg: '#FFE4E8',
-  card: '#FFF0F3',
-  primary: '#FF6B9D',
-  accent: '#FF6B9D',
-  heart: '#FF6B9D',
+  bg: '#fcf8f9',
+  card: '#fceef2',
+  primary: '#dd2d4a',
+  accent: '#f26a8d',
+  heart: '#dd2d4a',
   text: '#4A1942',
   textSecondary: '#8B5F7A',
   textTertiary: '#B8899E',
-  border: '#FFD1DC',
+  border: '#f49cbb',
 };
 
 const COUPLE_SCREENS = new Set([

@@ -1,15 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { View, Text, Modal, Animated, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -25,19 +15,6 @@ import {
   FormFooter,
 } from '../../components/forms';
 
-const GOAL_CONFIGS: Record<string, { label: string; icon: string; color: string }> = {
-  custom: { label: 'Custom', icon: 'star', color: '#8B5CF6' },
-  emergency: { label: 'Emergency', icon: 'Safety', color: '#EF4444' },
-  travel: { label: 'Travel', icon: 'earth', color: '#3B82F6' },
-  education: { label: 'Education', icon: 'book', color: '#F59E0B' },
-  wedding: { label: 'Wedding', icon: 'heart', color: '#EC4899' },
-  home: { label: 'Home', icon: 'home', color: '#14B8A6' },
-  car: { label: 'Car', icon: 'car', color: '#4F6EF7' },
-  retirement: { label: 'Retirement', icon: 'dashboard', color: '#6366F1' },
-  investment: { label: 'Investment', icon: 'caretup', color: '#10B981' },
-  debt: { label: 'Debt Free', icon: 'wallet', color: '#F97316' },
-};
-
 interface CreateGoalModalProps {
   visible: boolean;
   onClose: () => void;
@@ -47,6 +24,19 @@ interface CreateGoalModalProps {
 
 export function CreateGoalModal({ visible, onClose, onCreated, prefill }: CreateGoalModalProps) {
   const { colors } = useTheme();
+
+  const GOAL_CONFIGS: Record<string, { label: string; icon: string; color: string }> = {
+    custom: { label: 'Custom', icon: 'star', color: colors.accent.secondary },
+    emergency: { label: 'Emergency', icon: 'Safety', color: '#EF4444' },
+    travel: { label: 'Travel', icon: 'earth', color: '#3B82F6' },
+    education: { label: 'Education', icon: 'book', color: '#F59E0B' },
+    wedding: { label: 'Wedding', icon: 'heart', color: '#EC4899' },
+    home: { label: 'Home', icon: 'home', color: '#14B8A6' },
+    car: { label: 'Car', icon: 'car', color: '#4F6EF7' },
+    retirement: { label: 'Retirement', icon: 'dashboard', color: '#6366F1' },
+    investment: { label: 'Investment', icon: 'caretup', color: '#10B981' },
+    debt: { label: 'Debt Free', icon: 'wallet', color: '#F97316' },
+  };
   const { accessToken } = useAuth();
   const { showToast } = useToast();
   const insets = useSafeAreaInsets();

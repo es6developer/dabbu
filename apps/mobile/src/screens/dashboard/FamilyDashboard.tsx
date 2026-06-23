@@ -28,7 +28,7 @@ export function FamilyDashboard() {
             backgroundColor: colors.bg.card,
             borderRadius: 16,
             borderLeftWidth: 3,
-            borderLeftColor: '#059669',
+            borderLeftColor: colors.accent.primary,
           }}
         >
           <Text style={{ color: colors.text.primary, fontSize: 16, fontWeight: '600' }}>

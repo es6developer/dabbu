@@ -1,16 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +10,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 
 function fmt(v: number) {
@@ -80,7 +70,7 @@ export function CoupleFinanceScreen() {
   const handleInviteByPhone = useCallback(async () => {
     const digits = partnerPhone.replace(/\D/g, '');
     if (digits.length < 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
+      alertService.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
       return;
     }
     if (!groupId) {
@@ -95,10 +85,10 @@ export function CoupleFinanceScreen() {
         phone: digits,
       });
       setPartnerPhone('');
-      Alert.alert('Invite Sent', 'Your partner has been added to the couple space.');
+      alertService.alert('Invite Sent', 'Your partner has been added to the couple space.');
       loadData(true);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add partner. They may need to sign up first.');
+      alertService.alert('Error', e?.message || 'Failed to add partner. They may need to sign up first.');
     } finally {
       setInviteLoading(false);
     }

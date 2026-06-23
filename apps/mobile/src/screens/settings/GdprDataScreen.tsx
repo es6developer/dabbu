@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+import { alertService } from "../../components/ui";
 export function GdprDataScreen() {
   const { colors } = useTheme();
   const theme = { background: colors.bg.primary, text: colors.text.primary, card: colors.bg.card, subtext: colors.text.secondary, muted: colors.text.tertiary, primary: colors.accent.primary, border: colors.border.subtle };
@@ -34,9 +35,9 @@ export function GdprDataScreen() {
           await Sharing.shareAsync(path, { mimeType: 'application/json' });
         }
       }
-      Alert.alert('Export Complete', 'Your data has been exported successfully under GDPR Article 20 (Right to Data Portability).');
+      alertService.alert('Export Complete', 'Your data has been exported successfully under GDPR Article 20 (Right to Data Portability).');
     } catch (err: any) {
-      Alert.alert('Export Failed', err?.response?.data?.message || err.message);
+      alertService.alert('Export Failed', err?.response?.data?.message || err.message);
     } finally {
       setExporting(false);
     }
@@ -51,12 +52,12 @@ export function GdprDataScreen() {
     setDeleting(true);
     try {
       await api.post('/compliance/delete-account');
-      Alert.alert(
+      alertService.alert(
         'Deletion Scheduled',
         'Your account deletion has been scheduled. You have a 7-day grace period to cancel this request. A confirmation email has been sent to your registered email.',
       );
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || err.message);
+      alertService.alert('Error', err?.response?.data?.message || err.message);
     } finally {
       setDeleting(false);
     }
@@ -65,9 +66,9 @@ export function GdprDataScreen() {
   const handleCcpaOptOut = async () => {
     try {
       await api.post('/compliance/ccpa-opt-out');
-      Alert.alert('Opt-Out Complete', 'You have opted out of any potential data sale under CCPA. Dabbu does not sell your personal information.');
+      alertService.alert('Opt-Out Complete', 'You have opted out of any potential data sale under CCPA. Dabbu does not sell your personal information.');
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || err.message);
+      alertService.alert('Error', err?.response?.data?.message || err.message);
     }
   };
 
@@ -92,9 +93,9 @@ export function GdprDataScreen() {
     setDeleting(true);
     try {
       await api.delete('/compliance/account');
-      Alert.alert('Account Deleted', 'Your account and all associated data have been permanently erased under GDPR Article 17 (Right to Erasure).');
+      alertService.alert('Account Deleted', 'Your account and all associated data have been permanently erased under GDPR Article 17 (Right to Erasure).');
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || err.message);
+      alertService.alert('Error', err?.response?.data?.message || err.message);
     } finally {
       setDeleting(false);
     }

@@ -1,19 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import {
-  View,
-  Text,
-  SectionList,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
-  TextInput,
-  Animated,
-  StyleSheet,
-  Dimensions,
-  Modal,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { View, Text, SectionList, TouchableOpacity, RefreshControl, ActivityIndicator, TextInput, Animated, StyleSheet, Dimensions, Modal, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -26,6 +12,7 @@ import { spacing, borderRadius, shadows } from '../../theme/design';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+import { alertService } from "../../components/ui";
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const RED = '#EF4444';
 const GREEN = '#22C55E';
@@ -161,10 +148,10 @@ export function MyWalletScreen() {
       if (canShare) {
         await Sharing.shareAsync(uri.uri, { mimeType });
       } else {
-        Alert.alert('Downloaded', `Report saved to ${uri.uri}`);
+        alertService.alert('Downloaded', `Report saved to ${uri.uri}`);
       }
     } catch (e: any) {
-      Alert.alert('Export failed', e.message || 'Try again');
+      alertService.alert('Export failed', e.message || 'Try again');
     } finally { setExporting(null) }
   }, [reportYear, reportMonth, accessToken]);
 

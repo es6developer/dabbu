@@ -1,20 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-  Linking,
-  Share,
-  Modal,
-  TextInput,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Linking, Share, Modal, TextInput, ActivityIndicator, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { PieChart } from 'react-native-chart-kit';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +11,14 @@ import { api, setAccessToken } from '../../services/api';
 import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
+import { SettleUpModal } from '../../components/ui/SettleUpModal';
+import { Avatar } from '../../components/ui/Avatar';
+import { alertService } from "../../components/ui";
+const TABS = [
+  { key: 'overview' as const, label: 'Overview', icon: 'appstore-o' },
+  { key: 'expenses' as const, label: 'Expenses', icon: 'wallet' },
+  { key: 'members' as const, label: 'Members', icon: 'team' },
+];
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -47,18 +42,18 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       chipColor: palette.brand.primary,
       icon: 'team',
     },
-    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'earth' },
+    trip: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'earth' },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
       icon: 'home',
     },
-    couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
-    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'star' },
-    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'team' },
-    office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'bank' },
-    event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
-    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'home' },
+    couple: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'heart' },
+    sports: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'star' },
+    roommates: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'team' },
+    office: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'bank' },
+    event: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'calendar' },
+    apartment: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'home' },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
@@ -131,6 +126,7 @@ export function SharedGroupDetailScreen() {
   const route = useRoute<any>();
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
+  const { width } = Dimensions.get('window');
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { groupId, groupName: routeGroupName } = route.params || {};
@@ -149,6 +145,12 @@ export function SharedGroupDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'expenses' | 'members'>('overview');
+  const [settleModal, setSettleModal] = useState<{ visible: boolean; settlement: any }>({
+    visible: false,
+    settlement: null,
+  });
+  const [settleSubmitting, setSettleSubmitting] = useState(false);
 
   const loadData = useCallback(
     async (silent = false, refresh = false) => {
@@ -210,7 +212,6 @@ export function SharedGroupDetailScreen() {
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
-  const theme = TYPE_THEMES[type] || TYPE_THEMES.default;
   const name = group?.name || routeGroupName || 'Group';
   const currentMember = members.find((m: any) => m.userId === currentUser?.id);
   const isAdmin = currentMember?.role === 'admin' || group?.createdBy === currentUser?.id;
@@ -270,6 +271,33 @@ export function SharedGroupDetailScreen() {
     });
   }, [sortedExpenses]);
   const monthlySpending = thisMonthExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+
+  const memberSpending = useMemo(() => {
+    const map = new Map<string, { name: string; amount: number }>();
+    for (const e of expenses) {
+      const amt = Number(e.amount || 0);
+      if (amt <= 0) continue;
+      const uid = e.paidBy;
+      const existing = map.get(uid);
+      if (existing) {
+        existing.amount += amt;
+      } else {
+        const m = members.find((m2: any) => m2.userId === uid);
+        map.set(uid, { name: m?.user?.firstName || m?.user?.email || uid.slice(0, 8), amount: amt });
+      }
+    }
+    const sorted = [...map.values()].sort((a, b) => b.amount - a.amount);
+    const total = sorted.reduce((s, m) => s + m.amount, 0);
+    const COLORS = [colors.accent.primary, '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#14B8A6', '#E17055', '#A29BFE'];
+    return sorted.map((m, i) => ({
+      name: m.name,
+      amount: m.amount,
+      color: COLORS[i % COLORS.length],
+      legendFontColor: colors.text.secondary,
+      legendFontSize: 12,
+      percentage: total > 0 ? ((m.amount / total) * 100).toFixed(1) : '0',
+    }));
+  }, [expenses, members, colors]);
 
   const balanceRows = useMemo(() => {
     if (members.length === 0) {
@@ -331,7 +359,7 @@ export function SharedGroupDetailScreen() {
       });
       const token = res?.token || res?.inviteToken;
       if (!token) {
-        Alert.alert('Error', 'Failed to generate invite link');
+        alertService.alert('Error', 'Failed to generate invite link');
         return;
       }
       setInviteToken(token);
@@ -340,7 +368,7 @@ export function SharedGroupDetailScreen() {
         message: `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${url}`,
       });
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to generate invite');
+      alertService.alert('Error', e.message || 'Failed to generate invite');
     } finally {
       setInviteLoading(false);
     }
@@ -348,7 +376,7 @@ export function SharedGroupDetailScreen() {
 
   async function handleSaveSettings() {
     if (!editName.trim()) {
-      return Alert.alert('Name required', 'Please enter a group name.');
+      return alertService.alert('Name required', 'Please enter a group name.');
     }
     setSavingSettings(true);
     try {
@@ -363,14 +391,14 @@ export function SharedGroupDetailScreen() {
       await loadData(true);
       setSettingsOpen(false);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to save settings');
+      alertService.alert('Error', e.message || 'Failed to save settings');
     } finally {
       setSavingSettings(false);
     }
   }
 
   async function confirmDeleteExpense(expenseId: string) {
-    Alert.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
+    alertService.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -384,11 +412,36 @@ export function SharedGroupDetailScreen() {
             showToast('Expense deleted');
             loadData(true);
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete');
+            alertService.alert('Error', e.message || 'Failed to delete');
           }
         },
       },
     ]);
+  }
+
+  async function handleSettleUp() {
+    const st = settleModal.settlement;
+    if (!st || !groupId || !st.fromUserId) return;
+    setSettleSubmitting(true);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      const created = await api.post<any>(`/shared-finance/groups/${groupId}/settlements`, {
+        fromUserId: st.fromUserId,
+        toUserId: st.toUserId,
+        amount: st.amount,
+        method: 'wallet',
+      });
+      const settlementId = created?.id || created?.settlement?.id;
+      if (settlementId) {
+        await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'wallet' });
+      }
+      setSettleModal({ visible: false, settlement: null });
+      loadData(true);
+    } catch (e: any) {
+      alertService.alert('Error', e.message || 'Settlement failed');
+    } finally {
+      setSettleSubmitting(false);
+    }
   }
 
   if (loading && !group) {
@@ -432,35 +485,27 @@ export function SharedGroupDetailScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={theme.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ paddingTop: insets.top, minHeight: insets.top + 56, justifyContent: 'center' }}
-      >
-        <View style={s.heroRow}>
+        <View style={{ paddingTop: insets.top + spacing.sm, backgroundColor: colors.bg.secondary, paddingBottom: spacing.sm }}>
+          <View style={s.heroRow}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={[s.backBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+            style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
           >
-            <AntDesign name="arrowleft" size={20} color="#FFF" />
+            <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
-          <View style={[s.heroIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <AntDesign name={theme.icon as any} size={22} color="#FFF" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.heroName, { color: '#FFF' }]} numberOfLines={1}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={[s.heroName, { color: colors.text.primary }]} numberOfLines={1}>
               {name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 1 }}>
-              <Text style={[s.heroMeta, { color: 'rgba(255,255,255,0.7)' }]}>
+              <Text style={[s.heroMeta, { color: colors.text.tertiary }]}>
                 {memberCount} member{memberCount !== 1 ? 's' : ''}
               </Text>
-              <View style={[s.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={s.typeBadgeText}>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
+              <View style={[s.typeBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
+                <Text style={[s.typeBadgeText, { color: colors.accent.primary }]}>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
               </View>
               {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
-                <Text style={[s.heroMeta, { color: 'rgba(255,255,255,0.8)', fontWeight: '600' }]}>
+                <Text style={[s.heroMeta, { color: colors.text.secondary, fontWeight: '600' }]}>
                   · {myBalanceRow.balance >= 0 ? '' : '-'}
                   {fmt(Math.abs(Math.round(myBalanceRow.balance)))}
                 </Text>
@@ -469,18 +514,18 @@ export function SharedGroupDetailScreen() {
           </View>
           {isAdmin && (
             <TouchableOpacity
-              style={[s.backBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+              style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
               onPress={() => {
                 setEditName(name);
                 setEditDescription(group?.description || '');
                 setSettingsOpen(true);
               }}
             >
-              <AntDesign name="setting" size={18} color="#FFF" />
+              <AntDesign name="setting" size={18} color={colors.text.secondary} />
             </TouchableOpacity>
           )}
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -494,26 +539,26 @@ export function SharedGroupDetailScreen() {
           <TouchableOpacity
             style={[
               s.actionBtn,
-              { backgroundColor: 'rgba(99,102,241,0.12)', borderColor: 'rgba(99,102,241,0.25)' },
+              { backgroundColor: colors.accent.secondary + '12', borderColor: colors.accent.secondary + '25' },
             ]}
             onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
           >
-            <View style={[s.actionIconBg, { backgroundColor: '#6366F1' }]}>
+            <View style={[s.actionIconBg, { backgroundColor: colors.accent.secondary }]}>
               <AntDesign name="arrowdown" size={16} color="#FFF" />
             </View>
-            <Text style={[s.actionLabel, { color: '#6366F1' }]}>Split</Text>
+            <Text style={[s.actionLabel, { color: colors.accent.secondary }]}>Split</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               s.actionBtn,
-              { backgroundColor: '#34C759' + '12', borderColor: '#34C759' + '25' },
+              { backgroundColor: colors.status.success + '12', borderColor: colors.status.success + '25' },
             ]}
             onPress={() => navigation.navigate('Settlement', { groupId })}
           >
-            <View style={[s.actionIconBg, { backgroundColor: '#34C759' }]}>
+            <View style={[s.actionIconBg, { backgroundColor: colors.status.success }]}>
               <AntDesign name="swap" size={16} color="#FFF" />
             </View>
-            <Text style={[s.actionLabel, { color: '#34C759' }]}>Settle</Text>
+            <Text style={[s.actionLabel, { color: colors.status.success }]}>Settle</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -532,7 +577,44 @@ export function SharedGroupDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Summary Cards */}
+        {/* Tab Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: spacing.md }}
+        >
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
+                style={[
+                  s.tabChip,
+                  activeTab === tab.key
+                    ? { backgroundColor: colors.accent.primary }
+                    : { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, borderWidth: 1 },
+                ]}
+              >
+                <AntDesign
+                  name={tab.icon as any}
+                  size={14}
+                  color={activeTab === tab.key ? '#FFF' : colors.text.secondary}
+                />
+                <Text
+                  style={[
+                    s.tabChipText,
+                    { color: activeTab === tab.key ? '#FFF' : colors.text.secondary },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (<>
         <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
           <View
             style={[
@@ -604,15 +686,21 @@ export function SharedGroupDetailScreen() {
                 <Text style={[s.viewAllText, { color: colors.accent.primary }]}>View all</Text>
               </TouchableOpacity>
             </View>
-            {settlements.slice(0, 3).map((st, i) => (
+            {settlements.slice(0, 3).map((st, i) => {
+              const avatarUser = members.find((m: any) =>
+                m.userId === (st.type === 'pay' ? st.to : st.from)
+              );
+              const avatarUri = avatarUser?.user?.avatarUrl;
+              const settlePayload = st.type === 'pay'
+                ? { ...st, fromUserId: currentUser?.id, toUserId: st.to }
+                : { ...st, fromUserId: st.from, toUserId: currentUser?.id };
+              return (
               <View key={i} style={[s.settleRow, { borderTopColor: colors.border.subtle }]}>
-                <View style={[s.settleAvatar, { backgroundColor: colors.accent.primary }]}>
-                  <Text style={s.settleAvatarText}>
-                    {st.fromName === 'You'
-                      ? st.toName[0]?.toUpperCase()
-                      : st.fromName[0]?.toUpperCase()}
-                  </Text>
-                </View>
+                <Avatar
+                  name={st.fromName === 'You' ? st.toName : st.fromName}
+                  size={32}
+                  uri={avatarUri}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={[s.settleLabel, { color: colors.text.primary }]}>
                     {st.type === 'pay' ? `Pay ${st.toName}` : `${st.fromName} pays you`}
@@ -621,34 +709,54 @@ export function SharedGroupDetailScreen() {
                     {fmt(st.amount)}
                   </Text>
                 </View>
-                {st.type === 'pay' && st.upiId ? (
-                  <TouchableOpacity
-                    style={[s.payBtn, { backgroundColor: '#34C759' }]}
-                    onPress={() => {
-                      Linking.openURL(
-                        `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`,
-                      ).catch(() => Alert.alert('Unable to open UPI', 'No UPI app found.'));
-                    }}
-                  >
-                    <AntDesign name="wallet" size={12} color="#FFF" />
-                    <Text style={s.payBtnText}>Pay</Text>
-                  </TouchableOpacity>
-                ) : st.type === 'remind' ? (
-                  <TouchableOpacity
-                    style={[s.payBtn, { backgroundColor: '#F59E0B' }]}
-                    onPress={() => {
-                      const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
-                      Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`).catch(() =>
-                        Alert.alert('Reminder', msg),
-                      );
-                    }}
-                  >
-                    <AntDesign name="bells" size={12} color="#FFF" />
-                    <Text style={s.payBtnText}>Remind</Text>
-                  </TouchableOpacity>
-                ) : null}
+                {st.type === 'pay' && (
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity
+                      style={[s.payBtn, { backgroundColor: colors.status.success }]}
+                      onPress={() => {
+                        Linking.openURL(
+                          `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`,
+                        ).catch(() => alertService.alert('Unable to open UPI', 'No UPI app found.'));
+                      }}
+                    >
+                      <AntDesign name="wallet" size={12} color="#FFF" />
+                      <Text style={s.payBtnText}>Pay Now</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
+                      onPress={() => setSettleModal({ visible: true, settlement: settlePayload })}
+                    >
+                      <AntDesign name="swap" size={12} color="#FFF" />
+                      <Text style={s.payBtnText}>Settle</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {st.type === 'remind' && (
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity
+                      style={[s.payBtn, { backgroundColor: colors.status.warning }]}
+                      onPress={() => {
+                        const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
+                        Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`).catch(() =>
+                          alertService.alert('Reminder', msg),
+                        );
+                      }}
+                    >
+                      <AntDesign name="bells" size={12} color="#FFF" />
+                      <Text style={s.payBtnText}>Remind</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
+                      onPress={() => setSettleModal({ visible: true, settlement: settlePayload })}
+                    >
+                      <AntDesign name="swap" size={12} color="#FFF" />
+                      <Text style={s.payBtnText}>Settle</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
-            ))}
+            );
+            })}
           </View>
         )}
 
@@ -660,12 +768,12 @@ export function SharedGroupDetailScreen() {
           ]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={[s.monthIcon, { backgroundColor: '#F59E0B' + '12' }]}>
+            <View style={[s.monthIcon, { backgroundColor: colors.status.warning + '12' }]}>
               <AntDesign name="calendar" size={14} color="#F59E0B" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>This Month</Text>
-              <Text style={[s.monthValue, { color: '#F59E0B' }]}>{fmt(monthlySpending)}</Text>
+              <Text style={[s.monthValue, { color: colors.status.warning }]}>{fmt(monthlySpending)}</Text>
             </View>
             <View style={[s.countBadge, { backgroundColor: colors.accent.primary + '12' }]}>
               <Text style={[s.countText, { color: colors.accent.primary }]}>
@@ -690,10 +798,10 @@ export function SharedGroupDetailScreen() {
                   {
                     backgroundColor:
                       (analyticsData.healthScore >= 70
-                        ? '#34C759'
+                        ? colors.status.success
                         : analyticsData.healthScore >= 40
-                          ? '#F59E0B'
-                          : '#FF3B30') + '12',
+                          ? colors.status.warning
+                          : colors.status.error) + '12',
                   },
                 ]}
               >
@@ -702,10 +810,10 @@ export function SharedGroupDetailScreen() {
                   size={14}
                   color={
                     analyticsData.healthScore >= 70
-                      ? '#34C759'
+                      ? colors.status.success
                       : analyticsData.healthScore >= 40
-                        ? '#F59E0B'
-                        : '#FF3B30'
+                        ? colors.status.warning
+                        : colors.status.error
                   }
                 />
               </View>
@@ -717,10 +825,10 @@ export function SharedGroupDetailScreen() {
                     {
                       color:
                         analyticsData.healthScore >= 70
-                          ? '#34C759'
+                          ? colors.status.success
                           : analyticsData.healthScore >= 40
-                            ? '#F59E0B'
-                            : '#FF3B30',
+                            ? colors.status.warning
+                            : colors.status.error,
                     },
                   ]}
                 >
@@ -737,7 +845,7 @@ export function SharedGroupDetailScreen() {
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: analyticsData.fairnessScore >= 0.5 ? '#34C759' : '#F59E0B',
+                        color: analyticsData.fairnessScore >= 0.5 ? colors.status.success : colors.status.warning,
                       }}
                     >
                       {(analyticsData.fairnessScore * 100).toFixed(0)}%
@@ -754,7 +862,7 @@ export function SharedGroupDetailScreen() {
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: analyticsData.settlementScore >= 70 ? '#34C759' : '#F59E0B',
+                        color: analyticsData.settlementScore >= 70 ? colors.status.success : colors.status.warning,
                       }}
                     >
                       {analyticsData.settlementScore}%
@@ -801,8 +909,8 @@ export function SharedGroupDetailScreen() {
                             colors.accent.primary,
                             colors.status.error,
                             colors.status.success,
-                            '#F59E0B',
-                            '#8B5CF6',
+                            colors.status.warning,
+                            colors.accent.secondary,
                           ][i % 5],
                         },
                       ]}
@@ -832,8 +940,8 @@ export function SharedGroupDetailScreen() {
                                 colors.accent.primary,
                                 colors.status.error,
                                 colors.status.success,
-                                '#F59E0B',
-                                '#8B5CF6',
+                                colors.status.warning,
+                                colors.accent.secondary,
                               ][i % 5],
                             },
                           ]}
@@ -846,6 +954,52 @@ export function SharedGroupDetailScreen() {
                   </View>
                 </View>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* Spending by Member */}
+        {memberSpending.length > 0 && (
+          <View>
+            <View style={s.sectionHeader}>
+              <View
+                style={{
+                  width: 4,
+                  height: 14,
+                  borderRadius: 2,
+                  backgroundColor: colors.accent.primary,
+                }}
+              />
+              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                Spending by Member
+              </Text>
+            </View>
+            <View
+              style={[
+                s.catCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
+              <PieChart
+                data={memberSpending}
+                width={Math.min(width - 80, 320)}
+                height={200}
+                chartConfig={{ color: () => colors.text.primary }}
+                backgroundColor="transparent"
+                paddingLeft="0"
+                accessor="amount"
+                absolute
+              />
+              <View style={{ gap: 8, marginTop: 4 }}>
+                {memberSpending.map((m, i) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: m.color }} />
+                    <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>{m.name}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>{fmt(m.amount)}</Text>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>{m.percentage}%</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         )}
@@ -885,7 +1039,7 @@ export function SharedGroupDetailScreen() {
                   <Text
                     style={{
                       fontWeight: '700',
-                      color: (myBalanceRow.balance || 0) >= 0 ? '#34C759' : colors.status.error,
+                      color: (myBalanceRow.balance || 0) >= 0 ? colors.status.success : colors.status.error,
                     }}
                   >
                     {myBalanceRow.balance >= 0 ? '+' : ''}
@@ -922,11 +1076,11 @@ export function SharedGroupDetailScreen() {
             {insights.map((ins: any, i: number) => {
               const sevColor =
                 ins.severity === 'critical'
-                  ? '#FF3B30'
+                  ? colors.status.error
                   : ins.severity === 'warning'
-                    ? '#F59E0B'
+                    ? colors.status.warning
                     : ins.severity === 'success'
-                      ? '#34C759'
+                      ? colors.status.success
                       : colors.accent.primary;
               return (
                 <View
@@ -963,9 +1117,9 @@ export function SharedGroupDetailScreen() {
             })}
           </View>
         )}
-
-        {/* Members */}
-        {members.length > 0 && (
+        </>)}
+        {/* Members tab */}
+        {activeTab === 'members' && members.length > 0 && (
           <>
             <View style={s.sectionHeader}>
               <View
@@ -995,12 +1149,13 @@ export function SharedGroupDetailScreen() {
             <View style={s.membersRow}>
               {members.slice(0, 6).map((m: any) => {
                 const u = m.user;
-                const initial = (u?.firstName || u?.email || '?')[0]?.toUpperCase();
                 return (
                   <View key={m.id || u?.id} style={s.memberChip}>
-                    <View style={[s.memberAvatar, { backgroundColor: theme.chipColor + '20' }]}>
-                      <Text style={[s.memberInitial, { color: theme.chipColor }]}>{initial}</Text>
-                    </View>
+                    <Avatar
+                      uri={u?.avatarUrl}
+                      name={u?.firstName || u?.email || 'Member'}
+                      size={36}
+                    />
                     <Text
                       style={[s.memberChipName, { color: colors.text.secondary }]}
                       numberOfLines={1}
@@ -1080,6 +1235,7 @@ export function SharedGroupDetailScreen() {
           </>
         )}
 
+        {activeTab === 'expenses' && (<>
         {/* Recent Expenses */}
         <View style={s.sectionHeader}>
           <View
@@ -1127,7 +1283,7 @@ export function SharedGroupDetailScreen() {
                   })
                 }
                 onLongPress={() => {
-                  Alert.alert(item.description || 'Expense', 'Choose action', [
+                  alertService.alert(item.description || 'Expense', 'Choose action', [
                     {
                       text: 'Edit',
                       onPress: () =>
@@ -1173,7 +1329,7 @@ export function SharedGroupDetailScreen() {
                           Your share: {fmt(myShare)}
                         </Text>
                       ) : iPaid ? (
-                        <Text style={[s.shareText, { color: '#34C759' }]}>
+                        <Text style={[s.shareText, { color: colors.status.success }]}>
                           You paid {fmt(Number(item.amount || 0))}
                         </Text>
                       ) : null}
@@ -1187,6 +1343,8 @@ export function SharedGroupDetailScreen() {
             );
           })
         )}
+      </>)}
+
       </ScrollView>
 
       {/* FAB */}
@@ -1282,6 +1440,16 @@ export function SharedGroupDetailScreen() {
           </TouchableOpacity>
         </Modal>
       )}
+
+      <SettleUpModal
+        visible={settleModal.visible}
+        amount={settleModal.settlement?.amount || 0}
+        fromName={settleModal.settlement?.fromName || ''}
+        toName={settleModal.settlement?.toName || ''}
+        loading={settleSubmitting}
+        onConfirm={handleSettleUp}
+        onCancel={() => setSettleModal({ visible: false, settlement: null })}
+      />
     </View>
   );
 }
@@ -1300,19 +1468,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.lg,
-  },
-  heroIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   heroName: { fontSize: 17, fontWeight: '800' },
   heroMeta: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
-  typeBadgeText: { color: '#FFF', fontSize: 9, fontWeight: '700', textTransform: 'capitalize' },
+  typeBadgeText: { fontSize: 9, fontWeight: '700', textTransform: 'capitalize' },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   actionBtn: {
     flex: 1,
@@ -1342,6 +1502,15 @@ const s = StyleSheet.create({
   },
   summaryLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
   summaryValue: { fontSize: 15, fontWeight: '700' },
+  tabChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  tabChipText: { fontSize: 12, fontWeight: '700' },
   settlementCard: {
     borderRadius: borderRadius['2xl'],
     borderWidth: 1,
@@ -1364,14 +1533,6 @@ const s = StyleSheet.create({
     paddingVertical: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  settleAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  settleAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   settleLabel: { fontSize: 13, fontWeight: '600' },
   settleAmount: { fontSize: 11, marginTop: 1 },
   payBtn: {

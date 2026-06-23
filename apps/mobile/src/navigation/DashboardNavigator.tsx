@@ -17,9 +17,6 @@ import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen'
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { StreaksScreen } from '../screens/home/StreaksScreen';
 import { GlobalSearchScreen } from '../screens/home/GlobalSearchScreen';
-import { SpaceDetailScreen } from '../screens/spaces/SpaceDetailScreen';
-import { CreateSpaceScreen } from '../screens/spaces/CreateSpaceScreen';
-import { SpacesDashboardScreen } from '../screens/spaces/SpacesDashboardScreen';
 import { YearlySummaryScreen } from '../screens/home/YearlySummaryScreen';
 import { HousePlannerScreen } from '../screens/lifehub/HousePlannerScreen';
 import { BabyPlannerScreen } from '../screens/lifehub/BabyPlannerScreen';
@@ -62,9 +59,6 @@ export function DashboardNavigator() {
       <Stack.Screen name="BadgeWall" component={BadgeWallScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Streaks" component={StreaksScreen} options={{ headerShown: false }} />
       <Stack.Screen name="GlobalSearch" component={GlobalSearchScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="SpaceDetail" component={SpaceDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CreateSpace" component={CreateSpaceScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="SpacesDashboard" component={SpacesDashboardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="HousePlanner" component={HousePlannerScreen} options={{ headerShown: false }} />
       <Stack.Screen name="BabyPlanner" component={BabyPlannerScreen} options={{ headerShown: false }} />
       <Stack.Screen name="RetirementPlanner" component={RetirementPlannerScreen} options={{ headerShown: false }} />

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const CATEGORIES = ['Rent', 'Electricity', 'Water', 'Internet', 'School Fees', 'Insurance', 'Loans', 'EMI', 'Subscriptions', 'Other'];
 const FREQUENCIES = ['Monthly', 'Quarterly', 'Yearly', 'One-time'];
 
@@ -25,15 +26,15 @@ export function CreateBillScreen() {
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation', 'Bill name is required');
+      alertService.alert('Validation', 'Bill name is required');
       return;
     }
     if (!amount.trim() || isNaN(Number(amount)) || Number(amount) <= 0) {
-      Alert.alert('Validation', 'Enter a valid amount');
+      alertService.alert('Validation', 'Enter a valid amount');
       return;
     }
     if (!dueDate.trim()) {
-      Alert.alert('Validation', 'Due date is required');
+      alertService.alert('Validation', 'Due date is required');
       return;
     }
     setLoading(true);
@@ -49,7 +50,7 @@ export function CreateBillScreen() {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create bill');
+      alertService.alert('Error', e?.message || 'Failed to create bill');
     } finally {
       setLoading(false);
     }

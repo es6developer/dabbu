@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  FlatList,
-  ActivityIndicator,
-  Animated,
-  RefreshControl,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, Animated, RefreshControl, Dimensions } from 'react-native';
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -27,13 +15,14 @@ import {
   ContactMatch,
 } from '../../services/contacts';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 16;
 const CARD_HORIZONTAL = 20;
 const INITIAL_HEIGHT = 88;
 const EXPANDED_EXTRA = 200;
 
-type Role = 'Owner' | 'Admin' | 'Contributor' | 'Viewer';
+type Role = string;
 
 interface Profile {
   firstName: string;
@@ -78,11 +67,18 @@ interface Family {
   name: string;
 }
 
-const ROLE_CONFIG: Record<Role, { icon: string; color: string; label: string }> = {
+const ROLE_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
   Owner: { icon: 'crown-outline', color: '#F59E0B', label: 'Owner' },
   Admin: { icon: 'shield-outline', color: '#3B82F6', label: 'Admin' },
   Contributor: { icon: 'hand-left', color: '#22C55E', label: 'Contributor' },
   Viewer: { icon: 'eye-outline', color: '#6B7280', label: 'Viewer' },
+};
+
+const ROLE_MAP: Record<string, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  member: 'Contributor',
+  viewer: 'Viewer',
 };
 
 const PROFILE_COLORS = [
@@ -113,6 +109,7 @@ function fmtDate(iso: string) {
 }
 
 function MemberCardSkeleton() {
+  const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -132,13 +129,13 @@ function MemberCardSkeleton() {
   });
 
   return (
-    <View style={styles.skeletonCard}>
+    <View style={[styles.skeletonCard, { backgroundColor: colors.bg.secondary }]}>
       <View style={styles.skeletonRow}>
-        <Animated.View style={[styles.skeletonAvatar, { opacity }]} />
+        <Animated.View style={[styles.skeletonAvatar, { backgroundColor: colors.bg.tertiary, opacity }]} />
         <View style={{ flex: 1, gap: 8 }}>
-          <Animated.View style={[styles.skeletonLine, { width: '50%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '35%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { width: '60%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '50%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '35%', opacity }]} />
+          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '60%', opacity }]} />
         </View>
       </View>
     </View>
@@ -146,7 +143,8 @@ function MemberCardSkeleton() {
 }
 
 function RoleBadge({ role }: { role: Role }) {
-  const cfg = ROLE_CONFIG[role];
+  const key = ROLE_MAP[role.toLowerCase()] ?? 'Viewer';
+  const cfg = ROLE_CONFIG[key];
   return (
     <View style={[styles.roleBadge, { backgroundColor: cfg.color + '20' }]}>
       <MaterialCommunityIcons name={cfg.icon as any} size={12} color={cfg.color} />
@@ -156,9 +154,10 @@ function RoleBadge({ role }: { role: Role }) {
 }
 
 function ExpandIcon({ expanded }: { expanded: boolean }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.expandIconContainer}>
-      <AntDesign name={expanded ? 'up' : 'down'} size={14} color="#6B7280" />
+      <AntDesign name={expanded ? 'up' : 'down'} size={14} color={colors.text.tertiary} />
     </View>
   );
 }
@@ -254,19 +253,19 @@ function MemberCard({
               <View style={styles.expandedSection}>
                 <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Monthly Activity</Text>
                 <View style={styles.activityRow}>
-                  <View style={styles.activityItem}>
+                  <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
                     <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Income</Text>
                     <Text style={[styles.activityValue, { color: colors.status.success }]}>
                       {fmt(member.monthlyActivity.income)}
                     </Text>
                   </View>
-                  <View style={styles.activityItem}>
+                  <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
                     <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Expenses</Text>
                     <Text style={[styles.activityValue, { color: colors.status.error }]}>
                       {fmt(member.monthlyActivity.expenses)}
                     </Text>
                   </View>
-                  <View style={styles.activityItem}>
+                  <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
                     <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Transactions</Text>
                     <Text style={[styles.activityValue, { color: colors.text.primary }]}>
                       {member.monthlyActivity.transactionCount}
@@ -310,11 +309,11 @@ function MemberCard({
                   <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: '#EF444415' }]}
+                  style={[styles.actionBtn, { backgroundColor: colors.status.error + '15' }]}
                   onPress={() => {/* TODO: Confirm remove */}}
                 >
-                  <AntDesign name="delete" size={14} color="#EF4444" />
-                  <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Remove</Text>
+                  <AntDesign name="delete" size={14} color={colors.status.error} />
+                  <Text style={[styles.actionBtnText, { color: colors.status.error }]}>Remove</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -344,6 +343,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
   const [adding, setAdding] = useState(false);
   const [selectedContact, setSelectedContact] = useState<{ name: string; phone: string; userId?: string } | null>(null);
   const [selectedRelation, setSelectedRelation] = useState('');
+  const [familyFound, setFamilyFound] = useState(true);
 
   const RELATIONSHIPS = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister', 'Other'];
 
@@ -355,13 +355,31 @@ export default function FamilyMembersScreen({ navigation }: any) {
       const families: Family[] = await api.get('/family');
       if (!families || families.length === 0) {
         setMembers([]);
+        setFamilyFound(false);
         return;
       }
+      setFamilyFound(true);
       const activeFamily = families[0];
-      const data: FamilyMember[] = await api.get(
-        `/family/members?familyId=${activeFamily.id}`,
-      );
-      setMembers(data || []);
+      const familyDetail: any = await api.get(`/family/${activeFamily.id}`);
+      const rawMembers: any[] = familyDetail?.members || [];
+      const data: FamilyMember[] = rawMembers.map((m: any) => ({
+        id: m.id,
+        userId: m.userId,
+        role: m.role,
+        joinedAt: m.joinedAt,
+        profile: {
+          firstName: m.user?.firstName || '',
+          lastName: m.user?.lastName || '',
+          email: m.user?.email || '',
+          avatarUrl: m.user?.avatarUrl || null,
+          phone: m.user?.phone || '',
+        },
+        contributionHistory: [],
+        totalContributed: 0,
+        monthlyActivity: { income: 0, expenses: 0, transactionCount: 0 },
+        responsibilities: [],
+      }));
+      setMembers(data);
     } catch (err: any) {
       setError(err?.message || 'Failed to load members');
     } finally {
@@ -370,9 +388,11 @@ export default function FamilyMembersScreen({ navigation }: any) {
     }
   }, []);
 
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMembers();
+    }, [fetchMembers]),
+  );
 
   // ── Contacts ──
   const syncDeviceContacts = useCallback(async () => {
@@ -380,7 +400,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
     try {
       const perm = await requestRawPermission();
       if (!perm.granted) {
-        Alert.alert('Permission Required', 'Enable contact access to add family members from your phonebook.');
+        alertService.alert('Permission Required', 'Enable contact access to add family members from your phonebook.');
         setSyncing(false);
         return;
       }
@@ -394,7 +414,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
         ...untyped,
       ]);
     } catch {
-      Alert.alert('Error', 'Failed to sync contacts');
+      alertService.alert('Error', 'Failed to sync contacts');
     } finally {
       setSyncing(false);
     }
@@ -421,10 +441,12 @@ export default function FamilyMembersScreen({ navigation }: any) {
     if (!selectedContact || !selectedRelation) return;
     setAdding(true);
     try {
-      const families: Family[] = await api.get('/family');
-      const familyId = families?.[0]?.id;
-      if (!familyId) { throw new Error('No family found'); }
-      const nameParts = selectedContact.name.trim().split(' ');
+      let families: Family[] = await api.get('/family');
+      let familyId = families?.[0]?.id;
+      if (!familyId) {
+        const newFamily: Family = await api.post('/family', { name: 'My Family', description: '' });
+        familyId = newFamily.id;
+      }
       await api.post('/family/members/contact', {
         familyId,
         name: selectedContact.name,
@@ -438,7 +460,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
       setSelectedRelation('');
       fetchMembers();
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to add member');
+      alertService.alert('Error', err?.message || 'Failed to add member');
     } finally {
       setAdding(false);
     }
@@ -491,7 +513,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
             <Text style={[styles.retryText, { color: colors.text.inverse }]}>Retry</Text>
           </TouchableOpacity>
         </View>
-      ) : members.length === 0 ? (
+      ) : members.length === 0 && familyFound ? (
         <View style={styles.centerState}>
           <AntDesign name="team" size={48} color={colors.text.tertiary} />
           <Text style={[styles.stateText, { color: colors.text.secondary }]}>No members yet</Text>
@@ -501,6 +523,19 @@ export default function FamilyMembersScreen({ navigation }: any) {
           >
             <AntDesign name="adduser" size={16} color={colors.text.inverse} />
             <Text style={[styles.retryText, { color: colors.text.inverse }]}>Add a member</Text>
+          </TouchableOpacity>
+        </View>
+      ) : members.length === 0 ? (
+        <View style={styles.centerState}>
+          <AntDesign name="addusergroup" size={48} color={colors.text.tertiary} />
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>No family group found</Text>
+          <Text style={[styles.stateSubtext, { color: colors.text.tertiary }]}>Create a family to start managing shared finances.</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => navigation.navigate('CreateFamily')}
+          >
+            <AntDesign name="addusergroup" size={16} color={colors.text.inverse} />
+            <Text style={[styles.retryText, { color: colors.text.inverse }]}>Create Family</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -603,8 +638,8 @@ export default function FamilyMembersScreen({ navigation }: any) {
                               <Text style={{ fontSize: 12, color: colors.text.tertiary }} numberOfLines={1}>{phone}</Text>
                             </View>
                             {isAppUser && (
-                              <View style={[styles.statusBadge, { backgroundColor: '#22C55E20' }]}>
-                                <Text style={{ fontSize: 10, fontWeight: '600', color: '#22C55E' }}>On Dabbu</Text>
+                              <View style={[styles.statusBadge, { backgroundColor: colors.status.success + '20' }]}>
+                                <Text style={{ fontSize: 10, fontWeight: '600', color: colors.status.success }}>On Dabbu</Text>
                               </View>
                             )}
                           </TouchableOpacity>
@@ -730,6 +765,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  stateSubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 
   // Skeleton
   skeletonCard: {
@@ -737,7 +777,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     padding: 16,
-    backgroundColor: '#1C1C1E',
   },
   skeletonRow: {
     flexDirection: 'row',
@@ -748,12 +787,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#27272A',
   },
   skeletonLine: {
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#27272A',
   },
 
   // Card
@@ -851,7 +888,6 @@ const styles = StyleSheet.create({
   },
   activityItem: {
     flex: 1,
-    backgroundColor: '#111111',
     borderRadius: 12,
     padding: 10,
     alignItems: 'center',

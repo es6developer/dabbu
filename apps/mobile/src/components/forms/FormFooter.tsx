@@ -1,13 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  ViewStyle,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, ViewStyle, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';

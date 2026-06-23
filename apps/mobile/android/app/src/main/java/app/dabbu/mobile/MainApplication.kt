@@ -6,6 +6,7 @@ import androidx.annotation.NonNull
 
 import com.facebook.react.PackageList
 import app.dabbu.mobile.SmsPackage
+import app.dabbu.mobile.DynamicAppIconPackage
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
@@ -30,6 +31,7 @@ class MainApplication : Application(), ReactApplication {
             // packages.add(new MyReactNativePackage());
             val packages = PackageList(this).packages.toMutableList()
             packages.add(SmsPackage())
+            packages.add(DynamicAppIconPackage())
             return packages
           }
 

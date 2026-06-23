@@ -1,15 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Animated,
-  Keyboard,
-  TouchableWithoutFeedback,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Animated, Keyboard, TouchableWithoutFeedback, ScrollView, Image } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +7,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
+import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 
 interface InputFieldProps {
   placeholder: string;
@@ -119,6 +110,7 @@ export function PremiumSignupScreen() {
   const insets = useSafeAreaInsets();
   const { register, googleLogin } = useAuth();
   const { colors } = useTheme();
+  const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -286,7 +278,7 @@ export function PremiumSignupScreen() {
                     }}
                   >
                     <Image
-                      source={require('../../../assets/logo.png')}
+                      source={logoSource}
                       style={{ width: 56, height: 56 }}
                       resizeMode="contain"
                     />

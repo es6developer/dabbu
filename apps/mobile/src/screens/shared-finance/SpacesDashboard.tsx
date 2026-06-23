@@ -1,13 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +9,7 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -32,22 +25,21 @@ function fmtDate(d: string) {
   });
 }
 
-const TYPE_META: Record<string, { icon: string; color: string }> = {
-  couple: { icon: 'heart', color: '#EC4899' },
-  family: { icon: 'team', color: '#3B82F6' },
-  trip: { icon: 'earth', color: '#06B6D4' },
-  friends: { icon: 'team', color: '#6366F1' },
-  wedding: { icon: 'heart', color: '#BE185D' },
-  house_purchase: { icon: 'home', color: '#F97316' },
-  office: { icon: 'bank', color: '#8B5CF6' },
-  event: { icon: 'star', color: '#D97706' },
-  apartment: { icon: 'home', color: '#1F2937' },
-  sports: { icon: 'Trophy', color: '#059669' },
-  roommates: { icon: 'team', color: '#6366F1' },
-};
-
-function typeMeta(t: string) {
-  return TYPE_META[t?.toLowerCase()] || { icon: 'team', color: '#6366F1' };
+function typeMeta(t: string, colors: any) {
+  const meta: Record<string, { icon: string; color: string }> = {
+    couple: { icon: 'heart', color: '#EC4899' },
+    family: { icon: 'team', color: '#3B82F6' },
+    trip: { icon: 'earth', color: '#06B6D4' },
+    friends: { icon: 'team', color: '#6366F1' },
+    wedding: { icon: 'heart', color: '#BE185D' },
+    house_purchase: { icon: 'home', color: '#F97316' },
+    office: { icon: 'bank', color: colors.accent.secondary },
+    event: { icon: 'star', color: colors.accent.secondary },
+    apartment: { icon: 'home', color: '#1F2937' },
+    sports: { icon: 'Trophy', color: colors.accent.primary },
+    roommates: { icon: 'team', color: '#6366F1' },
+  };
+  return meta[t?.toLowerCase()] || { icon: 'team', color: '#6366F1' };
 }
 
 export function SpacesDashboard() {
@@ -106,7 +98,7 @@ export function SpacesDashboard() {
       navigation.navigate('SharedExpenseForm', { groupId: groups[0].id });
       return;
     }
-    Alert.alert(
+    alertService.alert(
       'Add expense to...',
       'Choose which space to add this expense to',
       groups
@@ -130,7 +122,7 @@ export function SpacesDashboard() {
       navigation.navigate('Settlement', { groupId: groups[0].id });
       return;
     }
-    Alert.alert(
+    alertService.alert(
       'Settle up in...',
       'Choose a space',
       groups
@@ -332,7 +324,7 @@ export function SpacesDashboard() {
             </View>
           ) : (
             groups.map((g: any) => {
-              const meta = typeMeta(g.type);
+              const meta = typeMeta(g.type, colors);
               const totalSpentG = Number(g.totalSpent || 0);
               const totalIncomeG = Number(g.totalIncome || totalSpentG);
               const totalLeftG = totalIncomeG - totalSpentG;

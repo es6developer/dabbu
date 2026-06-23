@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  RefreshControl,
-  Alert,
-  Share,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, RefreshControl, Share, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +9,7 @@ import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 
 interface NotificationPref {
@@ -116,7 +106,7 @@ export function CoupleSettingsScreen() {
   );
 
   const handleLeaveCouple = useCallback(() => {
-    Alert.alert(
+    alertService.alert(
       'Leave Couple Space',
       'Are you sure? All shared data will be archived. This action cannot be undone.',
       [
@@ -130,7 +120,7 @@ export function CoupleSettingsScreen() {
               showToast('Left the space');
               navigation.goBack();
             } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Failed to leave couple space');
+              alertService.alert('Error', e?.message || 'Failed to leave couple space');
             }
           },
         },
@@ -146,7 +136,7 @@ export function CoupleSettingsScreen() {
       const inviteUrl = `https://dabbu.app/join?token=${token}`;
       await Share.share({ message: `Join our Couple Space on Dabbu! ${inviteUrl}` });
     } catch {
-      Alert.alert('Error', 'Failed to generate invite link');
+      alertService.alert('Error', 'Failed to generate invite link');
     }
   }, [coupleData]);
 
@@ -316,7 +306,7 @@ export function CoupleSettingsScreen() {
                   <Switch
                     value={val}
                     onValueChange={(v) => handleToggle(item.key, v)}
-                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
+                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: colors.accent.secondary }}
                     thumbColor={val ? '#FFFFFF' : 'rgba(255,255,255,0.4)'}
                     ios_backgroundColor="rgba(255,255,255,0.12)"
                   />

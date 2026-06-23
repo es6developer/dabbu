@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +8,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
+import { alertService } from "../../components/ui";
 export function AddPartnerScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
@@ -75,18 +67,18 @@ export function AddPartnerScreen() {
   async function handleSendRequest() {
     const trimmed = phone.trim().replace(/[^0-9]/g, '');
     if (!trimmed || trimmed.length < 10) {
-      Alert.alert('Error', "Please enter your partner's valid phone number");
+      alertService.alert('Error', "Please enter your partner's valid phone number");
       return;
     }
     setSending(true);
     try {
       await sendCoupleRequest(trimmed);
-      Alert.alert('Request Sent!', 'Your partner will need to approve the request.', [
+      alertService.alert('Request Sent!', 'Your partner will need to approve the request.', [
         { text: 'OK', onPress: () => loadRequests() },
       ]);
       setPhone('');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to send request');
+      alertService.alert('Error', e?.message || 'Failed to send request');
     } finally {
       setSending(false);
     }
@@ -96,11 +88,11 @@ export function AddPartnerScreen() {
     setProcessingId(requestId);
     try {
       await approveCoupleRequest(requestId);
-      Alert.alert('Connected!', "You're in a couple! Couple Mode is active.", [
+      alertService.alert('Connected!', "You're in a couple! Couple Mode is active.", [
         { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to approve request');
+      alertService.alert('Error', e?.message || 'Failed to approve request');
     } finally {
       setProcessingId(null);
     }
@@ -112,7 +104,7 @@ export function AddPartnerScreen() {
       await rejectCoupleRequest(requestId);
       loadRequests();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to reject request');
+      alertService.alert('Error', e?.message || 'Failed to reject request');
     } finally {
       setProcessingId(null);
     }
@@ -124,14 +116,14 @@ export function AddPartnerScreen() {
       await cancelCoupleRequest(requestId);
       loadRequests();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to cancel request');
+      alertService.alert('Error', e?.message || 'Failed to cancel request');
     } finally {
       setProcessingId(null);
     }
   }
 
   function handleRemovePartner() {
-    Alert.alert(
+    alertService.alert(
       'Remove Partner',
       'This will break the couple relationship. Shared data will not be deleted.\n\nAre you sure?',
       [
@@ -143,9 +135,9 @@ export function AddPartnerScreen() {
             setRemoving(true);
             try {
               await removePartner();
-              Alert.alert('Removed', 'Couple relationship has been removed.');
+              alertService.alert('Removed', 'Couple relationship has been removed.');
             } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Failed to remove partner');
+              alertService.alert('Error', e?.message || 'Failed to remove partner');
             } finally {
               setRemoving(false);
             }
@@ -234,7 +226,7 @@ export function AddPartnerScreen() {
 
   return (
     <ScrollView style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50, backgroundColor: '#7C3AED' }]}>
+      <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50, backgroundColor: colors.accent.primary }]}>
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
@@ -256,7 +248,7 @@ export function AddPartnerScreen() {
       <View style={styles.bodyInner}>
         {/* Incoming Requests */}
         {loadingRequests ? (
-          <ActivityIndicator size="small" color="#7C3AED" style={{ marginVertical: 16 }} />
+          <ActivityIndicator size="small" color={colors.accent.primary} style={{ marginVertical: 16 }} />
         ) : requests.received.length > 0 ? (
           <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
             <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
@@ -331,7 +323,7 @@ export function AddPartnerScreen() {
             onPress={handleSendRequest}
             disabled={sending}
           >
-            <View style={[styles.addBtnGradient, { backgroundColor: '#7C3AED' }]}>
+            <View style={[styles.addBtnGradient, { backgroundColor: colors.accent.primary }]}>
               {sending ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
@@ -389,7 +381,7 @@ export function AddPartnerScreen() {
             { icon: 'piechart', text: 'Get AI-powered couple insights' },
           ].map((f, i) => (
             <View key={i} style={styles.featureRow}>
-              <AntDesign name={f.icon as any} size={18} color="#7C3AED" />
+              <AntDesign name={f.icon as any} size={18} color={colors.accent.primary} />
               <Text style={[styles.featureText, { color: colors.text.secondary }]}>{f.text}</Text>
             </View>
           ))}

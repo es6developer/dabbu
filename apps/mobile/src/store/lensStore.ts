@@ -1,9 +1,11 @@
-import { Platform, LayoutAnimation } from 'react-native';
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api, setAccessToken } from '../services/api';
 import type { LensMode, LensAvailability } from '../types';
+import { InteractionManager } from 'react-native';
+import { lensToIconName, setAppIcon } from '../services/dynamicAppIcon';
 import type {
   LensFullConfig,
   FeatureFlagState,
@@ -37,6 +39,7 @@ interface LensStoreState {
   switchedAt: string | null;
   switchedCount: number;
   isLoading: boolean;
+  isSwitching: boolean;
   isConfigLoading: boolean;
   isDashboardLoading: boolean;
   error: string | null;
@@ -98,12 +101,12 @@ export const useLensStore = create<LensStore>()(
       switchedAt: null,
       switchedCount: 0,
       isLoading: false,
+      isSwitching: false,
       isConfigLoading: false,
       isDashboardLoading: false,
       error: null,
 
       setLens: (lens) => {
-        LayoutAnimation.configureNext({ duration: 300, update: { type: 'easeInEaseOut' } });
         const prev = get().activeLens;
         if (prev !== lens) {
           const localConfigs: Record<
@@ -347,7 +350,7 @@ export const useLensStore = create<LensStore>()(
       },
 
       updateLens: async (accessToken, lens, reason = 'manual') => {
-        LayoutAnimation.configureNext({ duration: 300, update: { type: 'easeInEaseOut' } });
+        set({ isSwitching: true, error: null });
         if (accessToken) {
           setAccessToken(accessToken);
         }
@@ -380,9 +383,14 @@ export const useLensStore = create<LensStore>()(
           }
 
           updateSecureStoreLens(activeLens);
+          setAppIcon(lensToIconName(activeLens)).catch(() => {});
           trackLensSwitch(prev, lens);
         } catch (e: any) {
           set({ error: e?.message || 'Failed to persist lens switch on server' });
+          get().setLens(lens);
+          setAppIcon(lensToIconName(lens)).catch(() => {});
+        } finally {
+          set({ isSwitching: false });
         }
       },
 
@@ -399,6 +407,10 @@ export const useLensStore = create<LensStore>()(
             set({ activeLens: newLens, previousLens: state.activeLens });
           }
         }
+        // Sync app icon to the active lens on startup
+        InteractionManager.runAfterInteractions(() => {
+          setAppIcon(lensToIconName(get().activeLens));
+        });
       },
 
       fetchConfig: async () => {
@@ -492,6 +504,11 @@ export const useLensStore = create<LensStore>()(
     }),
     {
       name: 'dabbu-lens-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state?.activeLens) {
+          setAppIcon(lensToIconName(state.activeLens));
+        }
+      },
       storage: createJSONStorage(() => ({
         getItem: async (name: string) => {
           try {

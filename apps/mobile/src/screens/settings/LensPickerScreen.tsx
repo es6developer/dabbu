@@ -1,15 +1,5 @@
 import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -18,47 +8,40 @@ import { useTheme } from '../../theme';
 import { useLensStore, LensMode } from '../../store/lensStore';
 import { useAuth } from '../../store/AuthContext';
 
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 const LENS_OPTIONS: Array<{
   key: LensMode;
   label: string;
   description: string;
   icon: string;
-  colors: { primary: string; gradient: string[]; accent: string };
+  colors: { primary: string; secondary: string; gradient: string[]; accent: string; darkGradient: string[] };
 }> = [
   {
     key: 'PERSONAL',
     label: 'Personal',
     description: 'Your individual finances, goals, and insights',
     icon: 'user',
-    colors: { primary: '#7C3AED', gradient: ['#F0E6FF', '#F5F5F8'], accent: '#7C3AED15' },
+    colors: { primary: '#7C3AED', secondary: '#A78BFA', gradient: ['#F0E6FF', '#F5F5F8'], accent: '#7C3AED15', darkGradient: ['#1A0A2E', '#0C0C0E'] },
   },
   {
     key: 'PARTNERED',
     label: 'Partnered',
     description: 'Shared finances with your partner',
     icon: 'heart',
-    colors: { primary: '#F43F5E', gradient: ['#FFE4E8', '#FFF5F7'], accent: '#F43F5E15' },
+    colors: { primary: '#F43F5E', secondary: '#FB7185', gradient: ['#FFE4E8', '#FFF5F7'], accent: '#F43F5E15', darkGradient: ['#1A0A12', '#0C0C0E'] },
   },
   {
     key: 'FAMILY',
     label: 'Family',
     description: 'Manage household and family expenses together',
     icon: 'team',
-    colors: { primary: '#059669', gradient: ['#D1FAE5', '#F0FDF4'], accent: '#05966915' },
+    colors: { primary: '#0D9488', secondary: '#2DD4BF', gradient: ['#E8F2E6', '#F7F5F0'], accent: '#0D948812', darkGradient: ['#081812', '#0C0E0C'] },
   },
   {
     key: 'FULL',
     label: 'Full Access',
     description: 'Everything across all lenses in one view',
     icon: 'appstore-o',
-    colors: { primary: '#D97706', gradient: ['#FEF3C7', '#FFFBEB'], accent: '#D9770615' },
+    colors: { primary: '#4338CA', secondary: '#818CF8', gradient: ['#EEEEFF', '#F6F5F2'], accent: '#4338CA12', darkGradient: ['#0E0E22', '#0C0C12'] },
   },
 ];
 
@@ -67,9 +50,8 @@ export function LensPickerScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const activeLens = useLensStore((s) => s.activeLens);
-  const setLens = useLensStore((s) => s.setLens);
   const updateLens = useLensStore((s) => s.updateLens);
-  const loading = useLensStore((s) => s.isLoading);
+  const isSwitching = useLensStore((s) => s.isSwitching);
   const { accessToken } = useAuth();
   const scaleAnims = useRef<Record<string, Animated.Value>>({});
 
@@ -80,20 +62,17 @@ export function LensPickerScreen() {
     return scaleAnims.current[key];
   };
 
-  const handleSelect = (lens: LensMode) => {
-    LayoutAnimation.configureNext({
-      duration: 300,
-      update: { type: 'easeInEaseOut' },
-      create: { type: 'easeInEaseOut', property: 'opacity', duration: 200 },
-      delete: { type: 'easeInEaseOut', property: 'opacity', duration: 200 },
-    });
+  const handleSelect = async (lens: LensMode) => {
     if (lens === activeLens) {
       navigation.goBack();
       return;
     }
-    setLens(lens);
-    updateLens(accessToken, lens).catch(() => {});
-    navigation.goBack();
+    try {
+      await updateLens(accessToken, lens);
+      navigation.goBack();
+    } catch {
+      // error already set in store
+    }
   };
 
   const handlePressIn = (key: string) => {
@@ -144,7 +123,7 @@ export function LensPickerScreen() {
         >
           {LENS_OPTIONS.map((option) => {
             const isActive = activeLens === option.key;
-            const darkGrad = isDark ? ['#1C1C1E', '#141417'] : option.colors.gradient;
+            const darkGrad = isDark ? option.colors.darkGradient : option.colors.gradient;
             const scale = getScaleAnim(option.key);
             return (
               <Animated.View
@@ -156,7 +135,7 @@ export function LensPickerScreen() {
                   onPress={() => handleSelect(option.key)}
                   onPressIn={() => handlePressIn(option.key)}
                   onPressOut={() => handlePressOut(option.key)}
-                  disabled={loading}
+                  disabled={isSwitching}
                   style={[
                     s.card,
                     {
@@ -167,7 +146,7 @@ export function LensPickerScreen() {
                   ]}
                 >
                   <LinearGradient
-                    colors={darkGrad}
+                    colors={isActive ? darkGrad : [colors.bg.card, colors.bg.card]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={s.cardGradient}
@@ -178,16 +157,16 @@ export function LensPickerScreen() {
                           style={[
                             s.iconBox,
                             {
-                              backgroundColor: isDark
+                              backgroundColor: isActive
                                 ? `${option.colors.primary}25`
-                                : option.colors.accent,
+                                : colors.bg.tertiary,
                             },
                           ]}
                         >
                           <AntDesign
                             name={option.icon as any}
                             size={28}
-                            color={option.colors.primary}
+                            color={isActive ? option.colors.primary : colors.text.tertiary}
                           />
                         </View>
                         {isActive && (
@@ -196,25 +175,19 @@ export function LensPickerScreen() {
                           </View>
                         )}
                       </View>
-                      <Text style={[s.cardTitle, { color: colors.text.primary }]}>
+                      <Text style={[s.cardTitle, { color: isActive ? colors.text.primary : colors.text.secondary }]}>
                         {option.label}
                       </Text>
-                      <Text style={[s.cardDesc, { color: colors.text.tertiary }]}>
+                      <Text style={[s.cardDesc, { color: isActive ? colors.text.secondary : colors.text.tertiary }]}>
                         {option.description}
                       </Text>
 
-                      {/* Color preview dots */}
-                      <View style={s.colorRow}>
-                        <View style={[s.colorDot, { backgroundColor: option.colors.primary }]} />
-                        <View
-                          style={[s.colorDot, { backgroundColor: option.colors.primary + '80' }]}
-                        />
-                        <View
-                          style={[s.colorDot, { backgroundColor: option.colors.primary + '40' }]}
-                        />
-                        <View
-                          style={[s.colorDot, { backgroundColor: option.colors.primary + '20' }]}
-                        />
+                      {/* Palette preview strip */}
+                      <View style={s.paletteStrip}>
+                        <View style={[s.paletteDot, { backgroundColor: option.colors.primary, borderColor: option.colors.primary }]} />
+                        <View style={[s.paletteDot, { backgroundColor: option.colors.secondary, borderColor: option.colors.secondary }]} />
+                        <View style={[s.paletteDot, { backgroundColor: option.colors.primary + '60', borderColor: option.colors.primary + '60' }]} />
+                        <View style={[s.paletteDot, { backgroundColor: option.colors.primary + '30', borderColor: option.colors.primary + '30' }]} />
                       </View>
 
                       {isActive && (
@@ -222,7 +195,7 @@ export function LensPickerScreen() {
                           style={[s.activeLabel, { backgroundColor: option.colors.primary + '15' }]}
                         >
                           <Text style={[s.activeLabelText, { color: option.colors.primary }]}>
-                            Active
+                            Active Lens
                           </Text>
                         </View>
                       )}
@@ -234,6 +207,16 @@ export function LensPickerScreen() {
           })}
         </ScrollView>
       </LinearGradient>
+
+      {isSwitching && (
+        <View style={[s.loaderOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)' }]}>
+          <View style={[s.loaderCard, { backgroundColor: colors.bg.card }]}>
+            <ActivityIndicator size="large" color={colors.accent.primary} />
+            <Text style={[s.loaderText, { color: colors.text.primary }]}>Switching Lens...</Text>
+            <Text style={[s.loaderSubtext, { color: colors.text.tertiary }]}>Loading your new view</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -319,6 +302,18 @@ const s = StyleSheet.create({
     height: 24,
     borderRadius: 12,
   },
+  paletteStrip: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  paletteDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+  },
   activeLabel: {
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
@@ -329,5 +324,32 @@ const s = StyleSheet.create({
   activeLabelText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  loaderCard: {
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  loaderText: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  loaderSubtext: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

@@ -1,12 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +9,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { getAllAvatarXmls } from '../../assets/avatars';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 
+import { alertService } from "../../components/ui";
 const AVATAR_NAMES = [
   'Short Hair Glasses', 'Short Hair Beard', 'Long Hair Glasses', 'Curly Hair Smile',
   'Big Hair Glasses', 'Bald Beard', 'Short Hair Beanie', 'Straight Hair',
@@ -27,6 +21,75 @@ export function AvatarPickerScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, completeProfileSetup } = useAuth();
+
+  const s = useMemo(() => StyleSheet.create({
+    root: { flex: 1 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    previewSection: {
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    previewName: {
+      fontSize: 18,
+      fontWeight: '700',
+      marginTop: 12,
+    },
+    sectionLabel: {
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      marginBottom: 12,
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      paddingBottom: 40,
+    },
+    presetItem: {
+      width: '47%',
+      alignItems: 'center',
+      padding: 16,
+      borderRadius: borderRadius.xl,
+      borderWidth: 2,
+      ...shadows.sm,
+    },
+    presetName: {
+      fontSize: 13,
+      fontWeight: '600',
+      marginTop: 8,
+    },
+    checkBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.accent.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: '#FFF',
+    },
+  }), [colors]);
 
   const avatarXmls = useMemo(() => getAllAvatarXmls(), []);
 
@@ -46,7 +109,7 @@ export function AvatarPickerScreen() {
       if (user) {
         completeProfileSetup({ avatarUrl: `local:${index}` });
       }
-      Alert.alert('Avatar Updated', `You selected "${AVATAR_NAMES[index]}"!`, [
+      alertService.alert('Avatar Updated', `You selected "${AVATAR_NAMES[index]}"!`, [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     },
@@ -56,7 +119,6 @@ export function AvatarPickerScreen() {
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <View style={{ paddingTop: insets.top + 16, paddingHorizontal: spacing.xl, flex: 1 }}>
-        {/* Header */}
         <View style={s.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -68,7 +130,6 @@ export function AvatarPickerScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Current Avatar Preview */}
         <View style={s.previewSection}>
           <Avatar
             uri={currentAvatarUrl}
@@ -80,7 +141,6 @@ export function AvatarPickerScreen() {
           </Text>
         </View>
 
-        {/* Avatar Grid */}
         <View style={{ flex: 1, marginTop: 24 }}>
           <Text style={[s.sectionLabel, { color: colors.text.secondary }]}>
             Choose from Avatars
@@ -124,72 +184,3 @@ export function AvatarPickerScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  previewSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  previewName: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 12,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingBottom: 40,
-  },
-  presetItem: {
-    width: '47%',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: borderRadius.xl,
-    borderWidth: 2,
-    ...shadows.sm,
-  },
-  presetName: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  checkBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#7C3AED',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFF',
-  },
-});

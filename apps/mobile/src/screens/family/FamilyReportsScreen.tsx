@@ -1,18 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
@@ -28,16 +19,18 @@ interface ReportTile {
   gradientColors: string[];
 }
 
-const reportTiles: ReportTile[] = [
-  { id: '1', icon: 'barschart', title: 'Monthly Spend', subtitle: 'View spending trends', color: '#3B82F6', gradientColors: ['#3B82F6', '#2563EB'] },
-  { id: '2', icon: 'piechart', title: 'Category Breakdown', subtitle: 'Spend by category', color: '#8B5CF6', gradientColors: ['#8B5CF6', '#7C3AED'] },
-  { id: '3', icon: 'arrowup', title: 'Savings Report', subtitle: 'Savings performance', color: '#10B981', gradientColors: ['#10B981', '#059669'] },
-  { id: '4', icon: 'linechart', title: 'Investment Report', subtitle: 'Portfolio performance', color: '#EC4899', gradientColors: ['#EC4899', '#DB2777'] },
-  { id: '5', icon: 'swap', title: 'Vs Last Month', subtitle: 'Compare spending', color: '#F59E0B', gradientColors: ['#F59E0B', '#D97706'] },
-  { id: '6', icon: 'calendar', title: 'Yearly Summary', subtitle: 'Annual overview', color: '#6366F1', gradientColors: ['#6366F1', '#4F46E5'] },
-];
+function getReportTiles(colors: any): ReportTile[] {
+  return [
+    { id: '1', icon: 'barschart', title: 'Monthly Spend', subtitle: 'View spending trends', color: '#3B82F6', gradientColors: ['#3B82F6', '#2563EB'] },
+    { id: '2', icon: 'piechart', title: 'Category Breakdown', subtitle: 'Spend by category', color: colors.accent.secondary, gradientColors: [colors.accent.secondary, colors.accent.primary] },
+    { id: '3', icon: 'arrowup', title: 'Savings Report', subtitle: 'Savings performance', color: colors.status.success, gradientColors: [colors.status.success, colors.accent.primary] },
+    { id: '4', icon: 'linechart', title: 'Investment Report', subtitle: 'Portfolio performance', color: '#EC4899', gradientColors: ['#EC4899', '#DB2777'] },
+    { id: '5', icon: 'swap', title: 'Vs Last Month', subtitle: 'Compare spending', color: colors.status.warning, gradientColors: [colors.status.warning, colors.accent.secondary] },
+    { id: '6', icon: 'calendar', title: 'Yearly Summary', subtitle: 'Annual overview', color: '#6366F1', gradientColors: ['#6366F1', '#4F46E5'] },
+  ];
+}
 
-const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void }> = ({ tile, onPress }) => (
+const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void; colors: any }> = ({ tile, onPress, colors }) => (
   <TouchableOpacity
     style={styles.reportTile}
     activeOpacity={0.85}
@@ -47,8 +40,8 @@ const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void }> = ({ t
       <View style={[styles.tileIconContainer, { backgroundColor: tile.color + '30' }]}>
         <AntDesign name={tile.icon} size={26} color={tile.color} />
       </View>
-      <Text style={styles.tileTitle}>{tile.title}</Text>
-      <Text style={styles.tileSubtitle}>{tile.subtitle}</Text>
+      <Text style={[styles.tileTitle, { color: colors.text.primary }]}>{tile.title}</Text>
+      <Text style={[styles.tileSubtitle, { color: colors.text.tertiary }]}>{tile.subtitle}</Text>
       <View style={styles.tileArrow}>
         <AntDesign name="arrowright" size={16} color={tile.color} />
       </View>
@@ -59,6 +52,8 @@ const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void }> = ({ t
 export default function FamilyReportsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const reportTiles = getReportTiles(colors);
   const [selectedFilter, setSelectedFilter] = useState('3M');
   const [insights, setInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -98,26 +93,26 @@ export default function FamilyReportsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#10B981" />
+      <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.status.success} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Reports</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
       </View>
 
       <View style={styles.headerSummary}>
-        <View style={styles.headerSummaryCard}>
-          <Text style={styles.headerSummaryLabel}>Reports Available</Text>
-          <Text style={styles.headerSummaryValue}>{reportTiles.length}</Text>
+        <View style={[styles.headerSummaryCard, { backgroundColor: colors.bg.secondary }]}>
+          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>Reports Available</Text>
+          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>{reportTiles.length}</Text>
         </View>
-        <View style={styles.headerSummaryCard}>
-          <Text style={styles.headerSummaryLabel}>Last Updated</Text>
-          <Text style={styles.headerSummaryValue}>{lastUpdated}</Text>
+        <View style={[styles.headerSummaryCard, { backgroundColor: colors.bg.secondary }]}>
+          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>Last Updated</Text>
+          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>{lastUpdated}</Text>
         </View>
       </View>
 
@@ -125,10 +120,10 @@ export default function FamilyReportsScreen() {
         {['1M', '3M', '6M', '1Y', 'All'].map(filter => (
           <TouchableOpacity
             key={filter}
-            style={[styles.filterTab, selectedFilter === filter && styles.filterTabActive]}
+            style={[styles.filterTab, { backgroundColor: selectedFilter === filter ? colors.status.success : colors.bg.secondary }, selectedFilter === filter && styles.filterTabActive]}
             onPress={() => setSelectedFilter(filter)}
           >
-            <Text style={[styles.filterText, selectedFilter === filter && styles.filterTextActive]}>
+            <Text style={[styles.filterText, { color: selectedFilter === filter ? colors.bg.primary : colors.text.tertiary }, selectedFilter === filter && styles.filterTextActive]}>
               {filter}
             </Text>
           </TouchableOpacity>
@@ -139,39 +134,40 @@ export default function FamilyReportsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor="#10B981" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.status.success} />}
       >
         <View style={styles.tilesGrid}>
           {reportTiles.map(tile => (
             <ReportTileCard
               key={tile.id}
               tile={tile}
+              colors={colors}
               onPress={() => handleTilePress(tile)}
             />
           ))}
         </View>
 
-        <View style={styles.insightCard}>
+        <View style={[styles.insightCard, { backgroundColor: colors.bg.secondary }]}>
           <View style={styles.insightHeaderRow}>
-            <AntDesign name="star" size={18} color="#10B981" />
-            <Text style={styles.insightTitle}>Quick Insights</Text>
+            <AntDesign name="star" size={18} color={colors.status.success} />
+            <Text style={[styles.insightTitle, { color: colors.text.primary }]}>Quick Insights</Text>
           </View>
           <View style={styles.insightRow}>
-            <View style={styles.insightDot} />
-            <Text style={styles.insightText}>
-              Total spend this month is <Text style={styles.insightHighlight}>₹{totalSpend.toLocaleString('en-IN')}</Text>
+            <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
+            <Text style={[styles.insightText, { color: colors.text.secondary }]}>
+              Total spend this month is <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>₹{totalSpend.toLocaleString('en-IN')}</Text>
             </Text>
           </View>
           <View style={styles.insightRow}>
-            <View style={styles.insightDot} />
-            <Text style={styles.insightText}>
-              Savings rate: <Text style={[styles.insightHighlight, { color: '#10B981' }]}>{savingsRate}%</Text> of income
+            <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
+            <Text style={[styles.insightText, { color: colors.text.secondary }]}>
+              Savings rate: <Text style={[styles.insightHighlight, { color: colors.status.success }]}>{savingsRate}%</Text> of income
             </Text>
           </View>
           <View style={styles.insightRow}>
-            <View style={styles.insightDot} />
-            <Text style={styles.insightText}>
-              Top category: <Text style={styles.insightHighlight}>{topCategory}</Text> ({topCategoryPct}% of spend)
+            <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
+            <Text style={[styles.insightText, { color: colors.text.secondary }]}>
+              Top category: <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>{topCategory}</Text> ({topCategoryPct}% of spend)
             </Text>
           </View>
         </View>
@@ -183,7 +179,6 @@ export default function FamilyReportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: 'row',
@@ -195,7 +190,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#F9FAFB',
     letterSpacing: -0.5,
   },
   headerSummary: {
@@ -206,20 +200,17 @@ const styles = StyleSheet.create({
   },
   headerSummaryCard: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
   },
   headerSummaryLabel: {
     fontSize: 12,
-    color: '#6B7280',
     marginBottom: 4,
   },
   headerSummaryValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F9FAFB',
   },
   filterRow: {
     flexDirection: 'row',
@@ -231,18 +222,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1C1C1E',
   },
   filterTabActive: {
-    backgroundColor: '#10B981',
   },
   filterText: {
     fontSize: 13,
-    color: '#6B7280',
     fontWeight: '500',
   },
   filterTextActive: {
-    color: '#0A0A0A',
     fontWeight: '600',
   },
   scrollView: {
@@ -281,12 +268,10 @@ const styles = StyleSheet.create({
   tileTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#F9FAFB',
     marginBottom: 4,
   },
   tileSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
   },
   tileArrow: {
     position: 'absolute',
@@ -294,7 +279,6 @@ const styles = StyleSheet.create({
     right: 16,
   },
   insightCard: {
-    backgroundColor: '#1C1C1E',
     borderRadius: 16,
     padding: 18,
     marginBottom: 20,
@@ -308,7 +292,6 @@ const styles = StyleSheet.create({
   insightTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9FAFB',
   },
   insightRow: {
     flexDirection: 'row',
@@ -320,17 +303,14 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
     marginTop: 6,
   },
   insightText: {
     fontSize: 14,
-    color: '#D1D5DB',
     flex: 1,
     lineHeight: 20,
   },
   insightHighlight: {
-    color: '#F9FAFB',
     fontWeight: '600',
   },
 });

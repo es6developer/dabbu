@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -7,6 +7,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
+import { alertService } from "../../components/ui";
 export function TasksListScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
@@ -46,7 +47,7 @@ export function TasksListScreen() {
       showToast('Task updated');
       setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, completed: !completed } : t));
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to update task');
+      alertService.alert('Error', e.message || 'Failed to update task');
     }
   }
 

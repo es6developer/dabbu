@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -18,6 +10,7 @@ import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
+import { alertService } from "../../components/ui";
 function getDetailColors(primary: string): Record<string, [string, string]> {
   return {
     Food: [primary, primary],
@@ -76,7 +69,7 @@ export function TransactionDetailScreen() {
   }
 
   async function handleDelete() {
-    Alert.alert('Delete Transaction', 'This action cannot be undone.', [
+    alertService.alert('Delete Transaction', 'This action cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -91,7 +84,7 @@ export function TransactionDetailScreen() {
             showToast('Transaction deleted');
             navigation.goBack();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete');
+            alertService.alert('Error', e.message || 'Failed to delete');
           } finally {
             setDeleting(false);
           }

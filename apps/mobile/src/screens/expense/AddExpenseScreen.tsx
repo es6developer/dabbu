@@ -1,13 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-  TextInput,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Platform, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
@@ -82,8 +74,10 @@ export function AddExpenseScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const initialType = route.params?.type || 'expense';
+  const rawType = route.params?.type || 'expense';
+  const initialType = rawType === 'income' ? 'income' : 'expense';
   const expenseGroupId = route.params?.expenseGroupId;
+  const returnTo = route.params?.returnTo as string | undefined;
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'expense' | 'income'>(initialType);
   const [category, setCategory] = useState(initialType === 'expense' ? 'Food & Dining' : 'Salary');
@@ -145,7 +139,11 @@ export function AddExpenseScreen() {
       }
       await api.post('/transactions', payload);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      navigation.goBack();
+      if (returnTo) {
+        navigation.navigate(returnTo as any);
+      } else {
+        navigation.goBack();
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to save transaction';
       setError(msg);

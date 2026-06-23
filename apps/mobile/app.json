@@ -57,7 +57,14 @@
     "plugins": [
       "expo-secure-store",
       "expo-local-authentication",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./src/assets/notification-icon.png",
+          "color": "#4F46E5",
+          "defaultChannel": "General"
+        }
+      ],
       "expo-contacts",
       "expo-navigation-bar"
     ],

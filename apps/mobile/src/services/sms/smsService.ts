@@ -1,7 +1,8 @@
-import { Platform, NativeModules, Linking, Alert, PermissionsAndroid } from 'react-native';
+import { Platform, NativeModules, Linking, PermissionsAndroid } from 'react-native';
 import type { Permission } from 'react-native';
 import type { SmsMessage } from './sms-parser';
 
+import { alertService } from "../../components/ui";
 function getReadSmsPermission(): Permission | undefined {
   try {
     return PermissionsAndroid.PERMISSIONS.READ_SMS;
@@ -109,7 +110,7 @@ export function showPermissionGuidance(permissionStatus: SmsPermissionStatus): v
 
   switch (permissionStatus) {
     case 'never_ask_again':
-      Alert.alert(
+      alertService.alert(
         'Permission Required',
         `SMS permission was permanently denied. Please enable it in system Settings.\n\n` +
         (level >= 30
@@ -124,7 +125,7 @@ export function showPermissionGuidance(permissionStatus: SmsPermissionStatus): v
       break;
 
     case 'restricted':
-      Alert.alert(
+      alertService.alert(
         'Restricted Permission',
         `On Android ${level}, SMS access requires manual approval.\n\n` +
         'Option 1: Open Settings to grant permission\n' +
@@ -139,7 +140,7 @@ export function showPermissionGuidance(permissionStatus: SmsPermissionStatus): v
       break;
 
     case 'denied':
-      Alert.alert(
+      alertService.alert(
         'Permission Denied',
         'SMS reading needs this permission to detect financial transactions from your messages.',
         [

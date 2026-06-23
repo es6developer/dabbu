@@ -1,14 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
@@ -20,7 +11,9 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useLensStore } from '../../store/lensStore';
 import { downloadAndShareFile } from '../../utils/exportFile';
+import { Avatar } from '../../components/ui/Avatar';
 
+import { alertService } from "../../components/ui";
 const { width: SCREEN_W } = Dimensions.get('window');
 const CHART_W = SCREEN_W - 64;
 
@@ -124,6 +117,19 @@ export function PersonalLensDashboard() {
     }, [loadData]),
   );
 
+  const handleTestPush = useCallback(async () => {
+    try {
+      const res = await api.post<any>('/devices/test-push', { title: 'Test', body: 'This is a test push notification from Dabbu' });
+      if (res?.success) {
+        alertService.alert('Sent', res.message || 'Test push sent to your devices.');
+      } else {
+        alertService.alert('No Device', res?.message || 'No active devices found. Open the app on your device to register it.');
+      }
+    } catch {
+      alertService.alert('Failed', 'Could not send test push. Check that your device is registered.');
+    }
+  }, []);
+
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     setExporting(format);
     try {
@@ -162,14 +168,21 @@ export function PersonalLensDashboard() {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
         <LinearGradient
-          colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+          colors={[colors.bg.gradientStart, colors.bg.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
           style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
         >
-          <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{greeting}</Text>
-          <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>{userName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
+              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            </TouchableOpacity>
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{greeting}</Text>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>{userName}</Text>
+            </View>
+          </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator size="large" color={colors.brand.primary} />
             <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>Loading your finances...</Text>
@@ -182,7 +195,7 @@ export function PersonalLensDashboard() {
   return (
     <View style={styles.screen}>
       <LinearGradient
-        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        colors={[colors.bg.gradientStart, colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         locations={[0, 0.3]}
@@ -198,21 +211,32 @@ export function PersonalLensDashboard() {
           {/* ── Header ── */}
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={styles.headerRow}>
-              <View>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{greeting}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>{userName}</Text>
-                  <View style={[styles.lensBadge, { backgroundColor: colors.brand.primary + '20' }]}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.brand.primary }}>MY MONEY</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
+                  <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+                </TouchableOpacity>
+                <View>
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{greeting}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>{userName}</Text>
+                    <View style={[styles.lensBadge, { backgroundColor: colors.brand.primary + '20' }]}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.brand.primary }}>MY MONEY</Text>
+                    </View>
                   </View>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                  onPress={() => navigation.navigate('Notifications')}
                   style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
                 >
-                  <AntDesign name="menuunfold" size={18} color={colors.text.secondary} />
+                  <AntDesign name="bells" size={18} color={colors.text.secondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleTestPush}
+                  style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
+                >
+                  <AntDesign name="rocket1" size={18} color={colors.text.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
@@ -227,7 +251,7 @@ export function PersonalLensDashboard() {
           {/* ── Balance Hero ── */}
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <LinearGradient
-              colors={[colors.brand.primary, colors.brand.hover || '#5B21B6']}
+              colors={[colors.brand.primary, colors.brand.hover]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.balanceCard}
@@ -240,9 +264,9 @@ export function PersonalLensDashboard() {
               </Text>
               <View style={{ flexDirection: 'row', marginTop: 16, gap: 10 }}>
                 {[
-                  { label: 'Income', value: income, color: '#4ADE80' },
-                  { label: 'Expense', value: expense, color: '#FB7185' },
-                  { label: 'Savings', value: savings, color: '#60A5FA' },
+                  { label: 'Income', value: income, color: colors.status.success },
+                  { label: 'Expense', value: expense, color: colors.status.error },
+                  { label: 'Savings', value: savings, color: colors.accent.secondary },
                 ].map((item, i) => (
                   <View
                     key={i}

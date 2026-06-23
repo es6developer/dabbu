@@ -1,17 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-} from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
@@ -33,51 +25,192 @@ interface MemberTotal {
 
 const months = ['May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026'];
 
-const ContributionCard: React.FC<{ item: Contribution }> = ({ item }) => {
-  const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
-
-  return (
-    <View style={styles.contributionCard}>
-      <View style={styles.contribAvatar}>
-        <AntDesign name={item.avatar} size={20} color="#10B981" />
-      </View>
-      <View style={styles.contribInfo}>
-        <Text style={styles.contribName}>{item.memberName}</Text>
-        <View style={styles.contribMeta}>
-          <Text style={styles.contribPurpose}>{item.purpose}</Text>
-          <Text style={styles.contribDate}>{item.date}</Text>
-        </View>
-      </View>
-      <Text style={styles.contribAmount}>{formatCurrency(item.amount)}</Text>
-    </View>
-  );
-};
-
-const MemberSummaryCard: React.FC<{ member: MemberTotal }> = ({ member }) => {
-  const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
-
-  return (
-    <View style={styles.memberSummaryCard}>
-      <View style={styles.memberSummaryAvatar}>
-        <AntDesign name={member.avatar} size={18} color="#10B981" />
-      </View>
-      <View style={styles.memberSummaryInfo}>
-        <Text style={styles.memberSummaryName}>{member.name}</Text>
-        <Text style={styles.memberSummaryCount}>{member.count} contributions</Text>
-      </View>
-      <Text style={styles.memberSummaryAmount}>{formatCurrency(member.total)}</Text>
-    </View>
-  );
-};
-
 export default function FamilyContributionsScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [activeMonth, setActiveMonth] = useState(1);
   const [items, setItems] = useState<Contribution[]>([]);
   const [totals, setTotals] = useState<MemberTotal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<any>();
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.text.primary,
+      letterSpacing: -0.5,
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.status.success,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 12,
+      gap: 6,
+    },
+    addButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.bg.primary,
+    },
+    grandTotalCard: {
+      backgroundColor: colors.bg.secondary,
+      marginHorizontal: 20,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    grandTotalLabel: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+      marginBottom: 6,
+    },
+    grandTotalAmount: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: colors.status.success,
+      letterSpacing: -0.5,
+    },
+    monthTabs: {
+      marginBottom: 12,
+    },
+    monthTabsContent: {
+      paddingHorizontal: 20,
+      gap: 8,
+    },
+    monthTab: {
+      paddingHorizontal: 18,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.bg.secondary,
+    },
+    monthTabActive: {
+      backgroundColor: colors.status.success,
+    },
+    monthTabText: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+      fontWeight: '500',
+    },
+    monthTabTextActive: {
+      color: colors.bg.primary,
+      fontWeight: '600',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 100,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text.primary,
+      marginBottom: 12,
+      paddingHorizontal: 20,
+    },
+    memberSummaryScroll: {
+      marginBottom: 20,
+    },
+    memberSummaryContent: {
+      paddingHorizontal: 20,
+      gap: 12,
+    },
+    memberSummaryCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 14,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      minWidth: 220,
+    },
+    memberSummaryAvatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.bg.tertiary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    memberSummaryInfo: {
+      flex: 1,
+    },
+    memberSummaryName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text.primary,
+    },
+    memberSummaryCount: {
+      fontSize: 12,
+      color: colors.text.tertiary,
+      marginTop: 2,
+    },
+    memberSummaryAmount: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.status.success,
+    },
+    contributionCard: {
+      backgroundColor: colors.bg.secondary,
+      marginHorizontal: 20,
+      borderRadius: 12,
+      padding: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    contribAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.bg.tertiary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    contribInfo: {
+      flex: 1,
+    },
+    contribName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text.primary,
+      marginBottom: 2,
+    },
+    contribMeta: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    contribPurpose: {
+      fontSize: 12,
+      color: colors.status.success,
+    },
+    contribDate: {
+      fontSize: 12,
+      color: colors.text.tertiary,
+    },
+    contribAmount: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text.primary,
+    },
+  }), [colors]);
 
   const loadData = useCallback(async (silent = false, refresh = false) => {
     if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
@@ -98,10 +231,47 @@ export default function FamilyContributionsScreen() {
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
   const grandTotal = items.reduce((s, c) => s + c.amount, 0);
 
+  const ContributionCard: React.FC<{ item: Contribution }> = ({ item }) => {
+    const formatCurrencyInner = (amount: number) => '₹' + amount.toLocaleString('en-IN');
+
+    return (
+      <View style={styles.contributionCard}>
+        <View style={styles.contribAvatar}>
+          <AntDesign name={item.avatar} size={20} color={colors.status.success} />
+        </View>
+        <View style={styles.contribInfo}>
+          <Text style={styles.contribName}>{item.memberName}</Text>
+          <View style={styles.contribMeta}>
+            <Text style={styles.contribPurpose}>{item.purpose}</Text>
+            <Text style={styles.contribDate}>{item.date}</Text>
+          </View>
+        </View>
+        <Text style={styles.contribAmount}>{formatCurrencyInner(item.amount)}</Text>
+      </View>
+    );
+  };
+
+  const MemberSummaryCard: React.FC<{ member: MemberTotal }> = ({ member }) => {
+    const formatCurrencyInner = (amount: number) => '₹' + amount.toLocaleString('en-IN');
+
+    return (
+      <View style={styles.memberSummaryCard}>
+        <View style={styles.memberSummaryAvatar}>
+          <AntDesign name={member.avatar} size={18} color={colors.status.success} />
+        </View>
+        <View style={styles.memberSummaryInfo}>
+          <Text style={styles.memberSummaryName}>{member.name}</Text>
+          <Text style={styles.memberSummaryCount}>{member.count} contributions</Text>
+        </View>
+        <Text style={styles.memberSummaryAmount}>{formatCurrencyInner(member.total)}</Text>
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size="large" color={colors.status.success} />
       </View>
     );
   }
@@ -114,7 +284,7 @@ export default function FamilyContributionsScreen() {
           style={styles.addButton}
           onPress={() => navigation.navigate('CreateContribution')}
         >
-          <AntDesign name="plus" size={18} color="#0A0A0A" />
+          <AntDesign name="plus" size={18} color={colors.bg.primary} />
           <Text style={styles.addButtonText}>Add Contribution</Text>
         </TouchableOpacity>
       </View>
@@ -144,7 +314,7 @@ export default function FamilyContributionsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor="#10B981" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.status.success} />}
       >
         {totals.length > 0 && (
           <>
@@ -165,18 +335,18 @@ export default function FamilyContributionsScreen() {
         <Text style={styles.sectionTitle}>History</Text>
         {items.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 40 }}>
-            <AntDesign name="caretup" size={44} color="#6B7280" />
-            <Text style={{ color: '#F9FAFB', marginTop: 14, fontSize: 18, fontWeight: '600' }}>No contributions yet</Text>
-            <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+            <AntDesign name="caretup" size={44} color={colors.text.tertiary} />
+            <Text style={{ color: colors.text.primary, marginTop: 14, fontSize: 18, fontWeight: '600' }}>No contributions yet</Text>
+            <Text style={{ color: colors.text.tertiary, marginTop: 6, fontSize: 14, textAlign: 'center' }}>
               Record your first family contribution to start tracking
             </Text>
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 16, gap: 8 }}
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.status.success, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 16, gap: 8 }}
               activeOpacity={0.8}
               onPress={() => navigation.navigate('CreateContribution')}
             >
-              <AntDesign name="plus" size={18} color="#0A0A0A" />
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Add Your First Contribution</Text>
+              <AntDesign name="plus" size={18} color={colors.bg.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.bg.primary }}>Add Your First Contribution</Text>
             </TouchableOpacity>
           </View>
         ) : items.map(c => (
@@ -186,180 +356,3 @@ export default function FamilyContributionsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0A0A',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#F9FAFB',
-    letterSpacing: -0.5,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#10B981',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0A0A0A',
-  },
-  grandTotalCard: {
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  grandTotalLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 6,
-  },
-  grandTotalAmount: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#10B981',
-    letterSpacing: -0.5,
-  },
-  monthTabs: {
-    marginBottom: 12,
-  },
-  monthTabsContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  monthTab: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
-  },
-  monthTabActive: {
-    backgroundColor: '#10B981',
-  },
-  monthTabText: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  monthTabTextActive: {
-    color: '#0A0A0A',
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#F9FAFB',
-    marginBottom: 12,
-    paddingHorizontal: 20,
-  },
-  memberSummaryScroll: {
-    marginBottom: 20,
-  },
-  memberSummaryContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  memberSummaryCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 220,
-  },
-  memberSummaryAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#1A2E2A',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  memberSummaryInfo: {
-    flex: 1,
-  },
-  memberSummaryName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#F9FAFB',
-  },
-  memberSummaryCount: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  memberSummaryAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#10B981',
-  },
-  contributionCard: {
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  contribAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1A2E2A',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  contribInfo: {
-    flex: 1,
-  },
-  contribName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#F9FAFB',
-    marginBottom: 2,
-  },
-  contribMeta: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  contribPurpose: {
-    fontSize: 12,
-    color: '#10B981',
-  },
-  contribDate: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  contribAmount: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#F9FAFB',
-  },
-});

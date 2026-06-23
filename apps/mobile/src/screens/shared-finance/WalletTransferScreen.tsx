@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 
+import { alertService } from "../../components/ui";
 export function WalletTransferScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -49,11 +50,11 @@ export function WalletTransferScreen() {
         amount: parseFloat(amount),
         description: description || undefined,
       });
-      Alert.alert('Success', 'Transfer completed', [
+      alertService.alert('Success', 'Transfer completed', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Transfer failed');
+      alertService.alert('Error', e?.message || 'Transfer failed');
     } finally {
       setSubmitting(false);
     }

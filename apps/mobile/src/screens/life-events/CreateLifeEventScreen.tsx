@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useLifeEventStore, LifeEventType } from '../../store/lifeEventStore';
 
+import { alertService } from "../../components/ui";
 const EVENT_TYPES: { type: LifeEventType; emoji: string; label: string }[] = [
   { type: 'HOUSE', emoji: '🏠', label: 'House Purchase' },
   { type: 'BABY', emoji: '👶', label: 'Planning a Baby' },
@@ -49,7 +41,7 @@ export function CreateLifeEventScreen({ navigation }: any) {
     if (event) {
       navigation?.goBack();
     } else {
-      Alert.alert('Error', 'Failed to create life event');
+      alertService.alert('Error', 'Failed to create life event');
     }
   };
 

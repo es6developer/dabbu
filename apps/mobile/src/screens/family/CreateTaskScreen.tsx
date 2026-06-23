@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const PRIORITY_COLORS: Record<string, string> = {
   Low: '#22C55E',
@@ -30,7 +30,7 @@ export function CreateTaskScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Validation', 'Task title is required');
+      alertService.alert('Validation', 'Task title is required');
       return;
     }
     setLoading(true);
@@ -44,7 +44,7 @@ export function CreateTaskScreen() {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create task');
+      alertService.alert('Error', e?.message || 'Failed to create task');
     } finally {
       setLoading(false);
     }

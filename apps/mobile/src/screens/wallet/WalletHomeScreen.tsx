@@ -119,7 +119,7 @@ export function WalletHomeScreen() {
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
       <LinearGradient
-        colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
+        colors={[colors.bg.gradientStart, colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         locations={[0, 0.3]}

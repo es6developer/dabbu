@@ -1,12 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Keyboard,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';

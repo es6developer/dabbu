@@ -1,26 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  Animated, ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, Animated, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { spacing, borderRadius } from '../../theme/design';
 
-const EVENT_CONFIG: Record<string, { icon: string; color: string }> = {
-  expense_added: { icon: 'shoppingcart', color: '#EF4444' },
-  goal_contribution: { icon: 'flag', color: '#22C55E' },
-  salary_added: { icon: 'caretdown', color: '#22C55E' },
-  bill_paid: { icon: 'check', color: '#3B82F6' },
-  planner_progress: { icon: 'calendar', color: '#A78BFA' },
-  achievement: { icon: 'star', color: '#F59E0B' },
-  savings_milestone: { icon: 'save', color: '#14B8A6' },
-};
-
-function getEventConfig(eventType: string) {
-  return EVENT_CONFIG[eventType] || { icon: 'clockcircleo', color: '#64748B' };
+function getEventConfig(eventType: string, colors: any) {
+  const config: Record<string, { icon: string; color: string }> = {
+    expense_added: { icon: 'shoppingcart', color: colors.status.error },
+    goal_contribution: { icon: 'flag', color: colors.status.success },
+    salary_added: { icon: 'caretdown', color: colors.status.success },
+    bill_paid: { icon: 'check', color: '#3B82F6' },
+    planner_progress: { icon: 'calendar', color: colors.accent.tertiary },
+    achievement: { icon: 'star', color: colors.status.warning },
+    savings_milestone: { icon: 'save', color: '#14B8A6' },
+  };
+  return config[eventType] || { icon: 'clockcircleo', color: colors.text.tertiary };
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -59,7 +55,7 @@ function UserAvatar({ name }: { name?: string }) {
 
 function EventCard({ event }: { event: any }) {
   const { colors } = useTheme();
-  const cfg = getEventConfig(event.eventType);
+  const cfg = getEventConfig(event.eventType, colors);
   const time = formatRelativeTime(event.createdAt);
   const userName = event.user?.name || 'Someone';
   const amount = event.amount ? formatAmount(event.amount) : null;

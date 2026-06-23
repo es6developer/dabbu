@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  Alert,
-  Platform,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -22,7 +11,9 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
+import { Avatar } from '../../components/ui/Avatar';
 
+import { alertService } from "../../components/ui";
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'team' },
   { key: 'percentage', label: '% Split', icon: 'piechart' },
@@ -30,18 +21,17 @@ const SPLIT_TYPES = [
   { key: 'shares', label: 'Shares', icon: 'switcher' },
 ];
 
-const MM_COLORS = [
-  '#8B5CF6',
-  '#F97316',
-  '#10B981',
-  '#3B82F6',
-  '#EF4444',
-  '#EC4899',
-  '#14B8A6',
-  '#F59E0B',
-];
-
-function getColor(idx: number) {
+function getColor(idx: number, colors: any) {
+  const MM_COLORS = [
+    colors.accent.secondary,
+    '#F97316',
+    colors.status.success,
+    '#3B82F6',
+    colors.status.error,
+    '#EC4899',
+    '#14B8A6',
+    colors.status.warning,
+  ];
   return MM_COLORS[idx % MM_COLORS.length];
 }
 
@@ -72,6 +62,7 @@ export function SharedExpenseFormScreen() {
   const [splitType, setSplitType] = useState('equal');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [members, setMembers] = useState<any[]>([]);
@@ -285,7 +276,7 @@ export function SharedExpenseFormScreen() {
     if (!expenseId) {
       return;
     }
-    Alert.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
+    alertService.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -299,7 +290,7 @@ export function SharedExpenseFormScreen() {
             showToast('Expense deleted');
             navigation.goBack();
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete');
+            alertService.alert('Error', e.message || 'Failed to delete');
           }
         },
       },
@@ -372,162 +363,170 @@ export function SharedExpenseFormScreen() {
           </View>
         </View>
 
-        {/* 2-Column Grid */}
-        <View style={s.grid2}>
-          {/* Left: Category */}
-          <View style={s.gridLeft}>
-            <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: spacing.sm }}
-            >
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                {EXPENSE_CATEGORIES.map((cat) => {
-                  const active = category === cat.name;
-                  return (
-                    <TouchableOpacity
-                      key={cat.name}
-                      onPress={() => setCategory(cat.name)}
-                      style={[
-                        s.chip,
-                        {
-                          backgroundColor: active ? cat.color + '18' : colors.bg.card,
-                          borderColor: active ? cat.color : colors.border.subtle,
-                          borderWidth: 1,
-                        },
-                      ]}
-                    >
-                      <AntDesign
-                        name={(cat.icon || 'appstore1') as any}
-                        size={13}
-                        color={active ? cat.color : colors.text.tertiary}
-                      />
-                      <Text
-                        style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
-                      >
-                        {cat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </ScrollView>
-
-            {/* Left: Paid By */}
-            <Text style={[s.label, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
-              Paid by
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                {members.map((m: any, idx: number) => {
-                  const selected = paidBy === m.userId;
-                  const name = m.user?.firstName || m.user?.email || 'Member';
-                  const color = getColor(idx);
-                  return (
-                    <TouchableOpacity
-                      key={m.userId}
-                      onPress={() => {
-                        setPaidBy(m.userId);
-                        setError('');
-                      }}
-                      style={[
-                        s.payerChip,
-                        {
-                          borderColor: selected ? color : colors.border.subtle,
-                          backgroundColor: selected ? color + '15' : colors.bg.card,
-                        },
-                      ]}
-                    >
-                      <View style={[s.payerDot, { backgroundColor: color }]}>
-                        <Text style={s.payerInitial}>{(name[0] || '?').toUpperCase()}</Text>
-                      </View>
-                      <Text
-                        style={[s.payerName, { color: selected ? color : colors.text.secondary }]}
-                        numberOfLines={1}
-                      >
-                        {isMe(m.userId) ? 'You' : name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          </View>
-
-          {/* Right: Date + Split Type */}
-          <View style={s.gridRight}>
-            <Text style={[s.label, { color: colors.text.tertiary }]}>Date</Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={[
-                s.fieldRow,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              <AntDesign name="calendar" size={15} color={colors.accent.primary} />
-              <Text style={[s.fieldValue, { color: colors.text.primary }]}>
-                {fmtDate(expenseDate)}
-              </Text>
-              <AntDesign name="down" size={12} color={colors.text.tertiary} />
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={new Date(expenseDate + 'T12:00:00')}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={new Date()}
-                onChange={(_e: any, d?: Date) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (d) {
-                    setExpenseDate(d.toISOString().split('T')[0]);
-                  }
-                }}
-              />
-            )}
-
-            <Text style={[s.label, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
-              Split
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-              {SPLIT_TYPES.map((st) => {
-                const active = splitType === st.key;
-                return (
-                  <TouchableOpacity
-                    key={st.key}
-                    onPress={() => {
-                      setSplitType(st.key);
-                      setSplitValues({});
-                      setSharesCount({});
-                    }}
-                    style={[
-                      s.chip,
-                      {
-                        backgroundColor: active ? colors.accent.primary + '18' : colors.bg.card,
-                        borderColor: active ? colors.accent.primary : colors.border.subtle,
-                        borderWidth: 1,
-                      },
-                    ]}
+        {/* Category */}
+        <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
+        <TouchableOpacity
+          onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+          style={[
+            s.fieldRow,
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: showCategoryPicker ? spacing.xs : spacing.sm },
+          ]}
+        >
+          <AntDesign
+            name={(EXPENSE_CATEGORIES.find(c => c.name === category)?.icon || 'appstore1') as any}
+            size={15}
+            color={EXPENSE_CATEGORIES.find(c => c.name === category)?.color || colors.text.tertiary}
+          />
+          <Text style={[s.fieldValue, { color: colors.text.primary, flex: 1 }]}>
+            {category}
+          </Text>
+          <AntDesign name={showCategoryPicker ? 'up' : 'down'} size={12} color={colors.text.tertiary} />
+        </TouchableOpacity>
+        {showCategoryPicker && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.sm }}>
+            {EXPENSE_CATEGORIES.map((cat) => {
+              const active = category === cat.name;
+              return (
+                <TouchableOpacity
+                  key={cat.name}
+                  onPress={() => {
+                    setCategory(cat.name);
+                    setShowCategoryPicker(false);
+                  }}
+                  style={[
+                    s.chip,
+                    {
+                      backgroundColor: active ? cat.color + '18' : colors.bg.card,
+                      borderColor: active ? cat.color : colors.border.subtle,
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <AntDesign
+                    name={(cat.icon || 'appstore1') as any}
+                    size={13}
+                    color={active ? cat.color : colors.text.tertiary}
+                  />
+                  <Text
+                    style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
                   >
-                    <AntDesign
-                      name={st.icon as any}
-                      size={13}
-                      color={active ? colors.accent.primary : colors.text.tertiary}
-                    />
-                    <Text
-                      style={[
-                        s.chipText,
-                        { color: active ? colors.accent.primary : colors.text.secondary },
-                      ]}
-                    >
-                      {st.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </View>
+        )}
+
+        {/* Date */}
+        <Text style={[s.label, { color: colors.text.tertiary }]}>Date</Text>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={[
+            s.fieldRow,
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: spacing.sm },
+          ]}
+        >
+          <AntDesign name="calendar" size={15} color={colors.accent.primary} />
+          <Text style={[s.fieldValue, { color: colors.text.primary }]}>
+            {fmtDate(expenseDate)}
+          </Text>
+          <AntDesign name="down" size={12} color={colors.text.tertiary} />
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={new Date(expenseDate + 'T12:00:00')}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            maximumDate={new Date()}
+            onChange={(_e: any, d?: Date) => {
+              setShowDatePicker(Platform.OS === 'ios');
+              if (d) {
+                setExpenseDate(d.toISOString().split('T')[0]);
+              }
+            }}
+          />
+        )}
+
+        {/* Split */}
+        <Text style={[s.label, { color: colors.text.tertiary }]}>Split</Text>
+        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: spacing.sm }}>
+          {SPLIT_TYPES.map((st) => {
+            const active = splitType === st.key;
+            return (
+              <TouchableOpacity
+                key={st.key}
+                onPress={() => {
+                  setSplitType(st.key);
+                  setSplitValues({});
+                  setSharesCount({});
+                }}
+                style={[
+                  s.chip,
+                  {
+                    backgroundColor: active ? colors.accent.primary + '18' : colors.bg.card,
+                    borderColor: active ? colors.accent.primary : colors.border.subtle,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <AntDesign
+                  name={st.icon as any}
+                  size={13}
+                  color={active ? colors.accent.primary : colors.text.tertiary}
+                />
+                <Text
+                  style={[
+                    s.chipText,
+                    { color: active ? colors.accent.primary : colors.text.secondary },
+                  ]}
+                >
+                  {st.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+            </View>
+
+        {/* Paid By */}
+        <Text style={[s.label, { color: colors.text.tertiary }]}>Paid by</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            {members.map((m: any, idx: number) => {
+              const selected = paidBy === m.userId;
+              const name = m.user?.firstName || m.user?.email || 'Member';
+              const color = getColor(idx, colors);
+              return (
+                <TouchableOpacity
+                  key={m.userId}
+                  onPress={() => {
+                    setPaidBy(m.userId);
+                    setError('');
+                  }}
+                  style={[
+                    s.payerChip,
+                    {
+                      borderColor: selected ? color : colors.border.subtle,
+                      backgroundColor: selected ? color + '15' : colors.bg.card,
+                    },
+                  ]}
+                >
+                  <Avatar
+                    uri={m.user?.avatarUrl}
+                    name={name}
+                    size={20}
+                  />
+                  <Text
+                    style={[s.payerName, { color: selected ? color : colors.text.secondary }]}
+                    numberOfLines={1}
+                  >
+                    {isMe(m.userId) ? 'You' : name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
 
         {/* Split Inputs (for non-equal) */}
         {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
@@ -547,15 +546,15 @@ export function SharedExpenseFormScreen() {
             {members.map((m: any, idx: number) => {
               const val =
                 splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
-              const color = getColor(idx);
+              const color = getColor(idx, colors);
               const mName = m.user?.firstName || m.user?.email || 'Member';
               return (
                 <View key={m.id} style={[s.splitRow, { borderBottomColor: colors.border.subtle }]}>
-                  <View style={[s.splitAvatar, { backgroundColor: color + '18' }]}>
-                    <Text style={[s.splitInitial, { color }]}>
-                      {(mName[0] || '?').toUpperCase()}
-                    </Text>
-                  </View>
+                  <Avatar
+                    uri={m.user?.avatarUrl}
+                    name={mName}
+                    size={28}
+                  />
                   <Text style={[s.splitName, { color: colors.text.primary }]}>
                     {isMe(m.userId) ? 'You' : mName}
                   </Text>
@@ -599,14 +598,14 @@ export function SharedExpenseFormScreen() {
               <AntDesign
                 name="calculator"
                 size={14}
-                color={balanceOk ? '#10B981' : colors.status.error}
+                color={balanceOk ? colors.status.success : colors.status.error}
               />
               <Text style={[s.previewTitle, { color: colors.text.primary }]}>Split Preview</Text>
               <View style={{ flex: 1 }} />
               <View
                 style={[
                   s.balanceBadge,
-                  { backgroundColor: balanceOk ? '#10B981' + '15' : colors.status.error + '15' },
+                  {                   backgroundColor: balanceOk ? colors.status.success + '15' : colors.status.error + '15' },
                 ]}
               >
                 <Text
@@ -696,9 +695,6 @@ const s = StyleSheet.create({
   divider: { height: 1, marginVertical: spacing.sm },
   descRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   descInput: { flex: 1, fontSize: 14, fontWeight: '500', padding: 0 },
-  grid2: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  gridLeft: { flex: 1 },
-  gridRight: { flex: 1 },
   label: {
     fontSize: 10,
     fontWeight: '800',
@@ -724,14 +720,6 @@ const s = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
   },
-  payerDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  payerInitial: { color: '#FFF', fontSize: 10, fontWeight: '800' },
   payerName: { fontSize: 11, fontWeight: '600', maxWidth: 50 },
   fieldRow: {
     flexDirection: 'row',
@@ -763,14 +751,6 @@ const s = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  splitAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  splitInitial: { fontSize: 11, fontWeight: '800' },
   splitName: { flex: 1, fontSize: 13, fontWeight: '600' },
   splitInputWrap: {
     flexDirection: 'row',

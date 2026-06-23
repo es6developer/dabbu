@@ -1,19 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const COLORS = [
   '#059669',
   '#22C55E',
@@ -45,14 +38,14 @@ export function CreateFamilyWorkspaceScreen() {
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      Alert.alert('Required', 'Enter a workspace name');
+      alertService.alert('Required', 'Enter a workspace name');
       return;
     }
     setSaving(true);
     try {
       const familyId = await getFamilyId();
       if (!familyId) {
-        Alert.alert('Error', 'No family found');
+        alertService.alert('Error', 'No family found');
         setSaving(false);
         return;
       }
@@ -64,7 +57,7 @@ export function CreateFamilyWorkspaceScreen() {
       });
       navigation.replace('FamilyWorkspace', { familyId });
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create workspace');
+      alertService.alert('Error', e?.message || 'Failed to create workspace');
     } finally {
       setSaving(false);
     }
@@ -218,7 +211,7 @@ export function CreateFamilyWorkspaceScreen() {
           onPress={handleCreate}
           disabled={saving || !name.trim()}
           style={{
-            backgroundColor: saving || !name.trim() ? colors.text.tertiary : '#059669',
+            backgroundColor: saving || !name.trim() ? colors.text.tertiary : colors.accent.primary,
             paddingVertical: 16,
             borderRadius: 16,
             alignItems: 'center',

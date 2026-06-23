@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { spacing, borderRadius } from '../../theme/design';
 
+import { alertService } from "../../components/ui";
 export function SupportScreen() {
   const { colors: c } = useTheme();
   const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
@@ -26,20 +27,20 @@ export function SupportScreen() {
 
   const handleSubmit = async () => {
     if (!subject.trim() || !message.trim()) {
-      Alert.alert('Required', 'Please fill in subject and message.');
+      alertService.alert('Required', 'Please fill in subject and message.');
       return;
     }
     setSubmitting(true);
     try {
       await api.post('/support/tickets', { subject, message, category });
-      Alert.alert('Submitted', 'Your ticket has been created. We will respond within 24 hours.');
+      alertService.alert('Submitted', 'Your ticket has been created. We will respond within 24 hours.');
       setSubject('');
       setMessage('');
       setActiveTab('tickets');
       const r = await api.get<any>('/support/tickets');
       setTickets(r.data || []);
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message || err.message);
+      alertService.alert('Error', err?.response?.data?.message || err.message);
     } finally {
       setSubmitting(false);
     }

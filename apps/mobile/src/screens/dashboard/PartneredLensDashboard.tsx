@@ -1,13 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +9,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useLensStore } from '../../store/lensStore';
+import { Avatar } from '../../components/ui/Avatar';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -87,20 +80,27 @@ export function PartneredLensDashboard() {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
         <LinearGradient
-          colors={isDark ? ['#1A0A12', colors.bg.primary] : ['#FFE4E8', colors.bg.primary]}
+          colors={[colors.bg.gradientStart, colors.bg.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
           style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
         >
-          <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-            {greeting}
-          </Text>
-          <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
-            {userName}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
+              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            </TouchableOpacity>
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                {greeting}
+              </Text>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+                {userName}
+              </Text>
+            </View>
+          </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color="#F43F5E" />
+            <ActivityIndicator size="large" color={colors.accent.primary} />
             <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>
               Loading your shared finances...
             </Text>
@@ -114,7 +114,7 @@ export function PartneredLensDashboard() {
     return (
       <View style={styles.screen}>
         <LinearGradient
-          colors={isDark ? ['#1A0A12', colors.bg.primary] : ['#FFE4E8', colors.bg.primary]}
+          colors={[colors.bg.gradientStart, colors.bg.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
@@ -122,27 +122,32 @@ export function PartneredLensDashboard() {
         >
           <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
-              <View>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-                  {greeting}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
-                    {userName}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
+              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            </TouchableOpacity>
+                <View>
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                    {greeting}
                   </Text>
-                  <View style={[styles.lensBadge, { backgroundColor: '#F43F5E20' }]}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#F43F5E' }}>
-                      OUR MONEY
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                      {userName}
                     </Text>
+                    <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>
+                        OUR MONEY
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                  onPress={() => navigation.navigate('Notifications')}
                   style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
                 >
-                  <AntDesign name="menuunfold" size={18} color={colors.text.secondary} />
+                  <AntDesign name="bells" size={18} color={colors.text.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
@@ -162,8 +167,8 @@ export function PartneredLensDashboard() {
               gap: 12,
             }}
           >
-            <View style={[styles.emptyIcon, { backgroundColor: '#F43F5E15' }]}>
-              <AntDesign name="heart" size={36} color="#F43F5E" />
+            <View style={[styles.emptyIcon, { backgroundColor: colors.accent.primary + '15' }]}>
+              <AntDesign name="heart" size={36} color={colors.accent.primary} />
             </View>
             <Text
               style={{
@@ -188,7 +193,7 @@ export function PartneredLensDashboard() {
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('ProfileTab', { screen: 'AddPartner' })}
-              style={[styles.ctaBtn, { backgroundColor: '#F43F5E' }]}
+              style={[styles.ctaBtn, { backgroundColor: colors.accent.primary }]}
               activeOpacity={0.8}
             >
               <AntDesign name="heart" size={16} color="#FFF" />
@@ -203,7 +208,7 @@ export function PartneredLensDashboard() {
   return (
     <View style={styles.screen}>
       <LinearGradient
-        colors={isDark ? ['#1A0A12', colors.bg.primary] : ['#FFE4E8', colors.bg.primary]}
+        colors={[colors.bg.gradientStart, colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         locations={[0, 0.3]}
@@ -216,33 +221,38 @@ export function PartneredLensDashboard() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => loadData(false, true)}
-              tintColor="#F43F5E"
+              tintColor="colors.accent.primary"
             />
           }
         >
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={styles.headerRow}>
-              <View>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-                  {greeting}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
-                    {userName}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
+              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            </TouchableOpacity>
+                <View>
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                    {greeting}
                   </Text>
-                  <View style={[styles.lensBadge, { backgroundColor: '#F43F5E20' }]}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#F43F5E' }}>
-                      OUR MONEY
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                      {userName}
                     </Text>
+                    <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>
+                        OUR MONEY
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                  onPress={() => navigation.navigate('Notifications')}
                   style={[styles.iconBtn, { backgroundColor: colors.bg.card }]}
                 >
-                  <AntDesign name="menuunfold" size={18} color={colors.text.secondary} />
+                  <AntDesign name="bells" size={18} color={colors.text.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('ProfileTab', { screen: 'LensPicker' })}
@@ -255,7 +265,7 @@ export function PartneredLensDashboard() {
           </View>
 
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <View style={[styles.heroCard, { backgroundColor: '#F43F5E' }]}>
+            <View style={[styles.heroCard, { backgroundColor: colors.accent.primary }]}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
                 Combined Income
               </Text>
@@ -308,7 +318,7 @@ export function PartneredLensDashboard() {
                         style={{
                           width: `${Math.min(b.limit > 0 ? (b.spent / b.limit) * 100 : 0, 100)}%`,
                           height: 4,
-                          backgroundColor: '#F43F5E',
+                          backgroundColor: colors.accent.primary,
                           borderRadius: 2,
                         }}
                       />
@@ -326,7 +336,7 @@ export function PartneredLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleGoals' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#F43F5E' }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -356,7 +366,7 @@ export function PartneredLensDashboard() {
                         style={{
                           width: `${Math.min(g.progress || 0, 100)}%`,
                           height: 4,
-                          backgroundColor: '#F43F5E',
+                          backgroundColor: colors.accent.primary,
                           borderRadius: 2,
                         }}
                       />
@@ -383,7 +393,7 @@ export function PartneredLensDashboard() {
                     key={b.id || i}
                     style={[styles.billRow, { backgroundColor: colors.bg.card }]}
                   >
-                    <View style={[styles.dot, { backgroundColor: '#F43F5E' }]} />
+                    <View style={[styles.dot, { backgroundColor: colors.accent.primary }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
                         {b.title}
@@ -421,11 +431,11 @@ export function PartneredLensDashboard() {
                     flex: 1,
                     alignItems: 'center',
                     padding: 12,
-                    backgroundColor: '#F43F5E10',
+                    backgroundColor: colors.accent.primary + '10',
                     borderRadius: 12,
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#F43F5E' }}>You</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.primary }}>You</Text>
                   <Text
                     style={{
                       fontSize: 16,
@@ -443,11 +453,11 @@ export function PartneredLensDashboard() {
                     flex: 1,
                     alignItems: 'center',
                     padding: 12,
-                    backgroundColor: '#6366F110',
+                    backgroundColor: colors.accent.secondary + '10',
                     borderRadius: 12,
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#6366F1' }}>Partner</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.secondary }}>Partner</Text>
                   <Text
                     style={{
                       fontSize: 16,
@@ -488,8 +498,8 @@ export function PartneredLensDashboard() {
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
-                <View style={[styles.qaIcon, { backgroundColor: '#F43F5E15' }]}>
-                  <AntDesign name="addusergroup" size={22} color="#F43F5E" />
+                <View style={[styles.qaIcon, { backgroundColor: colors.accent.primary + '15' }]}>
+                  <AntDesign name="addusergroup" size={22} color={colors.accent.primary} />
                 </View>
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Shared Expense</Text>
               </TouchableOpacity>

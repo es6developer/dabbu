@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../../services/api';
 import { fmt, TYPE_THEMES } from './groupUtils';
 
+import { alertService } from "../../../components/ui";
 interface Props {
   settlements: any[];
   settlementsLoading: boolean;
@@ -96,7 +97,7 @@ export function GroupSummaryTab({
                   {st.type === 'pay' && st.upiId ? (
                     <TouchableOpacity style={[tabStyles.upiBtn, { backgroundColor: '#34C759' }]} onPress={() => {
                       const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
-                      Linking.openURL(upiLink).catch(() => Alert.alert('Unable to open UPI', 'No UPI app found.'));
+                      Linking.openURL(upiLink).catch(() => alertService.alert('Unable to open UPI', 'No UPI app found.'));
                     }}>
                       <AntDesign name="wallet" size={14} color="#FFF" />
                       <Text style={tabStyles.btnText}>Pay</Text>
@@ -105,7 +106,7 @@ export function GroupSummaryTab({
                     <TouchableOpacity style={[tabStyles.upiBtn, { backgroundColor: colors.status.warning }]} onPress={() => {
                       const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
                       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-                      Linking.openURL(whatsappUrl).catch(() => Alert.alert('Reminder', msg));
+                      Linking.openURL(whatsappUrl).catch(() => alertService.alert('Reminder', msg));
                     }}>
                       <AntDesign name="bells" size={14} color="#FFF" />
                       <Text style={tabStyles.btnText}>Remind</Text>

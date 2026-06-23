@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { useTheme } from '../../theme';
 import { spacing } from '../../theme/design';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const WIDGET_META: Record<string, { label: string; icon: string; desc: string }> = {
   balance: {
     label: 'Balance Panel',
@@ -108,10 +109,10 @@ export function CustomiseDashboardScreen() {
     const layout = widgets.map((w, i) => ({ id: w.id, visible: w.visible, order: i }));
     try {
       await api.put('/user/preferences/dashboard', { layout });
-      Alert.alert('Saved', 'Dashboard layout updated');
+      alertService.alert('Saved', 'Dashboard layout updated');
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to save');
+      alertService.alert('Error', e?.message || 'Failed to save');
     } finally {
       setSaving(false);
     }

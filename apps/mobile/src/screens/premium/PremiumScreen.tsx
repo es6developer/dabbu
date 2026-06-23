@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-  ActivityIndicator,
-  Alert,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions, ActivityIndicator, Platform } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +12,7 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { usePremium } from '../../store/PremiumContext';
 import { PlanTier } from '../../config/entitlements';
 
+import { alertService } from "../../components/ui";
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 64) / 3;
 
@@ -179,7 +169,7 @@ export function PremiumScreen() {
         setProcessing(false);
         if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null; }
         refresh();
-        Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
+        alertService.alert('Welcome to Premium!', 'Your subscription is now active.');
         return;
       }
       if (attempts >= maxAttempts) {
@@ -189,9 +179,9 @@ export function PremiumScreen() {
         if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
           setCurrentSub(sub);
           refresh();
-          Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
+          alertService.alert('Welcome to Premium!', 'Your subscription is now active.');
         } else {
-          Alert.alert('Still processing', 'Your payment was received but activation is taking longer than expected.');
+          alertService.alert('Still processing', 'Your payment was received but activation is taking longer than expected.');
           loadCurrentSubscription();
         }
         return;
@@ -222,10 +212,10 @@ export function PremiumScreen() {
       if (result?.checkoutUrl) {
         setCheckoutUrl(result.checkoutUrl);
       } else {
-        Alert.alert('Error', 'Failed to initiate payment. Please try again.');
+        alertService.alert('Error', 'Failed to initiate payment. Please try again.');
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Subscription failed. Please try again.');
+      alertService.alert('Error', e?.message || 'Subscription failed. Please try again.');
     } finally {
       setSubscribing(false);
     }

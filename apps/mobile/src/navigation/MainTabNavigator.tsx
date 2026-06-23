@@ -1,13 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Keyboard,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -25,7 +17,7 @@ import { FamilyMembersNavigator } from './FamilyMembersNavigator';
 import { PartnerNavigator } from './PartnerNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
-import { PRESS_SPRING } from './animations';
+import { PRESS_SPRING, TAB_SPRING } from './animations';
 
 const Tab = createBottomTabNavigator();
 
@@ -105,6 +97,18 @@ export function MainTabNavigator() {
   const [showActions, setShowActions] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const navigation = useNavigation<any>();
+
+  const [tabIndex, setTabIndex] = useState(0);
+  const prevTabIndexRef = useRef(0);
+  const tabContentAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (prevTabIndexRef.current !== tabIndex) {
+      prevTabIndexRef.current = tabIndex;
+      tabContentAnim.setValue(0.94);
+      Animated.spring(tabContentAnim, { toValue: 1, ...TAB_SPRING }).start();
+    }
+  }, [tabIndex]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -369,6 +373,7 @@ export function MainTabNavigator() {
   }, [activeLens, lensQuickActions, navigation, colors]);
 
   const isDark = theme.isDark;
+  const showFab = quickActionVisible;
 
   const handleFabPress = useCallback(() => {
     setShowActions(true);
@@ -380,29 +385,38 @@ export function MainTabNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Tab.Navigator
-        tabBar={(props) => (
-          <IOSTabBar
-            {...props}
-            colors={colors}
-            isDark={isDark}
-            showCenterButton={true}
-            bottomBarVisible={bottomBarVisible}
-            keyboardVisible={keyboardVisible}
-            onCenterPress={handleFabPress}
-            onCenterLongPress={handleFabLongPress}
-            visibleTabs={visibleTabs}
-            activeLens={activeLens}
-          />
-        )}
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: true,
-          tabBarActiveTintColor: colors.accent.primary,
-          tabBarInactiveTintColor: colors.text.tertiary,
-          tabBarStyle: { backgroundColor: colors.bg.primary, borderTopWidth: 0, elevation: 0 },
-        }}
+      <Animated.View
+        style={[
+          { flex: 1 },
+          { opacity: tabContentAnim },
+        ]}
       >
+        <Tab.Navigator
+          tabBar={(props) => {
+            setTabIndex(props.state.index);
+            return (
+              <IOSTabBar
+                {...props}
+                colors={colors}
+                isDark={isDark}
+                showCenterButton={showFab}
+                bottomBarVisible={bottomBarVisible}
+                keyboardVisible={keyboardVisible}
+                onCenterPress={handleFabPress}
+                onCenterLongPress={handleFabLongPress}
+                visibleTabs={visibleTabs}
+                activeLens={activeLens}
+              />
+            );
+          }}
+          screenOptions={{
+            headerShown: false,
+            tabBarShowLabel: true,
+            tabBarActiveTintColor: colors.accent.primary,
+            tabBarInactiveTintColor: colors.text.tertiary,
+            tabBarStyle: { backgroundColor: colors.bg.primary, borderTopWidth: 0, elevation: 0 },
+          }}
+        >
         {ALL_TAB_CONFIGS.map((tab) => {
           const iconName = tabIcons[tab.name] || tab.icon;
           const activeIconName = tabIcons[tab.name] || tab.activeIcon;
@@ -427,12 +441,15 @@ export function MainTabNavigator() {
           );
         })}
       </Tab.Navigator>
+      </Animated.View>
 
-      <QuickActionSheet
-        visible={showActions}
-        onClose={() => setShowActions(false)}
-        actions={quickActions}
-      />
+      {quickActions.length > 0 && (
+        <QuickActionSheet
+          visible={showActions}
+          onClose={() => setShowActions(false)}
+          actions={quickActions}
+        />
+      )}
     </View>
   );
 }

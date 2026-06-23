@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { useAuth } from '../../store/AuthContext';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 export function PrivacyScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
@@ -19,7 +20,7 @@ export function PrivacyScreen() {
   const [deleting, setDeleting] = useState(false);
 
   function handleDeleteAccount() {
-    Alert.alert(
+    alertService.alert(
       'Delete Account',
       'This action is irreversible. All your data will be permanently deleted.',
       [
@@ -27,7 +28,7 @@ export function PrivacyScreen() {
         {
           text: 'Delete', style: 'destructive',
           onPress: () => {
-            Alert.alert('Confirm Deletion', 'Type DELETE to confirm', [
+            alertService.alert('Confirm Deletion', 'Type DELETE to confirm', [
               { text: 'Cancel', style: 'cancel' },
               {
                 text: 'DELETE', style: 'destructive',
@@ -39,7 +40,7 @@ export function PrivacyScreen() {
                     showToast('Profile deleted');
                     await logout();
                   } catch (e: any) {
-                    Alert.alert('Error', e.message || 'Failed to delete account');
+                    alertService.alert('Error', e.message || 'Failed to delete account');
                   } finally {
                     setDeleting(false);
                   }

@@ -1,20 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 import { api } from '../../services/api';
 import { WidgetWrapper } from './WidgetWrapper';
 import { WidgetType, PERSONAL_WIDGETS, COUPLE_WIDGETS, FAMILY_WIDGETS } from './WidgetRegistry';
+import { alertService } from "../ui";
 
 interface DashboardGridProps {
   data: any;
@@ -204,7 +196,7 @@ export function DashboardGrid({
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
-                    Alert.alert('Remove Widget', `Hide "${type}" widget?`, [
+                    alertService.alert('Remove Widget', `Hide "${type}" widget?`, [
                       { text: 'Cancel', style: 'cancel' },
                       { text: 'Hide', style: 'destructive', onPress: () => toggleWidget(type) },
                     ]);

@@ -98,7 +98,7 @@ export function FinancialCenterScreen() {
     const pieData = (catData || []).slice(0, 6).map((c: any, i: number) => ({
       name: c.category || c.name || '',
       amount: c.amount || c.total || 0,
-      color: c.color || ['#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899'][i],
+      color: c.color || [colors.accent.primary, colors.status.success, colors.status.warning, colors.status.error, colors.status.info, '#EC4899'][i],
       legendFontColor: colors.text.secondary,
       legendFontSize: 12,
     }));
@@ -116,7 +116,7 @@ export function FinancialCenterScreen() {
           {[
             { label: 'Income', value: fmt(inc), color: '#22C55E', icon: 'caretup' },
             { label: 'Expenses', value: fmt(exp), color: '#EF4444', icon: 'caretdown' },
-            { label: 'Savings', value: fmt(Math.max(sav, 0)), color: '#7C3AED', icon: 'wallet' },
+            { label: 'Savings', value: fmt(Math.max(sav, 0)), color: colors.accent.primary, icon: 'wallet' },
           ].map(s => (
             <View key={s.label} style={[styles.summaryCard, { backgroundColor: colors.bg.card }]}>
               <AntDesign name={s.icon as any} size={18} color={s.color} />

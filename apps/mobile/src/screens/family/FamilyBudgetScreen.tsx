@@ -1,17 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
@@ -24,32 +16,33 @@ interface Category {
 }
 
 const BudgetCategoryCard: React.FC<{ category: Category }> = ({ category }) => {
+  const { colors } = useTheme();
   const percentage = Math.min((category.spent / category.limit) * 100, 100);
   const isUnder = percentage < 80;
   const isWarning = percentage >= 80 && percentage <= 100;
   const isOver = percentage > 100;
 
-  const barColor = isOver ? '#EF4444' : isWarning ? '#F59E0B' : '#10B981';
+  const barColor = isOver ? colors.status.error : isWarning ? colors.status.warning : colors.status.success;
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
 
   return (
-    <View style={styles.categoryCard}>
+    <View style={[styles.categoryCard, { backgroundColor: colors.bg.secondary }]}>
       <View style={styles.categoryHeader}>
         <View style={styles.categoryLeft}>
           <View style={[styles.categoryIcon, { backgroundColor: barColor + '20' }]}>
             <AntDesign name={category.icon} size={18} color={barColor} />
           </View>
-          <Text style={styles.categoryName}>{category.name}</Text>
+          <Text style={[styles.categoryName, { color: colors.text.primary }]}>{category.name}</Text>
         </View>
         {isOver && (
-          <View style={styles.overBadge}>
-            <AntDesign name="exclamationcircle" size={12} color="#EF4444" />
-            <Text style={styles.overText}>Over</Text>
+          <View style={[styles.overBadge, { backgroundColor: colors.status.error + '20' }]}>
+            <AntDesign name="exclamationcircle" size={12} color={colors.status.error} />
+            <Text style={[styles.overText, { color: colors.status.error }]}>Over</Text>
           </View>
         )}
       </View>
 
-      <View style={styles.progressBarBg}>
+      <View style={[styles.progressBarBg, { backgroundColor: colors.bg.tertiary }]}>
         <View
           style={[
             styles.progressBarFill,
@@ -59,10 +52,10 @@ const BudgetCategoryCard: React.FC<{ category: Category }> = ({ category }) => {
       </View>
 
       <View style={styles.categoryFooter}>
-        <Text style={styles.spentText}>
+        <Text style={[styles.spentText, { color: colors.text.tertiary }]}>
           Spent: <Text style={[styles.spentAmount, { color: barColor }]}>{formatCurrency(category.spent)}</Text>
         </Text>
-        <Text style={styles.limitText}>
+        <Text style={[styles.limitText, { color: colors.text.tertiary }]}>
           {formatCurrency(category.limit)} limit
         </Text>
       </View>
@@ -77,6 +70,7 @@ const BudgetCategoryCard: React.FC<{ category: Category }> = ({ category }) => {
 export default function FamilyBudgetScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { colors } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -102,56 +96,56 @@ export default function FamilyBudgetScreen() {
   const formatCurrency = (amount: number) => '₹' + amount.toLocaleString('en-IN');
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Family Budget</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Family Budget</Text>
       </View>
 
       {loading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color={colors.status.success} />
         </View>
       ) : categories.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}>
-          <AntDesign name="piechart" size={52} color="#6B7280" />
-          <Text style={{ color: '#F9FAFB', marginTop: 16, fontSize: 18, fontWeight: '600' }}>No budget yet</Text>
-          <Text style={{ color: '#6B7280', marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+          <AntDesign name="piechart" size={52} color={colors.text.tertiary} />
+          <Text style={{ color: colors.text.primary, marginTop: 16, fontSize: 18, fontWeight: '600' }}>No budget yet</Text>
+          <Text style={{ color: colors.text.tertiary, marginTop: 6, fontSize: 14, textAlign: 'center' }}>
             Set up a family budget to track spending across categories
           </Text>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#10B981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 20, gap: 8 }}
+            style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.status.success, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 20, gap: 8 }}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('Goals')}
           >
-            <AntDesign name="plus" size={18} color="#0A0A0A" />
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#0A0A0A' }}>Create Your First Budget</Text>
+            <AntDesign name="plus" size={18} color={colors.bg.primary} />
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.bg.primary }}>Create Your First Budget</Text>
           </TouchableOpacity>
         </View>
       ) : (
       <>
-        <View style={styles.overviewCard}>
+        <View style={[styles.overviewCard, { backgroundColor: colors.bg.secondary }]}>
           <View style={styles.overviewTop}>
             <View>
-              <Text style={styles.overviewLabel}>Total Budget</Text>
-              <Text style={styles.overviewAmount}>{formatCurrency(totalBudget)}</Text>
+              <Text style={[styles.overviewLabel, { color: colors.text.tertiary }]}>Total Budget</Text>
+              <Text style={[styles.overviewAmount, { color: colors.text.primary }]}>{formatCurrency(totalBudget)}</Text>
             </View>
             <View style={styles.overviewRight}>
-              <Text style={styles.overviewLabel}>Remaining</Text>
-              <Text style={[styles.overviewRemaining, { color: remaining > 0 ? '#10B981' : '#EF4444' }]}>
+              <Text style={[styles.overviewLabel, { color: colors.text.tertiary }]}>Remaining</Text>
+              <Text style={[styles.overviewRemaining, { color: remaining > 0 ? colors.status.success : colors.status.error }]}>          
                 {formatCurrency(remaining)}
               </Text>
             </View>
           </View>
           <View style={styles.overallProgress}>
-            <View style={styles.overallBarBg}>
+            <View style={[styles.overallBarBg, { backgroundColor: colors.bg.tertiary }]}>
               <View
                 style={[
                   styles.overallBarFill,
-                  { width: `${Math.min(overallPercent, 100)}%` },
+                  { width: `${Math.min(overallPercent, 100)}%`, backgroundColor: colors.status.success },
                 ]}
               />
             </View>
-            <Text style={styles.overallPercentText}>
+            <Text style={[styles.overallPercentText, { color: colors.text.tertiary }]}>
               {overallPercent.toFixed(1)}% used
             </Text>
           </View>
@@ -159,16 +153,16 @@ export default function FamilyBudgetScreen() {
 
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-            <Text style={styles.legendText}>Under 80%</Text>
+            <View style={[styles.legendDot, { backgroundColor: colors.status.success }]} />
+            <Text style={[styles.legendText, { color: colors.text.tertiary }]}>Under 80%</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
-            <Text style={styles.legendText}>80-100%</Text>
+            <View style={[styles.legendDot, { backgroundColor: colors.status.warning }]} />
+            <Text style={[styles.legendText, { color: colors.text.tertiary }]}>80-100%</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-            <Text style={styles.legendText}>Over 100%</Text>
+            <View style={[styles.legendDot, { backgroundColor: colors.status.error }]} />
+            <Text style={[styles.legendText, { color: colors.text.tertiary }]}>Over 100%</Text>
           </View>
         </View>
 
@@ -176,7 +170,7 @@ export default function FamilyBudgetScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor="#10B981" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.status.success} />}
         >
           {categories.map(cat => (
             <BudgetCategoryCard key={cat.id} category={cat} />
@@ -191,7 +185,6 @@ export default function FamilyBudgetScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: 'row',
@@ -203,27 +196,22 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#F9FAFB',
     letterSpacing: -0.5,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C2A25',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     gap: 6,
     borderWidth: 1,
-    borderColor: '#10B98130',
   },
   addButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#10B981',
   },
   overviewCard: {
-    backgroundColor: '#1C1C1E',
     marginHorizontal: 20,
     borderRadius: 16,
     padding: 20,
@@ -236,13 +224,11 @@ const styles = StyleSheet.create({
   },
   overviewLabel: {
     fontSize: 13,
-    color: '#6B7280',
     marginBottom: 4,
   },
   overviewAmount: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#F9FAFB',
   },
   overviewRight: {
     alignItems: 'flex-end',
@@ -259,18 +245,15 @@ const styles = StyleSheet.create({
   overallBarBg: {
     flex: 1,
     height: 8,
-    backgroundColor: '#2C2C2E',
     borderRadius: 4,
     overflow: 'hidden',
   },
   overallBarFill: {
     height: '100%',
-    backgroundColor: '#10B981',
     borderRadius: 4,
   },
   overallPercentText: {
     fontSize: 13,
-    color: '#6B7280',
     fontWeight: '500',
   },
   legendRow: {
@@ -292,7 +275,6 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#6B7280',
   },
   scrollView: {
     flex: 1,
@@ -302,7 +284,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   categoryCard: {
-    backgroundColor: '#1C1C1E',
     borderRadius: 14,
     padding: 16,
     marginBottom: 10,
@@ -329,25 +310,21 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#F9FAFB',
   },
   overBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#EF444420',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   overText: {
     fontSize: 11,
-    color: '#EF4444',
     fontWeight: '600',
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: '#2C2C2E',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
@@ -363,14 +340,12 @@ const styles = StyleSheet.create({
   },
   spentText: {
     fontSize: 13,
-    color: '#6B7280',
   },
   spentAmount: {
     fontWeight: '600',
   },
   limitText: {
     fontSize: 13,
-    color: '#6B7280',
   },
   percentageText: {
     position: 'absolute',

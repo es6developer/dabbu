@@ -1,19 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  SectionList,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  RefreshControl,
-  Modal,
-  TextInput,
-  Alert,
-  ScrollView,
-  ActivityIndicator,
-  Linking,
-} from 'react-native';
+import { View, Text, SectionList, StyleSheet, TouchableOpacity, Animated, RefreshControl, Modal, TextInput, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -26,6 +12,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { spacing } from '../../theme/design';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
+import { alertService } from "../../components/ui";
 const fmt = (n: number) => {
   const abs = Math.abs(n);
   if (abs >= 10000000) return '₹' + (abs / 10000000).toFixed(1) + 'Cr';
@@ -119,7 +106,7 @@ export function GroupExpensesScreen() {
       const res: any = await api.post(`/shared-finance/groups/${groupId}/export`, {});
       const url = res?.fileUrl || res?.data?.fileUrl;
       if (url) {
-        Alert.alert('Export Ready', 'Download your report?', [
+        alertService.alert('Export Ready', 'Download your report?', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Open', onPress: () => Linking.openURL(url) },
         ]);
@@ -127,14 +114,14 @@ export function GroupExpensesScreen() {
         showToast('Export queued. Check your downloads.');
       }
     } catch (e: any) {
-      Alert.alert('Export failed', e.message || 'Try again');
+      alertService.alert('Export failed', e.message || 'Try again');
     } finally {
       setExporting(false);
     }
   }
 
   async function saveSettings() {
-    if (!editName.trim()) return Alert.alert('Name required');
+    if (!editName.trim()) return alertService.alert('Name required');
     setSaving(true);
     try {
       if (accessToken) setAccessToken(accessToken);
@@ -143,14 +130,14 @@ export function GroupExpensesScreen() {
       setSettingsOpen(false);
       showToast('Group saved');
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Try again');
+      alertService.alert('Error', e.message || 'Try again');
     } finally {
       setSaving(false);
     }
   }
 
   async function removeMember(member: any) {
-    Alert.alert(
+    alertService.alert(
       'Remove member',
       `What should happen to ${member.user?.firstName || 'this member'}'s transactions in this group?`,
       [
@@ -167,7 +154,7 @@ export function GroupExpensesScreen() {
               await loadData(true);
               showToast('Member removed');
             } catch (e: any) {
-              Alert.alert('Error', e.message || 'Try again');
+              alertService.alert('Error', e.message || 'Try again');
             }
           },
         },
@@ -180,7 +167,7 @@ export function GroupExpensesScreen() {
               await loadData(true);
               showToast('Member removed');
             } catch (e: any) {
-              Alert.alert('Error', e.message || 'Try again');
+              alertService.alert('Error', e.message || 'Try again');
             }
           },
         },
@@ -189,7 +176,7 @@ export function GroupExpensesScreen() {
   }
 
   async function leaveGroup() {
-    Alert.alert('Leave group', 'What should happen to your transactions in this group?', [
+    alertService.alert('Leave group', 'What should happen to your transactions in this group?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete all my transactions',
@@ -201,7 +188,7 @@ export function GroupExpensesScreen() {
             navigation.goBack();
             showToast('Left the group');
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Try again');
+            alertService.alert('Error', e.message || 'Try again');
           }
         },
       },
@@ -214,7 +201,7 @@ export function GroupExpensesScreen() {
             navigation.goBack();
             showToast('Left the group');
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Try again');
+            alertService.alert('Error', e.message || 'Try again');
           }
         },
       },
@@ -294,11 +281,11 @@ export function GroupExpensesScreen() {
         ListHeaderComponent={
           <View>
             {/* Header */}
-            <View style={[s.headerRow, { paddingTop: insets.top + 8 }]}>
+            <View style={[s.headerRow, { paddingTop: insets.top + 8, paddingBottom: 8 }]}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
                 <AntDesign name="left" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <View style={{ flex: 1, marginLeft: 12 }}>
+              <View style={{ flex: 1, marginLeft: 12, justifyContent: 'center' }}>
                 <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>{groupName}</Text>
                 <Text style={[s.memberCount, { color: colors.text.tertiary }]}>
                   {members.length} member{members.length !== 1 ? 's' : ''}
@@ -671,7 +658,6 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 12,
   },
   iconBtn: {
     width: 40,

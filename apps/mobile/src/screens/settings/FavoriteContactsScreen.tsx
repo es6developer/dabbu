@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  TextInput,
-  ActivityIndicator,
-  Keyboard,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, TextInput, ActivityIndicator, Keyboard } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

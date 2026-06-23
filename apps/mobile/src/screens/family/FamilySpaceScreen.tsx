@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
-import { useAuth } from '../../store/AuthContext';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 const FAMILY_MODULES = [
@@ -44,7 +43,6 @@ export function FamilySpaceScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -145,7 +143,7 @@ export function FamilySpaceScreen() {
             {members.length > 0 && (
               <View style={styles.avatarRow}>
                 {visibleMembers.map((m: any, i: number) => {
-                  const avatarColors = ['#7C3AED', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
+                  const avatarColors = [colors.accent.primary, colors.accent.secondary, colors.status.success, colors.status.warning, colors.status.error];
                   const ac = avatarColors[i % avatarColors.length];
                   const name = m?.firstName || m?.email || `Member ${i + 1}`;
                   return (

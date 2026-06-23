@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { usePreferences, TabConfig } from '../../store/PreferencesContext';
 import { useToast } from '../../store/ToastContext';
 
+import { alertService } from "../../components/ui";
 const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
@@ -83,7 +84,7 @@ export function CustomiseBottomMenuScreen() {
       await refresh();
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to save');
+      alertService.alert('Error', e?.message || 'Failed to save');
       await refresh();
       navigation.goBack();
     } finally {

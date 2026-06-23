@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
+import { alertService } from "../../components/ui";
 const TYPES = ['Monthly', 'Quarterly', 'Yearly', 'One-time'];
 
 export function CreateContributionScreen() {
@@ -23,11 +23,11 @@ export function CreateContributionScreen() {
 
   const handleCreate = async () => {
     if (!amount.trim() || isNaN(Number(amount)) || Number(amount) <= 0) {
-      Alert.alert('Validation', 'Enter a valid amount');
+      alertService.alert('Validation', 'Enter a valid amount');
       return;
     }
     if (!period.trim()) {
-      Alert.alert('Validation', 'Period is required (YYYY-MM)');
+      alertService.alert('Validation', 'Period is required (YYYY-MM)');
       return;
     }
     setLoading(true);
@@ -40,7 +40,7 @@ export function CreateContributionScreen() {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to record contribution');
+      alertService.alert('Error', e?.message || 'Failed to record contribution');
     } finally {
       setLoading(false);
     }

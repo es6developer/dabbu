@@ -1122,6 +1122,8 @@ PODS:
     - React-Core
   - RNDateTimePicker (7.7.0):
     - React-Core
+  - RNDynamicAppIcon (1.1.0):
+    - React
   - RNFlashList (1.6.3):
     - React-Core
   - RNGestureHandler (2.14.1):
@@ -1228,6 +1230,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../../../node_modules/@react-native-async-storage/async-storage`)"
   - "RNDateTimePicker (from `../../../node_modules/@react-native-community/datetimepicker`)"
+  - RNDynamicAppIcon (from `../../../node_modules/react-native-dynamic-app-icon`)
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../../../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../../../node_modules/react-native-reanimated`)
@@ -1397,6 +1400,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@react-native-async-storage/async-storage"
   RNDateTimePicker:
     :path: "../../../node_modules/@react-native-community/datetimepicker"
+  RNDynamicAppIcon:
+    :path: "../../../node_modules/react-native-dynamic-app-icon"
   RNFlashList:
     :path: "../node_modules/@shopify/flash-list"
   RNGestureHandler:
@@ -1491,6 +1496,7 @@ SPEC CHECKSUMS:
   ReactCommon: 2e5492a3e3a8e72d635c266405e49d12627e5bf0
   RNCAsyncStorage: a03b770a50541a761447cea9c24536047832124d
   RNDateTimePicker: 590f2000e4272050b98689cee6c8abc66c25bb22
+  RNDynamicAppIcon: 8d96bb0ca9a9c003fd8f0094fbad8fb064ca54a2
   RNFlashList: 1076a3fb7c4608a8cdf265f0783592b8fc41b6a7
   RNGestureHandler: dd5543af5c344cb2bdd8de81a8ec85adb5ec4b4b
   RNReanimated: 2f6e5a01a3d1b159804965527b29170993470076

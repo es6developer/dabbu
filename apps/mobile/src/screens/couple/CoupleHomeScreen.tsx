@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
-  Animated,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Animated, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,27 +26,31 @@ function daysSince(date: string): number {
   return Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-const PLANNER_BADGES = [
-  { type: 'BABY', label: 'Baby', icon: 'smileo', color: '#FF8A65' },
-  { type: 'HOUSE', label: 'House', icon: 'home', color: '#60A5FA' },
-  { type: 'CAR', label: 'Car', icon: 'car', color: '#34C759' },
-  { type: 'RETIREMENT', label: 'Retire', icon: 'Safety', color: '#A78BFA' },
-];
+function getPlannerBadges(colors: any) {
+  return [
+    { type: 'BABY', label: 'Baby', icon: 'smileo', color: '#FF8A65' },
+    { type: 'HOUSE', label: 'House', icon: 'home', color: '#60A5FA' },
+    { type: 'CAR', label: 'Car', icon: 'car', color: '#34C759' },
+    { type: 'RETIREMENT', label: 'Retire', icon: 'Safety', color: colors.accent.tertiary },
+  ];
+}
 
-const QUICK_ACTIONS = [
-  { key: 'Money', icon: 'wallet', label: 'Wallet', color: '#F97316' },
-  { key: 'Income', icon: 'linechart', label: 'Income', color: '#34C759' },
-  { key: 'Expenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
-  { key: 'Budgets', icon: 'wallet', label: 'Budgets', color: '#F59E0B' },
-  { key: 'Savings', icon: 'save', label: 'Savings', color: '#60A5FA' },
-  { key: 'Goals', icon: 'Trophy', label: 'Goals', color: '#A78BFA' },
-  { key: 'Bills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
-  { key: 'Settlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
-  { key: 'Reports', icon: 'barschart', label: 'Reports', color: '#4F46E5' },
-  { key: 'LifePlans', icon: 'find', label: 'Planners', color: '#60A5FA' },
-  { key: 'Timeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
-  { key: 'AI', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
-];
+function getQuickActions(colors: any) {
+  return [
+    { key: 'Money', icon: 'wallet', label: 'Wallet', color: '#F97316' },
+    { key: 'Income', icon: 'linechart', label: 'Income', color: '#34C759' },
+    { key: 'Expenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
+    { key: 'Budgets', icon: 'wallet', label: 'Budgets', color: colors.status.warning },
+    { key: 'Savings', icon: 'save', label: 'Savings', color: '#60A5FA' },
+    { key: 'Goals', icon: 'Trophy', label: 'Goals', color: colors.accent.tertiary },
+    { key: 'Bills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
+    { key: 'Settlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
+    { key: 'Reports', icon: 'barschart', label: 'Reports', color: '#4F46E5' },
+    { key: 'LifePlans', icon: 'find', label: 'Planners', color: '#60A5FA' },
+    { key: 'Timeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
+    { key: 'AI', icon: 'bulb1', label: 'AI Coach', color: colors.accent.secondary },
+  ];
+}
 
 function HealthRing({ score, size = 88, strokeWidth = 6 }: { score: number; size?: number; strokeWidth?: number }) {
   const { colors } = useTheme();
@@ -128,6 +123,8 @@ export function CoupleHomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
+  const plannerBadges = getPlannerBadges(colors);
+  const quickActions = getQuickActions(colors);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<any>(null);
@@ -424,7 +421,7 @@ export function CoupleHomeScreen() {
                     const target = Number(pl.targetAmount || 0);
                     const current = Number(pl.currentSavings || 0);
                     const pct = target > 0 ? Math.round((current / target) * 100) : 0;
-                    const badge = PLANNER_BADGES.find((b) => b.type === pl.plannerType) || {
+                    const badge = plannerBadges.find((b) => b.type === pl.plannerType) || {
                       label: pl.plannerType, icon: 'flag', color: colors.text.tertiary,
                     };
                     return (
@@ -495,7 +492,7 @@ export function CoupleHomeScreen() {
             <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>All Modules</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {QUICK_ACTIONS.map((mod) => (
+                {quickActions.map((mod) => (
                   <TouchableOpacity
                     key={mod.key}
                     activeOpacity={0.8}

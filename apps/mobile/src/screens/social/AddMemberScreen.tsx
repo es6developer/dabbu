@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Linking } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +19,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
 
+import { alertService } from "../../components/ui";
 interface SearchUser {
   id: string;
   email: string;
@@ -112,7 +103,7 @@ export function AddMemberScreen() {
 
   async function handleSyncContacts() {
     if (permStatus === 'denied') {
-      Alert.alert(
+      alertService.alert(
         'Contacts Access Required',
         'Enable contact access in Settings to find friends on Dabbu.',
         [
@@ -171,13 +162,13 @@ export function AddMemberScreen() {
         navigation.goBack();
       } else if (groupType === 'expense-group') {
         await api.post(`/expense-groups/${targetId}/members/add-by-user-id`, { userId });
-        Alert.alert('Added', `${userName} added to group`);
+        alertService.alert('Added', `${userName} added to group`);
       } else {
         await api.post(`/shared-finance/groups/${targetId}/members`, { userId });
-        Alert.alert('Added', `${userName} added to group`);
+        alertService.alert('Added', `${userName} added to group`);
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add member');
+      alertService.alert('Error', e?.message || 'Failed to add member');
     } finally {
       setAddingId(null);
     }
@@ -186,7 +177,7 @@ export function AddMemberScreen() {
   function handleInvite(name: string) {
     const msg =
       'Hey! Join me on Dabbu - the smart expense splitting app.\n\nDownload: https://dabbu.app/download';
-    Alert.alert(`Invite ${name}`, '', [
+    alertService.alert(`Invite ${name}`, '', [
       {
         text: 'WhatsApp',
         onPress: () => Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`),

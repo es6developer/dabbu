@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Animated, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,7 +11,6 @@ import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { CreateGoalModal } from './CreateGoalModal';
-
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -888,13 +878,13 @@ export function GoalsListScreen() {
                 <View style={{ marginTop: 8, marginBottom: 4 }}>
                   <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <AntDesign  name="swap" size={16} color="#7C3AED" />
+                      <AntDesign  name="swap" size={16} color={colors.accent.primary} />
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
                     </View>
                     {rebalanceData.slice(0, 3).map((s: any) => (
                       <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
-                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || '#7C3AED') + '20', alignItems: 'center', justifyContent: 'center' }}>
-                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
+                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || colors.accent.primary) + '20', alignItems: 'center', justifyContent: 'center' }}>
+                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || colors.accent.primary} />
                         </View>
                         <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
                         <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>
@@ -929,7 +919,6 @@ export function GoalsListScreen() {
         onCreated={loadGoals}
         prefill={prefill}
       />
-
 
     </>
   );

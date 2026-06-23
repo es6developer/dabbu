@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
 import { api } from '../../services/api';
@@ -78,7 +77,7 @@ export function FamilySavings() {
             <View className="flex-row items-center justify-between mb-1">
               <Text
                 className="text-[13px] font-semibold tracking-wide"
-                style={{ color: isDark ? 'rgba(255,255,255,0.7)' : '#6D28D9' }}
+                style={{ color: isDark ? 'rgba(255,255,255,0.7)' : colors.accent.hover }}
               >
                 FAMILY GOAL
               </Text>
@@ -104,7 +103,7 @@ export function FamilySavings() {
             </Text>
             <Text
               className="text-[12px] font-medium mt-1"
-              style={{ color: isDark ? 'rgba(255,255,255,0.55)' : '#7C3AED' }}
+              style={{ color: isDark ? 'rgba(255,255,255,0.55)' : colors.accent.primary }}
             >
               {fmt(goalSaved)} saved · {fmt(goalTotal - goalSaved)} remaining
             </Text>
@@ -135,7 +134,7 @@ export function FamilySavings() {
                   <ProfileBubble name={m.name} size={18} />
                   <Text
                     className="text-[10px] font-semibold"
-                    style={{ color: isDark ? 'rgba(255,255,255,0.8)' : '#6D28D9' }}
+                    style={{ color: isDark ? 'rgba(255,255,255,0.8)' : colors.accent.hover }}
                   >
                     {m.saved > 0 ? `${((m.saved / goalSaved) * 100).toFixed(0)}%` : '0%'}
                   </Text>
