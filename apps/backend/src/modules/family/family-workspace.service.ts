@@ -5,11 +5,15 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
 @Injectable()
 export class FamilyWorkspaceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
+  ) {}
 
   async create(userId: string, dto: CreateWorkspaceDto) {
     const family = await this.prisma.family.findUnique({ where: { id: dto.familyId } });
@@ -27,6 +31,8 @@ export class FamilyWorkspaceService {
       throw new ConflictException('Family workspace already exists');
     }
 
+    const lensId = await this.lensData.getActiveLens(userId);
+
     return this.prisma.familyWorkspace.create({
       data: {
         familyId: dto.familyId,
@@ -35,6 +41,7 @@ export class FamilyWorkspaceService {
         icon: dto.icon || 'team',
         coverColor: dto.coverColor || '#0f6b6f',
         createdBy: userId,
+        lensId,
       },
     });
   }

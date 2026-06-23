@@ -19,52 +19,70 @@ import {
   NotificationChannel,
 } from './dto/create-notification.dto';
 
-const TYPE_EMOJI: Record<string, string> = {
-  expense: '💳',
-  expense_alert: '⚠️',
-  group_expense: '👥',
-  settlement_request: '🔄',
-  settlement_complete: '✅',
-  payment_sent: '💸',
-  budget_exceeded: '🔴',
-  budget_alert: '🟡',
-  goal_created: '🎯',
-  goal_milestone: '🏆',
-  goal_complete: '🎉',
-  goal_behind: '📉',
-  group_invite: '📨',
-  group_join: '👋',
-  group_remove: '🚫',
-  group_leave: '🚪',
-  member_added: '➕',
-  emi_reminder: '📅',
-  emi_overdue: '🚨',
-  subscription_reminder: '📋',
-  bill_reminder: '🧾',
-  friend_request: '🤝',
-  friend_accepted: '✅',
-  family_invite: '🏠',
-  family_remove: '🚫',
-  family_leave: '🚪',
-  daily_digest: '📊',
-  weekly_digest: '📈',
-  monthly_report: '📑',
-  ai_insight: '🤖',
-  system: '🔔',
+const TYPE_LABEL: Record<string, string> = {
+  expense: 'Expense added',
+  expense_alert: 'Spending alert',
+  group_expense: 'Shared expense added',
+  settlement_request: 'Settlement requested',
+  settlement_complete: 'Settlement complete',
+  payment_sent: 'Payment sent',
+  budget_exceeded: 'Budget exceeded',
+  budget_alert: 'Budget alert',
+  spending_spike: 'Spending spike detected',
+  goal_created: 'Goal created',
+  goal_milestone: 'Goal milestone reached',
+  goal_complete: 'Goal completed',
+  goal_behind: 'Goal needs attention',
+  group_invite: 'Group invite',
+  group_join: 'New group member',
+  group_remove: 'Group update',
+  group_leave: 'Group update',
+  member_added: 'Member added',
+  member_joined: 'Member joined',
+  emi_reminder: 'EMI reminder',
+  emi_overdue: 'EMI overdue',
+  subscription_reminder: 'Subscription reminder',
+  subscription_renewal: 'Subscription renewal',
+  bill_reminder: 'Bill reminder',
+  reminder_upcoming: 'Reminder due soon',
+  reminder_overdue: 'Reminder overdue',
+  insight_savings: 'Savings insight',
+  insight_spending: 'Spending insight',
+  friend_request: 'Friend request',
+  friend_accepted: 'Friend request accepted',
+  family_invite: 'Family invite',
+  family_remove: 'Family update',
+  family_leave: 'Family update',
+  couple_request: 'Partner request',
+  couple_approved: 'Partner connected',
+  daily_digest: 'Daily summary ready',
+  weekly_digest: 'Weekly report ready',
+  monthly_report: 'Monthly report ready',
+  ai_insight: 'Dabbu insight',
+  test_push: 'Test notification',
+  system: 'Dabbu update',
 };
 
-function formatNotificationText(title?: string, message?: string, body?: string, type?: string): { title: string; message: string } {
+function formatNotificationText(
+  title?: string,
+  message?: string,
+  body?: string,
+  type?: string,
+): { title: string; message: string } {
   const safeTitle = (title || '').trim();
   const safeMessage = (message || body || '').trim();
-  const emoji = type ? TYPE_EMOJI[type] || '' : '';
+  const typeLabel = type ? TYPE_LABEL[type] : undefined;
   return {
-    title: safeTitle || (emoji ? `${emoji} Notification` : 'Dabbu'),
-    message: safeMessage || (
-      type === 'daily_digest' ? 'Your daily financial summary is ready' :
-      type === 'weekly_digest' ? 'Your weekly report is ready' :
-      type === 'monthly_report' ? 'Your monthly financial report is ready' :
-      'You have a new update'
-    ),
+    title: safeTitle || typeLabel || 'Dabbu',
+    message:
+      safeMessage ||
+      (type === 'daily_digest'
+        ? 'Your daily financial summary is ready'
+        : type === 'weekly_digest'
+          ? 'Your weekly report is ready'
+          : type === 'monthly_report'
+            ? 'Your monthly financial report is ready'
+            : 'You have a new update'),
   };
 }
 export class NotificationService {
@@ -75,7 +93,9 @@ export class NotificationService {
     private readonly lensData: LensDataService,
     private readonly fcmService: FcmService,
     @Optional() private readonly emailService?: EmailService,
-    @Optional() @InjectQueue('notification-queue') private readonly notificationQueue?: Queue | null,
+    @Optional()
+    @InjectQueue('notification-queue')
+    private readonly notificationQueue?: Queue | null,
     @Optional() private readonly notificationGateway?: NotificationGateway,
   ) {}
 
@@ -89,7 +109,10 @@ export class NotificationService {
     },
   ) {
     const { title: fmtTitle, message: fmtMessage } = formatNotificationText(
-      dto.title, dto.message, dto.body, dto.type,
+      dto.title,
+      dto.message,
+      dto.body,
+      dto.type,
     );
     const notification = await this.prisma.notification.create({
       data: {
@@ -116,15 +139,26 @@ export class NotificationService {
 
     const prefs = await this._getCategoryPrefs(dto.userId, dto.category || dto.type);
     if (prefs?.pushEnabled !== false) {
-      await this._sendPushToDevices(dto.userId, fmtTitle, fmtMessage, {
-        notificationId: notification.id,
-        type: dto.type,
-      });
+      await this._sendPushToDevices(
+        dto.userId,
+        fmtTitle,
+        fmtMessage,
+        this.buildNotificationActionData({
+          ...(dto.data || {}),
+          notificationId: notification.id,
+          type: dto.type,
+          actionUrl: dto.actionUrl,
+          reminderId: dto.reminderId,
+        }),
+      );
     }
 
     if (prefs?.emailEnabled !== false && this.emailService) {
       try {
-        const user = await this.prisma.user.findUnique({ where: { id: dto.userId }, select: { email: true, firstName: true } });
+        const user = await this.prisma.user.findUnique({
+          where: { id: dto.userId },
+          select: { email: true, firstName: true },
+        });
         if (user) {
           await this.emailService.sendNotificationEmail(
             user.email,
@@ -148,13 +182,21 @@ export class NotificationService {
 
   private async _getCategoryPrefs(userId: string, categoryOrType: string) {
     const categoryMap: Record<string, string> = {
-      bill_reminder: 'bills', budget_alert: 'bills',
-      goal_milestone: 'goals', goal_complete: 'goals', goal_behind: 'goals',
-      expense: 'transactions', expense_alert: 'transactions', spending_spike: 'transactions',
-      family_invite: 'family', family_remove: 'family', family_leave: 'family',
+      bill_reminder: 'bills',
+      budget_alert: 'bills',
+      goal_milestone: 'goals',
+      goal_complete: 'goals',
+      goal_behind: 'goals',
+      expense: 'transactions',
+      expense_alert: 'transactions',
+      spending_spike: 'transactions',
+      family_invite: 'family',
+      family_remove: 'family',
+      family_leave: 'family',
       couple: 'couple',
       ai_insight: 'ai',
-      subscription_reminder: 'subscription', subscription_renewal: 'subscription',
+      subscription_reminder: 'subscription',
+      subscription_renewal: 'subscription',
       system: 'system',
     };
     const category = categoryMap[categoryOrType] || 'system';
@@ -248,7 +290,9 @@ export class NotificationService {
     const notification = await this.prisma.notification.findFirst({
       where: { id, userId },
     });
-    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
     return this.prisma.notification.update({
       where: { id },
       data: { isArchived: true, archivedAt: new Date() },
@@ -259,7 +303,9 @@ export class NotificationService {
     const notification = await this.prisma.notification.findFirst({
       where: { id, userId },
     });
-    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
     return this.prisma.notification.update({
       where: { id },
       data: { isArchived: false, archivedAt: null },
@@ -300,7 +346,10 @@ export class NotificationService {
   ): Promise<void> {
     const notificationType = (data?.type as string) || 'system';
     const { title: fmtTitle, message: fmtBody } = formatNotificationText(
-      title, body, undefined, notificationType,
+      title,
+      body,
+      undefined,
+      notificationType,
     );
 
     const notification = await this.prisma.notification.create({
@@ -313,10 +362,15 @@ export class NotificationService {
       },
     });
 
-    await this._sendPushToDevices(userId, fmtTitle, fmtBody, {
-      ...data,
-      notificationId: notification.id,
-    });
+    await this._sendPushToDevices(
+      userId,
+      fmtTitle,
+      fmtBody,
+      this.buildNotificationActionData({
+        ...data,
+        notificationId: notification.id,
+      }),
+    );
 
     this.notificationGateway?.emitNotification(userId, notification);
   }
@@ -341,7 +395,7 @@ export class NotificationService {
         const payload = this.fcmService.buildPayload(
           title,
           body,
-          data,
+          this.buildNotificationActionData(data),
           device.platform || undefined,
         );
         const result = await this.fcmService.sendPush(device.pushToken!, payload);
@@ -389,7 +443,11 @@ export class NotificationService {
         const payload = this.fcmService.buildPayload(
           title || 'Test Notification',
           body || 'This is a test push notification from Dabbu',
-          { type: 'test_push', timestamp: new Date().toISOString() },
+          this.buildNotificationActionData({
+            type: 'test_push',
+            timestamp: new Date().toISOString(),
+            clickAction: 'OPEN_NOTIFICATIONS',
+          }),
           device.platform || undefined,
         );
         const result = await this.fcmService.sendPush(device.pushToken!, payload);
@@ -470,7 +528,12 @@ export class NotificationService {
     );
 
     try {
-      const payload = this.fcmService.buildPayload(title, body, data, device.platform || undefined);
+      const payload = this.fcmService.buildPayload(
+        title,
+        body,
+        this.buildNotificationActionData(data),
+        device.platform || undefined,
+      );
 
       const result = await this.fcmService.sendPush(device.pushToken!, payload);
 
@@ -536,7 +599,36 @@ export class NotificationService {
     await this.sendPush(notification.userId, notification.title, notification.message, {
       notificationId: notification.id,
       type: notification.type,
+      actionUrl: notification.actionUrl || undefined,
+      reminderId: notification.reminderId || undefined,
     });
+  }
+
+  private buildNotificationActionData(data?: Record<string, any>): Record<string, any> {
+    const enriched = { ...(data || {}) };
+    const type = enriched.type as string | undefined;
+
+    if (!enriched.clickAction) {
+      if (enriched.actionUrl) {
+        enriched.clickAction = 'OPEN_ACTION_URL';
+      } else if (enriched.groupId) {
+        enriched.clickAction = 'OPEN_GROUP';
+      } else if (enriched.reminderId) {
+        enriched.clickAction = 'OPEN_REMINDER';
+      } else if (enriched.goalId) {
+        enriched.clickAction = 'OPEN_GOAL';
+      } else if (enriched.billId) {
+        enriched.clickAction = 'OPEN_BILL';
+      } else if (enriched.settlementId || type?.includes('settlement')) {
+        enriched.clickAction = 'OPEN_SETTLEMENT';
+      } else if (type?.includes('subscription')) {
+        enriched.clickAction = 'OPEN_SUBSCRIPTIONS';
+      } else {
+        enriched.clickAction = 'OPEN_NOTIFICATIONS';
+      }
+    }
+
+    return enriched;
   }
 
   async registerDevice(
@@ -600,29 +692,98 @@ export class NotificationService {
     ]);
 
     return {
-      global: settings ? {
-        pushNotifications: settings.pushNotifications,
-        emailNotifications: settings.emailNotifications,
-        smsNotifications: settings.smsNotifications,
-        weeklyReport: settings.weeklyReport,
-        monthlyReport: settings.monthlyReport,
-      } : {
-        pushNotifications: true,
-        emailNotifications: true,
-        smsNotifications: false,
-        weeklyReport: true,
-        monthlyReport: true,
-      },
-      categories: categoryPrefs.length > 0 ? categoryPrefs : [
-        { category: 'bills', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'goals', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'transactions', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'family', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'couple', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'ai', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'subscription', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-        { category: 'system', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
-      ],
+      global: settings
+        ? {
+            pushNotifications: settings.pushNotifications,
+            emailNotifications: settings.emailNotifications,
+            smsNotifications: settings.smsNotifications,
+            weeklyReport: settings.weeklyReport,
+            monthlyReport: settings.monthlyReport,
+          }
+        : {
+            pushNotifications: true,
+            emailNotifications: true,
+            smsNotifications: false,
+            weeklyReport: true,
+            monthlyReport: true,
+          },
+      categories:
+        categoryPrefs.length > 0
+          ? categoryPrefs
+          : [
+              {
+                category: 'bills',
+                pushEnabled: true,
+                emailEnabled: true,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'goals',
+                pushEnabled: true,
+                emailEnabled: true,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'transactions',
+                pushEnabled: true,
+                emailEnabled: false,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'family',
+                pushEnabled: true,
+                emailEnabled: true,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'couple',
+                pushEnabled: true,
+                emailEnabled: true,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'ai',
+                pushEnabled: true,
+                emailEnabled: false,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'subscription',
+                pushEnabled: true,
+                emailEnabled: true,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+              {
+                category: 'system',
+                pushEnabled: true,
+                emailEnabled: false,
+                smsEnabled: false,
+                inAppEnabled: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+              },
+            ],
     };
   }
 
@@ -662,11 +823,18 @@ export class NotificationService {
     };
   }
 
-  async updateCategoryPreference(userId: string, category: string, data: {
-    pushEnabled?: boolean; emailEnabled?: boolean;
-    smsEnabled?: boolean; inAppEnabled?: boolean;
-    quietHoursStart?: number | null; quietHoursEnd?: number | null;
-  }) {
+  async updateCategoryPreference(
+    userId: string,
+    category: string,
+    data: {
+      pushEnabled?: boolean;
+      emailEnabled?: boolean;
+      smsEnabled?: boolean;
+      inAppEnabled?: boolean;
+      quietHoursStart?: number | null;
+      quietHoursEnd?: number | null;
+    },
+  ) {
     return this.prisma.notificationPreference.upsert({
       where: { userId_category: { userId, category } },
       create: { userId, category, ...data },
@@ -833,7 +1001,13 @@ export class NotificationService {
           },
         }),
         this.prisma.reminder.count({
-          where: { userId, ...lensFilter, deletedAt: null, status: { not: 'completed' }, dueDate: { lt: now } },
+          where: {
+            userId,
+            ...lensFilter,
+            deletedAt: null,
+            status: { not: 'completed' },
+            dueDate: { lt: now },
+          },
         }),
         this.prisma.reminder.count({
           where: {

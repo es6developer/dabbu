@@ -6,10 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
+import {
+  getNotificationActionLabel,
+  navigateToNotification,
+} from '../../services/notification-routing';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, typography as typographyStyles } from '../../theme';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 interface NotificationItem {
   id: string;
   title: string;
@@ -19,6 +23,7 @@ interface NotificationItem {
   priority: string;
   category: string;
   overdue: boolean;
+  actionUrl?: string;
   data?: Record<string, any>;
   createdAt: string;
 }
@@ -65,17 +70,17 @@ export function NotificationCenterScreen() {
 
       let url = '/notifications?limit=100';
       if (activeFilter === 'overdue') {
-        url += '&overdue=true';
+        url = '/notifications/filter?limit=100&overdue=true';
       } else if (activeFilter === 'upcoming') {
-        url += '&type=reminder_upcoming';
+        url = '/notifications/filter?limit=100&type=reminder_upcoming';
       } else if (activeFilter === 'paid') {
-        url += '&type=goal_milestone,completed';
+        url = '/notifications/filter?limit=100&isRead=true';
       } else if (activeFilter === 'bill' || activeFilter === 'reload1') {
-        url += `&category=${activeFilter}`;
+        url = `/notifications/filter?limit=100&category=${activeFilter === 'reload1' ? 'subscription' : 'bill'}`;
       }
 
       const res = await api.get<any>(url);
-      const data = res || [];
+      const data = Array.isArray(res) ? res : res?.data || [];
       setNotifications(Array.isArray(data) ? data : []);
 
       const unreadRes = await api
@@ -145,17 +150,12 @@ export function NotificationCenterScreen() {
     if (!item.isRead) {
       handleMarkRead(item.id);
     }
-    if (item.data?.reminderId) {
-      navigation.navigate('FamilyHub', {
-        screen: 'ReminderDetail',
-        params: { reminderId: item.data.reminderId },
-      });
-    } else if (item.data?.groupId) {
-      navigation.navigate('WalletTab', {
-        screen: 'GroupExpenses',
-        params: { groupId: item.data.groupId },
-      });
-    }
+    navigateToNotification(navigation, {
+      ...(item.data || {}),
+      type: item.type,
+      actionUrl: item.actionUrl || item.data?.actionUrl,
+      reminderId: item.data?.reminderId,
+    });
   };
 
   const getPriorityColor = (priority: string) => {
@@ -171,18 +171,40 @@ export function NotificationCenterScreen() {
     }
   };
 
-  const getCategoryIcon = (category?: string): string => {
-    switch (category) {
+  const getCategoryIcon = (category?: string, type?: string): string => {
+    const key = category || type || '';
+    switch (key) {
       case 'bill':
+      case 'bill_reminder':
+      case 'emi_reminder':
+      case 'emi_overdue':
         return 'filetext1';
       case 'reload1':
+      case 'subscription_reminder':
+      case 'subscription_renewal':
         return 'retweet';
       case 'payment':
+      case 'payment_sent':
+      case 'settlement_request':
+      case 'settlement_complete':
         return 'creditcard';
       case 'task':
         return 'check';
       case 'goal':
+      case 'goal_created':
+      case 'goal_milestone':
+      case 'goal_complete':
+      case 'goal_behind':
         return 'Trophy';
+      case 'group_expense':
+      case 'group_invite':
+      case 'member_added':
+        return 'team';
+      case 'ai_insight':
+      case 'daily_digest':
+      case 'weekly_digest':
+      case 'monthly_report':
+        return 'bulb1';
       default:
         return 'bells';
     }
@@ -236,7 +258,7 @@ export function NotificationCenterScreen() {
             ]}
           >
             <AntDesign
-              name={getCategoryIcon(item.category) as any}
+              name={getCategoryIcon(item.category, item.type) as any}
               size={18}
               color={item.overdue ? '#FF3B30' : priorityColor}
             />
@@ -268,29 +290,32 @@ export function NotificationCenterScreen() {
         </View>
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.status.success + '15' }]}
-            onPress={() => {
-              handleMarkRead(item.id);
-              if (item.data?.reminderId) {
-                navigation.navigate('FamilyHub', { screen: 'ReminderDetail', params: { reminderId: item.data.reminderId } });
-              }
-            }}
-          >
-            <AntDesign  name="check" size={14} color={colors.status.success} />
-            <Text style={[styles.actionText, { color: colors.status.success }]}>Mark Paid</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
+            style={[styles.primaryActionBtn, { backgroundColor: colors.accent.primary }]}
             onPress={() => handlePress(item)}
           >
-            <AntDesign name="export" size={14} color={colors.accent.primary}  />
-            <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
+            <Text style={styles.primaryActionText}>
+              {getNotificationActionLabel({
+                ...(item.data || {}),
+                type: item.type,
+                actionUrl: item.actionUrl,
+              })}
+            </Text>
+            <AntDesign name="arrowright" size={14} color="#FFFFFF" />
           </TouchableOpacity>
+          {!item.isRead && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
+              onPress={() => handleMarkRead(item.id)}
+            >
+              <AntDesign name="check" size={14} color={colors.status.success} />
+              <Text style={[styles.actionText, { color: colors.status.success }]}>Read</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handleDelete(item.id)}
           >
-            <AntDesign  name="delete" size={14} color={colors.status.error} />
+            <AntDesign name="delete" size={14} color={colors.status.error} />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -301,7 +326,7 @@ export function NotificationCenterScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <AntDesign  name="left" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
         <View style={styles.headerRight}>
@@ -363,7 +388,7 @@ export function NotificationCenterScreen() {
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
           <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-            <AntDesign  name="bells" size={40} color={colors.text.tertiary} />
+            <AntDesign name="bells" size={40} color={colors.text.tertiary} />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
             {activeFilter === 'all' ? 'No notifications yet' : 'No matching notifications'}
@@ -439,7 +464,7 @@ const styles = StyleSheet.create({
   emptyTitle: { ...typographyStyles.sectionHeader, marginBottom: 8 },
   emptySub: { ...typographyStyles.body, textAlign: 'center' },
   list: { paddingHorizontal: 16, paddingTop: 8 },
-  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
+  card: { borderRadius: 12, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
   iconContainer: {
     width: 38,
@@ -469,4 +494,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionText: { ...typographyStyles.caption1, fontFamily: 'Inter-SemiBold' },
+  primaryActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  primaryActionText: {
+    color: '#FFFFFF',
+    ...typographyStyles.caption1,
+    fontFamily: 'Inter-SemiBold',
+  },
 });

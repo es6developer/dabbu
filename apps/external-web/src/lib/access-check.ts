@@ -94,37 +94,6 @@ export async function checkGroupAccess(
   }
 }
 
-export async function checkMemberAccess(
-  groupId: string,
-  tempUserId: string,
-  token?: string,
-): Promise<MemberAccessResponse> {
-  try {
-    const res = await fetch(
-      `${API_URL}/external-sharing/lifecycle/groups/${groupId}/members/${tempUserId}`,
-      { headers: buildHeaders(token) },
-    );
-
-    if (res.status === 401 || res.status === 403) {
-      return { isMember: false, restrictions: ['no_access'] };
-    }
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      return { isMember: false, restrictions: [data.status || 'no_access'] };
-    }
-
-    return {
-      isMember: data.isMember ?? true,
-      role: data.role || 'guest',
-      restrictions: data.restrictions || [],
-    };
-  } catch {
-    return { isMember: false, restrictions: ['network_error'] };
-  }
-}
-
 export function resolveAccessStatus(response: GroupAccessResponse): {
   status: AccessStatus;
   shouldRedirect: boolean;

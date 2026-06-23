@@ -205,22 +205,6 @@ export class DemoLoginDto {
   platform?: string;
 }
 
-export class ChangePasswordDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  currentPassword: string;
-
-  @ApiProperty({ example: 'NewStrongPass123!' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: 'Password must contain at least 1 uppercase, 1 lowercase, and 1 number',
-  })
-  newPassword: string;
-}
-
 export class SelectPresetAvatarDto {
   @ApiProperty({ description: 'Preset seed identifier (e.g. "dabbu-sunny")' })
   @IsString()

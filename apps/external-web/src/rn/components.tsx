@@ -50,18 +50,6 @@ export function MobileContainer({
   return <RNView style={[styles.container, style]}>{children}</RNView>;
 }
 
-export function MobilePage({ children, ...props }: ScrollViewProps) {
-  return (
-    <RNScrollView
-      {...props}
-      style={[styles.page, props.style as ViewStyle]}
-      contentContainerStyle={[styles.pageContent, props.contentContainerStyle]}
-    >
-      {children}
-    </RNScrollView>
-  );
-}
-
 export function Card({
   children,
   style,
@@ -79,61 +67,31 @@ export function Card({
         : ('var(--dabbu-surface)' as any);
   const borderColor = 'var(--dabbu-border)' as any;
   return (
-    <Animated.View
-      style={[{ backgroundColor: bg, borderColor }, styles.card, style]}
-    >
+    <Animated.View style={[{ backgroundColor: bg, borderColor }, styles.card, style]}>
       {children}
     </Animated.View>
   );
 }
 
-export function H1({ children, style }: TextProps) {
-  return <RNText style={[typography.h1, style]}>{children}</RNText>;
-}
-export function H2({ children, style }: TextProps) {
-  return <RNText style={[typography.h2, style]}>{children}</RNText>;
-}
 export function H3({ children, style }: TextProps) {
   return <RNText style={[typography.h3, style]}>{children}</RNText>;
 }
 export function Body({ children, style }: TextProps) {
   return <RNText style={[typography.body, style]}>{children}</RNText>;
 }
-export function Caption({ children, style }: TextProps) {
-  return <RNText style={[typography.caption, style]}>{children}</RNText>;
-}
-export function Label({ children, style }: TextProps) {
-  return <RNText style={[typography.label, style]}>{children}</RNText>;
-}
-export function Amount({ children, style }: TextProps) {
-  return <RNText style={[typography.amount, style]}>{children}</RNText>;
-}
-
-export function AccentText({ children, style }: TextProps) {
-  return (
-    <RNText style={[{ color: 'var(--dabbu-accent)' as any, fontWeight: '700' }, style]}>
-      {children}
-    </RNText>
-  );
-}
 
 export function PrimaryButton({ children, style, ...props }: TouchableOpacityProps) {
   const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
     <Animated.View style={[{ transform: [{ scale }] }]}>
-      <RNTouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.primaryBtn, style]} {...props}>
+      <RNTouchableOpacity
+        activeOpacity={0.9}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={[styles.primaryBtn, style]}
+        {...props}
+      >
         <RNText style={styles.primaryBtnText}>{children}</RNText>
-      </RNTouchableOpacity>
-    </Animated.View>
-  );
-}
-
-export function SecondaryButton({ children, style, ...props }: TouchableOpacityProps) {
-  const { scale, onPressIn, onPressOut } = usePressAnimation();
-  return (
-    <Animated.View style={[{ transform: [{ scale }] }]}>
-      <RNTouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.secondaryBtn, style]} {...props}>
-        <RNText style={styles.secondaryBtnText}>{children}</RNText>
       </RNTouchableOpacity>
     </Animated.View>
   );
@@ -143,36 +101,17 @@ export function GhostButton({ children, style, ...props }: TouchableOpacityProps
   const { scale, onPressIn, onPressOut } = usePressAnimation();
   return (
     <Animated.View style={[{ transform: [{ scale }] }]}>
-      <RNTouchableOpacity activeOpacity={0.8} onPressIn={onPressIn} onPressOut={onPressOut} style={[styles.ghostBtn, style]} {...props}>
+      <RNTouchableOpacity
+        activeOpacity={0.8}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={[styles.ghostBtn, style]}
+        {...props}
+      >
         <RNText style={styles.ghostBtnText}>{children}</RNText>
       </RNTouchableOpacity>
     </Animated.View>
   );
-}
-
-export function Chip({
-  children,
-  active = false,
-  ...props
-}: TouchableOpacityProps & { active?: boolean }) {
-  const { scale, onPressIn, onPressOut } = usePressAnimation();
-  return (
-    <Animated.View style={[{ transform: [{ scale }] }]}>
-      <RNTouchableOpacity
-        activeOpacity={0.85}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={[styles.chip, active && styles.chipActive]}
-        {...props}
-      >
-        <RNText style={[styles.chipText, active && styles.chipTextActive]}>{children}</RNText>
-      </RNTouchableOpacity>
-    </Animated.View>
-  );
-}
-
-export function Divider({ style }: { style?: ViewStyle }) {
-  return <RNView style={[styles.divider, style]} />;
 }
 
 export function Select({

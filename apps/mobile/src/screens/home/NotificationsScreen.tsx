@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { api, setAccessToken } from '../../services/api';
+import {
+  getNotificationActionLabel,
+  navigateToNotification,
+} from '../../services/notification-routing';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 
@@ -15,6 +19,7 @@ interface NotificationItem {
   message: string;
   type: string;
   isRead: boolean;
+  actionUrl?: string;
   data?: Record<string, any>;
   createdAt: string;
 }
@@ -46,7 +51,8 @@ export function NotificationsScreen() {
         setAccessToken(accessToken);
       }
       const res = await api.get<any>(`/notifications?limit=50`);
-      setNotifications(res || []);
+      const data = Array.isArray(res) ? res : res?.data || [];
+      setNotifications(Array.isArray(data) ? data : []);
     } catch (_e) {
       // silent
     } finally {
@@ -81,12 +87,11 @@ export function NotificationsScreen() {
 
   function handleNotificationPress(item: NotificationItem) {
     handleMarkRead(item.id);
-    if (item.data?.groupId) {
-      navigation.navigate('WalletTab', {
-        screen: 'GroupExpenses',
-        params: { groupId: item.data.groupId },
-      });
-    }
+    navigateToNotification(navigation, {
+      ...(item.data || {}),
+      type: item.type,
+      actionUrl: item.actionUrl || item.data?.actionUrl,
+    });
   }
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -123,6 +128,16 @@ export function NotificationsScreen() {
           <Text style={[styles.notifTime, { color: colors.text.tertiary }]}>
             {formatTime(item.createdAt)}
           </Text>
+          <View style={styles.actionRow}>
+            <Text style={[styles.actionText, { color: colors.accent.primary }]}>
+              {getNotificationActionLabel({
+                ...(item.data || {}),
+                type: item.type,
+                actionUrl: item.actionUrl,
+              })}
+            </Text>
+            <AntDesign name="arrowright" size={12} color={colors.accent.primary} />
+          </View>
         </View>
         {!item.isRead && (
           <View style={[styles.unreadDot, { backgroundColor: colors.accent.primary }]} />
@@ -135,7 +150,7 @@ export function NotificationsScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <AntDesign  name="left" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
         {unreadCount > 0 && (
@@ -149,7 +164,7 @@ export function NotificationsScreen() {
         <ListSkeleton count={5} />
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
-          <AntDesign  name="bells" size={48} color={colors.text.tertiary} />
+          <AntDesign name="bells" size={48} color={colors.text.tertiary} />
           <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No notifications</Text>
         </View>
       ) : (
@@ -216,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderLeftWidth: 3,
     marginBottom: 10,
@@ -225,5 +240,7 @@ const styles = StyleSheet.create({
   notifTitle: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
   notifMessage: { fontSize: 13, lineHeight: 18, marginBottom: 6 },
   notifTime: { fontSize: 11 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
+  actionText: { fontSize: 12, fontWeight: '700' },
   unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 10 },
 });

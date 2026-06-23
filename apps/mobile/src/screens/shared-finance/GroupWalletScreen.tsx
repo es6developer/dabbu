@@ -4,6 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
@@ -41,6 +42,12 @@ export function GroupWalletScreen() {
   React.useEffect(() => {
     loadWallets();
   }, [loadWallets]);
+
+  useLensChange(
+    useCallback(() => {
+      loadWallets();
+    }, [loadWallets]),
+  );
 
   const createWallet = async () => {
     if (!walletName.trim()) {
@@ -113,7 +120,7 @@ export function GroupWalletScreen() {
               onPress={() => setShowCreate(true)}
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
             >
-              <AntDesign  name="plus" size={22} color="#FFF" />
+              <AntDesign name="plus" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -123,7 +130,7 @@ export function GroupWalletScreen() {
             contentContainerStyle={{ padding: 16, gap: 12 }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-                <AntDesign  name="wallet" size={48} color={colors.text.tertiary} />
+                <AntDesign name="wallet" size={48} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No wallets yet. Create one!
                 </Text>
@@ -176,7 +183,7 @@ export function GroupWalletScreen() {
                         setShowContribute(true);
                       }}
                     >
-                      <AntDesign  name="pluscircleo" size={16} color={colors.status.success} />
+                      <AntDesign name="pluscircleo" size={16} color={colors.status.success} />
                       <Text style={[styles.actionText, { color: colors.status.success }]}>
                         Contribute
                       </Text>
@@ -188,7 +195,7 @@ export function GroupWalletScreen() {
                         setShowSpend(true);
                       }}
                     >
-                      <AntDesign  name="minuscircle" size={16} color={colors.status.error} />
+                      <AntDesign name="minuscircle" size={16} color={colors.status.error} />
                       <Text style={[styles.actionText, { color: colors.status.error }]}>Spend</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -197,7 +204,7 @@ export function GroupWalletScreen() {
                         navigation.navigate('WalletTransfer', { fromWalletId: item.id, groupId })
                       }
                     >
-                      <AntDesign  name="swap" size={16} color={colors.accent.primary} />
+                      <AntDesign name="swap" size={16} color={colors.accent.primary} />
                       <Text style={[styles.actionText, { color: colors.accent.primary }]}>
                         Transfer
                       </Text>

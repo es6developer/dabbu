@@ -10,7 +10,9 @@ export class SpacesMigrationService {
       where: { id: userId },
       include: { partner: true },
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     if (!user.partnerId || !user.partner) {
       throw new BadRequestException('User is not in couple mode (no partnerId)');
     }
@@ -21,7 +23,9 @@ export class SpacesMigrationService {
         members: { some: { userId } },
       },
     });
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
 
     const userName = [user.firstName, user.lastName].filter(Boolean).join(' ');
     const partnerName = [user.partner.firstName, user.partner.lastName].filter(Boolean).join(' ');
@@ -31,6 +35,7 @@ export class SpacesMigrationService {
         name: `${userName} & ${partnerName}'s Space`,
         type: 'COUPLE',
         createdBy: userId,
+        lensId: 'PARTNERED',
         members: {
           createMany: {
             data: [
@@ -66,7 +71,9 @@ export class SpacesMigrationService {
 
   async migrateFamilyToSpace(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     if (user.userType !== 'family') {
       throw new BadRequestException('User is not family type');
     }
@@ -115,6 +122,7 @@ export class SpacesMigrationService {
           name: family.name,
           type: 'FAMILY',
           createdBy: userId,
+          lensId: 'FAMILY',
           members: {
             createMany: {
               data: Array.from(memberMap.values()),

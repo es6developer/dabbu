@@ -840,7 +840,12 @@ ${JSON.stringify(context, null, 2)}`;
 
     const [txns, stats] = await Promise.all([
       this.prisma.transaction.findMany({
-        where: { userId, date: { gte: thirtyDaysAgo }, deletedAt: null, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          date: { gte: thirtyDaysAgo },
+          deletedAt: null,
+          ...(await this.lensWhere(userId)),
+        },
         include: { category: { select: { name: true } } },
         orderBy: { date: 'desc' },
         take: 100,
@@ -974,11 +979,13 @@ ${JSON.stringify(context, null, 2)}`;
     const name = nameMatch?.[1]?.trim() || 'Vacation Fund';
 
     try {
+      const lensId = await this.lensData.getActiveLens(userId);
       const group = await this.prisma.sharedGroup.create({
         data: {
           name,
           type: 'friends',
           createdBy: userId,
+          lensId,
           members: {
             create: { userId, role: 'admin' },
           },
@@ -1066,11 +1073,13 @@ ${JSON.stringify(context, null, 2)}`;
     const name = nameMatch?.[1]?.trim() || 'Monthly Rent';
 
     try {
+      const lensId = await this.lensData.getActiveLens(userId);
       const group = await this.prisma.expenseGroup.create({
         data: {
           name,
           description: `Created by Dabbu AI from: "${raw.slice(0, 100)}"`,
           createdBy: userId,
+          lensId,
           members: {
             create: { userId, role: 'admin' },
           },
@@ -1197,7 +1206,12 @@ ${JSON.stringify(context, null, 2)}`;
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const txns = await this.prisma.transaction.findMany({
-      where: { userId, date: { gte: monthStart }, deletedAt: null, ...(await this.lensWhere(userId)) },
+      where: {
+        userId,
+        date: { gte: monthStart },
+        deletedAt: null,
+        ...(await this.lensWhere(userId)),
+      },
       select: { amount: true, type: true, category: { select: { name: true } } },
     });
 
@@ -1407,13 +1421,19 @@ ${JSON.stringify(context, null, 2)}`;
           take: 200,
           orderBy: { date: 'desc' },
         }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.account.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
           take: 100,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.budget.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
       ]);
 
       const income = transactions
@@ -1491,7 +1511,9 @@ ${JSON.stringify(context, null, 2)}`;
           where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           select: { balance: true },
         }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
       ]);
 
       const currentBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
@@ -1717,7 +1739,9 @@ ${JSON.stringify(context, null, 2)}`;
   async suggestGoalRebalancing(userId: string) {
     try {
       const [goals, transactions] = await Promise.all([
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensWhere(userId)) } }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensWhere(userId)) },
+        }),
         this.prisma.transaction.findMany({
           where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
           orderBy: { date: 'desc' },
@@ -1725,20 +1749,19 @@ ${JSON.stringify(context, null, 2)}`;
         }),
       ]);
 
-      if (goals.length < 2) return { suggestions: [] };
+      if (goals.length < 2) {
+        return { suggestions: [] };
+      }
 
       const now = new Date();
       const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
 
       const recentTxns = transactions.filter((t) => t.date >= threeMonthsAgo);
       const monthlyIncome =
-        recentTxns
-          .filter((t) => t.type === 'income')
-          .reduce((s, t) => s + Number(t.amount), 0) / 3;
+        recentTxns.filter((t) => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0) / 3;
       const monthlyExpense =
-        recentTxns
-          .filter((t) => t.type === 'expense')
-          .reduce((s, t) => s + Number(t.amount), 0) / 3;
+        recentTxns.filter((t) => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0) /
+        3;
       const monthlySurplus = Math.max(monthlyIncome - monthlyExpense, 0);
 
       const currentTotalContribution = goals.reduce(
@@ -1813,13 +1836,21 @@ ${JSON.stringify(context, null, 2)}`;
           take: 500,
           orderBy: { date: 'desc' },
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.budget.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.bill.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
         }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.account.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
       ]);
 
       const income = transactions
@@ -1930,8 +1961,14 @@ ${JSON.stringify(context, null, 2)}`;
         this.prisma.aiRecommendation.count({
           where: { userId, isImplemented: false, isDismissed: false },
         }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null, isPaid: false, ...(await this.lensWhere(userId)) }, take: 10 }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) }, take: 10 }),
+        this.prisma.bill.findMany({
+          where: { userId, deletedAt: null, isPaid: false, ...(await this.lensWhere(userId)) },
+          take: 10,
+        }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+          take: 10,
+        }),
       ]);
 
       if (anomalyCount === 0) {
@@ -2198,8 +2235,13 @@ ${JSON.stringify(context, null, 2)}`;
   async checkMilestones(userId: string) {
     try {
       const [goals, transactions, settlements, streaks] = await Promise.all([
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.transaction.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) }, take: 500 }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.transaction.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+          take: 500,
+        }),
         this.prisma.settlement.findMany({
           where: { OR: [{ fromUserId: userId }, { toUserId: userId }] },
           take: 100,
@@ -2307,18 +2349,36 @@ ${JSON.stringify(context, null, 2)}`;
         await Promise.all([
           this.prisma.settings.findUnique({ where: { userId } }),
           this.prisma.transaction.aggregate({
-            where: { userId, date: { gte: todayStart }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
+            where: {
+              userId,
+              date: { gte: todayStart },
+              type: 'expense',
+              deletedAt: null,
+              ...(await this.lensWhere(userId)),
+            },
             _sum: { amount: true },
             _count: true,
           }),
           this.prisma.transaction.findMany({
-            where: { userId, date: { gte: weekAgo }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
+            where: {
+              userId,
+              date: { gte: weekAgo },
+              type: 'expense',
+              deletedAt: null,
+              ...(await this.lensWhere(userId)),
+            },
             select: { amount: true, description: true, date: true },
             orderBy: { date: 'desc' },
             take: 20,
           }),
           this.prisma.transaction.aggregate({
-            where: { userId, date: { gte: monthStart }, type: 'expense', deletedAt: null, ...(await this.lensWhere(userId)) },
+            where: {
+              userId,
+              date: { gte: monthStart },
+              type: 'expense',
+              deletedAt: null,
+              ...(await this.lensWhere(userId)),
+            },
             _sum: { amount: true },
           }),
           this.prisma.budget.findMany({
@@ -2501,13 +2561,26 @@ ${JSON.stringify(context, null, 2)}`;
         lifeEvents,
       ] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null, date: { gte: ninetyDaysAgo }, ...(await this.lensWhere(userId)) },
+          where: {
+            userId,
+            deletedAt: null,
+            date: { gte: ninetyDaysAgo },
+            ...(await this.lensWhere(userId)),
+          },
           take: 2000,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.account.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }).catch(() => []),
+        this.prisma.budget.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.account.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.bill
+          .findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } })
+          .catch(() => []),
         this.prisma.aiAnomaly.findMany({
           where: { userId },
           orderBy: { createdAt: 'desc' },
@@ -3024,17 +3097,33 @@ ${JSON.stringify(context, null, 2)}`;
 
       const [transactions, budgets, goals, bills, investments] = await Promise.all([
         this.prisma.transaction.findMany({
-          where: { userId, deletedAt: null, date: { gte: monthStart }, ...(await this.lensWhere(userId)) },
+          where: {
+            userId,
+            deletedAt: null,
+            date: { gte: monthStart },
+            ...(await this.lensWhere(userId)),
+          },
           take: 500,
         }),
-        this.prisma.budget.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
-        this.prisma.bill.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        this.prisma.budget.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.goal.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
+        this.prisma.bill.findMany({
+          where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+        }),
         this.prisma.investment.findMany({ where: { userId, deletedAt: null } }),
       ]);
 
       const prevTransactions = await this.prisma.transaction.findMany({
-        where: { userId, deletedAt: null, date: { gte: prevMonthStart, lt: monthStart }, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          deletedAt: null,
+          date: { gte: prevMonthStart, lt: monthStart },
+          ...(await this.lensWhere(userId)),
+        },
         take: 500,
       });
 
@@ -3187,25 +3276,42 @@ ${JSON.stringify(context, null, 2)}`;
 
   async getReview(userId: string, spaceId?: string) {
     const where: any = { userId };
-    if (spaceId) where.spaceId = spaceId;
+    if (spaceId) {
+      where.spaceId = spaceId;
+    }
     const existing = await this.prisma.aiReview.findFirst({
       where,
       orderBy: { createdAt: 'desc' },
     });
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
     const [income, expense] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          type: 'income',
+          spaceId: spaceId || null,
+          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          ...(await this.lensWhere(userId)),
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', spaceId: spaceId || null, date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          type: 'expense',
+          spaceId: spaceId || null,
+          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          ...(await this.lensWhere(userId)),
+        },
         _sum: { amount: true },
       }),
     ]);
     const totalIncome = Number(income._sum.amount || 0);
     const totalExpense = Number(expense._sum.amount || 0);
-    const savingsRate = totalIncome > 0 ? Math.round(((totalIncome - totalExpense) / totalIncome) * 100) : 0;
+    const savingsRate =
+      totalIncome > 0 ? Math.round(((totalIncome - totalExpense) / totalIncome) * 100) : 0;
     const score = Math.min(100, Math.max(0, Math.round(50 + savingsRate * 0.5)));
     const review = await this.prisma.aiReview.create({
       data: {
@@ -3225,14 +3331,24 @@ ${JSON.stringify(context, null, 2)}`;
     const cutoff = new Date(Date.now() - 90 * 86400000);
     const [recentTxns, monthlyStats] = await Promise.all([
       this.prisma.transaction.findMany({
-        where: { userId, date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          date: { gte: cutoff },
+          deletedAt: null,
+          ...(await this.lensWhere(userId)),
+        },
         orderBy: { date: 'desc' },
         take: 20,
         include: { category: { select: { name: true } } },
       }),
       this.prisma.transaction.groupBy({
         by: ['type'],
-        where: { userId, date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          date: { gte: cutoff },
+          deletedAt: null,
+          ...(await this.lensWhere(userId)),
+        },
         _sum: { amount: true },
       }),
     ]);
@@ -3301,16 +3417,30 @@ ${JSON.stringify(context, null, 2)}`;
 
     const [incomeAvg, expenseAvg, goals] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'income', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          type: 'income',
+          date: { gte: cutoff },
+          deletedAt: null,
+          ...(await this.lensWhere(userId)),
+        },
         _avg: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
+        where: {
+          userId,
+          type: 'expense',
+          date: { gte: cutoff },
+          deletedAt: null,
+          ...(await this.lensWhere(userId)),
+        },
         _avg: { amount: true },
       }),
       goalId
         ? this.prisma.goal.findFirst({ where: { id: goalId, userId } })
-        : this.prisma.goal.findMany({ where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) } }),
+        : this.prisma.goal.findMany({
+            where: { userId, deletedAt: null, ...(await this.lensWhere(userId)) },
+          }),
     ]);
 
     const avgIncome = Number(incomeAvg._avg.amount || 0);
@@ -3356,7 +3486,13 @@ ${JSON.stringify(context, null, 2)}`;
 
     const categorySpending = await this.prisma.transaction.groupBy({
       by: ['categoryId'],
-      where: { userId, type: 'expense', date: { gte: cutoff }, deletedAt: null, ...(await this.lensWhere(userId)) },
+      where: {
+        userId,
+        type: 'expense',
+        date: { gte: cutoff },
+        deletedAt: null,
+        ...(await this.lensWhere(userId)),
+      },
       _sum: { amount: true },
     });
 
@@ -3375,11 +3511,18 @@ ${JSON.stringify(context, null, 2)}`;
         categoryId: c.categoryId,
         categoryName: c.categoryId ? catMap.get(c.categoryId) || 'Unknown' : 'Uncategorized',
         current: Math.round(Number(c._sum.amount || 0) / 3),
-        percentage: totalSpent > 0 ? Math.round((Number(c._sum.amount || 0) / totalSpent) * 100) : 0,
+        percentage:
+          totalSpent > 0 ? Math.round((Number(c._sum.amount || 0) / totalSpent) * 100) : 0,
       }))
       .sort((a, b) => b.current - a.current);
 
-    const suggestions: { categoryId: string | null; categoryName: string; current: number; suggested: number; change: number }[] = [];
+    const suggestions: {
+      categoryId: string | null;
+      categoryName: string;
+      current: number;
+      suggested: number;
+      change: number;
+    }[] = [];
 
     if (targetCategory) {
       const target = currentSplit.find(
@@ -3419,9 +3562,10 @@ ${JSON.stringify(context, null, 2)}`;
       currentSpending: currentSplit,
       suggestions,
       totalMonthlySpent: Math.round(totalSpent / 3),
-      message: suggestions.length > 0
-        ? `Consider reducing ${suggestions[0].categoryName} by ₹${Math.abs(suggestions[0].change)}/mo`
-        : 'Your spending is well-balanced across categories.',
+      message:
+        suggestions.length > 0
+          ? `Consider reducing ${suggestions[0].categoryName} by ₹${Math.abs(suggestions[0].change)}/mo`
+          : 'Your spending is well-balanced across categories.',
     };
   }
 
@@ -3535,13 +3679,21 @@ ${JSON.stringify(context, null, 2)}`;
 }
 
 function urgencyText(urgency: number): string {
-  if (urgency > 0.05) return 'Your deadline is approaching fast';
-  if (urgency > 0.02) return 'This goal needs more consistent funding';
+  if (urgency > 0.05) {
+    return 'Your deadline is approaching fast';
+  }
+  if (urgency > 0.02) {
+    return 'This goal needs more consistent funding';
+  }
   return 'More contributions will help reach this sooner';
 }
 
 function needText(need: number): string {
-  if (need > 0.5) return ' and there is still a long way to go';
-  if (need > 0.2) return ' and additional funds will ensure timely completion';
+  if (need > 0.5) {
+    return ' and there is still a long way to go';
+  }
+  if (need > 0.2) {
+    return ' and additional funds will ensure timely completion';
+  }
   return ' to maintain momentum';
 }

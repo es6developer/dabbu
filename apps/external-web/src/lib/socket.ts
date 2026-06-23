@@ -142,16 +142,6 @@ export function offSocketEvent(event: string, handler: EventHandler): void {
   }
 }
 
-export function emitEvent(event: string, data?: Record<string, unknown>): void {
-  if (socket?.connected) {
-    socket.emit(event, data);
-  }
-}
-
-export function getSocket(): Socket | null {
-  return socket;
-}
-
 export function isConnected(): boolean {
   return socket?.connected ?? false;
 }

@@ -513,6 +513,7 @@ model FamilyWorkspace {
   icon        String?  @db.VarChar(50)
   coverColor  String?  @db.VarChar(20)
   createdBy   String   @db.VarChar(36)
+  lensId      String?  @db.VarChar(20)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -521,6 +522,7 @@ model FamilyWorkspace {
 
   @@index([familyId])
   @@index([createdBy])
+  @@index([lensId])
   @@map("family_workspaces")
 }
 
@@ -1181,6 +1183,7 @@ model ExpenseGroup {
   monthlyBudget Decimal? @db.Decimal(15, 2)
   monthlyIncome Decimal? @db.Decimal(15, 2)
   createdBy     String   @db.VarChar(36)
+  lensId        String?  @db.VarChar(20)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -1189,6 +1192,7 @@ model ExpenseGroup {
   transactions Transaction[]
 
   @@index([createdBy])
+  @@index([lensId])
   @@map("expense_groups")
 }
 
@@ -1274,6 +1278,7 @@ model SharedGroup {
   finalizedAt          DateTime?
 
   createdBy String   @db.VarChar(36)
+  lensId    String?  @db.VarChar(20)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1327,6 +1332,7 @@ model SharedGroup {
   @@index([createdBy])
   @@index([type])
   @@index([status])
+  @@index([lensId])
   @@map("shared_groups")
 }
 
@@ -1398,6 +1404,7 @@ model SharedExpense {
   isReimbursement Boolean  @default(false)
   isRecurring     Boolean  @default(false)
   recurringFreq   String?  @db.VarChar(20)
+  lensId          String?  @db.VarChar(20)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -1411,6 +1418,7 @@ model SharedExpense {
   @@index([groupId, date])
   @@index([paidBy])
   @@index([category])
+  @@index([lensId])
   @@map("shared_expenses")
 }
 
@@ -2130,6 +2138,7 @@ model GroupWallet {
   isLocked         Boolean  @default(false)
   requiresApproval Boolean  @default(false)
   createdBy        String   @db.VarChar(36)
+  lensId           String?  @db.VarChar(20)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -2139,6 +2148,7 @@ model GroupWallet {
   members      GroupWalletMember[]
 
   @@index([groupId])
+  @@index([lensId])
   @@map("group_wallets")
 }
 
@@ -2155,6 +2165,7 @@ model GroupWalletTransaction {
   status        String    @default("completed") @db.VarChar(20) // pending, approved, rejected, completed, failed
   approvedBy    String?   @db.VarChar(36)
   approvedAt    DateTime?
+  lensId        String?  @db.VarChar(20)
   createdAt     DateTime  @default(now())
 
   wallet    GroupWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
@@ -2162,6 +2173,7 @@ model GroupWalletTransaction {
   approver  User?       @relation("WalletApprover", fields: [approvedBy], references: [id])
 
   @@index([walletId, createdAt])
+  @@index([lensId])
   @@map("group_wallet_transactions")
 }
 
@@ -4048,6 +4060,7 @@ model Space {
   icon      String?  @db.VarChar(50)
   coverColor String? @db.VarChar(20)
   createdBy String   @db.VarChar(36)
+  lensId    String?  @db.VarChar(20)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -4061,6 +4074,7 @@ model Space {
 
   @@index([createdBy])
   @@index([type])
+  @@index([lensId])
   @@map("spaces")
 }
 

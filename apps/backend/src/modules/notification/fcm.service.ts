@@ -14,6 +14,8 @@ interface PushPayload {
   android?: {
     priority: 'normal' | 'high';
     notification?: {
+      title?: string;
+      body?: string;
       channelId: string;
       priority: 'default' | 'high' | 'max';
       sound?: string;
@@ -22,6 +24,7 @@ interface PushPayload {
       image?: string;
       icon?: string;
       ticker?: string;
+      clickAction?: string;
       sticky?: boolean;
       visibility?: 'public' | 'private' | 'secret';
       notificationCount?: number;
@@ -56,6 +59,7 @@ interface PushPayload {
       badge?: string;
       image?: string;
       requireInteraction?: boolean;
+      data?: Record<string, string>;
     };
   };
 }
@@ -183,6 +187,7 @@ export class FcmService {
           data: payload.data,
           sound: 'default',
           channelId: channel.channelId,
+          categoryId: payload.data?.clickAction || notifType || 'default',
           priority: channel.priority === 'max' ? 'high' : 'default',
           badge: 1,
           ...(payload.android?.notification?.color && {
@@ -390,10 +395,13 @@ export class FcmService {
     const notifType = data?.type as string | undefined;
     const channel = this.getChannelForType(notifType);
 
-    const enrichedData = {
+    const enrichedData: Record<string, any> = {
       ...(data || {}),
       title: safeTitle,
       body: safeBody,
+      message: safeBody,
+      channelId: channel.channelId,
+      clickAction: data?.clickAction || 'OPEN_NOTIFICATIONS',
     };
     const payload: PushPayload = {
       data: this.serializeData(enrichedData),
@@ -415,10 +423,13 @@ export class FcmService {
         },
       };
     } else if (platform === 'android') {
+      payload.notification = { title: safeTitle, body: safeBody };
       payload.android = {
         priority:
           channel.priority === 'max' ? 'high' : channel.priority === 'high' ? 'high' : 'normal',
         notification: {
+          title: safeTitle,
+          body: safeBody,
           channelId: channel.channelId,
           priority: channel.priority,
           sound: 'default',
@@ -426,8 +437,10 @@ export class FcmService {
           tag: channel.tag,
           icon: 'notification_icon',
           ticker: safeTitle,
+          clickAction: String(enrichedData.clickAction),
           notificationCount: 0,
           visibility: 'public',
+          defaultVibrateTimings: channel.priority !== 'default',
         },
       };
     } else {
@@ -439,6 +452,9 @@ export class FcmService {
           icon: '/favicon.ico',
           vibrate: [200, 100, 200],
           badge: '/favicon.ico',
+          data: {
+            click_action: String(enrichedData.actionUrl || '/'),
+          },
           requireInteraction: notifType === 'emi_overdue' || notifType === 'budget_exceeded',
         },
       };
@@ -450,6 +466,9 @@ export class FcmService {
   private serializeData(data: Record<string, any>): Record<string, string> {
     const serialized: Record<string, string> = {};
     for (const [key, value] of Object.entries(data)) {
+      if (value === undefined || value === null) {
+        continue;
+      }
       serialized[key] = typeof value === 'string' ? value : JSON.stringify(value);
     }
     return serialized;

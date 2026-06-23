@@ -4,12 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -74,6 +75,12 @@ export function SpacesDashboard() {
       },
       [loadData],
     ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
   );
 
   const onRefresh = useCallback(async () => {

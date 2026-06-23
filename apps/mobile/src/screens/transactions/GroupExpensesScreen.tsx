@@ -1,8 +1,22 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, SectionList, StyleSheet, TouchableOpacity, Animated, RefreshControl, Modal, TextInput, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  SectionList,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  RefreshControl,
+  Modal,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -12,24 +26,38 @@ import { Avatar } from '../../components/ui/Avatar';
 import { spacing } from '../../theme/design';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 const fmt = (n: number) => {
   const abs = Math.abs(n);
-  if (abs >= 10000000) return '₹' + (abs / 10000000).toFixed(1) + 'Cr';
-  if (abs >= 100000) return '₹' + (abs / 100000).toFixed(1) + 'L';
+  if (abs >= 10000000) {
+    return '₹' + (abs / 10000000).toFixed(1) + 'Cr';
+  }
+  if (abs >= 100000) {
+    return '₹' + (abs / 100000).toFixed(1) + 'L';
+  }
   return '₹' + (abs || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 function timeAgo(d: string) {
-  if (!d) return '';
+  if (!d) {
+    return '';
+  }
   const diff = Date.now() - new Date(d).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return 'now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -60,9 +88,14 @@ export function GroupExpensesScreen() {
         setError('No group selected');
         return;
       }
-      if (accessToken) setAccessToken(accessToken);
-      if (refresh) setRefreshing(true);
-      else if (!silent) setLoading(true);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      if (refresh) {
+        setRefreshing(true);
+      } else if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       try {
         const [txRes, grpRes] = await Promise.all([
@@ -70,7 +103,9 @@ export function GroupExpensesScreen() {
           api.get<any>(`/expense-groups/${groupId}`),
         ]);
         const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
-        setTransactions(txData.filter((t: any) => !t.expenseGroupId || t.expenseGroupId === groupId));
+        setTransactions(
+          txData.filter((t: any) => !t.expenseGroupId || t.expenseGroupId === groupId),
+        );
         const gData = grpRes || null;
         setGroup(gData);
         setEditName(gData?.name || routeGroupName || '');
@@ -86,7 +121,20 @@ export function GroupExpensesScreen() {
     [accessToken, groupId],
   );
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
+  );
 
   const currentMember = useMemo(
     () => members.find((m: any) => m.userId === currentUser?.id),
@@ -102,7 +150,9 @@ export function GroupExpensesScreen() {
   async function handleExport() {
     setExporting(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res: any = await api.post(`/shared-finance/groups/${groupId}/export`, {});
       const url = res?.fileUrl || res?.data?.fileUrl;
       if (url) {
@@ -121,10 +171,14 @@ export function GroupExpensesScreen() {
   }
 
   async function saveSettings() {
-    if (!editName.trim()) return alertService.alert('Name required');
+    if (!editName.trim()) {
+      return alertService.alert('Name required');
+    }
     setSaving(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.patch(`/expense-groups/${groupId}`, { name: editName.trim() });
       await loadData(true);
       setSettingsOpen(false);
@@ -147,7 +201,9 @@ export function GroupExpensesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
               await api.post(`/expense-groups/${groupId}/members/${member.id}/remove`, {
                 deleteTransactions: true,
               });
@@ -162,7 +218,9 @@ export function GroupExpensesScreen() {
           text: 'Keep their transactions',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
               await api.post(`/expense-groups/${groupId}/members/${member.id}/remove`);
               await loadData(true);
               showToast('Member removed');
@@ -183,7 +241,9 @@ export function GroupExpensesScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            if (accessToken) setAccessToken(accessToken);
+            if (accessToken) {
+              setAccessToken(accessToken);
+            }
             await api.post(`/expense-groups/${groupId}/leave`, { deleteTransactions: true });
             navigation.goBack();
             showToast('Left the group');
@@ -196,7 +256,9 @@ export function GroupExpensesScreen() {
         text: 'Keep my transactions (marked as left)',
         onPress: async () => {
           try {
-            if (accessToken) setAccessToken(accessToken);
+            if (accessToken) {
+              setAccessToken(accessToken);
+            }
             await api.post(`/expense-groups/${groupId}/leave`);
             navigation.goBack();
             showToast('Left the group');
@@ -213,7 +275,9 @@ export function GroupExpensesScreen() {
     const map: Record<string, { paid: number; share: number }> = {};
     for (const tx of transactions) {
       const uid = tx.userId || 'unknown';
-      if (!map[uid]) map[uid] = { paid: 0, share: 0 };
+      if (!map[uid]) {
+        map[uid] = { paid: 0, share: 0 };
+      }
       map[uid].paid += Number(tx.amount || 0);
     }
     const total = transactions.reduce((s, t) => s + Number(t.amount || 0), 0);
@@ -226,15 +290,23 @@ export function GroupExpensesScreen() {
   }, [transactions, members]);
 
   const currentBalance = useMemo(() => {
-    if (!currentUser?.id) return 0;
+    if (!currentUser?.id) {
+      return 0;
+    }
     const u = userTotals.map[currentUser.id];
-    if (!u) return 0;
+    if (!u) {
+      return 0;
+    }
     return u.paid - userTotals.equalShare;
   }, [userTotals, currentUser]);
 
   const stats = useMemo(() => {
-    const totalIncome = transactions.filter((t: any) => t.type === 'arrowdown').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
-    const totalExpense = transactions.filter((t: any) => t.type !== 'arrowdown').reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    const totalIncome = transactions
+      .filter((t: any) => t.type === 'arrowdown')
+      .reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
+    const totalExpense = transactions
+      .filter((t: any) => t.type !== 'arrowdown')
+      .reduce((s: number, t: any) => s + Number(t.amount || 0), 0);
     return { totalIncome, totalExpense, remaining: totalIncome - totalExpense };
   }, [transactions]);
 
@@ -259,9 +331,22 @@ export function GroupExpensesScreen() {
 
   if (error) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
+      <View
+        style={[
+          s.screen,
+          {
+            backgroundColor: colors.bg.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingTop: insets.top,
+          },
+        ]}
+      >
         <Text style={[{ color: colors.text.primary, fontSize: 16 }]}>{error}</Text>
-        <TouchableOpacity style={[s.retryBtn, { backgroundColor: colors.accent.primary }]} onPress={() => loadData()}>
+        <TouchableOpacity
+          style={[s.retryBtn, { backgroundColor: colors.accent.primary }]}
+          onPress={() => loadData()}
+        >
           <Text style={{ color: '#FFF', fontWeight: '700' }}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -276,22 +361,34 @@ export function GroupExpensesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(false, true)}
+            tintColor={colors.accent.primary}
+          />
         }
         ListHeaderComponent={
           <View>
             {/* Header */}
             <View style={[s.headerRow, { paddingTop: insets.top + 8, paddingBottom: 8 }]}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
                 <AntDesign name="left" size={22} color={colors.text.primary} />
               </TouchableOpacity>
               <View style={{ flex: 1, marginLeft: 12, justifyContent: 'center' }}>
-                <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>{groupName}</Text>
+                <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
+                  {groupName}
+                </Text>
                 <Text style={[s.memberCount, { color: colors.text.tertiary }]}>
                   {members.length} member{members.length !== 1 ? 's' : ''}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setSettingsOpen(true)} style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <TouchableOpacity
+                onPress={() => setSettingsOpen(true)}
+                style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
                 <AntDesign name="setting" size={20} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
@@ -319,7 +416,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <AntDesign name="barschart" size={22} color={colors.text.primary}  />
+                <AntDesign name="barschart" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -526,11 +623,15 @@ export function GroupExpensesScreen() {
               <View style={s.summaryRow}>
                 <View style={s.summaryItem}>
                   <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
-                  <Text style={[s.summaryValue, { color: colors.text.primary }]}>{fmt(userTotals.total)}</Text>
+                  <Text style={[s.summaryValue, { color: colors.text.primary }]}>
+                    {fmt(userTotals.total)}
+                  </Text>
                 </View>
                 <View style={s.summaryItem}>
                   <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Your Share</Text>
-                  <Text style={[s.summaryValue, { color: colors.text.primary }]}>{fmt(userTotals.equalShare)}</Text>
+                  <Text style={[s.summaryValue, { color: colors.text.primary }]}>
+                    {fmt(userTotals.equalShare)}
+                  </Text>
                 </View>
                 <View style={s.summaryItem}>
                   <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>You Paid</Text>
@@ -562,7 +663,15 @@ export function GroupExpensesScreen() {
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={[s.txAmount, { color: item.type === 'arrowdown' ? colors.status.success : colors.text.primary }]}>
+                <Text
+                  style={[
+                    s.txAmount,
+                    {
+                      color:
+                        item.type === 'arrowdown' ? colors.status.success : colors.text.primary,
+                    },
+                  ]}
+                >
                   ₹{Math.abs(Number(item.amount)).toLocaleString('en-IN')}
                 </Text>
                 {!isNaN(date.getTime()) && (
@@ -578,20 +687,35 @@ export function GroupExpensesScreen() {
           <View style={s.emptyState}>
             <AntDesign name="filetext1" size={48} color={colors.text.tertiary} />
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
-            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>Add your first expense to get started</Text>
+            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
+              Add your first expense to get started
+            </Text>
           </View>
         }
       />
 
       {/* Settings Modal */}
-      <Modal visible={settingsOpen} animationType="slide" transparent onRequestClose={() => setSettingsOpen(false)}>
+      <Modal
+        visible={settingsOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setSettingsOpen(false)}
+      >
         <View style={s.modalBackdrop}>
-          <View style={[s.sheet, { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 18 }]}>
+          <View
+            style={[
+              s.sheet,
+              { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 18 },
+            ]}
+          >
             <View style={s.sheetHandle} />
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={s.sheetHeader}>
                 <Text style={[s.sheetTitle, { color: colors.text.primary }]}>Group Settings</Text>
-                <TouchableOpacity onPress={() => setSettingsOpen(false)} style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}>
+                <TouchableOpacity
+                  onPress={() => setSettingsOpen(false)}
+                  style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}
+                >
                   <AntDesign name="close" size={20} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
@@ -601,27 +725,67 @@ export function GroupExpensesScreen() {
                 value={editName}
                 onChangeText={setEditName}
                 editable={isAdmin}
-                style={[s.input, { backgroundColor: isAdmin ? colors.bg.tertiary : colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.subtle, opacity: isAdmin ? 1 : 0.6 }]}
+                style={[
+                  s.input,
+                  {
+                    backgroundColor: isAdmin ? colors.bg.tertiary : colors.bg.secondary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                    opacity: isAdmin ? 1 : 0.6,
+                  },
+                ]}
                 placeholderTextColor={colors.text.tertiary}
               />
               {isAdmin && (
-                <TouchableOpacity style={[s.primaryAction, { backgroundColor: colors.accent.primary }]} onPress={saveSettings} disabled={saving}>
-                  {saving ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryActionText}>Save</Text>}
+                <TouchableOpacity
+                  style={[s.primaryAction, { backgroundColor: colors.accent.primary }]}
+                  onPress={saveSettings}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={s.primaryActionText}>Save</Text>
+                  )}
                 </TouchableOpacity>
               )}
-              {!isAdmin && <Text style={[{ color: colors.text.tertiary, fontSize: 12, textAlign: 'center', marginTop: 8 }]}>Only admins can edit group name</Text>}
+              {!isAdmin && (
+                <Text
+                  style={[
+                    {
+                      color: colors.text.tertiary,
+                      fontSize: 12,
+                      textAlign: 'center',
+                      marginTop: 8,
+                    },
+                  ]}
+                >
+                  Only admins can edit group name
+                </Text>
+              )}
 
               {/* Members */}
-              <Text style={[s.inputLabel, { color: colors.text.tertiary, marginTop: 24 }]}>Members</Text>
+              <Text style={[s.inputLabel, { color: colors.text.tertiary, marginTop: 24 }]}>
+                Members
+              </Text>
               {members.map((m: any) => {
-                const name = `${m.user?.firstName || ''} ${m.user?.lastName || ''}`.trim() || m.user?.email || 'Member';
+                const name =
+                  `${m.user?.firstName || ''} ${m.user?.lastName || ''}`.trim() ||
+                  m.user?.email ||
+                  'Member';
                 const isSelf = m.userId === currentUser?.id;
                 return (
-                  <View key={m.id} style={[s.memberRow, { borderBottomColor: colors.border.subtle }]}>
+                  <View
+                    key={m.id}
+                    style={[s.memberRow, { borderBottomColor: colors.border.subtle }]}
+                  >
                     <Avatar uri={m.user?.avatarUrl} name={name} size={32} />
                     <View style={{ flex: 1 }}>
                       <Text style={[s.memberName, { color: colors.text.primary }]}>{name}</Text>
-                      <Text style={[s.memberRole, { color: colors.text.tertiary }]}>{m.role || 'member'}{isSelf ? ' (you)' : ''}</Text>
+                      <Text style={[s.memberRole, { color: colors.text.tertiary }]}>
+                        {m.role || 'member'}
+                        {isSelf ? ' (you)' : ''}
+                      </Text>
                     </View>
                     {isAdmin && !isSelf && (
                       <TouchableOpacity onPress={() => removeMember(m)}>
@@ -634,13 +798,24 @@ export function GroupExpensesScreen() {
 
               <TouchableOpacity
                 style={[s.primaryAction, { backgroundColor: colors.bg.tertiary, marginTop: 12 }]}
-                onPress={() => navigation.navigate('AddMember', { groupId, type: 'expense-group', existingMemberIds: members.map((m: any) => m.userId).filter(Boolean) })}
+                onPress={() =>
+                  navigation.navigate('AddMember', {
+                    groupId,
+                    type: 'expense-group',
+                    existingMemberIds: members.map((m: any) => m.userId).filter(Boolean),
+                  })
+                }
               >
                 <AntDesign name="adduser" size={18} color={colors.text.primary} />
-                <Text style={[{ color: colors.text.primary, fontSize: 15, fontWeight: '600' }]}>Add Member</Text>
+                <Text style={[{ color: colors.text.primary, fontSize: 15, fontWeight: '600' }]}>
+                  Add Member
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[s.leaveBtn, { borderColor: colors.status.error }]} onPress={leaveGroup}>
+              <TouchableOpacity
+                style={[s.leaveBtn, { borderColor: colors.status.error }]}
+                onPress={leaveGroup}
+              >
                 <AntDesign name="logout" size={18} color={colors.status.error} />
                 <Text style={[s.leaveText, { color: colors.status.error }]}>Leave Group</Text>
               </TouchableOpacity>
@@ -839,9 +1014,31 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   sheetTitle: { fontSize: 18, fontWeight: '700' },
-  sheetClose: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  inputLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase', paddingHorizontal: 20, marginBottom: 6 },
-  input: { borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 12, fontSize: 15, fontWeight: '500', marginHorizontal: 20, marginBottom: 8 },
+  sheetClose: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    paddingHorizontal: 20,
+    marginBottom: 6,
+  },
+  input: {
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontWeight: '500',
+    marginHorizontal: 20,
+    marginBottom: 8,
+  },
   primaryAction: {
     flexDirection: 'row',
     alignItems: 'center',

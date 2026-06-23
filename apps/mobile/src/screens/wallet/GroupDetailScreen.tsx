@@ -1,15 +1,24 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -111,6 +120,12 @@ export function GroupDetailScreen() {
       },
       [loadData],
     ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -468,9 +483,9 @@ export function GroupDetailScreen() {
                                 colors.accent.primary,
                                 colors.status.error,
                                 colors.status.success,
-                            colors.status.warning,
-                            colors.accent.secondary,
-                          ][i % 5],
+                                colors.status.warning,
+                                colors.accent.secondary,
+                              ][i % 5],
                             },
                           ]}
                         />

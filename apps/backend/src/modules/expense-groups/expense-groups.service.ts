@@ -82,13 +82,15 @@ export class ExpenseGroupsService {
     const plan = await this.getUserPlan(userId);
 
     const groupCount = await this.prisma.expenseGroup.count({
-      where: { createdBy: userId },
+      where: { createdBy: userId, ...(await this.lensData.buildLensFilter(userId)) },
     });
     if (groupCount >= plan.maxGroups) {
       throw new BadRequestException(
         `Free plan limit of ${plan.maxGroups} groups reached. Upgrade to Premium for up to ${PLAN_LIMITS.premium.maxGroups} groups or Gold for unlimited.`,
       );
     }
+
+    const lensId = await this.lensData.getActiveLens(userId);
 
     const data: any = {
       name: dto.name,
@@ -97,6 +99,7 @@ export class ExpenseGroupsService {
       currency: dto.currency || 'INR',
       monthlyBudget: dto.monthlyBudget || null,
       createdBy: userId,
+      lensId,
       members: {
         create: [{ userId, role: 'admin' }],
       },
@@ -155,8 +158,10 @@ export class ExpenseGroupsService {
 
   async findAll(userId: string) {
     const plan = await this.getUserPlan(userId);
+    const lens = await this.lensData.getActiveLens(userId);
+    const lensFilter = lens !== 'FULL' ? { group: { lensId: lens } } : {};
     const memberships = await this.prisma.expenseGroupMember.findMany({
-      where: { userId },
+      where: { userId, ...lensFilter },
       include: {
         group: {
           include: {
@@ -186,8 +191,10 @@ export class ExpenseGroupsService {
 
   async findDashboard(userId: string) {
     const plan = await this.getUserPlan(userId);
+    const lens = await this.lensData.getActiveLens(userId);
+    const lensFilter = lens !== 'FULL' ? { group: { lensId: lens } } : {};
     const memberships = await this.prisma.expenseGroupMember.findMany({
-      where: { userId },
+      where: { userId, ...lensFilter },
       include: {
         group: {
           include: {
@@ -434,7 +441,11 @@ export class ExpenseGroupsService {
 
     if (deleteTransactions) {
       await this.prisma.transaction.updateMany({
-        where: { expenseGroupId: id, userId: member.userId, ...(await this.lensData.buildLensFilter(member.userId)) },
+        where: {
+          expenseGroupId: id,
+          userId: member.userId,
+          ...(await this.lensData.buildLensFilter(member.userId)),
+        },
         data: { deletedAt: new Date() },
       });
     }

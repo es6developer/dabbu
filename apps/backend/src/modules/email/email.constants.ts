@@ -13,7 +13,7 @@ export const EMAIL_SUBJECTS = {
   EXPENSE_ADDED: 'New Expense Added to Your Group',
   MEMBER_REMOVED: 'You Were Removed From a Group',
   LOGIN_ALERT: 'New Login to Your Dabbu Account',
-  BUDGET_ALERT: 'Budget Alert: You\'ve Exceeded Your Limit',
+  BUDGET_ALERT: "Budget Alert: You've Exceeded Your Limit",
   BILL_REMINDER: 'Reminder: Upcoming Bill Due',
   ACCOUNT_DEACTIVATED: 'Your Dabbu Account Has Been Deactivated',
   ACCOUNT_REACTIVATED: 'Your Dabbu Account Has Been Reactivated',
@@ -21,5 +21,3 @@ export const EMAIL_SUBJECTS = {
 } as const;
 
 export const PASSWORD_RESET_EXPIRY_MINUTES = 30;
-
-export const PREMIUM_EXPIRY_REMINDER_DAYS = [7, 3, 1] as const;

@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsNumber, Min, Max, IsObject, IsEnum, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+  IsObject,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateSubscriptionDto {
   @IsString()
@@ -91,10 +100,4 @@ export class UpgradePlanDto {
 export class DowngradePlanDto {
   @IsString()
   planCode: string;
-}
-
-export class RestorePurchaseDto {
-  @IsOptional()
-  @IsString()
-  razorpaySubscriptionId?: string;
 }

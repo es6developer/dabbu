@@ -29,15 +29,9 @@ try {
       console.log(
         `[PUSH] title="${notifTitle}" body="${notifBody.substring(0, 100)}" type=${data?.type ?? ''}`,
       );
-      Notifications.presentNotificationAsync({
-        title: notifTitle,
-        body: notifBody,
-        data: data,
-        sound: true,
-      }).catch(() => {});
       return {
-        shouldShowAlert: false,
-        shouldPlaySound: false,
+        shouldShowAlert: true,
+        shouldPlaySound: true,
         shouldSetBadge: true,
       };
     },

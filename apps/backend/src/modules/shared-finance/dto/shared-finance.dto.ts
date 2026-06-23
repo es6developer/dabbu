@@ -621,52 +621,6 @@ export class TransitionStatusDto {
   status: string;
 }
 
-export class RemoveMemberDto {
-  @ApiPropertyOptional({ example: 'Inappropriate behavior' })
-  @IsString()
-  @IsOptional()
-  reason?: string;
-}
-
-export class RevokeInviteDto {
-  @ApiProperty({ example: 'invite-token-string' })
-  @IsString()
-  @IsNotEmpty()
-  token: string;
-}
-
-export class GroupStatusResponseDto {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty({ enum: ['ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED', 'CLOSED'] })
-  status: string;
-
-  @ApiProperty()
-  statusChangedAt: string;
-
-  @ApiProperty({ nullable: true })
-  statusChangedBy?: string;
-
-  @ApiProperty({ nullable: true })
-  completedAt?: string;
-
-  @ApiProperty({ nullable: true })
-  archivedAt?: string;
-
-  @ApiProperty({ nullable: true })
-  closedAt?: string;
-
-  @ApiProperty({ nullable: true })
-  pausedAt?: string;
-
-  @ApiProperty({ nullable: true })
-  settlementsFinalized: boolean;
-
-  @ApiProperty({ nullable: true })
-  finalizedAt?: string;
-}
-
 // ─── Group Wallet DTOs ───────────────────────────────────
 
 export class CreateWalletDto {
@@ -993,25 +947,6 @@ export class CreateSplitTemplateDto {
   defaultBudget?: number;
 }
 
-export class TemplateCategoryDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiPropertyOptional({ default: 'card' })
-  @IsString()
-  @IsOptional()
-  icon?: string;
-
-  @ApiPropertyOptional()
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  @Transform(({ value }) => (value ? parseFloat(value) : undefined))
-  defaultAmount?: number;
-}
-
 export class CreateFromTemplateDto {
   @ApiProperty()
   @IsUUID()
@@ -1193,18 +1128,6 @@ export class WithdrawFromEmergencyFundDto {
   reason: string;
 }
 
-export class ApproveWithdrawalDto {
-  @ApiProperty({ example: 'approved' })
-  @IsString()
-  @IsNotEmpty()
-  action: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  comment?: string;
-}
-
 // ─── Family Net Worth DTOs ───────────────────────────────
 
 export class CreateNetWorthSnapshotDto {
@@ -1242,19 +1165,6 @@ export class CreateReferralDto {
   refereeEmail: string;
 }
 
-// ─── Gamification DTOs ───────────────────────────────────
-
-export class CheckBadgeProgressResponseDto {
-  userId: string;
-  badges: {
-    code: string;
-    name: string;
-    progress: number;
-    isEarned: boolean;
-    earnedAt?: string;
-  }[];
-}
-
 // ─── Forecast DTOs ───────────────────────────────────────
 
 export class TripForecastDto {
@@ -1288,14 +1198,6 @@ export class TripForecastDto {
   @IsOptional()
   @Min(0)
   distanceKm?: number;
-}
-
-export class TripForecastResponseDto {
-  destination: string;
-  people: number;
-  days: number;
-  totalEstimatedCost: number;
-  breakdown: { category: string; estimatedCost: number; percentage: number }[];
 }
 
 // ─── Couple Finance DTOs ──────────────────────────────────────────

@@ -1,7 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -10,7 +21,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 const { width } = Dimensions.get('window');
 
 function fmt(v: number) {
@@ -88,7 +99,10 @@ export function CoupleFinanceScreen() {
       alertService.alert('Invite Sent', 'Your partner has been added to the couple space.');
       loadData(true);
     } catch (e: any) {
-      alertService.alert('Error', e?.message || 'Failed to add partner. They may need to sign up first.');
+      alertService.alert(
+        'Error',
+        e?.message || 'Failed to add partner. They may need to sign up first.',
+      );
     } finally {
       setInviteLoading(false);
     }
@@ -140,7 +154,20 @@ export function CoupleFinanceScreen() {
     [accessToken, groupId],
   );
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
+  );
 
   const profile = data?.profile;
   const partner1 = profile?.partner1;
@@ -219,12 +246,12 @@ export function CoupleFinanceScreen() {
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
           >
-            <AntDesign  name="left" size={22} color={colors.text.primary} />
+            <AntDesign name="left" size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
         <View style={[s.heroEmpty, { backgroundColor: colors.bg.secondary }]}>
           <View style={s.heartIconWrap}>
-            <AntDesign  name="heart" size={64} color={colors.accent.primary} />
+            <AntDesign name="heart" size={64} color={colors.accent.primary} />
           </View>
           <Text style={[s.heroTitle, { color: colors.text.primary }]}>
             Connect with your Partner
@@ -258,7 +285,7 @@ export function CoupleFinanceScreen() {
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
               <>
-                <AntDesign  name="adduser" size={18} color="#FFF" />
+                <AntDesign name="adduser" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Connect Partner</Text>
               </>
             )}
@@ -290,20 +317,20 @@ export function CoupleFinanceScreen() {
         >
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-              <AntDesign  name="arrowleft" size={22} color="#FFF" />
+              <AntDesign name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Couple Finance</Text>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('DabbuAI', { groupId, groupName })}
             >
-              <AntDesign  name="star" size={20} color="#FFD700" />
+              <AntDesign name="star" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
-              <AntDesign name="barschart" size={20} color="#FFF"  />
+              <AntDesign name="barschart" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -314,7 +341,7 @@ export function CoupleFinanceScreen() {
                 size={46}
               />
               <View style={[s.heartBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <AntDesign  name="hearto" size={16} color="#FFEBB4" />
+                <AntDesign name="hearto" size={16} color="#FFEBB4" />
               </View>
               <Avatar
                 uri={partner2?.avatarUrl}
@@ -447,7 +474,7 @@ export function CoupleFinanceScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                  <AntDesign  name="wallet" size={18} color={colors.accent.primary} />
+                  <AntDesign name="wallet" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {fmt(monthlySpent)}
@@ -456,7 +483,7 @@ export function CoupleFinanceScreen() {
               </View>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: '#34C75918' }]}>
-                  <AntDesign  name="save" size={18} color="#34C759" />
+                  <AntDesign name="save" size={18} color="#34C759" />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {fmt(savingsSaved)}
@@ -465,7 +492,7 @@ export function CoupleFinanceScreen() {
               </View>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: '#F59E0B18' }]}>
-                  <AntDesign  name="calendar" size={18} color="#F59E0B" />
+                  <AntDesign name="calendar" size={18} color="#F59E0B" />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {totalExpenses > 0 ? expenses.length : 0}
@@ -524,7 +551,7 @@ export function CoupleFinanceScreen() {
                   <Text style={[s.cardTitle, { color: colors.text.primary }]}>
                     Monthly Comparison
                   </Text>
-                  <AntDesign  name="linechart" size={18} color={colors.text.tertiary} />
+                  <AntDesign name="linechart" size={18} color={colors.text.tertiary} />
                 </View>
                 <View style={{ marginTop: 8, gap: 6 }}>
                   <View style={s.compRow}>
@@ -577,7 +604,7 @@ export function CoupleFinanceScreen() {
                 {goals.slice(0, 3).map((goal: any, i: number) => (
                   <View key={goal.id || i} style={{ marginTop: 12 }}>
                     <View style={s.goalTopRow}>
-                      <AntDesign  name="flag" size={16} color={colors.accent.primary} />
+                      <AntDesign name="flag" size={16} color={colors.accent.primary} />
                       <Text
                         style={[s.goalName, { color: colors.text.primary, marginLeft: 8, flex: 1 }]}
                       >
@@ -603,7 +630,7 @@ export function CoupleFinanceScreen() {
           <View style={{ paddingHorizontal: 20, gap: 10, paddingTop: 8 }}>
             {allActivity.length === 0 ? (
               <View style={s.emptyWrap}>
-                <AntDesign  name="clockcircleo" size={48} color={colors.text.tertiary} />
+                <AntDesign name="clockcircleo" size={48} color={colors.text.tertiary} />
                 <Text style={[s.emptyTitle, { color: colors.text.secondary }]}>
                   No activity yet
                 </Text>

@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
@@ -86,6 +87,12 @@ export function WalletHomeScreen() {
       },
       [loadData],
     ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
   );
 
   const onRefresh = useCallback(async () => {

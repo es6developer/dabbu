@@ -15,7 +15,6 @@ import {
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { LensProvider } from './src/providers/LensProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { ApiProgressBar } from './src/components/ui/ApiProgressBar';
 import { AuthProvider } from './src/store/AuthContext';
 import { PremiumProvider } from './src/store/PremiumContext';
 import { PreferencesProvider } from './src/store/PreferencesContext';
@@ -24,11 +23,10 @@ import { FavoritesProvider } from './src/store/FavoritesContext';
 import { OfflineProvider } from './src/store/OfflineContext';
 import { ToastProvider } from './src/store/ToastContext';
 import { AlertProvider } from './src/components/ui/CustomAlert';
-import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
-import { useDeepLinks } from './src/hooks/useDeepLinks';
 import { useNotifications } from './src/hooks/useNotifications';
 import { warmupBackend } from './src/services/api';
+import { startDynamicAppIconCleanupListener } from './src/services/dynamicAppIcon';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -96,7 +94,9 @@ function AppInner(): React.ReactElement | null {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
 
-  useDeepLinks();
+  useEffect(() => {
+    startDynamicAppIconCleanupListener();
+  }, []);
 
   const linking = {
     prefixes: ['dabbu://', 'https://dabbu.app'],
@@ -159,32 +159,33 @@ function AppInner(): React.ReactElement | null {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
-          <ToastProvider>
+        <ToastProvider>
           <AuthProvider>
             <PremiumProvider>
-            <ThemeProvider>
-            <LensProvider>
-            <PreferencesProvider>
-              <LockProvider>
-                <FavoritesProvider>
-                  <OfflineProvider>
-                    <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
-                      <ThemedStatusBar />
-                      <NotificationInitializer />
-                      <View style={{ flex: 1 }}>
-                          <AlertProvider>
-                            <RootNavigator />
-                          </AlertProvider>
-                        <OfflineBanner />
-                        <ApiProgressBar />
-                      </View>
-                    </ThemedNavigationContainer>
-                    </OfflineProvider>
-                  </FavoritesProvider>
-                </LockProvider>
-              </PreferencesProvider>
-            </LensProvider>
-            </ThemeProvider>
+              <ThemeProvider>
+                <LensProvider>
+                  <PreferencesProvider>
+                    <LockProvider>
+                      <FavoritesProvider>
+                        <OfflineProvider>
+                          <ThemedNavigationContainer
+                            navigationRef={navigationRef}
+                            linking={linking}
+                          >
+                            <ThemedStatusBar />
+                            <NotificationInitializer />
+                            <View style={{ flex: 1 }}>
+                              <AlertProvider>
+                                <RootNavigator />
+                              </AlertProvider>
+                            </View>
+                          </ThemedNavigationContainer>
+                        </OfflineProvider>
+                      </FavoritesProvider>
+                    </LockProvider>
+                  </PreferencesProvider>
+                </LensProvider>
+              </ThemeProvider>
             </PremiumProvider>
           </AuthProvider>
         </ToastProvider>

@@ -1,8 +1,18 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -14,19 +24,37 @@ const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPer
 
 const fmt = (n: number) => {
   const abs = Math.abs(n);
-  if (abs >= 10000000) return '₹' + (abs / 10000000).toFixed(1) + 'Cr';
-  if (abs >= 100000) return '₹' + (abs / 100000).toFixed(1) + 'L';
+  if (abs >= 10000000) {
+    return '₹' + (abs / 10000000).toFixed(1) + 'Cr';
+  }
+  if (abs >= 100000) {
+    return '₹' + (abs / 100000).toFixed(1) + 'L';
+  }
   return '₹' + (abs || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good Morning';
-  if (h < 17) return 'Good Afternoon';
+  if (h < 12) {
+    return 'Good Morning';
+  }
+  if (h < 17) {
+    return 'Good Afternoon';
+  }
   return 'Good Evening';
 }
 
-function StatCard({ icon, label, value, color }: { icon: string; label: string; value: string; color: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  color,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+}) {
   const { colors } = useTheme();
   return (
     <View
@@ -61,9 +89,14 @@ export function SharedCirclesScreen() {
 
   const loadData = useCallback(
     async (silent = false, refresh = false) => {
-      if (accessToken) setAccessToken(accessToken);
-      if (refresh) setRefreshing(true);
-      else if (!silent) setLoading(true);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      if (refresh) {
+        setRefreshing(true);
+      } else if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       try {
         const res = await api.get<any>('/expense-groups/dashboard');
@@ -79,20 +112,32 @@ export function SharedCirclesScreen() {
     [accessToken],
   );
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
+
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
+  );
 
   const totalMembers = useMemo(
     () => groups.reduce((sum, g) => sum + (g.members?.length || g._count?.members || 0), 0),
     [groups],
   );
 
-  const activeCount = useMemo(
-    () => groups.filter((g) => (g.balance ?? 0) !== 0).length,
-    [groups],
-  );
+  const activeCount = useMemo(() => groups.filter((g) => (g.balance ?? 0) !== 0).length, [groups]);
 
   const planInfo = useMemo(() => {
-    if (groups[0]?._plan) return groups[0]._plan;
+    if (groups[0]?._plan) {
+      return groups[0]._plan;
+    }
     return DEFAULT_PLAN;
   }, [groups]);
 
@@ -109,13 +154,22 @@ export function SharedCirclesScreen() {
 
     return (
       <TouchableOpacity
-        style={[s.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
-        onPress={() => navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })}
+        style={[
+          s.card,
+          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+        ]}
+        onPress={() =>
+          navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
+        }
         activeOpacity={0.7}
       >
         <View style={s.cardTop}>
           <View style={[s.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <AntDesign name={(item.icon === 'heart' ? 'heart' : 'team') as any} size={22} color={colors.accent.primary} />
+            <AntDesign
+              name={(item.icon === 'heart' ? 'heart' : 'team') as any}
+              size={22}
+              color={colors.accent.primary}
+            />
           </View>
           <View style={s.cardInfo}>
             <Text style={[s.cardName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -130,7 +184,11 @@ export function SharedCirclesScreen() {
               style={[
                 s.balance,
                 {
-                  color: settled ? colors.text.tertiary : youAreOwed ? colors.status.success : colors.status.error,
+                  color: settled
+                    ? colors.text.tertiary
+                    : youAreOwed
+                      ? colors.status.success
+                      : colors.status.error,
                 },
               ]}
             >
@@ -147,14 +205,23 @@ export function SharedCirclesScreen() {
             {members.slice(0, 5).map((m: any, i: number) => {
               const u = m.user || m;
               return (
-                <View key={u?.id || i} style={[s.avatarWrap, { marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }]}>
-                  <Avatar uri={u.avatarUrl} name={`${u.firstName || ''} ${u.lastName || ''}`.trim()} size={24} />
+                <View
+                  key={u?.id || i}
+                  style={[s.avatarWrap, { marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }]}
+                >
+                  <Avatar
+                    uri={u.avatarUrl}
+                    name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
+                    size={24}
+                  />
                 </View>
               );
             })}
             {memberCount > 5 && (
               <View style={[s.overflowBadge, { backgroundColor: colors.bg.tertiary }]}>
-                <Text style={[s.overflowText, { color: colors.text.tertiary }]}>+{memberCount - 5}</Text>
+                <Text style={[s.overflowText, { color: colors.text.tertiary }]}>
+                  +{memberCount - 5}
+                </Text>
               </View>
             )}
           </View>
@@ -186,7 +253,7 @@ export function SharedCirclesScreen() {
               style={[s.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
               onPress={() => navigation.navigate('Analytics')}
             >
-              <AntDesign name="barschart" size={20} color={colors.accent.primary}  />
+              <AntDesign name="barschart" size={20} color={colors.accent.primary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
@@ -202,9 +269,24 @@ export function SharedCirclesScreen() {
       {groups.length > 0 && (
         <View style={{ paddingHorizontal: H_PADDING, marginTop: 20 }}>
           <View style={s.statsRow}>
-            <StatCard icon="team" value={String(totalMembers)} label="Members" color={colors.accent.primary} />
-            <StatCard icon="switcher" value={String(groups.length)} label="Circles" color={colors.status.success} />
-            <StatCard icon='caretup' value={String(activeCount)} label="Active" color={colors.status.warning} />
+            <StatCard
+              icon="team"
+              value={String(totalMembers)}
+              label="Members"
+              color={colors.accent.primary}
+            />
+            <StatCard
+              icon="switcher"
+              value={String(groups.length)}
+              label="Circles"
+              color={colors.status.success}
+            />
+            <StatCard
+              icon="caretup"
+              value={String(activeCount)}
+              label="Active"
+              color={colors.status.warning}
+            />
           </View>
         </View>
       )}
@@ -253,10 +335,16 @@ export function SharedCirclesScreen() {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={
-          groups.length === 0 ? s.emptyContainer : { paddingHorizontal: H_PADDING, paddingBottom: insets.bottom + 100 }
+          groups.length === 0
+            ? s.emptyContainer
+            : { paddingHorizontal: H_PADDING, paddingBottom: insets.bottom + 100 }
         }
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.accent.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(false, true)}
+            tintColor={colors.accent.primary}
+          />
         }
         ListEmptyComponent={
           <View style={s.emptyState}>

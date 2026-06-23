@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { LensDataService } from '../../common/lens/lens-data.service';
 
 const PLAN_LIMITS = {
   free: { maxGroups: 3, maxMembersPerGroup: 10 },
@@ -71,6 +72,7 @@ export class SharedFinanceService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly lensData: LensDataService,
     private readonly settlementEngine: SettlementEngine,
     private readonly aiInsightsEngine: AiInsightsEngine,
     private readonly lifecycleService: GroupLifecycleService,
@@ -128,14 +130,21 @@ export class SharedFinanceService {
 
   async createGroup(userId: string, dto: CreateGroupDto) {
     const plan = await this.getUserPlan(userId);
+    const lens = await this.lensData.getActiveLens(userId);
+    const adminWhere: any = { userId, isActive: true, role: 'admin' };
+    if (lens !== 'FULL') {
+      adminWhere.group = { lensId: lens };
+    }
     const groupCount = await this.prisma.sharedGroupMember.count({
-      where: { userId, isActive: true, role: 'admin' },
+      where: adminWhere,
     });
     if (groupCount >= plan.maxGroups) {
       throw new BadRequestException(
         `Free plan limit of ${plan.maxGroups} shared spaces reached. Upgrade to Premium for unlimited spaces.`,
       );
     }
+
+    const lensId = await this.lensData.getActiveLens(userId);
 
     const group = await this.prisma.sharedGroup.create({
       data: {
@@ -151,6 +160,7 @@ export class SharedFinanceService {
         statusChangedAt: new Date(),
         statusChangedBy: userId,
         createdBy: userId,
+        lensId,
         members: {
           create: {
             userId,
@@ -249,10 +259,14 @@ export class SharedFinanceService {
 
   async getUserGroups(userId: string, typeFilter?: string) {
     const plan = await this.getUserPlan(userId);
+    const lens = await this.lensData.getActiveLens(userId);
     const groupWhere: any = {};
     if (typeFilter) {
       const types = typeFilter.split(',');
       groupWhere.group = { type: { in: types } };
+    }
+    if (lens !== 'FULL') {
+      groupWhere.group = { ...(groupWhere.group || {}), lensId: lens };
     }
     let memberships = await this.prisma.sharedGroupMember.findMany({
       where: { userId, isActive: true, ...groupWhere },
@@ -1142,6 +1156,11 @@ export class SharedFinanceService {
       throw new BadRequestException('Split amounts must equal the total expense amount');
     }
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { lensId: true },
+    });
+
     const expense = await this.prisma.sharedExpense.create({
       data: {
         groupId,
@@ -1152,6 +1171,7 @@ export class SharedFinanceService {
         date: dto.date ? new Date(dto.date) : new Date(),
         splitType: dto.splitType || 'equal',
         notes: dto.notes,
+        lensId: groupInfo?.lensId || null,
         splits: {
           create: splitData.map((s) => ({
             userId: s.userId,
@@ -2331,6 +2351,11 @@ export class SharedFinanceService {
       })
       .filter((s) => s.amount > 0);
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { lensId: true },
+    });
+
     const expense = await this.prisma.sharedExpense.create({
       data: {
         groupId,
@@ -2339,6 +2364,7 @@ export class SharedFinanceService {
         paidBy: members[0]?.userId || '',
         category: 'Contribution',
         splitType: rule.type,
+        lensId: groupInfo?.lensId || null,
         splits: {
           create: splits,
         },
@@ -2661,6 +2687,11 @@ export class SharedFinanceService {
       throw new ForbiddenException('Not a group member');
     }
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { lensId: true },
+    });
+
     const wallet = await this.prisma.groupWallet.create({
       data: {
         groupId,
@@ -2669,6 +2700,7 @@ export class SharedFinanceService {
         currency: dto.currency || 'INR',
         requiresApproval: dto.requiresApproval || false,
         createdBy: userId,
+        lensId: groupInfo?.lensId || null,
         members: {
           create: { userId, role: 'admin', share: 0 },
         },
@@ -2737,6 +2769,7 @@ export class SharedFinanceService {
           description: dto.description || 'Wallet contribution',
           performedBy: userId,
           status: 'completed',
+          lensId: wallet.lensId,
         },
       });
 
@@ -2780,6 +2813,7 @@ export class SharedFinanceService {
         referenceId: dto.referenceId,
         performedBy: userId,
         status,
+        lensId: wallet.lensId,
       },
     });
 
@@ -2872,6 +2906,7 @@ export class SharedFinanceService {
           description: dto.description || `Transfer to ${toWallet.name}`,
           referenceId: toWalletId,
           performedBy: userId,
+          lensId: fromWallet.lensId,
         },
       });
       await tx.groupWalletTransaction.create({
@@ -2884,6 +2919,7 @@ export class SharedFinanceService {
           description: dto.description || `Transfer from ${fromWallet.name}`,
           referenceId: fromWalletId,
           performedBy: userId,
+          lensId: toWallet.lensId,
         },
       });
     });
@@ -4009,6 +4045,11 @@ export class SharedFinanceService {
 
     const category = 'Other';
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { lensId: true },
+    });
+
     const expense = await this.prisma.sharedExpense.create({
       data: {
         groupId,
@@ -4018,6 +4059,7 @@ export class SharedFinanceService {
         category,
         date: new Date(),
         splitType: 'equal',
+        lensId: groupInfo?.lensId || null,
         notes: `Auto-created from OCR: ${merchant || ''}`,
         splits: { create: splits },
       },

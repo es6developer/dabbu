@@ -10,6 +10,7 @@ import {
   setupAndroidChannels,
   addPushTokenListener,
 } from '../services/notifications';
+import { navigateToNotification } from '../services/notification-routing';
 import { api, setAccessToken } from '../services/api';
 
 type NotificationType =
@@ -80,59 +81,10 @@ export function useNotifications() {
 
   const handleNotificationData = useCallback(
     (data: NotificationData) => {
-      if (!data?.type) {
+      if (!data) {
         return;
       }
-
-      switch (data.type) {
-        case 'expense':
-        case 'shared_finance':
-        case 'group_expense':
-          if (data.groupId) {
-            navigation.navigate('FamilyHub', {
-              screen: 'SharedGroupDetail',
-              params: { groupId: data.groupId },
-            });
-          }
-          break;
-        case 'goal':
-          if (data.goalId) {
-            navigation.navigate('Dashboard', {
-              screen: 'GoalDetail',
-              params: { goalId: data.goalId },
-            });
-          }
-          break;
-        case 'settlement':
-          if (data.groupId) {
-            navigation.navigate('FamilyHub', {
-              screen: 'Settlement',
-              params: { groupId: data.groupId },
-            });
-          }
-          break;
-        case 'reminder':
-        case 'emi':
-          if (data.reminderId) {
-            navigation.navigate('FamilyHub', {
-              screen: 'ReminderDetail',
-              params: { reminderId: data.reminderId },
-            });
-          }
-          break;
-        case 'subscription':
-          navigation.navigate('Dashboard', { screen: 'Subscriptions' });
-          break;
-        case 'monthly_report':
-        case 'weekly_digest':
-        case 'daily_digest':
-        case 'system':
-          navigation.navigate('Dashboard', { screen: 'NotificationCenter' });
-          break;
-        default:
-          navigation.navigate('Dashboard', { screen: 'NotificationCenter' });
-          break;
-      }
+      navigateToNotification(navigation, data);
     },
     [navigation],
   );

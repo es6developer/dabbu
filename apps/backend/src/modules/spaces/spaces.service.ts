@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { LensDataService } from '../../common/lens/lens-data.service';
 import * as crypto from 'crypto';
@@ -13,8 +19,10 @@ export class SpacesService {
   ) {}
 
   async list(userId: string) {
+    const lens = await this.lensData.getActiveLens(userId);
+    const lensFilter = lens !== 'FULL' ? { space: { lensId: lens } } : {};
     const memberships = await this.prisma.spaceMember.findMany({
-      where: { userId },
+      where: { userId, ...lensFilter },
       include: {
         space: {
           include: {
@@ -45,14 +53,18 @@ export class SpacesService {
         space: {
           include: {
             members: {
-              include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+              include: {
+                user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+              },
             },
             _count: { select: { transactions: true, goals: true } },
           },
         },
       },
     });
-    if (!membership) throw new ForbiddenException('Not a member of this space');
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this space');
+    }
     const space = membership.space;
     return {
       id: space.id,
@@ -97,17 +109,40 @@ export class SpacesService {
     const totalGoals = goals.reduce((s, g) => s + Number(g.targetAmount), 0);
     const totalSaved = goals.reduce((s, g) => s + Number(g.currentAmount), 0);
     return {
-      money: { totalIncome, totalExpense, balance: totalIncome - totalExpense, transactionCount: transactions.length },
+      money: {
+        totalIncome,
+        totalExpense,
+        balance: totalIncome - totalExpense,
+        transactionCount: transactions.length,
+      },
       goals: { total: totalGoals, saved: totalSaved, count: goals.length, items: goals },
       recentTransactions: transactions.slice(0, 5),
     };
   }
 
-  async create(data: { name: string; type: string; icon?: string; coverColor?: string }, userId: string) {
-    const validTypes = ['PERSONAL', 'COUPLE', 'FAMILY', 'TRIP', 'HOME', 'BABY', 'WEDDING', 'CAR', 'EDUCATION', 'VACATION', 'RETIREMENT', 'BUSINESS', 'CUSTOM'];
+  async create(
+    data: { name: string; type: string; icon?: string; coverColor?: string },
+    userId: string,
+  ) {
+    const validTypes = [
+      'PERSONAL',
+      'COUPLE',
+      'FAMILY',
+      'TRIP',
+      'HOME',
+      'BABY',
+      'WEDDING',
+      'CAR',
+      'EDUCATION',
+      'VACATION',
+      'RETIREMENT',
+      'BUSINESS',
+      'CUSTOM',
+    ];
     if (!validTypes.includes(data.type)) {
       throw new BadRequestException('Invalid space type. Must be one of: ' + validTypes.join(', '));
     }
+    const lensId = await this.lensData.getActiveLens(userId);
     const space = await this.prisma.space.create({
       data: {
         name: data.name,
@@ -115,6 +150,7 @@ export class SpacesService {
         icon: data.icon,
         coverColor: data.coverColor,
         createdBy: userId,
+        lensId,
         members: {
           create: { userId, role: 'owner' },
         },
@@ -123,34 +159,41 @@ export class SpacesService {
 
     if (data.type === 'FAMILY') {
       const code = crypto.randomBytes(4).toString('hex').toUpperCase();
-      await this.prisma.family.create({
-        data: {
-          name: data.name,
-          code,
-          ownerId: userId,
-          members: { create: { userId, role: 'owner' } },
-        },
-      }).catch((err) => {
-        this.logger.warn(`Failed to create legacy Family for space ${space.id}: ${err.message}`);
-      });
+      await this.prisma.family
+        .create({
+          data: {
+            name: data.name,
+            code,
+            ownerId: userId,
+            members: { create: { userId, role: 'owner' } },
+          },
+        })
+        .catch((err) => {
+          this.logger.warn(`Failed to create legacy Family for space ${space.id}: ${err.message}`);
+        });
     }
 
     if (data.type === 'COUPLE') {
-      await this.prisma.sharedGroup.create({
-        data: {
-          name: data.name,
-          type: 'couple',
-          icon: data.icon || 'heart',
-          coverColor: data.coverColor || '#f7892c',
-          status: 'ACTIVE',
-          statusChangedAt: new Date(),
-          statusChangedBy: userId,
-          createdBy: userId,
-          members: { create: { userId, role: 'admin' } },
-        },
-      }).catch((err) => {
-        this.logger.warn(`Failed to create legacy SharedGroup for space ${space.id}: ${err.message}`);
-      });
+      await this.prisma.sharedGroup
+        .create({
+          data: {
+            name: data.name,
+            type: 'couple',
+            icon: data.icon || 'heart',
+            coverColor: data.coverColor || '#f7892c',
+            status: 'ACTIVE',
+            statusChangedAt: new Date(),
+            statusChangedBy: userId,
+            createdBy: userId,
+            lensId,
+            members: { create: { userId, role: 'admin' } },
+          },
+        })
+        .catch((err) => {
+          this.logger.warn(
+            `Failed to create legacy SharedGroup for space ${space.id}: ${err.message}`,
+          );
+        });
     }
 
     return space;
@@ -160,13 +203,17 @@ export class SpacesService {
     const existing = await this.prisma.space.findFirst({
       where: { createdBy: userId, type: 'PERSONAL' },
     });
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
+    const lensId = await this.lensData.getActiveLens(userId);
     return this.prisma.space.create({
       data: {
         name: `${firstName}'s Personal`,
         type: 'PERSONAL',
         icon: 'user',
         createdBy: userId,
+        lensId,
         members: { create: { userId, role: 'owner' } },
       },
     });
@@ -182,7 +229,9 @@ export class SpacesService {
     const existing = await this.prisma.spaceMember.findUnique({
       where: { spaceId_userId: { spaceId, userId } },
     });
-    if (existing) throw new BadRequestException('User is already a member');
+    if (existing) {
+      throw new BadRequestException('User is already a member');
+    }
     const member = await this.prisma.spaceMember.create({
       data: { spaceId, userId, role },
     });
@@ -208,7 +257,11 @@ export class SpacesService {
     return { removed: true };
   }
 
-  async update(spaceId: string, userId: string, data: { name?: string; icon?: string; coverColor?: string }) {
+  async update(
+    spaceId: string,
+    userId: string,
+    data: { name?: string; icon?: string; coverColor?: string },
+  ) {
     await this.getById(spaceId, userId);
     const space = await this.prisma.space.update({
       where: { id: spaceId },
@@ -225,7 +278,9 @@ export class SpacesService {
     const membership = await this.prisma.spaceMember.findUnique({
       where: { spaceId_userId: { spaceId, userId } },
     });
-    if (!membership) throw new ForbiddenException('Not a member of this space');
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this space');
+    }
     if (!['owner', 'admin'].includes(membership.role)) {
       throw new ForbiddenException('Only owner or admin can delete a space');
     }
@@ -265,18 +320,25 @@ export class SpacesService {
   }
 
   async createDefault(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { firstName: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true },
+    });
     const name = user?.firstName ? `${user.firstName}'s Personal` : 'Personal Space';
     const existing = await this.prisma.space.findFirst({
       where: { createdBy: userId, type: 'PERSONAL' },
     });
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
+    const lensId = await this.lensData.getActiveLens(userId);
     return this.prisma.space.create({
       data: {
         name,
         type: 'PERSONAL',
         icon: 'user',
         createdBy: userId,
+        lensId,
         members: { create: { userId, role: 'owner' } },
       },
     });

@@ -3,5 +3,4 @@ export {
   UpdateReminderDto,
   ListRemindersQueryDto,
   SnoozeReminderDto,
-  RecurringReminderDto,
 } from './create-reminder.dto';

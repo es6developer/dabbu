@@ -1,9 +1,23 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Linking, Share, Modal, TextInput, ActivityIndicator, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Linking,
+  Share,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { PieChart } from 'react-native-chart-kit';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
+import { useLensChange } from '../../hooks/useLensChange';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, palette } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -13,7 +27,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
 import { Avatar } from '../../components/ui/Avatar';
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 const TABS = [
   { key: 'overview' as const, label: 'Overview', icon: 'appstore-o' },
   { key: 'expenses' as const, label: 'Expenses', icon: 'wallet' },
@@ -42,18 +56,46 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       chipColor: palette.brand.primary,
       icon: 'team',
     },
-    trip: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'earth' },
+    trip: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'earth',
+    },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
       icon: 'home',
     },
-    couple: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'heart' },
-    sports: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'star' },
-    roommates: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'team' },
-    office: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'bank' },
-    event: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'calendar' },
-    apartment: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'home' },
+    couple: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'heart',
+    },
+    sports: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'star',
+    },
+    roommates: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'team',
+    },
+    office: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'bank',
+    },
+    event: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'calendar',
+    },
+    apartment: {
+      gradient: [palette.brand.primary, palette.brand.hover],
+      chipColor: palette.brand.primary,
+      icon: 'home',
+    },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
@@ -210,6 +252,12 @@ export function SharedGroupDetailScreen() {
     ),
   );
 
+  useLensChange(
+    useCallback(() => {
+      loadData(true);
+    }, [loadData]),
+  );
+
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
   const name = group?.name || routeGroupName || 'Group';
@@ -276,19 +324,33 @@ export function SharedGroupDetailScreen() {
     const map = new Map<string, { name: string; amount: number }>();
     for (const e of expenses) {
       const amt = Number(e.amount || 0);
-      if (amt <= 0) continue;
+      if (amt <= 0) {
+        continue;
+      }
       const uid = e.paidBy;
       const existing = map.get(uid);
       if (existing) {
         existing.amount += amt;
       } else {
         const m = members.find((m2: any) => m2.userId === uid);
-        map.set(uid, { name: m?.user?.firstName || m?.user?.email || uid.slice(0, 8), amount: amt });
+        map.set(uid, {
+          name: m?.user?.firstName || m?.user?.email || uid.slice(0, 8),
+          amount: amt,
+        });
       }
     }
     const sorted = [...map.values()].sort((a, b) => b.amount - a.amount);
     const total = sorted.reduce((s, m) => s + m.amount, 0);
-    const COLORS = [colors.accent.primary, '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#14B8A6', '#E17055', '#A29BFE'];
+    const COLORS = [
+      colors.accent.primary,
+      '#00B894',
+      '#FF6B6B',
+      '#FDCB6E',
+      '#74B9FF',
+      '#14B8A6',
+      '#E17055',
+      '#A29BFE',
+    ];
     return sorted.map((m, i) => ({
       name: m.name,
       amount: m.amount,
@@ -421,10 +483,14 @@ export function SharedGroupDetailScreen() {
 
   async function handleSettleUp() {
     const st = settleModal.settlement;
-    if (!st || !groupId || !st.fromUserId) return;
+    if (!st || !groupId || !st.fromUserId) {
+      return;
+    }
     setSettleSubmitting(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const created = await api.post<any>(`/shared-finance/groups/${groupId}/settlements`, {
         fromUserId: st.fromUserId,
         toUserId: st.toUserId,
@@ -433,7 +499,9 @@ export function SharedGroupDetailScreen() {
       });
       const settlementId = created?.id || created?.settlement?.id;
       if (settlementId) {
-        await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'wallet' });
+        await api.post(`/shared-finance/settlements/${settlementId}/complete`, {
+          method: 'wallet',
+        });
       }
       setSettleModal({ visible: false, settlement: null });
       loadData(true);
@@ -485,8 +553,14 @@ export function SharedGroupDetailScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ paddingTop: insets.top + spacing.sm, backgroundColor: colors.bg.secondary, paddingBottom: spacing.sm }}>
-          <View style={s.heroRow}>
+      <View
+        style={{
+          paddingTop: insets.top + spacing.sm,
+          backgroundColor: colors.bg.secondary,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <View style={s.heroRow}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
@@ -502,7 +576,9 @@ export function SharedGroupDetailScreen() {
                 {memberCount} member{memberCount !== 1 ? 's' : ''}
               </Text>
               <View style={[s.typeBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Text style={[s.typeBadgeText, { color: colors.accent.primary }]}>{type.charAt(0).toUpperCase() + type.slice(1)}</Text>
+                <Text style={[s.typeBadgeText, { color: colors.accent.primary }]}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </Text>
               </View>
               {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
                 <Text style={[s.heroMeta, { color: colors.text.secondary, fontWeight: '600' }]}>
@@ -539,7 +615,10 @@ export function SharedGroupDetailScreen() {
           <TouchableOpacity
             style={[
               s.actionBtn,
-              { backgroundColor: colors.accent.secondary + '12', borderColor: colors.accent.secondary + '25' },
+              {
+                backgroundColor: colors.accent.secondary + '12',
+                borderColor: colors.accent.secondary + '25',
+              },
             ]}
             onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
           >
@@ -551,7 +630,10 @@ export function SharedGroupDetailScreen() {
           <TouchableOpacity
             style={[
               s.actionBtn,
-              { backgroundColor: colors.status.success + '12', borderColor: colors.status.success + '25' },
+              {
+                backgroundColor: colors.status.success + '12',
+                borderColor: colors.status.success + '25',
+              },
             ]}
             onPress={() => navigation.navigate('Settlement', { groupId })}
           >
@@ -592,7 +674,11 @@ export function SharedGroupDetailScreen() {
                   s.tabChip,
                   activeTab === tab.key
                     ? { backgroundColor: colors.accent.primary }
-                    : { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, borderWidth: 1 },
+                    : {
+                        backgroundColor: colors.bg.card,
+                        borderColor: colors.border.subtle,
+                        borderWidth: 1,
+                      },
                 ]}
               >
                 <AntDesign
@@ -614,328 +700,325 @@ export function SharedGroupDetailScreen() {
         </ScrollView>
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && (<>
-        <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
-          <View
-            style={[
-              s.summaryCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
-            ]}
-          >
-            <View style={[s.summaryIcon, { backgroundColor: colors.status.error + '12' }]}>
-              <AntDesign name="arrowdown" size={14} color={colors.status.error} />
-            </View>
-            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Spent</Text>
-            <Text style={[s.summaryValue, { color: colors.status.error }]}>{fmt(totalSpent)}</Text>
-          </View>
-          <View
-            style={[
-              s.summaryCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
-            ]}
-          >
-            <View style={[s.summaryIcon, { backgroundColor: colors.status.success + '12' }]}>
-              <AntDesign
-                name={totalIncomeFromData > 0 ? 'arrowup' : 'user'}
-                size={14}
-                color={colors.status.success}
-              />
-            </View>
-            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>
-              {totalIncomeFromData > 0 ? 'Income' : 'Avg/Person'}
-            </Text>
-            <Text style={[s.summaryValue, { color: colors.status.success }]}>
-              {totalIncomeFromData > 0 ? fmt(totalIncomeFromData) : fmt(avgPerPerson)}
-            </Text>
-          </View>
-          <View
-            style={[
-              s.summaryCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
-            ]}
-          >
-            <View style={[s.summaryIcon, { backgroundColor: colors.accent.primary + '12' }]}>
-              <AntDesign name="wallet" size={14} color={colors.accent.primary} />
-            </View>
-            <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Budget</Text>
-            <Text style={[s.summaryValue, { color: colors.text.primary }]}>
-              {group?.monthlyBudget ? fmt(Number(group.monthlyBudget)) : '—'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Settlement Preview */}
-        {settlements.length > 0 && (
-          <View
-            style={[
-              s.settlementCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-            ]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <View style={[s.settlementIcon, { backgroundColor: colors.accent.primary + '12' }]}>
-                <AntDesign name="swap" size={14} color={colors.accent.primary} />
-              </View>
-              <Text style={[s.settlementTitle, { color: colors.text.primary }]}>
-                {myBalanceRow && myBalanceRow.balance < 0
-                  ? `You owe ${fmt(Math.abs(myBalanceRow.balance))}`
-                  : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
-              </Text>
-              <View style={{ flex: 1 }} />
-              <TouchableOpacity onPress={() => navigation.navigate('Settlement', { groupId })}>
-                <Text style={[s.viewAllText, { color: colors.accent.primary }]}>View all</Text>
-              </TouchableOpacity>
-            </View>
-            {settlements.slice(0, 3).map((st, i) => {
-              const avatarUser = members.find((m: any) =>
-                m.userId === (st.type === 'pay' ? st.to : st.from)
-              );
-              const avatarUri = avatarUser?.user?.avatarUrl;
-              const settlePayload = st.type === 'pay'
-                ? { ...st, fromUserId: currentUser?.id, toUserId: st.to }
-                : { ...st, fromUserId: st.from, toUserId: currentUser?.id };
-              return (
-              <View key={i} style={[s.settleRow, { borderTopColor: colors.border.subtle }]}>
-                <Avatar
-                  name={st.fromName === 'You' ? st.toName : st.fromName}
-                  size={32}
-                  uri={avatarUri}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.settleLabel, { color: colors.text.primary }]}>
-                    {st.type === 'pay' ? `Pay ${st.toName}` : `${st.fromName} pays you`}
-                  </Text>
-                  <Text style={[s.settleAmount, { color: colors.text.tertiary }]}>
-                    {fmt(st.amount)}
-                  </Text>
-                </View>
-                {st.type === 'pay' && (
-                  <View style={{ flexDirection: 'row', gap: 6 }}>
-                    <TouchableOpacity
-                      style={[s.payBtn, { backgroundColor: colors.status.success }]}
-                      onPress={() => {
-                        Linking.openURL(
-                          `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`,
-                        ).catch(() => alertService.alert('Unable to open UPI', 'No UPI app found.'));
-                      }}
-                    >
-                      <AntDesign name="wallet" size={12} color="#FFF" />
-                      <Text style={s.payBtnText}>Pay Now</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
-                      onPress={() => setSettleModal({ visible: true, settlement: settlePayload })}
-                    >
-                      <AntDesign name="swap" size={12} color="#FFF" />
-                      <Text style={s.payBtnText}>Settle</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                {st.type === 'remind' && (
-                  <View style={{ flexDirection: 'row', gap: 6 }}>
-                    <TouchableOpacity
-                      style={[s.payBtn, { backgroundColor: colors.status.warning }]}
-                      onPress={() => {
-                        const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
-                        Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`).catch(() =>
-                          alertService.alert('Reminder', msg),
-                        );
-                      }}
-                    >
-                      <AntDesign name="bells" size={12} color="#FFF" />
-                      <Text style={s.payBtnText}>Remind</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
-                      onPress={() => setSettleModal({ visible: true, settlement: settlePayload })}
-                    >
-                      <AntDesign name="swap" size={12} color="#FFF" />
-                      <Text style={s.payBtnText}>Settle</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            );
-            })}
-          </View>
-        )}
-
-        {/* This Month */}
-        <View
-          style={[
-            s.monthCard,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-          ]}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={[s.monthIcon, { backgroundColor: colors.status.warning + '12' }]}>
-              <AntDesign name="calendar" size={14} color="#F59E0B" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>This Month</Text>
-              <Text style={[s.monthValue, { color: colors.status.warning }]}>{fmt(monthlySpending)}</Text>
-            </View>
-            <View style={[s.countBadge, { backgroundColor: colors.accent.primary + '12' }]}>
-              <Text style={[s.countText, { color: colors.accent.primary }]}>
-                {thisMonthExpenses.length} txn{thisMonthExpenses.length !== 1 ? 's' : ''}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Health Score */}
-        {analyticsData?.healthScore !== null && analyticsData?.healthScore !== undefined && (
-          <View
-            style={[
-              s.monthCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-            ]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {activeTab === 'overview' && (
+          <>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
               <View
                 style={[
-                  s.monthIcon,
-                  {
-                    backgroundColor:
-                      (analyticsData.healthScore >= 70
-                        ? colors.status.success
-                        : analyticsData.healthScore >= 40
-                          ? colors.status.warning
-                          : colors.status.error) + '12',
-                  },
+                  s.summaryCard,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
                 ]}
               >
-                <AntDesign
-                  name="heart"
-                  size={14}
-                  color={
-                    analyticsData.healthScore >= 70
-                      ? colors.status.success
-                      : analyticsData.healthScore >= 40
-                        ? colors.status.warning
-                        : colors.status.error
-                  }
-                />
+                <View style={[s.summaryIcon, { backgroundColor: colors.status.error + '12' }]}>
+                  <AntDesign name="arrowdown" size={14} color={colors.status.error} />
+                </View>
+                <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Spent</Text>
+                <Text style={[s.summaryValue, { color: colors.status.error }]}>
+                  {fmt(totalSpent)}
+                </Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>Group Health</Text>
-                <Text
-                  style={[
-                    s.monthValue,
-                    {
-                      color:
+              <View
+                style={[
+                  s.summaryCard,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
+                ]}
+              >
+                <View style={[s.summaryIcon, { backgroundColor: colors.status.success + '12' }]}>
+                  <AntDesign
+                    name={totalIncomeFromData > 0 ? 'arrowup' : 'user'}
+                    size={14}
+                    color={colors.status.success}
+                  />
+                </View>
+                <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>
+                  {totalIncomeFromData > 0 ? 'Income' : 'Avg/Person'}
+                </Text>
+                <Text style={[s.summaryValue, { color: colors.status.success }]}>
+                  {totalIncomeFromData > 0 ? fmt(totalIncomeFromData) : fmt(avgPerPerson)}
+                </Text>
+              </View>
+              <View
+                style={[
+                  s.summaryCard,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, flex: 1 },
+                ]}
+              >
+                <View style={[s.summaryIcon, { backgroundColor: colors.accent.primary + '12' }]}>
+                  <AntDesign name="wallet" size={14} color={colors.accent.primary} />
+                </View>
+                <Text style={[s.summaryLabel, { color: colors.text.tertiary }]}>Budget</Text>
+                <Text style={[s.summaryValue, { color: colors.text.primary }]}>
+                  {group?.monthlyBudget ? fmt(Number(group.monthlyBudget)) : '—'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Settlement Preview */}
+            {settlements.length > 0 && (
+              <View
+                style={[
+                  s.settlementCard,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                ]}
+              >
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}
+                >
+                  <View
+                    style={[s.settlementIcon, { backgroundColor: colors.accent.primary + '12' }]}
+                  >
+                    <AntDesign name="swap" size={14} color={colors.accent.primary} />
+                  </View>
+                  <Text style={[s.settlementTitle, { color: colors.text.primary }]}>
+                    {myBalanceRow && myBalanceRow.balance < 0
+                      ? `You owe ${fmt(Math.abs(myBalanceRow.balance))}`
+                      : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
+                  </Text>
+                  <View style={{ flex: 1 }} />
+                  <TouchableOpacity onPress={() => navigation.navigate('Settlement', { groupId })}>
+                    <Text style={[s.viewAllText, { color: colors.accent.primary }]}>View all</Text>
+                  </TouchableOpacity>
+                </View>
+                {settlements.slice(0, 3).map((st, i) => {
+                  const avatarUser = members.find(
+                    (m: any) => m.userId === (st.type === 'pay' ? st.to : st.from),
+                  );
+                  const avatarUri = avatarUser?.user?.avatarUrl;
+                  const settlePayload =
+                    st.type === 'pay'
+                      ? { ...st, fromUserId: currentUser?.id, toUserId: st.to }
+                      : { ...st, fromUserId: st.from, toUserId: currentUser?.id };
+                  return (
+                    <View key={i} style={[s.settleRow, { borderTopColor: colors.border.subtle }]}>
+                      <Avatar
+                        name={st.fromName === 'You' ? st.toName : st.fromName}
+                        size={32}
+                        uri={avatarUri}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.settleLabel, { color: colors.text.primary }]}>
+                          {st.type === 'pay' ? `Pay ${st.toName}` : `${st.fromName} pays you`}
+                        </Text>
+                        <Text style={[s.settleAmount, { color: colors.text.tertiary }]}>
+                          {fmt(st.amount)}
+                        </Text>
+                      </View>
+                      {st.type === 'pay' && (
+                        <View style={{ flexDirection: 'row', gap: 6 }}>
+                          <TouchableOpacity
+                            style={[s.payBtn, { backgroundColor: colors.status.success }]}
+                            onPress={() => {
+                              Linking.openURL(
+                                `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`,
+                              ).catch(() =>
+                                alertService.alert('Unable to open UPI', 'No UPI app found.'),
+                              );
+                            }}
+                          >
+                            <AntDesign name="wallet" size={12} color="#FFF" />
+                            <Text style={s.payBtnText}>Pay Now</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
+                            onPress={() =>
+                              setSettleModal({ visible: true, settlement: settlePayload })
+                            }
+                          >
+                            <AntDesign name="swap" size={12} color="#FFF" />
+                            <Text style={s.payBtnText}>Settle</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      {st.type === 'remind' && (
+                        <View style={{ flexDirection: 'row', gap: 6 }}>
+                          <TouchableOpacity
+                            style={[s.payBtn, { backgroundColor: colors.status.warning }]}
+                            onPress={() => {
+                              const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
+                              Linking.openURL(
+                                `https://wa.me/?text=${encodeURIComponent(msg)}`,
+                              ).catch(() => alertService.alert('Reminder', msg));
+                            }}
+                          >
+                            <AntDesign name="bells" size={12} color="#FFF" />
+                            <Text style={s.payBtnText}>Remind</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[s.payBtn, { backgroundColor: colors.accent.primary }]}
+                            onPress={() =>
+                              setSettleModal({ visible: true, settlement: settlePayload })
+                            }
+                          >
+                            <AntDesign name="swap" size={12} color="#FFF" />
+                            <Text style={s.payBtnText}>Settle</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* This Month */}
+            <View
+              style={[
+                s.monthCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={[s.monthIcon, { backgroundColor: colors.status.warning + '12' }]}>
+                  <AntDesign name="calendar" size={14} color="#F59E0B" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>This Month</Text>
+                  <Text style={[s.monthValue, { color: colors.status.warning }]}>
+                    {fmt(monthlySpending)}
+                  </Text>
+                </View>
+                <View style={[s.countBadge, { backgroundColor: colors.accent.primary + '12' }]}>
+                  <Text style={[s.countText, { color: colors.accent.primary }]}>
+                    {thisMonthExpenses.length} txn{thisMonthExpenses.length !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Health Score */}
+            {analyticsData?.healthScore !== null && analyticsData?.healthScore !== undefined && (
+              <View
+                style={[
+                  s.monthCard,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                ]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View
+                    style={[
+                      s.monthIcon,
+                      {
+                        backgroundColor:
+                          (analyticsData.healthScore >= 70
+                            ? colors.status.success
+                            : analyticsData.healthScore >= 40
+                              ? colors.status.warning
+                              : colors.status.error) + '12',
+                      },
+                    ]}
+                  >
+                    <AntDesign
+                      name="heart"
+                      size={14}
+                      color={
                         analyticsData.healthScore >= 70
                           ? colors.status.success
                           : analyticsData.healthScore >= 40
                             ? colors.status.warning
-                            : colors.status.error,
-                    },
-                  ]}
-                >
-                  {analyticsData.healthScore}%
-                </Text>
-              </View>
-              {analyticsData.fairnessScore !== null &&
-                analyticsData.fairnessScore !== undefined && (
-                  <View style={{ alignItems: 'flex-end', marginRight: spacing.sm }}>
-                    <Text style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}>
-                      Fairness
+                            : colors.status.error
+                      }
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.monthLabel, { color: colors.text.tertiary }]}>
+                      Group Health
                     </Text>
                     <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: '700',
-                        color: analyticsData.fairnessScore >= 0.5 ? colors.status.success : colors.status.warning,
-                      }}
-                    >
-                      {(analyticsData.fairnessScore * 100).toFixed(0)}%
-                    </Text>
-                  </View>
-                )}
-              {analyticsData.settlementScore !== null &&
-                analyticsData.settlementScore !== undefined && (
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}>
-                      Settled
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: '700',
-                        color: analyticsData.settlementScore >= 70 ? colors.status.success : colors.status.warning,
-                      }}
-                    >
-                      {analyticsData.settlementScore}%
-                    </Text>
-                  </View>
-                )}
-            </View>
-          </View>
-        )}
-
-        {/* Category Breakdown */}
-        {categoryBreakdown.length > 0 && (
-          <View>
-            <View style={s.sectionHeader}>
-              <View
-                style={{
-                  width: 4,
-                  height: 14,
-                  borderRadius: 2,
-                  backgroundColor: colors.accent.primary,
-                }}
-              />
-              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
-                Spending by Category
-              </Text>
-            </View>
-            <View
-              style={[
-                s.catCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              {categoryBreakdown.slice(0, 5).map((c, i) => (
-                <View key={c.category}>
-                  {i > 0 && (
-                    <View style={[s.catDivider, { backgroundColor: colors.border.subtle }]} />
-                  )}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View
                       style={[
-                        s.catDot,
+                        s.monthValue,
                         {
-                          backgroundColor: [
-                            colors.accent.primary,
-                            colors.status.error,
-                            colors.status.success,
-                            colors.status.warning,
-                            colors.accent.secondary,
-                          ][i % 5],
+                          color:
+                            analyticsData.healthScore >= 70
+                              ? colors.status.success
+                              : analyticsData.healthScore >= 40
+                                ? colors.status.warning
+                                : colors.status.error,
                         },
                       ]}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 4,
-                        }}
-                      >
-                        <Text style={[s.catName, { color: colors.text.primary }]}>
-                          {c.category}
+                    >
+                      {analyticsData.healthScore}%
+                    </Text>
+                  </View>
+                  {analyticsData.fairnessScore !== null &&
+                    analyticsData.fairnessScore !== undefined && (
+                      <View style={{ alignItems: 'flex-end', marginRight: spacing.sm }}>
+                        <Text
+                          style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}
+                        >
+                          Fairness
                         </Text>
-                        <Text style={[s.catAmount, { color: colors.text.secondary }]}>
-                          {fmt(c.amount)}
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '700',
+                            color:
+                              analyticsData.fairnessScore >= 0.5
+                                ? colors.status.success
+                                : colors.status.warning,
+                          }}
+                        >
+                          {(analyticsData.fairnessScore * 100).toFixed(0)}%
                         </Text>
                       </View>
-                      <View style={s.catBarBg}>
+                    )}
+                  {analyticsData.settlementScore !== null &&
+                    analyticsData.settlementScore !== undefined && (
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text
+                          style={{ fontSize: 9, color: colors.text.tertiary, fontWeight: '500' }}
+                        >
+                          Settled
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '700',
+                            color:
+                              analyticsData.settlementScore >= 70
+                                ? colors.status.success
+                                : colors.status.warning,
+                          }}
+                        >
+                          {analyticsData.settlementScore}%
+                        </Text>
+                      </View>
+                    )}
+                </View>
+              </View>
+            )}
+
+            {/* Category Breakdown */}
+            {categoryBreakdown.length > 0 && (
+              <View>
+                <View style={s.sectionHeader}>
+                  <View
+                    style={{
+                      width: 4,
+                      height: 14,
+                      borderRadius: 2,
+                      backgroundColor: colors.accent.primary,
+                    }}
+                  />
+                  <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                    Spending by Category
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    s.catCard,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  {categoryBreakdown.slice(0, 5).map((c, i) => (
+                    <View key={c.category}>
+                      {i > 0 && (
+                        <View style={[s.catDivider, { backgroundColor: colors.border.subtle }]} />
+                      )}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         <View
                           style={[
-                            s.catBarFill,
+                            s.catDot,
                             {
-                              width: `${Math.max(c.percentage, 3)}%`,
                               backgroundColor: [
                                 colors.accent.primary,
                                 colors.status.error,
@@ -946,178 +1029,233 @@ export function SharedGroupDetailScreen() {
                             },
                           ]}
                         />
+                        <View style={{ flex: 1 }}>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              marginBottom: 4,
+                            }}
+                          >
+                            <Text style={[s.catName, { color: colors.text.primary }]}>
+                              {c.category}
+                            </Text>
+                            <Text style={[s.catAmount, { color: colors.text.secondary }]}>
+                              {fmt(c.amount)}
+                            </Text>
+                          </View>
+                          <View style={s.catBarBg}>
+                            <View
+                              style={[
+                                s.catBarFill,
+                                {
+                                  width: `${Math.max(c.percentage, 3)}%`,
+                                  backgroundColor: [
+                                    colors.accent.primary,
+                                    colors.status.error,
+                                    colors.status.success,
+                                    colors.status.warning,
+                                    colors.accent.secondary,
+                                  ][i % 5],
+                                },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <Text style={[s.catPercent, { color: colors.text.tertiary }]}>
+                          {c.percentage.toFixed(0)}%
+                        </Text>
                       </View>
                     </View>
-                    <Text style={[s.catPercent, { color: colors.text.tertiary }]}>
-                      {c.percentage.toFixed(0)}%
-                    </Text>
-                  </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Spending by Member */}
-        {memberSpending.length > 0 && (
-          <View>
-            <View style={s.sectionHeader}>
-              <View
-                style={{
-                  width: 4,
-                  height: 14,
-                  borderRadius: 2,
-                  backgroundColor: colors.accent.primary,
-                }}
-              />
-              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
-                Spending by Member
-              </Text>
-            </View>
-            <View
-              style={[
-                s.catCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              <PieChart
-                data={memberSpending}
-                width={Math.min(width - 80, 320)}
-                height={200}
-                chartConfig={{ color: () => colors.text.primary }}
-                backgroundColor="transparent"
-                paddingLeft="0"
-                accessor="amount"
-                absolute
-              />
-              <View style={{ gap: 8, marginTop: 4 }}>
-                {memberSpending.map((m, i) => (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: m.color }} />
-                    <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>{m.name}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>{fmt(m.amount)}</Text>
-                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>{m.percentage}%</Text>
-                  </View>
-                ))}
               </View>
-            </View>
-          </View>
-        )}
+            )}
 
-        {/* Quick Insights */}
-        {expenses.length > 0 && (
-          <View
-            style={[
-              s.insightCard,
-              {
-                backgroundColor: colors.accent.primary + '08',
-                borderColor: colors.accent.primary + '20',
-              },
-            ]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
-              <Text style={[s.insightTitle, { color: colors.accent.primary }]}>Group Insights</Text>
-            </View>
-            <View style={{ gap: 3, marginTop: 6 }}>
-              <Text style={[s.insightLine, { color: colors.text.secondary }]}>
-                Total expenses: <Text style={{ fontWeight: '700' }}>{expenses.length}</Text> · Avg:{' '}
-                <Text style={{ fontWeight: '700' }}>
-                  {fmt(Math.round(totalSpent / expenses.length))}
-                </Text>
-              </Text>
-              {categoryBreakdown.length > 0 && (
-                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
-                  Top category:{' '}
-                  <Text style={{ fontWeight: '700' }}>{categoryBreakdown[0].category}</Text> (
-                  {categoryBreakdown[0].percentage.toFixed(0)}% of total)
-                </Text>
-              )}
-              {myBalanceRow && (
-                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
-                  Your balance:{' '}
-                  <Text
+            {/* Spending by Member */}
+            {memberSpending.length > 0 && (
+              <View>
+                <View style={s.sectionHeader}>
+                  <View
                     style={{
-                      fontWeight: '700',
-                      color: (myBalanceRow.balance || 0) >= 0 ? colors.status.success : colors.status.error,
+                      width: 4,
+                      height: 14,
+                      borderRadius: 2,
+                      backgroundColor: colors.accent.primary,
                     }}
-                  >
-                    {myBalanceRow.balance >= 0 ? '+' : ''}
-                    {fmt(Math.round(myBalanceRow.balance))}
+                  />
+                  <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                    Spending by Member
                   </Text>
-                </Text>
-              )}
-              {members.length > 1 && (
-                <Text style={[s.insightLine, { color: colors.text.secondary }]}>
-                  Per person avg:{' '}
-                  <Text style={{ fontWeight: '700' }}>
-                    {fmt(Math.round(totalSpent / members.length))}
-                  </Text>
-                </Text>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* AI Insights */}
-        {insights.length > 0 && (
-          <View>
-            <View style={s.sectionHeader}>
-              <View
-                style={{
-                  width: 4,
-                  height: 14,
-                  borderRadius: 2,
-                  backgroundColor: colors.accent.primary,
-                }}
-              />
-              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>AI Insights</Text>
-            </View>
-            {insights.map((ins: any, i: number) => {
-              const sevColor =
-                ins.severity === 'critical'
-                  ? colors.status.error
-                  : ins.severity === 'warning'
-                    ? colors.status.warning
-                    : ins.severity === 'success'
-                      ? colors.status.success
-                      : colors.accent.primary;
-              return (
+                </View>
                 <View
-                  key={i}
                   style={[
-                    s.insightCard,
-                    { backgroundColor: sevColor + '08', borderColor: sevColor + '20' },
+                    s.catCard,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                   ]}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <AntDesign
-                      name={
-                        ins.severity === 'critical'
-                          ? 'warning'
-                          : ins.severity === 'warning'
-                            ? 'exclamationcircleo'
-                            : 'bulb1'
-                      }
-                      size={14}
-                      color={sevColor}
-                    />
-                    <Text
-                      style={{ fontSize: 12, fontWeight: '700', color: sevColor, flex: 1 }}
-                      numberOfLines={1}
-                    >
-                      {ins.title}
-                    </Text>
+                  <PieChart
+                    data={memberSpending}
+                    width={Math.min(width - 80, 320)}
+                    height={200}
+                    chartConfig={{ color: () => colors.text.primary }}
+                    backgroundColor="transparent"
+                    paddingLeft="0"
+                    accessor="amount"
+                    absolute
+                  />
+                  <View style={{ gap: 8, marginTop: 4 }}>
+                    {memberSpending.map((m, i) => (
+                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: m.color,
+                          }}
+                        />
+                        <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
+                          {m.name}
+                        </Text>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}
+                        >
+                          {fmt(m.amount)}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
+                          {m.percentage}%
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                  <Text style={[s.insightLine, { color: colors.text.secondary, marginTop: 4 }]}>
-                    {ins.message}
+                </View>
+              </View>
+            )}
+
+            {/* Quick Insights */}
+            {expenses.length > 0 && (
+              <View
+                style={[
+                  s.insightCard,
+                  {
+                    backgroundColor: colors.accent.primary + '08',
+                    borderColor: colors.accent.primary + '20',
+                  },
+                ]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
+                  <Text style={[s.insightTitle, { color: colors.accent.primary }]}>
+                    Group Insights
                   </Text>
                 </View>
-              );
-            })}
-          </View>
+                <View style={{ gap: 3, marginTop: 6 }}>
+                  <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                    Total expenses: <Text style={{ fontWeight: '700' }}>{expenses.length}</Text> ·
+                    Avg:{' '}
+                    <Text style={{ fontWeight: '700' }}>
+                      {fmt(Math.round(totalSpent / expenses.length))}
+                    </Text>
+                  </Text>
+                  {categoryBreakdown.length > 0 && (
+                    <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                      Top category:{' '}
+                      <Text style={{ fontWeight: '700' }}>{categoryBreakdown[0].category}</Text> (
+                      {categoryBreakdown[0].percentage.toFixed(0)}% of total)
+                    </Text>
+                  )}
+                  {myBalanceRow && (
+                    <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                      Your balance:{' '}
+                      <Text
+                        style={{
+                          fontWeight: '700',
+                          color:
+                            (myBalanceRow.balance || 0) >= 0
+                              ? colors.status.success
+                              : colors.status.error,
+                        }}
+                      >
+                        {myBalanceRow.balance >= 0 ? '+' : ''}
+                        {fmt(Math.round(myBalanceRow.balance))}
+                      </Text>
+                    </Text>
+                  )}
+                  {members.length > 1 && (
+                    <Text style={[s.insightLine, { color: colors.text.secondary }]}>
+                      Per person avg:{' '}
+                      <Text style={{ fontWeight: '700' }}>
+                        {fmt(Math.round(totalSpent / members.length))}
+                      </Text>
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* AI Insights */}
+            {insights.length > 0 && (
+              <View>
+                <View style={s.sectionHeader}>
+                  <View
+                    style={{
+                      width: 4,
+                      height: 14,
+                      borderRadius: 2,
+                      backgroundColor: colors.accent.primary,
+                    }}
+                  />
+                  <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                    AI Insights
+                  </Text>
+                </View>
+                {insights.map((ins: any, i: number) => {
+                  const sevColor =
+                    ins.severity === 'critical'
+                      ? colors.status.error
+                      : ins.severity === 'warning'
+                        ? colors.status.warning
+                        : ins.severity === 'success'
+                          ? colors.status.success
+                          : colors.accent.primary;
+                  return (
+                    <View
+                      key={i}
+                      style={[
+                        s.insightCard,
+                        { backgroundColor: sevColor + '08', borderColor: sevColor + '20' },
+                      ]}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <AntDesign
+                          name={
+                            ins.severity === 'critical'
+                              ? 'warning'
+                              : ins.severity === 'warning'
+                                ? 'exclamationcircleo'
+                                : 'bulb1'
+                          }
+                          size={14}
+                          color={sevColor}
+                        />
+                        <Text
+                          style={{ fontSize: 12, fontWeight: '700', color: sevColor, flex: 1 }}
+                          numberOfLines={1}
+                        >
+                          {ins.title}
+                        </Text>
+                      </View>
+                      <Text style={[s.insightLine, { color: colors.text.secondary, marginTop: 4 }]}>
+                        {ins.message}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </>
         )}
-        </>)}
         {/* Members tab */}
         {activeTab === 'members' && members.length > 0 && (
           <>
@@ -1235,116 +1373,130 @@ export function SharedGroupDetailScreen() {
           </>
         )}
 
-        {activeTab === 'expenses' && (<>
-        {/* Recent Expenses */}
-        <View style={s.sectionHeader}>
-          <View
-            style={{
-              width: 4,
-              height: 14,
-              borderRadius: 2,
-              backgroundColor: colors.accent.primary,
-            }}
-          />
-          <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>Recent Expenses</Text>
-        </View>
+        {activeTab === 'expenses' && (
+          <>
+            {/* Recent Expenses */}
+            <View style={s.sectionHeader}>
+              <View
+                style={{
+                  width: 4,
+                  height: 14,
+                  borderRadius: 2,
+                  backgroundColor: colors.accent.primary,
+                }}
+              />
+              <Text style={[s.sectionTitle, { color: colors.text.secondary }]}>
+                Recent Expenses
+              </Text>
+            </View>
 
-        {expenses.length === 0 ? (
-          <View
-            style={[
-              s.emptyBox,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-            ]}
-          >
-            <AntDesign name="inbox" size={28} color={colors.text.tertiary} />
-            <Text style={[s.emptyText, { color: colors.text.tertiary }]}>No expenses yet</Text>
-          </View>
-        ) : (
-          sortedExpenses.slice(0, 20).map((item: any) => {
-            const payer = members.find((m: any) => m.userId === item.paidBy);
-            const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
-            const mySplit = item.splits?.find((s: any) => s.userId === currentUser?.id);
-            const myShare = mySplit ? Number(mySplit.amount) : 0;
-            const iPaid = item.paidBy === currentUser?.id;
-            const cat = item.category || 'Other';
-            return (
-              <TouchableOpacity
-                key={item.id}
+            {expenses.length === 0 ? (
+              <View
                 style={[
-                  s.txnCard,
+                  s.emptyBox,
                   { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                 ]}
-                activeOpacity={0.8}
-                onPress={() =>
-                  navigation.navigate('SharedExpenseForm', {
-                    groupId,
-                    expenseId: item.id,
-                    edit: true,
-                  })
-                }
-                onLongPress={() => {
-                  alertService.alert(item.description || 'Expense', 'Choose action', [
-                    {
-                      text: 'Edit',
-                      onPress: () =>
-                        navigation.navigate('SharedExpenseForm', {
-                          groupId,
-                          expenseId: item.id,
-                          edit: true,
-                        }),
-                    },
-                    {
-                      text: 'Delete',
-                      style: 'destructive',
-                      onPress: () => confirmDeleteExpense(item.id),
-                    },
-                    { text: 'Cancel', style: 'cancel' },
-                  ]);
-                }}
               >
-                <View style={s.txnRow}>
-                  <View style={[s.txnIconBg, { backgroundColor: colors.accent.primary + '12' }]}>
-                    <AntDesign name="wallet" size={14} color={colors.accent.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.txnDesc, { color: colors.text.primary }]} numberOfLines={1}>
-                      {item.description || cat}
-                    </Text>
-                    <View
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}
-                    >
-                      <Text style={[s.txnSub, { color: colors.text.tertiary }]}>{payerName}</Text>
-                      <View style={[s.catBadge, { backgroundColor: colors.accent.primary + '10' }]}>
-                        <Text style={[s.catBadgeText, { color: colors.accent.primary }]}>
-                          {typeof cat === 'string' ? cat : 'Other'}
-                        </Text>
+                <AntDesign name="inbox" size={28} color={colors.text.tertiary} />
+                <Text style={[s.emptyText, { color: colors.text.tertiary }]}>No expenses yet</Text>
+              </View>
+            ) : (
+              sortedExpenses.slice(0, 20).map((item: any) => {
+                const payer = members.find((m: any) => m.userId === item.paidBy);
+                const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
+                const mySplit = item.splits?.find((s: any) => s.userId === currentUser?.id);
+                const myShare = mySplit ? Number(mySplit.amount) : 0;
+                const iPaid = item.paidBy === currentUser?.id;
+                const cat = item.category || 'Other';
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      s.txnCard,
+                      { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                    ]}
+                    activeOpacity={0.8}
+                    onPress={() =>
+                      navigation.navigate('SharedExpenseForm', {
+                        groupId,
+                        expenseId: item.id,
+                        edit: true,
+                      })
+                    }
+                    onLongPress={() => {
+                      alertService.alert(item.description || 'Expense', 'Choose action', [
+                        {
+                          text: 'Edit',
+                          onPress: () =>
+                            navigation.navigate('SharedExpenseForm', {
+                              groupId,
+                              expenseId: item.id,
+                              edit: true,
+                            }),
+                        },
+                        {
+                          text: 'Delete',
+                          style: 'destructive',
+                          onPress: () => confirmDeleteExpense(item.id),
+                        },
+                        { text: 'Cancel', style: 'cancel' },
+                      ]);
+                    }}
+                  >
+                    <View style={s.txnRow}>
+                      <View
+                        style={[s.txnIconBg, { backgroundColor: colors.accent.primary + '12' }]}
+                      >
+                        <AntDesign name="wallet" size={14} color={colors.accent.primary} />
                       </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[s.txnDate, { color: colors.text.tertiary }]}>
-                        {fmtDate(item.date || item.createdAt)}
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.txnDesc, { color: colors.text.primary }]} numberOfLines={1}>
+                          {item.description || cat}
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 6,
+                            marginTop: 2,
+                          }}
+                        >
+                          <Text style={[s.txnSub, { color: colors.text.tertiary }]}>
+                            {payerName}
+                          </Text>
+                          <View
+                            style={[s.catBadge, { backgroundColor: colors.accent.primary + '10' }]}
+                          >
+                            <Text style={[s.catBadgeText, { color: colors.accent.primary }]}>
+                              {typeof cat === 'string' ? cat : 'Other'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={[s.txnDate, { color: colors.text.tertiary }]}>
+                            {fmtDate(item.date || item.createdAt)}
+                          </Text>
+                          {myShare > 0 && !iPaid ? (
+                            <Text style={[s.shareText, { color: colors.accent.primary }]}>
+                              Your share: {fmt(myShare)}
+                            </Text>
+                          ) : iPaid ? (
+                            <Text style={[s.shareText, { color: colors.status.success }]}>
+                              You paid {fmt(Number(item.amount || 0))}
+                            </Text>
+                          ) : null}
+                        </View>
+                      </View>
+                      <Text style={[s.txnAmount, { color: colors.text.primary }]}>
+                        {fmt(Number(item.amount || 0))}
                       </Text>
-                      {myShare > 0 && !iPaid ? (
-                        <Text style={[s.shareText, { color: colors.accent.primary }]}>
-                          Your share: {fmt(myShare)}
-                        </Text>
-                      ) : iPaid ? (
-                        <Text style={[s.shareText, { color: colors.status.success }]}>
-                          You paid {fmt(Number(item.amount || 0))}
-                        </Text>
-                      ) : null}
                     </View>
-                  </View>
-                  <Text style={[s.txnAmount, { color: colors.text.primary }]}>
-                    {fmt(Number(item.amount || 0))}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </>
         )}
-      </>)}
-
       </ScrollView>
 
       {/* FAB */}
