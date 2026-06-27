@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -49,6 +57,7 @@ export function FullLensDashboard() {
   const activeLens = useLensStore((s) => s.activeLens);
 
   const [dashboard, setDashboard] = useState<any>(null);
+  const [sharedGroups, setSharedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -63,10 +72,19 @@ export function FullLensDashboard() {
       setLoading(true);
     }
     try {
-      const res = await api.get<any>('/dashboard/lens', ctrl.signal);
-      const data = res?.data || res;
+      const [dashRes, groupsRes] = await Promise.all([
+        api.get<any>('/dashboard/lens', ctrl.signal),
+        api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => null),
+      ]);
       if (!ctrl.signal.aborted) {
-        setDashboard(data);
+        const dashData = dashRes?.data || dashRes;
+        setDashboard(dashData);
+        if (groupsRes) {
+          const list = Array.isArray(groupsRes)
+            ? groupsRes
+            : groupsRes?.items || groupsRes?.data || [];
+          setSharedGroups(list);
+        }
       }
     } catch {
       /* silent */
@@ -79,9 +97,12 @@ export function FullLensDashboard() {
   }, []);
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
 
   const userName = user?.firstName || 'User';
@@ -100,15 +121,21 @@ export function FullLensDashboard() {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
         <LinearGradient
-        colors={[colors.bg.gradientStart, colors.bg.primary]}
+          colors={[colors.bg.gradientStart, colors.bg.primary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
           style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
-              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+            >
+              <Avatar
+                uri={user?.avatarUrl}
+                name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                size={36}
+              />
             </TouchableOpacity>
             <View>
               <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
@@ -153,9 +180,15 @@ export function FullLensDashboard() {
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
-                <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                >
+                  <Avatar
+                    uri={user?.avatarUrl}
+                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                    size={36}
+                  />
+                </TouchableOpacity>
                 <View>
                   <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
@@ -164,8 +197,12 @@ export function FullLensDashboard() {
                     <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
-                    <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>
+                    <View
+                      style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}
+                    >
+                      <Text
+                        style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}
+                      >
                         EVERYTHING
                       </Text>
                     </View>
@@ -229,7 +266,9 @@ export function FullLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -308,14 +347,25 @@ export function FullLensDashboard() {
                 </View>
               ))}
               {(!d.goals || d.goals.length === 0) && (
-                <View style={[styles.goalRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.goalRow,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="flag" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No goals yet
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.accent.primary }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: colors.accent.primary,
+                    }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       Create Goal
@@ -329,34 +379,88 @@ export function FullLensDashboard() {
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <View style={styles.sectionHeader}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
-                Spaces Summary
+                Shared-finance spaces
               </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
-              {(d.spaces?.length > 0 ? d.spaces : []).slice(0, 5).map((s: any, i: number) => (
-                <View
+              {sharedGroups.length > 0 ? (
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
+                  <View
+                    style={{
+                      borderRadius: 16,
+                      padding: 16,
+                      alignItems: 'center',
+                      backgroundColor: colors.bg.card,
+                      flex: 1,
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, fontWeight: '800', color: colors.accent.primary }}>
+                      {sharedGroups.length}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      Total
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      borderRadius: 16,
+                      padding: 16,
+                      alignItems: 'center',
+                      backgroundColor: colors.bg.card,
+                      flex: 1,
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                      {
+                        sharedGroups.filter((g: any) => g.type === 'couple' || g.type === 'family')
+                          .length
+                      }
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      Shared
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+              {sharedGroups.slice(0, 5).map((s: any, i: number) => (
+                <TouchableOpacity
                   key={s.id || i}
-                  style={[styles.spaceRow, { backgroundColor: colors.bg.card }]}
+                  onPress={() =>
+                    navigation.navigate('SpacesTab', {
+                      screen: 'SharedGroupDetail',
+                      params: { groupId: s.id, groupName: s.name },
+                    })
+                  }
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: 14,
+                    padding: 14,
+                    gap: 10,
+                    backgroundColor: colors.bg.card,
+                  }}
                 >
                   <View
-                    style={[
-                      styles.spaceDot,
-                      {
-                        backgroundColor:
-                          s.type === 'COUPLE'
-                            ? '#F43F5E'
-                            : s.type === 'FAMILY'
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor:
+                        s.type === 'couple'
+                          ? '#F43F5E'
+                          : s.type === 'family'
+                            ? '#0D9488'
+                            : s.type === 'trip'
                               ? '#0D9488'
-                              : s.type === 'PERSONAL'
-                                ? colors.brand.primary
-                                : colors.accent.primary,
-                      },
-                    ]}
+                              : colors.accent.primary,
+                    }}
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
@@ -367,21 +471,38 @@ export function FullLensDashboard() {
                     </Text>
                   </View>
                   <AntDesign name="right" size={14} color={colors.text.tertiary} />
-                </View>
+                </TouchableOpacity>
               ))}
-              {(!d.spaces || d.spaces.length === 0) && (
-                <View style={[styles.spaceRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+              {sharedGroups.length === 0 && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: 14,
+                    paddingVertical: 24,
+                    paddingHorizontal: 14,
+                    gap: 10,
+                    backgroundColor: colors.bg.card,
+                    justifyContent: 'center',
+                  }}
+                >
                   <AntDesign name="team" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
-                    No spaces yet
+                    No shared spaces yet
                   </Text>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.accent.primary }}
+                    onPress={() =>
+                      navigation.navigate('SpacesTab', { screen: 'CreateSharedGroup' })
+                    }
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: colors.accent.primary,
+                    }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
-                      Create Space
-                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>Create</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -396,7 +517,9 @@ export function FullLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('HomeTab', { screen: 'InvestmentPlanner' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -431,14 +554,25 @@ export function FullLensDashboard() {
                   </View>
                 ))}
               {(!d.investments || d.investments.length === 0) && (
-                <View style={[styles.investmentRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.investmentRow,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="linechart" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No investments tracked
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('HomeTab', { screen: 'InvestmentPlanner' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.accent.primary }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: colors.accent.primary,
+                    }}
                   >
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       Add Investment
@@ -457,7 +591,9 @@ export function FullLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -528,18 +664,27 @@ export function FullLensDashboard() {
                 </View>
               ))}
               {(!d.bills || d.bills.length === 0) && (
-                <View style={[styles.billRow, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 }]}>
+                <View
+                  style={[
+                    styles.billRow,
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                  ]}
+                >
                   <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
                     No upcoming bills
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
-                    style={{ marginTop: 10, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.accent.primary }}
+                    style={{
+                      marginTop: 10,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: colors.accent.primary,
+                    }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
-                      Add Bill
-                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>Add Bill</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -551,7 +696,9 @@ export function FullLensDashboard() {
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}
               >
-                <View style={[styles.insightIcon, { backgroundColor: colors.accent.primary + '15' }]}>
+                <View
+                  style={[styles.insightIcon, { backgroundColor: colors.accent.primary + '15' }]}
+                >
                   <AntDesign name="bulb1" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
@@ -597,7 +744,7 @@ export function FullLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Add Expense</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateSpace' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'CreateFamilyWorkspace' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
@@ -627,7 +774,7 @@ export function FullLensDashboard() {
                 <Text style={[styles.qaLabel, { color: colors.text.primary }]}>Export Report</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('WalletTab', { screen: 'AddInvestment' })}
+                onPress={() => navigation.navigate('LifeHubTab', { screen: 'InvestmentPlanner' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >

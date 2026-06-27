@@ -1,3 +1,5 @@
+import { LlmClient } from '../llm-client';
+
 interface ReviewTransactionData {
   id: string;
   amount: number;
@@ -46,12 +48,31 @@ interface MonthlyReviewOutput {
   period: string;
   summary: string;
   income: { total: number; sources: { name: string; amount: number }[]; vsLastMonth: number };
-  expenses: { total: number; byCategory: { category: string; amount: number; percentage: number }[]; vsLastMonth: number };
+  expenses: {
+    total: number;
+    byCategory: { category: string; amount: number; percentage: number }[];
+    vsLastMonth: number;
+  };
   savings: { total: number; rate: number; vsLastMonth: number };
-  budgets: { onTrack: number; exceeded: number; total: number; details: { name: string; status: string; spent: number; budget: number }[] };
+  budgets: {
+    onTrack: number;
+    exceeded: number;
+    total: number;
+    details: { name: string; status: string; spent: number; budget: number }[];
+  };
   goals: { progress: { name: string; progress: number; status: string }[]; highlight: string };
-  bills: { paid: number; pending: number; upcoming: { name: string; amount: number; dueDate: string }[] };
-  investments: { totalValue: number; gainLoss: number; gainLossPct: number; topGainers: string[]; topLosers: string[] };
+  bills: {
+    paid: number;
+    pending: number;
+    upcoming: { name: string; amount: number; dueDate: string }[];
+  };
+  investments: {
+    totalValue: number;
+    gainLoss: number;
+    gainLossPct: number;
+    topGainers: string[];
+    topLosers: string[];
+  };
   healthScore: { current: number; change: number; level: string };
   insights: string[];
   recommendations: string[];
@@ -60,7 +81,13 @@ interface MonthlyReviewOutput {
 }
 
 export class MonthlyAiReviewEngine {
-  generateMonthlyReview(params: {
+  private llm: LlmClient | null;
+
+  constructor(llm?: LlmClient) {
+    this.llm = llm || null;
+  }
+
+  async generateMonthlyReview(params: {
     month: number;
     year: number;
     transactions: ReviewTransactionData[];
@@ -71,11 +98,11 @@ export class MonthlyAiReviewEngine {
     previousMonthSavingsRate?: number;
     previousMonthExpenses?: number;
     healthScore?: { current: number; change: number; level: string };
-  }): MonthlyReviewOutput {
+  }): Promise<MonthlyReviewOutput> {
     const { month, year } = params;
 
-    const incomeTxns = params.transactions.filter(t => t.type === 'income');
-    const expenseTxns = params.transactions.filter(t => t.type === 'expense');
+    const incomeTxns = params.transactions.filter((t) => t.type === 'income');
+    const expenseTxns = params.transactions.filter((t) => t.type === 'expense');
 
     const totalIncome = incomeTxns.reduce((s, t) => s + t.amount, 0);
     const totalExpenses = expenseTxns.reduce((s, t) => s + t.amount, 0);
@@ -87,7 +114,10 @@ export class MonthlyAiReviewEngine {
       const cat = t.category || 'Other Income';
       incomeBySource.set(cat, (incomeBySource.get(cat) || 0) + t.amount);
     }
-    const incomeSources = Array.from(incomeBySource.entries()).map(([name, amount]) => ({ name, amount }));
+    const incomeSources = Array.from(incomeBySource.entries()).map(([name, amount]) => ({
+      name,
+      amount,
+    }));
 
     const expensesByCat = new Map<string, number>();
     for (const t of expenseTxns) {
@@ -110,43 +140,55 @@ export class MonthlyAiReviewEngine {
       ? savingsRate - params.previousMonthSavingsRate
       : 0;
 
-    const budgetDetails = params.budgets.map(b => ({
+    const budgetDetails = params.budgets.map((b) => ({
       name: b.name,
       status: b.spent <= b.amount ? 'on_track' : 'exceeded',
       spent: b.spent,
       budget: b.amount,
     }));
-    const budgetsOnTrack = budgetDetails.filter(b => b.status === 'on_track').length;
-    const budgetsExceeded = budgetDetails.filter(b => b.status === 'exceeded').length;
+    const budgetsOnTrack = budgetDetails.filter((b) => b.status === 'on_track').length;
+    const budgetsExceeded = budgetDetails.filter((b) => b.status === 'exceeded').length;
 
-    const goalProgress = params.goals.map(g => {
-      const progress = g.targetAmount > 0 ? Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100) : 0;
+    const goalProgress = params.goals.map((g) => {
+      const progress =
+        g.targetAmount > 0
+          ? Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100)
+          : 0;
       let status = 'behind';
       if (g.deadline) {
         const totalDays = (g.deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
         const expectedProgress = totalDays > 0 ? Math.min(100, 100) : 100;
-        if (progress >= 100) status = 'completed';
-        else if (progress >= expectedProgress * 0.8) status = 'on_track';
-        else status = 'behind';
+        if (progress >= 100) {
+          status = 'completed';
+        } else if (progress >= expectedProgress * 0.8) {
+          status = 'on_track';
+        } else {
+          status = 'behind';
+        }
       } else {
-        if (progress >= 100) status = 'completed';
-        else if (progress >= 50) status = 'on_track';
-        else status = 'behind';
+        if (progress >= 100) {
+          status = 'completed';
+        } else if (progress >= 50) {
+          status = 'on_track';
+        } else {
+          status = 'behind';
+        }
       }
       return { name: g.name, progress, status };
     });
-    const goalHighlight = goalProgress.length > 0
-      ? goalProgress.reduce((a, b) => (a.progress > b.progress ? a : b)).name
-      : 'No goals tracked';
+    const goalHighlight =
+      goalProgress.length > 0
+        ? goalProgress.reduce((a, b) => (a.progress > b.progress ? a : b)).name
+        : 'No goals tracked';
 
-    const paidBills = params.bills.filter(b => b.isPaid).length;
-    const pendingBills = params.bills.filter(b => !b.isPaid).length;
+    const paidBills = params.bills.filter((b) => b.isPaid).length;
+    const pendingBills = params.bills.filter((b) => !b.isPaid).length;
     const now = new Date();
     const upcomingBills = params.bills
-      .filter(b => !b.isPaid && b.dueDate >= now)
+      .filter((b) => !b.isPaid && b.dueDate >= now)
       .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
       .slice(0, 5)
-      .map(b => ({
+      .map((b) => ({
         name: b.name,
         amount: b.amount,
         dueDate: b.dueDate.toISOString().split('T')[0],
@@ -157,20 +199,42 @@ export class MonthlyAiReviewEngine {
     const gainLoss = totalInvValue - totalInvCost;
     const gainLossPct = totalInvCost > 0 ? Math.round((gainLoss / totalInvCost) * 100) : 0;
 
-    const invReturns = params.investments.map(i => ({
+    const invReturns = params.investments.map((i) => ({
       name: i.name,
       ret: ((i.currentPrice - i.buyPrice) / i.buyPrice) * 100,
     }));
     invReturns.sort((a, b) => b.ret - a.ret);
-    const topGainers = invReturns.filter(i => i.ret > 0).slice(0, 3).map(i => i.name);
-    const topLosers = invReturns.filter(i => i.ret < 0).slice(0, 3).map(i => i.name);
+    const topGainers = invReturns
+      .filter((i) => i.ret > 0)
+      .slice(0, 3)
+      .map((i) => i.name);
+    const topLosers = invReturns
+      .filter((i) => i.ret < 0)
+      .slice(0, 3)
+      .map((i) => i.name);
 
     const healthScore = params.healthScore || { current: 70, change: 0, level: 'good' };
 
-    const insights = this.generateInsights(params, totalIncome, totalExpenses, savingsRate, byCategory);
-    const recommendations = this.generateRecommendations(params, savingsRate, byCategory, healthScore);
-    const achievements = this.generateAchievements(savingsRate, budgetDetails, goalProgress, paidBills);
-    const nextMonthFocus = this.determineNextMonthFocus(savingsRate, healthScore, byCategory);
+    const insights = await this.generateInsights(
+      params,
+      totalIncome,
+      totalExpenses,
+      savingsRate,
+      byCategory,
+    );
+    const recommendations = await this.generateRecommendations(
+      params,
+      savingsRate,
+      byCategory,
+      healthScore,
+    );
+    const achievements = await this.generateAchievements(
+      savingsRate,
+      budgetDetails,
+      goalProgress,
+      paidBills,
+    );
+    const nextMonthFocus = await this.determineNextMonthFocus(savingsRate, healthScore, byCategory);
 
     const period = this.getMonthName(month) + ' ' + year;
     const summary = `In ${period}, your total income was ₹${totalIncome.toLocaleString()} and expenses were ₹${totalExpenses.toLocaleString()}, saving ${savingsRate}% of income. ${achievements.length > 0 ? achievements[0] : 'Keep tracking your finances for better insights.'}`;
@@ -183,7 +247,12 @@ export class MonthlyAiReviewEngine {
       income: { total: totalIncome, sources: incomeSources, vsLastMonth: vsLastMonthIncome },
       expenses: { total: totalExpenses, byCategory, vsLastMonth: vsLastMonthExpenses },
       savings: { total: totalSavings, rate: savingsRate, vsLastMonth: vsLastMonthSavings },
-      budgets: { onTrack: budgetsOnTrack, exceeded: budgetsExceeded, total: params.budgets.length, details: budgetDetails },
+      budgets: {
+        onTrack: budgetsOnTrack,
+        exceeded: budgetsExceeded,
+        total: params.budgets.length,
+        details: budgetDetails,
+      },
       goals: { progress: goalProgress, highlight: goalHighlight },
       bills: { paid: paidBills, pending: pendingBills, upcoming: upcomingBills },
       investments: { totalValue: totalInvValue, gainLoss, gainLossPct, topGainers, topLosers },
@@ -195,13 +264,59 @@ export class MonthlyAiReviewEngine {
     };
   }
 
-  private generateInsights(
+  private async generateInsights(
     params: {
       transactions: ReviewTransactionData[];
       budgets: ReviewBudgetData[];
       goals: ReviewGoalData[];
       bills: ReviewBillData[];
     },
+    totalIncome: number,
+    totalExpenses: number,
+    savingsRate: number,
+    byCategory: { category: string; amount: number; percentage: number }[],
+  ): Promise<string[]> {
+    if (this.llm) {
+      try {
+        const exceededBudgets = params.budgets
+          .filter((b) => b.spent > b.amount)
+          .map(
+            (b) => `${b.name}: spent ₹${b.spent.toLocaleString()} of ₹${b.amount.toLocaleString()}`,
+          );
+        const behindGoals = params.goals
+          .filter((g) => g.targetAmount > 0 && (g.currentAmount / g.targetAmount) * 100 < 50)
+          .map(
+            (g) => `${g.name}: ${Math.round((g.currentAmount / g.targetAmount) * 100)}% complete`,
+          );
+        const pendingBills = params.bills.filter((b) => !b.isPaid).length;
+
+        const prompt = `You are a financial analyst for an Indian user. Generate 4-5 key insights about their month.
+Monthly Income: ₹${totalIncome.toLocaleString()}
+Monthly Expenses: ₹${totalExpenses.toLocaleString()}
+Savings Rate: ${savingsRate}%
+Top Categories: ${byCategory
+          .slice(0, 3)
+          .map((c) => `${c.category} (₹${c.amount.toLocaleString()}, ${c.percentage}%)`)
+          .join(', ')}
+${exceededBudgets.length > 0 ? `Exceeded Budgets: ${exceededBudgets.join('; ')}` : 'All budgets on track'}
+${behindGoals.length > 0 ? `Goals Behind: ${behindGoals.join('; ')}` : ''}
+${pendingBills > 0 ? `${pendingBills} unpaid bills` : 'All bills paid'}
+
+Return ONLY a JSON array of 4-5 short insight strings. Each 1 sentence. Be specific with ₹ amounts.`;
+
+        const result = await this.llm.generateJson<string[]>(prompt, { temperature: 0.4 });
+        if (result && result.length >= 2) {
+          return result.slice(0, 5);
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return this.getFallbackInsights(params, totalIncome, totalExpenses, savingsRate, byCategory);
+  }
+
+  private getFallbackInsights(
+    params: { budgets: ReviewBudgetData[]; goals: ReviewGoalData[]; bills: ReviewBillData[] },
     totalIncome: number,
     totalExpenses: number,
     savingsRate: number,
@@ -215,28 +330,35 @@ export class MonthlyAiReviewEngine {
     }
     const topCategory = byCategory[0];
     if (topCategory && topCategory.percentage > 30) {
-      insights.push(`${topCategory.category} accounts for ${topCategory.percentage}% of all expenses`);
+      insights.push(
+        `${topCategory.category} accounts for ${topCategory.percentage}% of all expenses`,
+      );
     }
-    const exceededBudgets = params.budgets.filter(b => b.spent > b.amount);
+    const exceededBudgets = params.budgets.filter((b) => b.spent > b.amount);
     if (exceededBudgets.length > 0) {
-      insights.push(`${exceededBudgets.length} budget${exceededBudgets.length > 1 ? 's were' : ' was'} exceeded this month`);
+      insights.push(
+        `${exceededBudgets.length} budget${exceededBudgets.length > 1 ? 's were' : ' was'} exceeded this month`,
+      );
     }
-    const behindGoals = params.goals.filter(g => {
-      if (g.targetAmount === 0) return false;
-      const pct = (g.currentAmount / g.targetAmount) * 100;
-      return pct < 50;
+    const behindGoals = params.goals.filter((g) => {
+      if (g.targetAmount === 0) {
+        return false;
+      }
+      return (g.currentAmount / g.targetAmount) * 100 < 50;
     });
     if (behindGoals.length > 0) {
-      insights.push(`${behindGoals.length} goal${behindGoals.length > 1 ? 's are' : ' is'} behind schedule`);
+      insights.push(
+        `${behindGoals.length} goal${behindGoals.length > 1 ? 's are' : ' is'} behind schedule`,
+      );
     }
-    const pendingBills = params.bills.filter(b => !b.isPaid).length;
+    const pendingBills = params.bills.filter((b) => !b.isPaid).length;
     if (pendingBills > 0) {
       insights.push(`You have ${pendingBills} unpaid bill${pendingBills > 1 ? 's' : ''}`);
     }
     return insights.slice(0, 5);
   }
 
-  private generateRecommendations(
+  private async generateRecommendations(
     params: {
       transactions: ReviewTransactionData[];
       budgets: ReviewBudgetData[];
@@ -247,19 +369,63 @@ export class MonthlyAiReviewEngine {
     savingsRate: number,
     byCategory: { category: string; amount: number; percentage: number }[],
     healthScore: { current: number; change: number; level: string },
+  ): Promise<string[]> {
+    if (this.llm) {
+      try {
+        const exceededBudgets = params.budgets
+          .filter((b) => b.spent > b.amount)
+          .map((b) => `${b.name}: over by ₹${(b.spent - b.amount).toLocaleString()}`);
+        const behindGoals = params.goals
+          .filter((g) => g.targetAmount > 0 && (g.currentAmount / g.targetAmount) * 100 < 50)
+          .map((g) => g.name);
+
+        const prompt = `You are a financial advisor for an Indian user. Generate 4-5 actionable recommendations.
+Savings Rate: ${savingsRate}%
+Health Score: ${healthScore.current}/100 (${healthScore.level})
+Top Spending: ${byCategory
+          .slice(0, 3)
+          .map((c) => `${c.category} ₹${c.amount.toLocaleString()}`)
+          .join(', ')}
+${exceededBudgets.length > 0 ? `Over Budgets: ${exceededBudgets.join('; ')}` : ''}
+${behindGoals.length > 0 ? `Behind Goals: ${behindGoals.join(', ')}` : ''}
+Investments: ${params.investments.length > 0 ? `${params.investments.length} active` : 'None'}
+
+Return ONLY a JSON array of 4-5 recommendation strings. Be specific with ₹ amounts and categories.`;
+
+        const result = await this.llm.generateJson<string[]>(prompt, { temperature: 0.4 });
+        if (result && result.length >= 2) {
+          return result.slice(0, 5);
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return this.getFallbackRecommendations(params, savingsRate, byCategory, healthScore);
+  }
+
+  private getFallbackRecommendations(
+    params: {
+      budgets: ReviewBudgetData[];
+      goals: ReviewGoalData[];
+      investments: ReviewInvestmentData[];
+    },
+    savingsRate: number,
+    byCategory: { category: string; amount: number; percentage: number }[],
+    healthScore: { current: number; change: number; level: string },
   ): string[] {
     const recommendations: string[] = [];
     if (savingsRate < 20) {
       recommendations.push('Aim to save at least 20% of your income each month');
     }
-    const exceededBudgets = params.budgets.filter(b => b.spent > b.amount);
+    const exceededBudgets = params.budgets.filter((b) => b.spent > b.amount);
     for (const b of exceededBudgets.slice(0, 2)) {
-      recommendations.push(`Review ${b.name} spending — you exceeded by ₹${(b.spent - b.amount).toLocaleString()}`);
+      recommendations.push(
+        `Review ${b.name} spending — you exceeded by ₹${(b.spent - b.amount).toLocaleString()}`,
+      );
     }
-    const behindGoals = params.goals.filter(g => {
-      if (g.targetAmount === 0) return false;
-      return (g.currentAmount / g.targetAmount) * 100 < 50;
-    });
+    const behindGoals = params.goals.filter(
+      (g) => g.targetAmount > 0 && (g.currentAmount / g.targetAmount) * 100 < 50,
+    );
     if (behindGoals.length > 0) {
       recommendations.push(`Increase contributions to ${behindGoals[0].name} to stay on track`);
     }
@@ -273,7 +439,39 @@ export class MonthlyAiReviewEngine {
     return recommendations.slice(0, 5);
   }
 
-  private generateAchievements(
+  private async generateAchievements(
+    savingsRate: number,
+    budgetDetails: { name: string; status: string; spent: number; budget: number }[],
+    goalProgress: { name: string; progress: number; status: string }[],
+    paidBills: number,
+  ): Promise<string[]> {
+    if (this.llm) {
+      try {
+        const onTrack = budgetDetails.filter((b) => b.status === 'on_track').length;
+        const completedGoals = goalProgress
+          .filter((g) => g.status === 'completed')
+          .map((g) => g.name);
+
+        const prompt = `Celebrate this user's monthly financial achievements:
+Savings Rate: ${savingsRate}%
+Budgets on Track: ${onTrack}/${budgetDetails.length}
+Completed Goals: ${completedGoals.length > 0 ? completedGoals.join(', ') : 'None'}
+Bills Paid: ${paidBills}
+
+Return ONLY a JSON array of 1-3 short achievement strings. Use 🎉 or ✅ emoji. Be encouraging.`;
+
+        const result = await this.llm.generateJson<string[]>(prompt, { temperature: 0.6 });
+        if (result && result.length >= 1) {
+          return result.slice(0, 3);
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return this.getFallbackAchievements(savingsRate, budgetDetails, goalProgress, paidBills);
+  }
+
+  private getFallbackAchievements(
     savingsRate: number,
     budgetDetails: { name: string; status: string; spent: number; budget: number }[],
     goalProgress: { name: string; progress: number; status: string }[],
@@ -287,13 +485,15 @@ export class MonthlyAiReviewEngine {
     } else if (savingsRate >= 15) {
       achievements.push(`You saved ${savingsRate}% of income — keep it up!`);
     }
-    const onTrackBudgets = budgetDetails.filter(b => b.status === 'on_track').length;
+    const onTrackBudgets = budgetDetails.filter((b) => b.status === 'on_track').length;
     if (onTrackBudgets === budgetDetails.length && budgetDetails.length > 0) {
       achievements.push('All budgets on track — fantastic budgeting!');
     } else if (onTrackBudgets >= budgetDetails.length * 0.7 && budgetDetails.length > 0) {
-      achievements.push(`Most budgets (${onTrackBudgets}/${budgetDetails.length}) on track — good work!`);
+      achievements.push(
+        `Most budgets (${onTrackBudgets}/${budgetDetails.length}) on track — good work!`,
+      );
     }
-    const completedGoals = goalProgress.filter(g => g.status === 'completed');
+    const completedGoals = goalProgress.filter((g) => g.status === 'completed');
     for (const g of completedGoals) {
       achievements.push(`Goal completed: ${g.name}`);
     }
@@ -303,21 +503,59 @@ export class MonthlyAiReviewEngine {
     return achievements;
   }
 
-  private determineNextMonthFocus(
+  private async determineNextMonthFocus(
     savingsRate: number,
     healthScore: { current: number; change: number; level: string },
     byCategory: { category: string; amount: number; percentage: number }[],
-  ): string {
-    if (savingsRate < 10) return 'Increase savings rate — reduce discretionary spending';
-    if (healthScore.current < 50) return 'Improve overall financial health score';
+  ): Promise<string> {
+    if (this.llm) {
+      try {
+        const prompt = `Based on this user's financial state, suggest ONE focused area for next month:
+Savings Rate: ${savingsRate}%
+Health Score: ${healthScore.current}/100
+Top Category: ${byCategory[0] ? `${byCategory[0].category} at ${byCategory[0].percentage}%` : 'N/A'}
+
+Return ONLY a JSON string — one specific, actionable focus area.`;
+
+        const result = await this.llm.generateJson<string>(prompt, { temperature: 0.3 });
+        if (result && result.length > 10) {
+          return result;
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    if (savingsRate < 10) {
+      return 'Increase savings rate — reduce discretionary spending';
+    }
+    if (healthScore.current < 50) {
+      return 'Improve overall financial health score';
+    }
     const topCat = byCategory[0];
-    if (topCat && topCat.percentage > 40) return `Reduce ${topCat.category} spending`;
-    if (savingsRate < 20) return 'Push savings rate above 20%';
+    if (topCat && topCat.percentage > 40) {
+      return `Reduce ${topCat.category} spending`;
+    }
+    if (savingsRate < 20) {
+      return 'Push savings rate above 20%';
+    }
     return 'Maintain good habits and review investment portfolio';
   }
 
   private getMonthName(month: number): string {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     return months[month - 1] || 'Unknown';
   }
 }

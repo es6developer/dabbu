@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -159,7 +167,7 @@ export function GlobalSearchScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <AntDesign  name="left" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <View
           style={[
@@ -167,7 +175,7 @@ export function GlobalSearchScreen() {
             { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
           ]}
         >
-          <AntDesign  name="search1" size={18} color={colors.text.tertiary} />
+          <AntDesign name="search1" size={18} color={colors.text.tertiary} />
           <TextInput
             ref={inputRef}
             style={[styles.searchInput, { color: colors.text.primary }]}
@@ -180,7 +188,7 @@ export function GlobalSearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
+              <AntDesign name="closecircleo" size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -203,7 +211,7 @@ export function GlobalSearchScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <AntDesign  name="search1" size={48} color={colors.text.tertiary} />
+            <AntDesign name="search1" size={48} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
               No results found
             </Text>
@@ -220,7 +228,7 @@ export function GlobalSearchScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <AntDesign  name="search1" size={48} color={colors.text.tertiary} />
+            <AntDesign name="search1" size={48} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>Global Search</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
               Search across transactions, groups, bills, and goals
@@ -242,7 +250,7 @@ export function GlobalSearchScreen() {
                 ]}
                 activeOpacity={0.7}
                 onPress={() =>
-                  navigation.navigate('Expense', {
+                  navigation.navigate('WalletTab', {
                     screen: 'TransactionDetail',
                     params: { transactionId: tx.id },
                   })
@@ -285,14 +293,14 @@ export function GlobalSearchScreen() {
               ]}
               activeOpacity={0.7}
               onPress={() =>
-                navigation.navigate('Spaces', {
+                navigation.navigate('SpacesTab', {
                   screen: 'SharedGroupDetail',
                   params: { groupId: g.id },
                 })
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-                <AntDesign  name="team" size={16} color={colors.accent.primary} />
+                <AntDesign name="team" size={16} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -305,7 +313,7 @@ export function GlobalSearchScreen() {
                   {g.description || g.type || 'Group'}
                 </Text>
               </View>
-              <AntDesign  name="right" size={16} color={colors.text.tertiary} />
+              <AntDesign name="right" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           ))}
 
@@ -319,11 +327,11 @@ export function GlobalSearchScreen() {
               ]}
               activeOpacity={0.7}
               onPress={() =>
-                navigation.navigate('Expense', { screen: 'BillDetail', params: { billId: b.id } })
+                navigation.navigate('WalletTab', { screen: 'BillDetail', params: { billId: b.id } })
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.status.warning}12` }]}>
-                <AntDesign  name="filetext1" size={16} color={colors.status.warning} />
+                <AntDesign name="filetext1" size={16} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -361,7 +369,7 @@ export function GlobalSearchScreen() {
                 <View
                   style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}
                 >
-                  <AntDesign  name="flag" size={16} color={colors.accent.primary} />
+                  <AntDesign name="flag" size={16} color={colors.accent.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text

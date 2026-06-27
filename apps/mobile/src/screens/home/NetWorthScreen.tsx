@@ -1,11 +1,21 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
+import { onDataRefresh } from '../../services/dataRefresh';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 
@@ -69,46 +79,63 @@ export function NetWorthScreen() {
     };
   }, []);
 
-  const loadData = useCallback(async (silent = false, refresh = false) => {
-    try {
-      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
-      if (accessToken) {
-        setAccessToken(accessToken);
+  const loadData = useCallback(
+    async (silent = false, refresh = false) => {
+      try {
+        if (refresh) {
+          setRefreshing(true);
+        } else if (!silent) {
+          setLoading(true);
+        }
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
+        const res = await api.get('/net-worth');
+        const body = res as any;
+        const data = body?.data ?? body;
+        if (data) {
+          setAssets({
+            bank: String(data.bank ?? ''),
+            cash: String(data.cash ?? ''),
+            gold: String(data.gold ?? ''),
+            property: String(data.property ?? ''),
+            investments: String(data.investments ?? ''),
+            fixedDeposits: String(data.fixedDeposits ?? ''),
+            epf: String(data.epf ?? ''),
+            crypto: String(data.crypto ?? ''),
+          });
+          setLiabilities({
+            homeLoan: String(data.homeLoan ?? ''),
+            personalLoan: String(data.personalLoan ?? ''),
+            creditCard: String(data.creditCardDebt ?? ''),
+            otherLoan: String(data.otherLiabilities ?? ''),
+          });
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      const res = await api.get('/net-worth');
-      const body = res as any;
-      const data = body?.data ?? body;
-      if (data) {
-        setAssets({
-          bank: String(data.bank ?? ''),
-          cash: String(data.cash ?? ''),
-          gold: String(data.gold ?? ''),
-          property: String(data.property ?? ''),
-          investments: String(data.investments ?? ''),
-          fixedDeposits: String(data.fixedDeposits ?? ''),
-          epf: String(data.epf ?? ''),
-          crypto: String(data.crypto ?? ''),
-        });
-        setLiabilities({
-          homeLoan: String(data.homeLoan ?? ''),
-          personalLoan: String(data.personalLoan ?? ''),
-          creditCard: String(data.creditCardDebt ?? ''),
-          otherLoan: String(data.otherLiabilities ?? ''),
-        });
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [accessToken]);
+    },
+    [accessToken],
+  );
 
   useSilentRefresh(
-    useCallback((isInitial) => {
-      loadData(!isInitial);
-    }, [loadData]),
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
   );
+
+  useEffect(() => {
+    const unsub = onDataRefresh(() => {
+      loadData(true);
+    });
+    return unsub;
+  }, [loadData]);
 
   async function save() {
     if (saveTimer.current) {
@@ -165,7 +192,7 @@ export function NetWorthScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <AntDesign  name="left" size={24} color={colors.text.primary} />
+          <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Net Worth</Text>
         <View style={{ width: 40 }} />
@@ -179,7 +206,20 @@ export function NetWorthScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await loadData(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                try {
+                  await loadData(false, true);
+                } finally {
+                  setRefreshing(false);
+                }
+              }}
+              tintColor={colors.accent?.primary || colors.brand?.primary}
+            />
+          }
         >
           <View
             style={[
@@ -200,7 +240,7 @@ export function NetWorthScreen() {
             <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
             <View style={styles.breakdownRow}>
               <View style={styles.breakdownItem}>
-                <AntDesign  name="up" size={14} color={colors.status.success} />
+                <AntDesign name="up" size={14} color={colors.status.success} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>Assets</Text>
                 <Text style={[styles.breakdownValue, { color: colors.status.success }]}>
                   {fmt(totalAssets)}
@@ -208,7 +248,7 @@ export function NetWorthScreen() {
               </View>
               <View style={[styles.breakdownDivider, { backgroundColor: colors.border.subtle }]} />
               <View style={styles.breakdownItem}>
-                <AntDesign  name="down" size={14} color={colors.status.error} />
+                <AntDesign name="down" size={14} color={colors.status.error} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>
                   Liabilities
                 </Text>

@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useLensChange } from '../../hooks/useLensChange';
 import { api, setAccessToken } from '../../services/api';
+import { onDataRefresh } from '../../services/dataRefresh';
 import { API_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -156,6 +157,13 @@ export function MyWalletScreen() {
       loadData(true);
     }, [loadData]),
   );
+
+  useEffect(() => {
+    const unsub = onDataRefresh(() => {
+      loadData(true);
+    });
+    return unsub;
+  }, [loadData]);
 
   const safeCat = (t: any) => {
     const c = t.category;

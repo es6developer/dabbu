@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Dimensions,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,6 +57,7 @@ export function CoupleBudgetsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [budgetData, setBudgetData] = useState<any>(null);
+  const [aiRebalance, setAiRebalance] = useState<any>(null);
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async (isRefresh = false) => {
@@ -67,6 +76,20 @@ export function CoupleBudgetsScreen() {
       }
       const res = await api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/budgets`);
       setBudgetData(res || {});
+      const budgetCategories = res?.categories || [];
+      if (budgetCategories.length > 0) {
+        const topCat = budgetCategories.reduce(
+          (a: any, b: any) => ((a.spent || 0) > (b.spent || 0) ? a : b),
+          budgetCategories[0],
+        );
+        api
+          .post('/ai/contextual/rebalance', {
+            targetCategory: topCat.category || topCat.name,
+            monthlyBudget: topCat.amount || topCat.budget,
+          })
+          .then((r: any) => setAiRebalance(r?.data || r))
+          .catch(() => {});
+      }
       setError('');
     } catch (e: any) {
       setError(e?.message || 'Failed to load budgets');
@@ -116,13 +139,13 @@ export function CoupleBudgetsScreen() {
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <AntDesign  name="arrowleft" size={22} color="#FFF" />
+                <AntDesign name="arrowleft" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Budgets</Text>
               <View style={{ width: 32 }} />
             </View>
           </View>
-          <AntDesign  name="wallet" size={48} color={colors.accent.primary} />
+          <AntDesign name="wallet" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Budget Data
           </Text>
@@ -160,7 +183,7 @@ export function CoupleBudgetsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <AntDesign  name="arrowleft" size={22} color="#FFF" />
+              <AntDesign name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Budgets</Text>
             <View style={{ width: 32 }} />
@@ -172,7 +195,7 @@ export function CoupleBudgetsScreen() {
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>{monthLabel()}</Text>
               <View style={styles.heroBadge}>
-                <AntDesign  name="calendar" size={12} color={colors.accent.primary} />
+                <AntDesign name="calendar" size={12} color={colors.accent.primary} />
                 <Text style={styles.heroBadgeText}> Monthly Budget</Text>
               </View>
             </View>
@@ -221,13 +244,37 @@ export function CoupleBudgetsScreen() {
 
           {categories.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
-              <AntDesign name="switcher" size={32} color={colors.text.tertiary}  />
+              <AntDesign name="switcher" size={32} color={colors.text.tertiary} />
               <Text style={[styles.emptyCardText, { color: colors.text.secondary }]}>
                 No categories set up yet
               </Text>
               <Text style={[styles.emptyCardSub, { color: colors.text.tertiary }]}>
                 Tap "Adjust Budget" to get started
               </Text>
+            </View>
+          )}
+
+          {aiRebalance?.suggestions?.length > 0 && (
+            <View
+              style={[
+                styles.aiCard,
+                {
+                  backgroundColor: colors.accent.primary + '08',
+                  borderColor: colors.accent.primary + '20',
+                },
+              ]}
+            >
+              <View style={styles.aiCardHeader}>
+                <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
+                <Text style={[styles.aiCardTitle, { color: colors.accent.primary }]}>
+                  AI Budget Advice
+                </Text>
+              </View>
+              {aiRebalance.suggestions.slice(0, 3).map((s: any, i: number) => (
+                <Text key={i} style={[styles.aiCardBody, { color: colors.text.secondary }]}>
+                  • {s.reason || s.suggestion || s}
+                </Text>
+              ))}
             </View>
           )}
 
@@ -292,9 +339,9 @@ export function CoupleBudgetsScreen() {
           <TouchableOpacity
             style={[styles.adjustBtn, { backgroundColor: colors.accent.primary }]}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate('BudgetAdjust')}
+            onPress={() => navigation.goBack()}
           >
-            <AntDesign  name="setting" size={18} color="#FFF" />
+            <AntDesign name="setting" size={18} color="#FFF" />
             <Text style={styles.adjustBtnText}>Adjust Budget</Text>
           </TouchableOpacity>
         </View>
@@ -315,6 +362,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  aiCard: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1 },
+  aiCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  aiCardTitle: { fontSize: 14, fontWeight: '700' },
+  aiCardBody: { fontSize: 13, lineHeight: 20, marginBottom: 4 },
 
   heroCard: {
     borderRadius: 24,

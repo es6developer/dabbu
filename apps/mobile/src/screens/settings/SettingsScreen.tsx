@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Animated,
+  ActivityIndicator,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -14,10 +23,19 @@ import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
-import { alertService } from "../../components/ui";
-type SectionItem = { label: string; icon: string; screen: string; premium?: boolean; action?: 'lock' };
+import { alertService } from '../../components/ui';
+type SectionItem = {
+  label: string;
+  icon: string;
+  screen: string;
+  premium?: boolean;
+  action?: 'lock';
+};
 
-interface SectionConfig { title: string; items: SectionItem[] }
+interface SectionConfig {
+  title: string;
+  items: SectionItem[];
+}
 
 const SECTIONS: SectionConfig[] = [
   {
@@ -40,7 +58,7 @@ const SECTIONS: SectionConfig[] = [
     items: [
       { label: 'Profile', icon: 'user', screen: 'Profile' },
       { label: 'Partner Management', icon: 'hearto', screen: 'AddPartner' },
-      { label: 'Favorite Contacts', icon: 'staro', screen: 'FavoriteContacts' },
+      { label: 'Favorite Contacts', icon: 'staro', screen: 'Favorites' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
     ],
   },
@@ -72,7 +90,8 @@ const SECTIONS: SectionConfig[] = [
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const { user, logout, fetchCoupleRequests, approveCoupleRequest, rejectCoupleRequest } = useAuth();
+  const { user, logout, fetchCoupleRequests, approveCoupleRequest, rejectCoupleRequest } =
+    useAuth();
   const { isPremium, loading, refresh } = usePremium();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
@@ -117,12 +136,32 @@ export function SettingsScreen() {
   }, []);
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
-    if (action === 'lock') { lockApp(); return; }
+    if (action === 'lock') {
+      lockApp();
+      return;
+    }
     const registered = [
-      'Profile','AddPartner','Security','Premium','Theme','CustomiseDashboard',
-      'CustomiseBottomMenu','Help','Contact','Privacy','Analytics','Reports',
-      'BudgetsList','NotificationSettings','FavoriteContacts','Referral',
-      'CoupleSpace','Streaks','DataExport','Support','YearlySummary',
+      'Profile',
+      'AddPartner',
+      'Security',
+      'Premium',
+      'Theme',
+      'CustomiseDashboard',
+      'CustomiseBottomMenu',
+      'HelpCenter',
+      'ContactUs',
+      'Privacy',
+      'Analytics',
+      'Reports',
+      'BudgetsList',
+      'NotificationSettings',
+      'Favorites',
+      'Referral',
+      'CoupleSpace',
+      'Streaks',
+      'DataExport',
+      'Support',
+      'YearlySummary',
     ];
     if (!registered.includes(screen)) {
       alertService.alert('Coming Soon', `${screen} settings will be available soon`);
@@ -135,7 +174,19 @@ export function SettingsScreen() {
       ]);
       return;
     }
-    navigation.navigate(screen);
+    const crossTabMap: Record<string, { tab: string; screen: string }> = {
+      Reports: { tab: 'LifeHubTab', screen: 'Analytics' },
+      BudgetsList: { tab: 'WalletTab', screen: 'BillsList' },
+      Streaks: { tab: 'HomeTab', screen: 'Streaks' },
+      YearlySummary: { tab: 'HomeTab', screen: 'YearlySummary' },
+      Analytics: { tab: 'WalletTab', screen: 'Analytics' },
+    };
+    const crossTab = crossTabMap[screen];
+    if (crossTab) {
+      navigation.navigate(crossTab.tab, { screen: crossTab.screen });
+    } else {
+      navigation.navigate(screen);
+    }
   };
 
   const renderRow = (item: SectionItem, isLast: boolean) => (
@@ -163,7 +214,21 @@ export function SettingsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { refresh(); fetchCoupleRequests().catch(() => {}); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              try {
+                refresh();
+                fetchCoupleRequests().catch(() => {});
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            tintColor={colors.accent?.primary || colors.brand?.primary}
+          />
+        }
       >
         {/* ── Profile Header ── */}
         <View style={{ paddingTop: insets.top + 16, paddingHorizontal: PADDING, paddingBottom: 8 }}>
@@ -191,13 +256,30 @@ export function SettingsScreen() {
           </TouchableOpacity>
 
           <View style={s.badgeRow}>
-            <View style={[s.pill, { backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary }]}>
-              <AntDesign name={isPremium ? 'star' : 'user'} size={12} color={isPremium ? colors.accent.primary : colors.text.tertiary} />
-              <Text style={[s.pillText, { color: isPremium ? colors.accent.primary : colors.text.tertiary }]}>
+            <View
+              style={[
+                s.pill,
+                { backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary },
+              ]}
+            >
+              <AntDesign
+                name={isPremium ? 'star' : 'user'}
+                size={12}
+                color={isPremium ? colors.accent.primary : colors.text.tertiary}
+              />
+              <Text
+                style={[
+                  s.pillText,
+                  { color: isPremium ? colors.accent.primary : colors.text.tertiary },
+                ]}
+              >
                 {isPremium ? 'Premium' : 'Free'}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Security')} style={[s.pill, { backgroundColor: colors.bg.tertiary }]}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Security')}
+              style={[s.pill, { backgroundColor: colors.bg.tertiary }]}
+            >
               <AntDesign name="checkcircle" size={12} color={colors.text.tertiary} />
               <Text style={[s.pillText, { color: colors.text.tertiary }]}>Security</Text>
             </TouchableOpacity>
@@ -208,7 +290,12 @@ export function SettingsScreen() {
           {/* ── Pending Couple Requests ── */}
           {pendingRequests.length > 0 && (
             <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
-              <View style={[s.coupleCard, { backgroundColor: COUPLE_COLORS.bg, borderColor: COUPLE_COLORS.border }]}>
+              <View
+                style={[
+                  s.coupleCard,
+                  { backgroundColor: COUPLE_COLORS.bg, borderColor: COUPLE_COLORS.border },
+                ]}
+              >
                 <View style={[s.coupleHeader, { borderBottomColor: COUPLE_COLORS.border }]}>
                   <AntDesign name="hearto" size={16} color={COUPLE_COLORS.primary} />
                   <Text style={[s.coupleTitle, { color: COUPLE_COLORS.text }]}>
@@ -219,8 +306,13 @@ export function SettingsScreen() {
                   </Text>
                 </View>
                 {pendingRequests.map((req: any) => (
-                  <View key={req.id} style={[s.coupleRow, { borderBottomColor: COUPLE_COLORS.border }]}>
-                    <View style={[s.coupleAvatar, { backgroundColor: `${COUPLE_COLORS.primary}15` }]}>
+                  <View
+                    key={req.id}
+                    style={[s.coupleRow, { borderBottomColor: COUPLE_COLORS.border }]}
+                  >
+                    <View
+                      style={[s.coupleAvatar, { backgroundColor: `${COUPLE_COLORS.primary}15` }]}
+                    >
                       <AntDesign name="user" size={16} color={COUPLE_COLORS.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -240,13 +332,22 @@ export function SettingsScreen() {
                           const result = await approveCoupleRequest(req.id);
                           if (result?.user) {
                             setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
-                            alertService.alert('Connected!', "You're in a couple! Couple Mode is active.", [
-                              { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
-                            ]);
+                            alertService.alert(
+                              'Connected!',
+                              "You're in a couple! Couple Mode is active.",
+                              [
+                                {
+                                  text: 'Go to Home',
+                                  onPress: () => navigation.navigate('HomeTab'),
+                                },
+                              ],
+                            );
                           }
                         } catch (e: any) {
                           alertService.alert('Error', e?.message || 'Failed to approve');
-                        } finally { setProcessingReqId(null); }
+                        } finally {
+                          setProcessingReqId(null);
+                        }
                       }}
                     >
                       {processingReqId === req.id ? (
@@ -261,7 +362,9 @@ export function SettingsScreen() {
                         try {
                           await rejectCoupleRequest(req.id);
                           setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
-                        } catch { /* silent */ }
+                        } catch {
+                          /* silent */
+                        }
                       }}
                     >
                       <AntDesign name="close" size={14} color="#FF4757" />
@@ -277,7 +380,13 @@ export function SettingsScreen() {
             <TouchableOpacity
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.8}
-              style={[s.upgradeCard, { backgroundColor: isDark ? '#1E1B4B' : '#F5F3FF', borderColor: isDark ? '#2E1065' : '#E9D5FF' }]}
+              style={[
+                s.upgradeCard,
+                {
+                  backgroundColor: isDark ? '#1E1B4B' : '#F5F3FF',
+                  borderColor: isDark ? '#2E1065' : '#E9D5FF',
+                },
+              ]}
             >
               <View style={s.upgradeAccent} />
               <View style={s.upgradeContent}>
@@ -285,7 +394,9 @@ export function SettingsScreen() {
                   <AntDesign name="star" size={20} color="#0A0A0A" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.upgradeTitle, { color: colors.text.primary }]}>Upgrade to Premium</Text>
+                  <Text style={[s.upgradeTitle, { color: colors.text.primary }]}>
+                    Upgrade to Premium
+                  </Text>
                   <Text style={[s.upgradeDesc, { color: colors.text.tertiary }]}>
                     Unlock reports, analytics & exclusive features
                   </Text>
@@ -298,13 +409,17 @@ export function SettingsScreen() {
           )}
 
           {/* ── Couple Mode Toggle ── */}
-          <View style={{ paddingHorizontal: PADDING }}><CoupleModeToggle /></View>
+          <View style={{ paddingHorizontal: PADDING }}>
+            <CoupleModeToggle />
+          </View>
 
           {/* ── Settings Sections ── */}
           <View style={{ paddingHorizontal: PADDING, marginTop: 24, gap: 24 }}>
             {SECTIONS.map((section, i) => (
               <View key={i}>
-                <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>{section.title}</Text>
+                <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
+                  {section.title}
+                </Text>
                 <View style={[s.sectionCard, { backgroundColor: colors.bg.card }]}>
                   {section.items.map((item, j) => renderRow(item, j === section.items.length - 1))}
                 </View>
@@ -335,7 +450,10 @@ export function SettingsScreen() {
         confirmLabel="Sign Out"
         destructive
         icon="logout"
-        onConfirm={() => { setShowLogoutDialog(false); logout().catch(() => {}); }}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout().catch(() => {});
+        }}
         onCancel={() => setShowLogoutDialog(false)}
       />
     </View>
@@ -346,105 +464,168 @@ const s = StyleSheet.create({
   root: { flex: 1 },
 
   profileCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 16,
-    borderRadius: borderRadius['2xl'], gap: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: borderRadius['2xl'],
+    gap: 14,
   },
   profileInfo: { flex: 1 },
   profileName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
   profileEmail: { fontSize: 13, fontWeight: '500', marginTop: 2 },
   profileChevron: {
-    width: 32, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   badgeRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 4, marginTop: 10 },
   pill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
   pillText: { fontSize: 12, fontWeight: '700' },
 
   coupleCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, overflow: 'hidden' },
   coupleHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderBottomWidth: 1,
   },
   coupleTitle: { fontSize: 14, fontWeight: '800', flex: 1 },
   coupleCount: { fontSize: 12, fontWeight: '700' },
   coupleRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   coupleAvatar: {
-    width: 32, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   coupleName: { fontSize: 13, fontWeight: '700' },
   coupleDetail: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   approveBtn: {
-    width: 30, height: 30, borderRadius: 9, backgroundColor: '#10B981',
-    alignItems: 'center', justifyContent: 'center',
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rejectBtn: {
-    width: 30, height: 30, borderRadius: 9,
-    backgroundColor: '#FF475720', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#FF475740',
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: '#FF475720',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FF475740',
   },
 
   upgradeCard: {
-    marginHorizontal: PADDING, marginBottom: 20,
-    borderRadius: borderRadius['2xl'], overflow: 'hidden', borderWidth: 1,
+    marginHorizontal: PADDING,
+    marginBottom: 20,
+    borderRadius: borderRadius['2xl'],
+    overflow: 'hidden',
+    borderWidth: 1,
   },
   upgradeAccent: { height: 3, backgroundColor: '#FFD700' },
   upgradeContent: {
-    flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 14,
   },
   upgradeIcon: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFD700',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   upgradeTitle: { fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
   upgradeDesc: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   upgradeBtn: {
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20, backgroundColor: '#FFD700',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFD700',
   },
   upgradeBtnText: { fontSize: 12, fontWeight: '800', color: '#0A0A0A' },
 
   sectionTitle: {
-    fontSize: 12, fontWeight: '600', letterSpacing: 0.5,
-    marginBottom: 8, paddingHorizontal: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   sectionCard: { borderRadius: borderRadius['2xl'], overflow: 'hidden' },
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 13, paddingHorizontal: 16, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth },
   rowIcon: {
-    width: 32, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   badge: {
-    paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
     marginRight: 4,
   },
   badgeText: { fontSize: 9, fontWeight: '800' },
 
   logoutCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    marginHorizontal: PADDING, marginTop: 24, padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: PADDING,
+    marginTop: 24,
+    padding: 16,
     borderRadius: borderRadius['2xl'],
   },
   logoutIcon: {
-    width: 32, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logoutText: { fontSize: 15, fontWeight: '700' },
 
   version: {
-    textAlign: 'center', fontSize: 12, fontWeight: '500',
-    marginTop: 24, marginBottom: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 24,
+    marginBottom: 8,
   },
 });

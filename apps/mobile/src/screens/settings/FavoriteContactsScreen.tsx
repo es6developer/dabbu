@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, TextInput, ActivityIndicator, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  TextInput,
+  ActivityIndicator,
+  Keyboard,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -63,7 +73,9 @@ export function FavoriteContactsScreen() {
   const handleSearch = useCallback(
     (text: string) => {
       setSearchQuery(text);
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
       if (text.trim().length < 2) {
         setSearchResults([]);
         return;
@@ -116,7 +128,7 @@ export function FavoriteContactsScreen() {
         onPress={() => navigation.goBack()}
         style={[styles.backBtn, { backgroundColor: colors.bg.glass }]}
       >
-        <AntDesign  name="arrowleft" size={20} color={colors.text.primary} />
+        <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
       </TouchableOpacity>
       <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Favorite Contacts</Text>
       <View style={{ width: 36 }} />
@@ -126,7 +138,12 @@ export function FavoriteContactsScreen() {
   const renderSearchBar = () => (
     <View style={styles.searchWrap}>
       <View style={[styles.searchInner, { backgroundColor: colors.bg.glass }]}>
-        <AntDesign  name="search1" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
+        <AntDesign
+          name="search1"
+          size={16}
+          color={colors.text.tertiary}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}
           placeholder="Search by name or phone..."
@@ -144,7 +161,7 @@ export function FavoriteContactsScreen() {
               setSearchResults([]);
             }}
           >
-            <AntDesign  name="closecircleo" size={16} color={colors.text.tertiary} />
+            <AntDesign name="closecircleo" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -169,34 +186,70 @@ export function FavoriteContactsScreen() {
           >
             {searchResults.map((user, i) => (
               <React.Fragment key={user.id}>
-                <View style={styles.row}>
-                  <Avatar
-                    uri={user.avatarUrl}
-                    name={`${user.firstName || ''} ${user.lastName || ''}`.trim()}
-                    size={44}
-                  />
-                  <View style={styles.rowInfo}>
-                    <Text
-                      style={[styles.rowName, { color: colors.text.primary }]}
-                      numberOfLines={1}
-                    >
-                      {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
-                    </Text>
-                    {user.phone && (
-                      <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
-                        {user.phone}
+                {favoriteIds.has(user.id) ? (
+                  <TouchableOpacity
+                    style={styles.row}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      navigation.navigate('WalletTab', {
+                        screen: 'AddExpense',
+                        params: {
+                          contact: {
+                            name: user.firstName || user.email,
+                            userId: user.id,
+                            phone: user.phone,
+                          },
+                        },
+                      })
+                    }
+                  >
+                    <Avatar
+                      uri={user.avatarUrl}
+                      name={`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                      size={44}
+                    />
+                    <View style={styles.rowInfo}>
+                      <Text
+                        style={[styles.rowName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
                       </Text>
-                    )}
-                  </View>
-                  {favoriteIds.has(user.id) ? (
-                    <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
-                      <AntDesign  name="staro" size={16} color={colors.accent.primary} />
+                      {user.phone && (
+                        <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
+                          {user.phone}
+                        </Text>
+                      )}
                     </View>
-                  ) : (
+                    <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
+                      <AntDesign name="staro" size={16} color={colors.accent.primary} />
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.row}>
+                    <Avatar
+                      uri={user.avatarUrl}
+                      name={`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                      size={44}
+                    />
+                    <View style={styles.rowInfo}>
+                      <Text
+                        style={[styles.rowName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
+                      </Text>
+                      {user.phone && (
+                        <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
+                          {user.phone}
+                        </Text>
+                      )}
+                    </View>
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
                       onPress={() => {
-                        const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+                        const name =
+                          [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
                         handleAddFavorite(user.id, name, user.phone);
                       }}
                       disabled={addingId === user.id}
@@ -204,11 +257,11 @@ export function FavoriteContactsScreen() {
                       {addingId === user.id ? (
                         <ActivityIndicator size="small" color={colors.accent.primary} />
                       ) : (
-                        <AntDesign  name="staro" size={16} color={colors.accent.primary} />
+                        <AntDesign name="staro" size={16} color={colors.accent.primary} />
                       )}
                     </TouchableOpacity>
-                  )}
-                </View>
+                  </View>
+                )}
                 {i < searchResults.length - 1 && (
                   <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
                 )}
@@ -237,7 +290,22 @@ export function FavoriteContactsScreen() {
         >
           {deviceContacts.slice(0, 5).map((user, i) => (
             <React.Fragment key={user.id}>
-              <View style={styles.row}>
+              <TouchableOpacity
+                style={styles.row}
+                activeOpacity={0.7}
+                onPress={() =>
+                  navigation.navigate('WalletTab', {
+                    screen: 'AddExpense',
+                    params: {
+                      contact: {
+                        name: user.firstName || user.email,
+                        userId: user.id,
+                        phone: user.phone,
+                      },
+                    },
+                  })
+                }
+              >
                 <Avatar uri={user.avatarUrl} name={user.firstName || user.email} size={44} />
                 <View style={styles.rowInfo}>
                   <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -251,16 +319,18 @@ export function FavoriteContactsScreen() {
                 </View>
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
-                  onPress={() => handleAddFavorite(user.id, user.firstName || user.email, user.phone)}
+                  onPress={() =>
+                    handleAddFavorite(user.id, user.firstName || user.email, user.phone)
+                  }
                   disabled={addingId === user.id}
                 >
                   {addingId === user.id ? (
                     <ActivityIndicator size="small" color={colors.accent.primary} />
                   ) : (
-                    <AntDesign  name="staro" size={16} color={colors.accent.primary} />
+                    <AntDesign name="staro" size={16} color={colors.accent.primary} />
                   )}
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
               {i < Math.min(deviceContacts.length, 5) - 1 && (
                 <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
               )}
@@ -286,7 +356,7 @@ export function FavoriteContactsScreen() {
             colors={[colors.bg.glassLight, colors.bg.glass]}
             style={styles.emptyIconBox}
           >
-            <AntDesign  name="staro" size={40} color={colors.accent.primary} />
+            <AntDesign name="staro" size={40} color={colors.accent.primary} />
           </LinearGradient>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No favorites yet</Text>
           <Text style={[styles.emptyDesc, { color: colors.text.secondary }]}>
@@ -312,7 +382,16 @@ export function FavoriteContactsScreen() {
         >
           {favorites.map((fav, i) => (
             <React.Fragment key={fav.userId}>
-              <View style={styles.row}>
+              <TouchableOpacity
+                style={styles.row}
+                activeOpacity={0.7}
+                onPress={() =>
+                  navigation.navigate('WalletTab', {
+                    screen: 'AddExpense',
+                    params: { contact: { name: fav.name, userId: fav.userId, phone: fav.phone } },
+                  })
+                }
+              >
                 <Avatar uri={fav.avatarUrl} name={fav.name} size={44} />
                 <View style={styles.rowInfo}>
                   <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -328,9 +407,9 @@ export function FavoriteContactsScreen() {
                   style={[styles.actionBtn, { backgroundColor: colors.status.errorLight }]}
                   onPress={() => handleRemoveFavorite(fav.userId)}
                 >
-                  <AntDesign  name="delete" size={16} color={colors.status.error} />
+                  <AntDesign name="delete" size={16} color={colors.status.error} />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
               {i < favorites.length - 1 && (
                 <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
               )}

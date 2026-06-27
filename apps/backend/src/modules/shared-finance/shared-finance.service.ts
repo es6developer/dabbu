@@ -1141,6 +1141,9 @@ export class SharedFinanceService {
   // ─── Expense Management ────────────────────────────────────
 
   async createExpense(groupId: string, userId: string, dto: CreateExpenseDto) {
+    if (dto.date && new Date(dto.date) > new Date()) {
+      throw new BadRequestException('Expense date cannot be in the future');
+    }
     await this.lifecycleService.assertCanAddExpense(groupId);
 
     const member = await this.prisma.sharedGroupMember.findUnique({
@@ -4141,7 +4144,10 @@ export class SharedFinanceService {
         .reduce((s: number, e: any) => s + Number(e.amount), 0);
       const owed = expenses
         .filter((e: any) => e.splits?.some((s: any) => s.userId === m.userId))
-        .reduce((s: number, e: any) => s + Number(e.amount), 0);
+        .reduce((s: number, e: any) => {
+          const memberSplit = e.splits?.find((sp: any) => sp.userId === m.userId);
+          return s + (memberSplit ? Number(memberSplit.amount) : 0);
+        }, 0);
       return {
         userId: m.userId,
         name: `${m.user.firstName} ${m.user.lastName}`.trim(),

@@ -1,4 +1,5 @@
 export * from './types';
+export { LlmClient } from './llm-client';
 export { InsightEngine } from './engines/insight-engine';
 export { BehaviorEngine } from './engines/behavior-engine';
 export { RecommendationEngine } from './engines/recommendation-engine';

@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +28,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 interface SearchUser {
   id: string;
   email: string;
@@ -168,7 +177,14 @@ export function AddMemberScreen() {
         alertService.alert('Added', `${userName} added to group`);
       }
     } catch (e: any) {
-      alertService.alert('Error', e?.message || 'Failed to add member');
+      const isAbort =
+        e?.name === 'AbortError' || (e?.message || '').toLowerCase().includes('abort');
+      alertService.alert(
+        'Error',
+        isAbort
+          ? 'Request timed out. Please check your connection and try again.'
+          : e?.message || 'Failed to add member',
+      );
     } finally {
       setAddingId(null);
     }

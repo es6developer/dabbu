@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -34,6 +42,7 @@ export function FamilyLensDashboard() {
   const activeLens = useLensStore((s) => s.activeLens);
 
   const [dashboard, setDashboard] = useState<any>(null);
+  const [sharedGroups, setSharedGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [workspace, setWorkspace] = useState<any>(null);
@@ -50,16 +59,17 @@ export function FamilyLensDashboard() {
       setLoading(true);
     }
     try {
-      const [dashRes, wsRes] = await Promise.allSettled([
+      const [dashRes, wsRes, groupsRes] = await Promise.allSettled([
         api.get<any>('/dashboard/lens', ctrl.signal),
         (async () => {
-          const families: any[] = await api.get('/family');
+          const families: any[] = await api.get('/family', ctrl.signal);
           const familyId = families?.[0]?.id;
           if (!familyId) {
             return null;
           }
-          return api.get(`/family/workspace/${familyId}`);
+          return api.get(`/family/workspace/${familyId}`, ctrl.signal);
         })(),
+        api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => null),
       ]);
       if (!ctrl.signal.aborted) {
         if (dashRes.status === 'fulfilled') {
@@ -68,6 +78,12 @@ export function FamilyLensDashboard() {
         if (wsRes.status === 'fulfilled') {
           const w = (wsRes.value as any)?.data || wsRes.value;
           setWorkspace(w || null);
+        }
+        if (groupsRes.status === 'fulfilled' && groupsRes.value) {
+          const list = Array.isArray(groupsRes.value)
+            ? groupsRes.value
+            : groupsRes.value?.data || groupsRes.value?.items || [];
+          setSharedGroups(list);
         }
         setWsLoading(false);
       }
@@ -105,8 +121,14 @@ export function FamilyLensDashboard() {
           style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
-              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+            >
+              <Avatar
+                uri={user?.avatarUrl}
+                name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                size={36}
+              />
             </TouchableOpacity>
             <View>
               <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
@@ -141,8 +163,14 @@ export function FamilyLensDashboard() {
           <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
-                  <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                >
+                  <Avatar
+                    uri={user?.avatarUrl}
+                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                    size={36}
+                  />
                 </TouchableOpacity>
                 <View>
                   <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
@@ -152,8 +180,12 @@ export function FamilyLensDashboard() {
                     <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
-                    <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>
+                    <View
+                      style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}
+                    >
+                      <Text
+                        style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}
+                      >
                         HOUSEHOLD
                       </Text>
                     </View>
@@ -246,8 +278,14 @@ export function FamilyLensDashboard() {
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <TouchableOpacity onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}>
-                  <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileTab', { screen: 'SettingsMain' })}
+                >
+                  <Avatar
+                    uri={user?.avatarUrl}
+                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                    size={36}
+                  />
                 </TouchableOpacity>
                 <View>
                   <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
@@ -257,8 +295,12 @@ export function FamilyLensDashboard() {
                     <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
-                    <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}>
+                    <View
+                      style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}
+                    >
+                      <Text
+                        style={{ fontSize: 10, fontWeight: '700', color: colors.accent.primary }}
+                      >
                         HOUSEHOLD
                       </Text>
                     </View>
@@ -345,7 +387,9 @@ export function FamilyLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -357,7 +401,10 @@ export function FamilyLensDashboard() {
                     style={[styles.billRow, { backgroundColor: colors.bg.card }]}
                   >
                     <View
-                      style={[styles.dot, { backgroundColor: b.paid ? '#22C55E' : colors.accent.primary }]}
+                      style={[
+                        styles.dot,
+                        { backgroundColor: b.paid ? '#22C55E' : colors.accent.primary },
+                      ]}
                     />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
@@ -489,7 +536,9 @@ export function FamilyLensDashboard() {
               <TouchableOpacity
                 onPress={() => navigation.navigate('HomeTab', { screen: 'GoalsList' })}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ gap: 8 }}>
@@ -620,6 +669,137 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={styles.sectionHeader}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                Shared-finance spaces
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+                  See All
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ gap: 8 }}>
+              {sharedGroups.length > 0 ? (
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: colors.bg.card,
+                      borderRadius: 14,
+                      padding: 14,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, fontWeight: '800', color: colors.accent.primary }}>
+                      {sharedGroups.length}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      Total
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: colors.bg.card,
+                      borderRadius: 14,
+                      padding: 14,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                      {
+                        sharedGroups.filter((g: any) => g.type === 'couple' || g.type === 'family')
+                          .length
+                      }
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      Shared
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+              {sharedGroups.slice(0, 3).map((s: any) => (
+                <TouchableOpacity
+                  key={s.id}
+                  onPress={() =>
+                    navigation.navigate('SpacesTab', {
+                      screen: 'SharedGroupDetail',
+                      params: { groupId: s.id, groupName: s.name },
+                    })
+                  }
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 14,
+                    padding: 14,
+                    gap: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor:
+                        s.type === 'couple'
+                          ? '#F43F5E'
+                          : s.type === 'family'
+                            ? '#0D9488'
+                            : colors.accent.primary,
+                    }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      {s.name}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      {s.memberCount || 0} members · {s.type}
+                    </Text>
+                  </View>
+                  <AntDesign name="right" size={14} color={colors.text.tertiary} />
+                </TouchableOpacity>
+              ))}
+              {sharedGroups.length === 0 && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 14,
+                    padding: 24,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <View style={{ alignItems: 'center' }}>
+                    <AntDesign name="team" size={24} color={colors.text.tertiary} />
+                    <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                      No shared spaces yet
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate('SpacesTab', { screen: 'CreateSharedGroup' })
+                      }
+                      style={{
+                        marginTop: 10,
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderRadius: 10,
+                        backgroundColor: colors.accent.primary,
+                      }}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>Create</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+
           <View style={{ paddingHorizontal: 20, marginBottom: 16, gap: 8 }}>
             <Text
               style={{
@@ -650,7 +830,7 @@ export function FamilyLensDashboard() {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('WalletTab', { screen: 'AddBill' })}
+                onPress={() => navigation.navigate('WalletTab', { screen: 'BillsList' })}
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >

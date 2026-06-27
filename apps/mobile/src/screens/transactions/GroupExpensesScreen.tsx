@@ -103,9 +103,7 @@ export function GroupExpensesScreen() {
           api.get<any>(`/expense-groups/${groupId}`),
         ]);
         const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
-        setTransactions(
-          txData.filter((t: any) => !t.expenseGroupId || t.expenseGroupId === groupId),
-        );
+        setTransactions(txData.filter((t: any) => t.expenseGroupId === groupId));
         const gData = grpRes || null;
         setGroup(gData);
         setEditName(gData?.name || routeGroupName || '');
@@ -396,8 +394,9 @@ export function GroupExpensesScreen() {
             <View style={s.actionBar}>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate('CreateTransaction', {
-                    prefill: { groupId, groupName, returnTo: 'GroupExpenses' },
+                  navigation.navigate('AddExpense', {
+                    expenseGroupId: groupId,
+                    returnTo: 'GroupExpenses',
                   })
                 }
                 style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}

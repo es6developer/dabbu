@@ -12,6 +12,7 @@ import {
 } from '../services/notifications';
 import { navigateToNotification } from '../services/notification-routing';
 import { api, setAccessToken } from '../services/api';
+import { triggerDataRefresh } from '../services/dataRefresh';
 
 type NotificationType =
   | 'expense'
@@ -123,13 +124,19 @@ export function useNotifications() {
         }
         handleNotificationData(data);
         fetchUnreadCount();
+        triggerDataRefresh('notification_tap');
       },
     );
+
+    const foregroundSub = Notifications.addNotificationReceivedListener((_event) => {
+      triggerDataRefresh('foreground_notification');
+    });
 
     return () => {
       if (notificationResponseListener.current) {
         Notifications.removeNotificationSubscription(notificationResponseListener.current);
       }
+      foregroundSub.remove();
     };
   }, [handleNotificationData, fetchUnreadCount]);
 

@@ -5,6 +5,7 @@ import { SplashScreen } from '../screens/auth/SplashScreen';
 import { MainTabNavigator } from './MainTabNavigator';
 import { AuthNavigator } from './AuthNavigator';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
+import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { PhoneScreen } from '../screens/auth/PhoneScreen';
 import { AppLockScreen } from '../screens/auth/AppLockScreen';
 import MaintenanceScreen from '../screens/auth/MaintenanceScreen';
@@ -17,12 +18,20 @@ import { startPreloading } from '../services/preload';
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 export function RootNavigator(): React.ReactElement | null {
-  const { isAuthenticated, isLoading, isNewUser, needsPhone, accessToken, logout } = useAuth();
+  const {
+    isAuthenticated,
+    isLoading,
+    isNewUser,
+    needsPhone,
+    accessToken,
+    logout,
+    completeProfileSetup,
+  } = useAuth();
   const { isLocked, unlockApp } = useAppLock();
   const { showToast } = useToast();
-  const [phase, setPhase] = useState<'loading' | 'validating' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'>(
-    isLocked ? 'lock' : 'loading',
-  );
+  const [phase, setPhase] = useState<
+    'loading' | 'validating' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'
+  >(isLocked ? 'lock' : 'loading');
   const [maintenanceMessage, setMaintenanceMessage] = useState<string | undefined>();
   const [splashDone, setSplashDone] = useState(false);
   const maintenanceChecked = useRef(false);
@@ -156,14 +165,19 @@ export function RootNavigator(): React.ReactElement | null {
     return <AppLockScreen onUnlock={handleUnlock} />;
   }
   if (phase === 'setup') {
-    return <ProfileSetupScreen />;
+    return (
+      <OnboardingScreen
+        onComplete={() => {
+          completeProfileSetup();
+          setPhase('app');
+        }}
+      />
+    );
   }
   if (needsPhone) {
     return <PhoneScreen />;
   }
-  return (
-    <MainTabNavigator />
-  );
+  return <MainTabNavigator />;
 }
 
 const splashStyles = StyleSheet.create({

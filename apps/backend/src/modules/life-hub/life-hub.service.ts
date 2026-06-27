@@ -13,9 +13,10 @@ export class LifeHubService {
   getBabyPlanner(data: { monthlyIncome: number; currentSavings: number }) {
     const monthlyCost = Math.min(25000, Math.max(15000, Math.round(data.monthlyIncome * 0.15)));
     const recommendedSavings = monthlyCost * 6;
-    const timeline = data.currentSavings >= recommendedSavings
-      ? 0
-      : Math.ceil((recommendedSavings - data.currentSavings) / (data.monthlyIncome * 0.1));
+    const timeline =
+      data.currentSavings >= recommendedSavings
+        ? 0
+        : Math.ceil((recommendedSavings - data.currentSavings) / (data.monthlyIncome * 0.1));
 
     return {
       estimatedMonthlyCost: monthlyCost,
@@ -29,8 +30,10 @@ export class LifeHubService {
     const loanAmount = data.budget - data.downPayment;
     const monthlyRate = data.rate / 100 / 12;
     const payments = data.loanTerm * 12;
-    const emi = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, payments)) / (Math.pow(1 + monthlyRate, payments) - 1);
-    const totalInterest = (emi * payments) - loanAmount;
+    const emi =
+      (loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, payments))) /
+      (Math.pow(1 + monthlyRate, payments) - 1);
+    const totalInterest = emi * payments - loanAmount;
     return {
       affordablePrice: data.budget,
       downPayment: data.downPayment,
@@ -42,7 +45,11 @@ export class LifeHubService {
     };
   }
 
-  getEducationPlanner(data: { courseFee: number; yearsUntilCollege: number; monthlySaving: number }) {
+  getEducationPlanner(data: {
+    courseFee: number;
+    yearsUntilCollege: number;
+    monthlySaving: number;
+  }) {
     const months = data.yearsUntilCollege * 12;
     const targetFee = data.courseFee * Math.pow(1.08, data.yearsUntilCollege);
     const monthlyNeeded = months > 0 ? Math.round(targetFee / months) : targetFee;
@@ -57,7 +64,12 @@ export class LifeHubService {
     };
   }
 
-  getVacationPlanner(data: { destination: string; budget: number; monthsUntilTrip: number; savedSoFar: number }) {
+  getVacationPlanner(data: {
+    destination: string;
+    budget: number;
+    monthsUntilTrip: number;
+    savedSoFar: number;
+  }) {
     const months = Math.max(1, data.monthsUntilTrip);
     const remaining = Math.max(0, data.budget - data.savedSoFar);
     const monthlyNeeded = Math.round(remaining / months);
@@ -84,7 +96,7 @@ export class LifeHubService {
       categoryBreakdown: {
         venue: Math.round(data.budget * 0.35),
         catering: Math.round(data.budget * 0.25),
-        attire: Math.round(data.budget * 0.10),
+        attire: Math.round(data.budget * 0.1),
         photography: Math.round(data.budget * 0.08),
         decoration: Math.round(data.budget * 0.07),
         others: Math.round(data.budget * 0.15),
@@ -92,22 +104,33 @@ export class LifeHubService {
     };
   }
 
-  getInvestmentPlanner(data: { age: number; monthlyIncome: number; currentSavings: number; riskProfile: string }) {
-    const recommendedRate = data.riskProfile === 'high' ? 0.12 : data.riskProfile === 'medium' ? 0.10 : 0.08;
+  getInvestmentPlanner(data: {
+    age: number;
+    monthlyIncome: number;
+    currentSavings: number;
+    riskProfile: string;
+  }) {
+    const recommendedRate =
+      data.riskProfile === 'high' ? 0.12 : data.riskProfile === 'medium' ? 0.1 : 0.08;
     const monthlyRecommendation = Math.round(data.monthlyIncome * 0.2);
     const projection: { year: number; value: number }[] = [];
     let amount = data.currentSavings;
     for (let y = 1; y <= 30; y++) {
       amount = amount * (1 + recommendedRate) + monthlyRecommendation * 12;
-      if (y % 5 === 0) projection.push({ year: y, value: Math.round(amount) });
+      if (y % 5 === 0) {
+        projection.push({ year: y, value: Math.round(amount) });
+      }
     }
     return {
       riskProfile: data.riskProfile,
       monthlyRecommendation,
       currentSavings: data.currentSavings,
       annualReturn: `${(recommendedRate * 100).toFixed(0)}%`,
+      cagr: `${(recommendedRate * 100).toFixed(1)}%`,
       projection5yr: projection.find((p) => p.year === 5)?.value || Math.round(amount),
-      projection10yr: projection.find((p) => p.year === 10)?.value || Math.round(amount * Math.pow(1 + recommendedRate, 5)),
+      projection10yr:
+        projection.find((p) => p.year === 10)?.value ||
+        Math.round(amount * Math.pow(1 + recommendedRate, 5)),
       projection30yr: projection.find((p) => p.year === 30)?.value || Math.round(amount),
       breakdown: {
         equity: data.riskProfile === 'high' ? '70%' : data.riskProfile === 'medium' ? '50%' : '30%',
@@ -122,9 +145,8 @@ export class LifeHubService {
     const retirementTarget = data.monthlyExpense * 12 * 25;
     const yearsToRetirement = 60 - data.age;
     const remaining = Math.max(0, retirementTarget - data.currentSavings);
-    const monthlyInvestment = yearsToRetirement > 0
-      ? Math.round(remaining / (yearsToRetirement * 12))
-      : remaining;
+    const monthlyInvestment =
+      yearsToRetirement > 0 ? Math.round(remaining / (yearsToRetirement * 12)) : remaining;
 
     return {
       retirementTarget,

@@ -1,106 +1,30 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Animated,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Image,
+  StyleSheet,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
-import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
-import { typography as designTypo } from '../../theme';
-import { palette } from '../../theme/colors';
 import { api } from '../../services/api';
+import { useLastLensLogo } from '../../hooks/useLastLensLogo';
+import { AuthButton } from '../../components/ui/AuthButton';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
 
-function createStyles(colors: typeof palette.dark) {
-  return StyleSheet.create({
-    content: {
-      flex: 1,
-      paddingTop: spacing.xl,
-    },
-    backButton: {
-      width: 40,
-      height: 40,
-      borderRadius: borderRadius.full,
-      backgroundColor: colors.bg.secondary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: spacing.xl,
-    },
-    title: {
-      ...designTypo.largeTitle,
-      color: colors.text.primary,
-    },
-    subtitle: {
-      fontSize: 15,
-      color: colors.text.secondary,
-      marginTop: 8,
-      lineHeight: 22,
-      marginBottom: spacing.xl + 8,
-    },
-    emailHighlight: {
-      color: colors.accent.primary,
-    },
-    otpRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: 10,
-      marginBottom: spacing.xl + 8,
-    },
-    otpInput: {
-      width: 52,
-      height: 62,
-      borderRadius: borderRadius.lg,
-      borderWidth: 1.5,
-      textAlign: 'center',
-      fontSize: 24,
-      fontWeight: '700',
-      color: colors.text.primary,
-    },
-    verifyButton: {
-      height: 56,
-      backgroundColor: colors.accent.primary,
-      borderRadius: borderRadius.xl,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...shadows.md,
-    },
-    verifyButtonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      letterSpacing: 0.3,
-    },
-    resendRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: spacing.xl,
-    },
-    resendLabel: {
-      color: colors.text.secondary,
-      fontSize: 14,
-    },
-    resendText: {
-      color: colors.accent.primary,
-      fontSize: 14,
-    },
-    resendTextDisabled: {
-      color: colors.text.tertiary,
-    },
-    resendTimer: {
-      textAlign: 'center',
-      color: colors.text.tertiary,
-      fontSize: 13,
-      marginTop: 8,
-    },
-  });
-}
-
 export function PremiumOtpScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const logoSource = useLastLensLogo();
   const email = route.params?.email || '';
   const purpose = route.params?.purpose || 'login';
 
@@ -112,29 +36,11 @@ export function PremiumOtpScreen() {
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-  const buttonScale = useRef(new Animated.Value(1)).current;
-
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const contentStyle = useMemo(
-    () => [
-      styles.content,
-      {
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-        paddingBottom: insets.bottom + spacing.xl,
-      },
-    ],
-    [styles.content, fadeAnim, slideAnim, insets.bottom],
-  );
+  const shakeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+  }, []);
 
   useEffect(() => {
     if (canResend) {
@@ -157,6 +63,16 @@ export function PremiumOtpScreen() {
     requestOtp();
   }, []);
 
+  const shakeError = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+  }, [shakeAnim]);
+
   async function requestOtp() {
     setError('');
     try {
@@ -164,16 +80,16 @@ export function PremiumOtpScreen() {
     } catch (e: any) {
       const msg = e?.message || '';
       const knownErrors: Record<string, string> = {
-        'rate limit': 'Too many requests. Please wait a moment before trying again.',
+        'rate limit': 'Too many requests. Please wait before trying again.',
         'already verified': 'This email is already verified. Please sign in.',
-        'invalid email': 'Please check your email address and try again.',
-        'user not found': 'No account found with this email address.',
-        'network': 'Unable to reach server. Please check your internet connection.',
+        'invalid email': 'Please check your email address.',
+        'user not found': 'No account found with this email.',
+        network: 'Unable to reach server. Check your internet connection.',
       };
       const matched = Object.keys(knownErrors).find((k) =>
         msg.toLowerCase().includes(k.toLowerCase()),
       );
-      setError(matched ? knownErrors[matched] : msg || 'Failed to send code. Please try again.');
+      setError(matched ? knownErrors[matched] : msg || 'Failed to send code.');
     }
   }
 
@@ -191,6 +107,11 @@ export function PremiumOtpScreen() {
 
     if (error) {
       setError('');
+    }
+
+    const filled = newOtp.every((d) => d.length > 0);
+    if (filled) {
+      setTimeout(() => handleVerify(newOtp.join('')), 200);
     }
   }
 
@@ -211,10 +132,10 @@ export function PremiumOtpScreen() {
   }
 
   const otpErrorMap: Record<string, string> = {
-    'invalid otp': 'The code you entered is incorrect. Please try again.',
-    'expired': 'This code has expired. Please request a new one.',
+    'invalid otp': 'The code is incorrect. Please try again.',
+    expired: 'This code has expired. Please request a new one.',
     'rate limit': 'Too many attempts. Please wait a moment.',
-    'network': 'Unable to reach server. Please check your internet connection.',
+    network: 'Unable to reach server. Check your internet connection.',
     'already verified': 'This email is already verified.',
     'not found': 'No OTP request found. Please go back and try again.',
   };
@@ -225,10 +146,11 @@ export function PremiumOtpScreen() {
     return matched ? otpErrorMap[matched] : msg;
   }
 
-  async function handleVerify() {
-    const code = otp.join('');
-    if (code.length !== OTP_LENGTH) {
+  async function handleVerify(code?: string) {
+    const otpCode = code || otp.join('');
+    if (otpCode.length !== OTP_LENGTH) {
       setError('Please enter the complete 6-digit code');
+      shakeError();
       return;
     }
     setLoading(true);
@@ -236,7 +158,7 @@ export function PremiumOtpScreen() {
     try {
       const result = await api.post<{ verified: boolean; message: string }>('/auth/verify-otp', {
         email,
-        otp: code,
+        otp: otpCode,
         purpose,
       });
       if (result.verified) {
@@ -247,125 +169,212 @@ export function PremiumOtpScreen() {
         }
       } else {
         setError(friendlyOtpError(result.message || 'Invalid OTP'));
+        shakeError();
       }
     } catch (e: any) {
       setError(friendlyOtpError(e.message || 'Verification failed'));
+      shakeError();
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <PremiumAuthLayout>
+    <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Animated.View style={contentStyle}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[styles.backButton, { alignSelf: 'center' }]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <AntDesign  name="arrowleft" size={24} color={colors.text.secondary} />
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              paddingTop: insets.top + 48,
+              paddingBottom: insets.bottom + 24,
+              opacity: fadeAnim,
+              transform: [{ translateX: shakeAnim }],
+            },
+          ]}
+        >
+          {/* Back */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <AntDesign name="arrowleft" size={20} color="#000000" />
           </TouchableOpacity>
 
-          <Text style={[styles.title, { textAlign: 'center' }]}>Check your Email</Text>
-          <Text style={[styles.subtitle, { textAlign: 'center' }]}>
-            Enter the unique code we sent to <Text style={styles.emailHighlight}>{email}</Text>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+          </View>
+
+          {/* Header */}
+          <Text style={styles.title}>Verification code</Text>
+          <Text style={styles.subtitle}>
+            Enter the 6-digit code sent to <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
 
+          {/* Error */}
           {error ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: colors.status.errorLight,
-                padding: 14,
-                borderRadius: borderRadius.lg,
-                marginBottom: 16,
-                gap: 10,
-              }}
-            >
-              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
-              <Text
-                style={{
-                  color: colors.status.error,
-                  fontSize: 13,
-                  flex: 1,
-                }}
-              >
-                {error}
-              </Text>
+            <View style={styles.errorBox}>
+              <AntDesign name="exclamationcircle" size={14} color="#FF3B30" />
+              <Text style={styles.errorText}>{error}</Text>
             </View>
           ) : null}
 
-          <View style={styles.otpRow}>
-            {otp.map((digit, i) => (
-              <TextInput
-                key={i}
-                ref={(r) => {
-                  inputRefs.current[i] = r;
-                }}
-                style={[
-                  styles.otpInput,
-                  {
-                    borderColor: digit
-                      ? colors.accent.primary
-                      : error
-                        ? colors.status.error
-                        : colors.border.subtle,
-                    backgroundColor: digit ? colors.brand.light : colors.bg.secondary,
-                  },
-                ]}
-                value={digit}
-                onChangeText={(t) => handleChange(t, i)}
-                onKeyPress={(e) => handleKeyPress(e, i)}
-                keyboardType="number-pad"
-                maxLength={1}
-                selectTextOnFocus
-              />
-            ))}
+          {/* OTP Boxes */}
+          <View style={styles.otpContainer}>
+            {otp.map((digit, i) => {
+              const isFilled = digit.length > 0;
+              return (
+                <TextInput
+                  key={i}
+                  ref={(r) => {
+                    inputRefs.current[i] = r;
+                  }}
+                  style={[
+                    styles.otpBox,
+                    isFilled && styles.otpBoxFilled,
+                    error ? styles.otpBoxError : null,
+                  ]}
+                  value={digit}
+                  onChangeText={(t) => handleChange(t, i)}
+                  onKeyPress={(e) => handleKeyPress(e, i)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  selectTextOnFocus
+                />
+              );
+            })}
           </View>
 
-          <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-            <TouchableOpacity
-              style={[styles.verifyButton, loading && { opacity: 0.6 }]}
-              onPress={handleVerify}
-              disabled={loading}
-              onPressIn={() =>
-                Animated.spring(buttonScale, {
-                  toValue: 0.97,
-                  friction: 8,
-                  tension: 40,
-                  useNativeDriver: true,
-                }).start()
-              }
-              onPressOut={() =>
-                Animated.spring(buttonScale, {
-                  toValue: 1,
-                  friction: 5,
-                  useNativeDriver: true,
-                }).start()
-              }
-              activeOpacity={1}
-            >
-              <Text style={styles.verifyButtonText}>
-                {loading ? 'Verifying...' : 'Verify & Proceed'}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
+          {/* Verify Button */}
+          <AuthButton title="Verify & Continue" onPress={() => handleVerify()} loading={loading} />
 
-          <View style={styles.resendRow}>
+          {/* Resend */}
+          <View style={styles.resendContainer}>
             <Text style={styles.resendLabel}>Didn't receive it? </Text>
-            <TouchableOpacity onPress={handleResend} disabled={!canResend} activeOpacity={0.7}>
-              <Text style={[styles.resendText, !canResend && styles.resendTextDisabled]}>
+            <TouchableOpacity onPress={handleResend} disabled={!canResend}>
+              <Text style={[styles.resendLink, !canResend && styles.resendLinkDisabled]}>
                 Send Again
               </Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.resendTimer, canResend && { opacity: 0 }]}>
-            Resend in 00:{timer < 10 ? `0${timer}` : timer}s
-          </Text>
+          {!canResend && (
+            <Text style={styles.timerText}>Resend in 00:{timer < 10 ? `0${timer}` : timer}</Text>
+          )}
         </Animated.View>
       </TouchableWithoutFeedback>
-    </PremiumAuthLayout>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  logoContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+  logo: {
+    width: 36,
+    height: 36,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: '400',
+    color: '#8E8E93',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  emailHighlight: {
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#FF3B3010',
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#FF3B30',
+    flex: 1,
+  },
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 28,
+  },
+  otpBox: {
+    width: 48,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E5E5EA',
+    backgroundColor: '#F2F2F7',
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  otpBoxFilled: {
+    borderColor: '#007AFF',
+    backgroundColor: '#007AFF10',
+  },
+  otpBoxError: {
+    borderColor: '#FF3B30',
+  },
+  resendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  resendLabel: {
+    color: '#8E8E93',
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  resendLink: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  resendLinkDisabled: {
+    color: '#C7C7CC',
+  },
+  timerText: {
+    textAlign: 'center',
+    color: '#8E8E93',
+    fontSize: 13,
+    marginTop: 8,
+  },
+});

@@ -24,6 +24,11 @@ import { SupportScreen } from '../screens/settings/SupportScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
+import { CoupleExpensesScreen } from '../screens/couple/CoupleExpensesScreen';
+import { CoupleIncomeScreen } from '../screens/couple/CoupleIncomeScreen';
+import { CoupleTransactionFormScreen } from '../screens/couple/CoupleTransactionFormScreen';
+import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
+import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { LensPickerScreen } from '../screens/settings/LensPickerScreen';
 import { SettingsGroupScreen } from '../screens/settings/SettingsGroupScreen';
 
@@ -117,6 +122,31 @@ export function SettingsNavigator() {
       <Stack.Screen
         name="CoupleSpace"
         component={CoupleSpaceScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleExpenses"
+        component={CoupleExpensesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleIncome"
+        component={CoupleIncomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleTransactionForm"
+        component={CoupleTransactionFormScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateReminder"
+        component={CreateReminderScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ReminderDetail"
+        component={ReminderDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

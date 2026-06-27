@@ -497,7 +497,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens } = data;
 
-    applyAuth(tokens.accessToken, user, false);
+    applyAuth(tokens.accessToken, user, true);
     if (tokens.refreshToken) {
       await storage.current.setItem('refreshToken', tokens.refreshToken);
     }
@@ -541,7 +541,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
-    showToast(isNewUser ? `Welcome to Dabbu, ${user.firstName}! 🎉` : `Welcome back, ${user.firstName}!`, isNewUser ? 'success' : 'info');
+    showToast(
+      isNewUser ? `Welcome to Dabbu, ${user.firstName}! 🎉` : `Welcome back, ${user.firstName}!`,
+      isNewUser ? 'success' : 'info',
+    );
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
   }
 

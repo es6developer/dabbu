@@ -1,4 +1,5 @@
 import { TransactionData, SmartGroupSuggestion } from '../types';
+import { LlmClient } from '../llm-client';
 
 export interface Recommendation {
   type: string;
@@ -9,16 +10,46 @@ export interface Recommendation {
 }
 
 export class RecommendationEngine {
-  generateBudgetRecommendations(
+  private llm: LlmClient | null;
+
+  constructor(llm?: LlmClient) {
+    this.llm = llm || null;
+  }
+
+  async generateBudgetRecommendations(
     monthlyIncome: number,
     monthlyExpenses: number,
-    categoryBreakdown: { category: string; amount: number }[]
+    categoryBreakdown: { category: string; amount: number }[],
+  ): Promise<Recommendation[]> {
+    if (this.llm) {
+      try {
+        const prompt = `You are a budget advisor for an Indian user. Generate 4-5 budget recommendations.
+Monthly Income: ₹${monthlyIncome.toLocaleString()}
+Monthly Expenses: ₹${monthlyExpenses.toLocaleString()}
+Savings: ₹${(monthlyIncome - monthlyExpenses).toLocaleString()}
+Category Breakdown: ${categoryBreakdown.map((c) => `${c.category}: ₹${c.amount.toLocaleString()}`).join(', ')}
+
+Return ONLY a JSON array of objects with: type (savings/spending/subscription/overspend/investing), title (short), description (1-2 sentences with ₹ amounts), priority (high/medium/low).`;
+
+        const result = await this.llm.generateJson<Recommendation[]>(prompt, { temperature: 0.4 });
+        if (result && result.length >= 2) {
+          return result.slice(0, 5);
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return this.getFallbackRecommendations(monthlyIncome, monthlyExpenses, categoryBreakdown);
+  }
+
+  private getFallbackRecommendations(
+    monthlyIncome: number,
+    monthlyExpenses: number,
+    categoryBreakdown: { category: string; amount: number }[],
   ): Recommendation[] {
     const recs: Recommendation[] = [];
-
     const savings = monthlyIncome - monthlyExpenses;
     const savingsRate = monthlyIncome > 0 ? savings / monthlyIncome : 0;
-
     if (savingsRate < 0.1) {
       recs.push({
         type: 'savings',
@@ -28,19 +59,19 @@ export class RecommendationEngine {
         action: { label: 'Set Savings Goal', route: '/goals/create' },
       });
     }
-
-    const foodSpending = categoryBreakdown.find(c => c.category?.toLowerCase().includes('food'));
+    const foodSpending = categoryBreakdown.find((c) => c.category?.toLowerCase().includes('food'));
     if (foodSpending && foodSpending.amount > monthlyIncome * 0.3) {
       recs.push({
         type: 'spending',
         title: 'High food expenses',
-        description: `Food is ${Math.round(foodSpending.amount / monthlyIncome * 100)}% of income. Consider a food budget.`,
+        description: `Food is ${Math.round((foodSpending.amount / monthlyIncome) * 100)}% of income. Consider a food budget.`,
         priority: 'medium',
         action: { label: 'Create Food Budget', route: '/budgets/create' },
       });
     }
-
-    const subSpending = categoryBreakdown.find(c => c.category?.toLowerCase().includes('subscription'));
+    const subSpending = categoryBreakdown.find((c) =>
+      c.category?.toLowerCase().includes('subscription'),
+    );
     if (subSpending && subSpending.amount > 2000) {
       recs.push({
         type: 'subscription',
@@ -50,7 +81,6 @@ export class RecommendationEngine {
         action: { label: 'View Subscriptions', route: '/subscriptions' },
       });
     }
-
     if (monthlyExpenses > monthlyIncome) {
       recs.push({
         type: 'overspend',
@@ -60,7 +90,6 @@ export class RecommendationEngine {
         action: { label: 'Review Expenses', route: '/transactions' },
       });
     }
-
     if (savingsRate > 0.3) {
       recs.push({
         type: 'investing',
@@ -70,14 +99,13 @@ export class RecommendationEngine {
         action: { label: 'Explore Investments', route: '/investments' },
       });
     }
-
     return recs;
   }
 
   matchGroupForTransaction(
     description: string,
     amount: number,
-    groups: { id: string; name: string; type: string; recentAmounts: number[] }[]
+    groups: { id: string; name: string; type: string; recentAmounts: number[] }[],
   ): SmartGroupSuggestion[] {
     const suggestions: SmartGroupSuggestion[] = [];
     const desc = description.toLowerCase();
@@ -89,7 +117,10 @@ export class RecommendationEngine {
       { pattern: /\b(ola|uber|rapido|meru)\b/i, merchant: 'travel' },
       { pattern: /\b(airbnb|booking\.com|makemytrip|goibibo|ixigo)\b/i, merchant: 'travel' },
       { pattern: /\b(amazon|flipkart|myntra)\b/i, merchant: 'shopping' },
-      { pattern: /\b(netflix|amazon prime|hotstar|spotify|jio cinema|sony liv|zee5)\b/i, merchant: 'entertainment' },
+      {
+        pattern: /\b(netflix|amazon prime|hotstar|spotify|jio cinema|sony liv|zee5)\b/i,
+        merchant: 'entertainment',
+      },
     ];
 
     let matchedMerchant = '';
@@ -115,7 +146,7 @@ export class RecommendationEngine {
         reason = `Grocery expense could belong to ${group.name}`;
       }
 
-      const amountMatch = group.recentAmounts.some(a => Math.abs(a - amount) / amount < 0.2);
+      const amountMatch = group.recentAmounts.some((a) => Math.abs(a - amount) / amount < 0.2);
       if (amountMatch && confidence > 0) {
         confidence = Math.min(confidence + 0.15, 1);
       }

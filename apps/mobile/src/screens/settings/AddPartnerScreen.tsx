@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +16,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 export function AddPartnerScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
@@ -89,7 +97,7 @@ export function AddPartnerScreen() {
     try {
       await approveCoupleRequest(requestId);
       alertService.alert('Connected!', "You're in a couple! Couple Mode is active.", [
-        { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
+        { text: 'Go to Home', onPress: () => navigation.navigate('HomeTab') },
       ]);
     } catch (e: any) {
       alertService.alert('Error', e?.message || 'Failed to approve request');
@@ -150,17 +158,26 @@ export function AddPartnerScreen() {
   if (isInCouple && partner) {
     return (
       <View style={[styles.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
-        <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 40, backgroundColor: COUPLE_COLORS.primary }]}>
+        <View
+          style={[
+            styles.heroGradient,
+            {
+              paddingTop: insets.top + 60,
+              paddingBottom: 40,
+              backgroundColor: COUPLE_COLORS.primary,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <AntDesign  name="arrowleft" size={22} color="#FFF" />
+            <AntDesign name="arrowleft" size={22} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.heroContent}>
             <View style={styles.heroIconWrap}>
-              <AntDesign  name="hearto" size={48} color="#FFF" />
+              <AntDesign name="hearto" size={48} color="#FFF" />
             </View>
             <Text style={[styles.heroTitle, { color: '#FFF' }]}>Your Partner</Text>
           </View>
@@ -171,7 +188,7 @@ export function AddPartnerScreen() {
             <View style={styles.avatarRow}>
               <Avatar name={user.firstName || 'You'} size={56} />
               <View style={styles.heartSmall}>
-                <AntDesign  name="hearto" size={20} color={COUPLE_COLORS.heart} />
+                <AntDesign name="hearto" size={20} color={COUPLE_COLORS.heart} />
               </View>
               <Avatar name={partnerName} size={56} />
             </View>
@@ -179,14 +196,14 @@ export function AddPartnerScreen() {
               {user.firstName || 'You'} & {partnerName}
             </Text>
             <View style={[styles.infoRow, { borderTopColor: `${COUPLE_COLORS.border}80` }]}>
-              <AntDesign  name="mail" size={16} color={COUPLE_COLORS.textSecondary} />
+              <AntDesign name="mail" size={16} color={COUPLE_COLORS.textSecondary} />
               <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
                 {partner.email}
               </Text>
             </View>
             {linkedAt && (
               <View style={styles.infoRow}>
-                <AntDesign  name="calendar" size={16} color={COUPLE_COLORS.textSecondary} />
+                <AntDesign name="calendar" size={16} color={COUPLE_COLORS.textSecondary} />
                 <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
                   Together since {linkedAt}
                 </Text>
@@ -214,7 +231,7 @@ export function AddPartnerScreen() {
               <ActivityIndicator size="small" color="#FF4757" />
             ) : (
               <>
-                <AntDesign  name="hearto" size={20} color="#FF4757" />
+                <AntDesign name="hearto" size={20} color="#FF4757" />
                 <Text style={styles.removeText}>Remove Partner</Text>
               </>
             )}
@@ -226,17 +243,26 @@ export function AddPartnerScreen() {
 
   return (
     <ScrollView style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50, backgroundColor: colors.accent.primary }]}>
+      <View
+        style={[
+          styles.heroGradient,
+          {
+            paddingTop: insets.top + 60,
+            paddingBottom: 50,
+            backgroundColor: colors.accent.primary,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <AntDesign  name="arrowleft" size={22} color="#FFF" />
+          <AntDesign name="arrowleft" size={22} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.heroContent}>
           <View style={styles.heroIconWrap}>
-            <AntDesign  name="heart" size={56} color="#FFF" />
+            <AntDesign name="heart" size={56} color="#FFF" />
           </View>
           <Text style={[styles.heroTitle, { color: '#FFF' }]}>Add Your Partner</Text>
           <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.85)' }]}>
@@ -248,7 +274,11 @@ export function AddPartnerScreen() {
       <View style={styles.bodyInner}>
         {/* Incoming Requests */}
         {loadingRequests ? (
-          <ActivityIndicator size="small" color={colors.accent.primary} style={{ marginVertical: 16 }} />
+          <ActivityIndicator
+            size="small"
+            color={colors.accent.primary}
+            style={{ marginVertical: 16 }}
+          />
         ) : requests.received.length > 0 ? (
           <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
             <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
@@ -279,7 +309,7 @@ export function AddPartnerScreen() {
                       {processingId === req.id ? (
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
-                        <AntDesign  name="check" size={20} color="#FFF" />
+                        <AntDesign name="check" size={20} color="#FFF" />
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -287,7 +317,7 @@ export function AddPartnerScreen() {
                       onPress={() => handleReject(req.id)}
                       disabled={processingId === req.id}
                     >
-                      <AntDesign  name="close" size={20} color="#FF4757" />
+                      <AntDesign name="close" size={20} color="#FF4757" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -328,7 +358,7 @@ export function AddPartnerScreen() {
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                  <AntDesign  name="hearto" size={20} color="#FFF" />
+                  <AntDesign name="hearto" size={20} color="#FFF" />
                   <Text style={styles.addBtnText}>Send Request</Text>
                 </>
               )}

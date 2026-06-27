@@ -8,15 +8,38 @@ import { usePremium } from '../../store/PremiumContext';
 import { useAppLock } from '../../store/LockContext';
 import { borderRadius, PADDING } from '../../theme/design';
 
-import { alertService } from "../../components/ui";
-type GroupItem = { label: string; icon: string; screen: string; premium?: boolean; action?: 'lock' };
+import { alertService } from '../../components/ui';
+type GroupItem = {
+  label: string;
+  icon: string;
+  screen: string;
+  premium?: boolean;
+  action?: 'lock';
+};
 type GroupData = { title: string; items: GroupItem[] };
 
 const REGISTERED_SCREENS = [
-  'Profile','AddPartner','Security','Premium','Theme','CustomiseDashboard',
-  'CustomiseBottomMenu','HelpCenter','ContactUs','Privacy','Analytics','Reports',
-  'BudgetsList','NotificationSettings','FavoriteContacts','Referral',
-  'CoupleSpace','Streaks','DataExport','Support','YearlySummary',
+  'Profile',
+  'AddPartner',
+  'Security',
+  'Premium',
+  'Theme',
+  'CustomiseDashboard',
+  'CustomiseBottomMenu',
+  'HelpCenter',
+  'ContactUs',
+  'Privacy',
+  'Analytics',
+  'Reports',
+  'BudgetsList',
+  'NotificationSettings',
+  'Favorites',
+  'Referral',
+  'CoupleSpace',
+  'Streaks',
+  'DataExport',
+  'Support',
+  'YearlySummary',
 ];
 
 export function SettingsGroupScreen() {
@@ -28,10 +51,17 @@ export function SettingsGroupScreen() {
   const insets = useSafeAreaInsets();
 
   let group: GroupData = { title: '', items: [] };
-  try { group = JSON.parse(route.params?.group || '{}'); } catch { group = { title: 'Settings', items: [] }; }
+  try {
+    group = JSON.parse(route.params?.group || '{}');
+  } catch {
+    group = { title: 'Settings', items: [] };
+  }
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
-    if (action === 'lock') { lockApp(); return; }
+    if (action === 'lock') {
+      lockApp();
+      return;
+    }
     if (!REGISTERED_SCREENS.includes(screen)) {
       alertService.alert('Coming Soon', `${screen} settings will be available soon`);
       return;
@@ -43,14 +73,29 @@ export function SettingsGroupScreen() {
       ]);
       return;
     }
-    navigation.navigate(screen);
+    const crossTabMap: Record<string, { tab: string; screen: string }> = {
+      Reports: { tab: 'LifeHubTab', screen: 'Analytics' },
+      BudgetsList: { tab: 'WalletTab', screen: 'BillsList' },
+      Streaks: { tab: 'HomeTab', screen: 'Streaks' },
+      YearlySummary: { tab: 'HomeTab', screen: 'YearlySummary' },
+      Analytics: { tab: 'WalletTab', screen: 'Analytics' },
+    };
+    const crossTab = crossTabMap[screen];
+    if (crossTab) {
+      navigation.navigate(crossTab.tab, { screen: crossTab.screen });
+    } else {
+      navigation.navigate(screen);
+    }
   };
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <View style={{ paddingTop: insets.top + 12, paddingHorizontal: PADDING }}>
         <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
+          >
             <AntDesign name="left" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={[s.title, { color: colors.text.primary }]}>{group.title}</Text>
@@ -67,7 +112,10 @@ export function SettingsGroupScreen() {
               key={j}
               style={[
                 s.row,
-                j < group.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle },
+                j < group.items.length - 1 && {
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: colors.border.subtle,
+                },
               ]}
               onPress={() => handleNav(item.screen, item.premium, item.action)}
               activeOpacity={0.55}
@@ -93,22 +141,33 @@ export function SettingsGroupScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
   card: { borderRadius: borderRadius['2xl'], overflow: 'hidden' },
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 13, paddingHorizontal: 16, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   iconBox: {
-    width: 32, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: { flex: 1, fontSize: 15, fontWeight: '600' },
   badge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5, marginRight: 4 },

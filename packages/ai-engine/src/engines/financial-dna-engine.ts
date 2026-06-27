@@ -1,3 +1,5 @@
+import { LlmClient } from '../llm-client';
+
 interface DnaTransactionData {
   id: string;
   amount: number;
@@ -62,15 +64,32 @@ interface FinancialDnaOutput {
 const LUXURY_CATEGORIES = new Set(['shopping', 'entertainment', 'dining', 'travel']);
 
 const LOW_RISK_CATEGORIES = new Set([
-  'groceries', 'utilities', 'rent', 'health', 'insurance', 'education', 'transport',
+  'groceries',
+  'utilities',
+  'rent',
+  'health',
+  'insurance',
+  'education',
+  'transport',
 ]);
 
 const HIGH_RISK_CATEGORIES = new Set([
-  'investments', 'crypto', 'stocks', 'trading', 'business', 'venture',
+  'investments',
+  'crypto',
+  'stocks',
+  'trading',
+  'business',
+  'venture',
 ]);
 
 export class FinancialDnaEngine {
-  generateDna(params: {
+  private llm: LlmClient | null;
+
+  constructor(llm?: LlmClient) {
+    this.llm = llm || null;
+  }
+
+  async generateDna(params: {
     transactions: DnaTransactionData[];
     accounts: DnaAccountData[];
     settlements: DnaSettlementData[];
@@ -78,17 +97,18 @@ export class FinancialDnaEngine {
     goals: DnaGoalData[];
     monthlyIncome: number;
     userId: string;
-  }): FinancialDnaOutput {
+  }): Promise<FinancialDnaOutput> {
     const { transactions, accounts, settlements, budgets, goals, monthlyIncome } = params;
 
-    const expenses = transactions.filter(t => t.type === 'expense');
-    const income = transactions.filter(t => t.type === 'income');
+    const expenses = transactions.filter((t) => t.type === 'expense');
+    const income = transactions.filter((t) => t.type === 'income');
     const totalExpenses = expenses.reduce((s, t) => s + t.amount, 0);
     const totalIncome = income.reduce((s, t) => s + t.amount, 0) || monthlyIncome;
     const effectiveIncome = Math.max(totalIncome, monthlyIncome);
 
     const spendingToIncomeRatio = effectiveIncome > 0 ? totalExpenses / effectiveIncome : 0;
-    const savingsRate = effectiveIncome > 0 ? (effectiveIncome - totalExpenses) / effectiveIncome : 0;
+    const savingsRate =
+      effectiveIncome > 0 ? (effectiveIncome - totalExpenses) / effectiveIncome : 0;
 
     const spendingPersonality = this.classifySpendingPersonality(spendingToIncomeRatio);
     const savingPersonality = this.classifySavingPersonality(savingsRate);
@@ -113,12 +133,27 @@ export class FinancialDnaEngine {
 
     const { weekStart, weekEnd } = this.getCurrentWeekRange();
 
-    const insights = this.generateInsights({
-      spendingPersonality, savingPersonality, riskLevel, spendingScore, savingScore,
-      disciplineScore, weekendSpendingPct, luxurySpendingScore, impulsePurchaseScore,
-      familyContributionScore, settlementReliabilityScore, incomeConsistency,
-      billPaymentBehavior, topCategoryPreference, disciplinePercentile, savingsPercentile,
-      savingsRate, spendingToIncomeRatio, totalExpenses, effectiveIncome,
+    const insights = await this.generateInsights({
+      spendingPersonality,
+      savingPersonality,
+      riskLevel,
+      spendingScore,
+      savingScore,
+      disciplineScore,
+      weekendSpendingPct,
+      luxurySpendingScore,
+      impulsePurchaseScore,
+      familyContributionScore,
+      settlementReliabilityScore,
+      incomeConsistency,
+      billPaymentBehavior,
+      topCategoryPreference,
+      disciplinePercentile,
+      savingsPercentile,
+      savingsRate,
+      spendingToIncomeRatio,
+      totalExpenses,
+      effectiveIncome,
     });
 
     return {
@@ -145,20 +180,32 @@ export class FinancialDnaEngine {
   }
 
   private classifySpendingPersonality(ratio: number): string {
-    if (ratio < 0.3) return 'frugal';
-    if (ratio < 0.6) return 'balanced';
-    if (ratio < 0.85) return 'spender';
+    if (ratio < 0.3) {
+      return 'frugal';
+    }
+    if (ratio < 0.6) {
+      return 'balanced';
+    }
+    if (ratio < 0.85) {
+      return 'spender';
+    }
     return 'lavish';
   }
 
   private classifySavingPersonality(rate: number): string {
-    if (rate > 0.5) return 'hoarder';
-    if (rate >= 0.2) return 'moderate';
+    if (rate > 0.5) {
+      return 'hoarder';
+    }
+    if (rate >= 0.2) {
+      return 'moderate';
+    }
     return 'spender';
   }
 
   private computeRiskLevel(expenses: DnaTransactionData[]): string {
-    if (expenses.length === 0) return 'moderate';
+    if (expenses.length === 0) {
+      return 'moderate';
+    }
 
     let lowRiskAmount = 0;
     let highRiskAmount = 0;
@@ -174,38 +221,61 @@ export class FinancialDnaEngine {
       }
     }
 
-    if (total === 0) return 'moderate';
+    if (total === 0) {
+      return 'moderate';
+    }
 
     const lowPct = lowRiskAmount / total;
     const highPct = highRiskAmount / total;
 
-    if (highPct > 0.3) return 'aggressive';
-    if (lowPct > 0.6) return 'conservative';
+    if (highPct > 0.3) {
+      return 'aggressive';
+    }
+    if (lowPct > 0.6) {
+      return 'conservative';
+    }
     return 'moderate';
   }
 
   private computeSpendingScore(ratio: number): number {
-    if (ratio <= 0.2) return 10;
-    if (ratio <= 0.4) return 30;
-    if (ratio <= 0.6) return 50;
-    if (ratio <= 0.85) return 70;
+    if (ratio <= 0.2) {
+      return 10;
+    }
+    if (ratio <= 0.4) {
+      return 30;
+    }
+    if (ratio <= 0.6) {
+      return 50;
+    }
+    if (ratio <= 0.85) {
+      return 70;
+    }
     return 90;
   }
 
   private computeSavingScore(rate: number): number {
-    if (rate >= 0.5) return 95;
-    if (rate >= 0.3) return 80;
-    if (rate >= 0.2) return 65;
-    if (rate >= 0.1) return 45;
-    if (rate >= 0) return 25;
+    if (rate >= 0.5) {
+      return 95;
+    }
+    if (rate >= 0.3) {
+      return 80;
+    }
+    if (rate >= 0.2) {
+      return 65;
+    }
+    if (rate >= 0.1) {
+      return 45;
+    }
+    if (rate >= 0) {
+      return 25;
+    }
     return 10;
   }
 
-  private computeDisciplineScore(
-    expenses: DnaTransactionData[],
-    budgets: DnaBudgetData[]
-  ): number {
-    if (expenses.length === 0 && budgets.length === 0) return 70;
+  private computeDisciplineScore(expenses: DnaTransactionData[], budgets: DnaBudgetData[]): number {
+    if (expenses.length === 0 && budgets.length === 0) {
+      return 70;
+    }
 
     let budgetScore = 50;
     if (budgets.length > 0) {
@@ -219,7 +289,7 @@ export class FinancialDnaEngine {
 
     let consistencyScore = 50;
     if (expenses.length >= 2) {
-      const amounts = expenses.map(t => t.amount);
+      const amounts = expenses.map((t) => t.amount);
       const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
       const variance = amounts.reduce((s, a) => s + (a - avg) ** 2, 0) / amounts.length;
       const stdDev = Math.sqrt(variance);
@@ -231,7 +301,9 @@ export class FinancialDnaEngine {
   }
 
   private computeWeekendSpendingPct(expenses: DnaTransactionData[]): number {
-    if (expenses.length === 0) return 0;
+    if (expenses.length === 0) {
+      return 0;
+    }
 
     let weekendAmount = 0;
     let totalAmount = 0;
@@ -248,7 +320,9 @@ export class FinancialDnaEngine {
   }
 
   private computeLuxurySpendingScore(expenses: DnaTransactionData[]): number {
-    if (expenses.length === 0) return 0;
+    if (expenses.length === 0) {
+      return 0;
+    }
 
     let luxuryAmount = 0;
     let totalAmount = 0;
@@ -265,32 +339,39 @@ export class FinancialDnaEngine {
   }
 
   private computeImpulsePurchaseScore(expenses: DnaTransactionData[]): number {
-    if (expenses.length < 3) return 0;
+    if (expenses.length < 3) {
+      return 0;
+    }
 
-    const amounts = expenses.map(t => t.amount);
+    const amounts = expenses.map((t) => t.amount);
     const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
-    const largeTransactions = expenses.filter(t => t.amount > avg * 2).length;
+    const largeTransactions = expenses.filter((t) => t.amount > avg * 2).length;
     const largeRatio = largeTransactions / expenses.length;
 
-    const luxuryCount = expenses.filter(t => {
+    const luxuryCount = expenses.filter((t) => {
       const cat = t.category?.toLowerCase() || '';
       return LUXURY_CATEGORIES.has(cat);
     }).length;
     const luxuryRatio = luxuryCount / expenses.length;
 
-    const rawScore = (largeRatio * 60 + luxuryRatio * 40);
+    const rawScore = largeRatio * 60 + luxuryRatio * 40;
     return Math.min(Math.round(rawScore * 100), 100);
   }
 
   private computeFamilyContributionScore(
     accounts: DnaAccountData[],
-    settlements: DnaSettlementData[]
+    settlements: DnaSettlementData[],
   ): number {
-    const hasSharedAccount = accounts.some(a =>
-      a.type?.toLowerCase().includes('joint') || a.type?.toLowerCase().includes('shared') || a.type?.toLowerCase().includes('family')
+    const hasSharedAccount = accounts.some(
+      (a) =>
+        a.type?.toLowerCase().includes('joint') ||
+        a.type?.toLowerCase().includes('shared') ||
+        a.type?.toLowerCase().includes('family'),
     );
 
-    const totalSettled = settlements.filter(s => s.status === 'completed').reduce((s, st) => s + st.amount, 0);
+    const totalSettled = settlements
+      .filter((s) => s.status === 'completed')
+      .reduce((s, st) => s + st.amount, 0);
     const totalSettlements = settlements.reduce((s, st) => s + st.amount, 0);
 
     let score = hasSharedAccount ? 40 : 20;
@@ -300,59 +381,94 @@ export class FinancialDnaEngine {
       score += Math.round(settledRatio * 40);
     }
 
-    if (settlements.length >= 5) score += 10;
-    if (settlements.length >= 10) score += 10;
+    if (settlements.length >= 5) {
+      score += 10;
+    }
+    if (settlements.length >= 10) {
+      score += 10;
+    }
 
     return Math.min(score, 100);
   }
 
   private computeSettlementReliabilityScore(settlements: DnaSettlementData[]): number {
-    if (settlements.length === 0) return 80;
+    if (settlements.length === 0) {
+      return 80;
+    }
 
-    const completedShare = settlements.filter(s => s.status === 'completed').length / settlements.length;
+    const completedShare =
+      settlements.filter((s) => s.status === 'completed').length / settlements.length;
     const baseScore = Math.round(completedShare * 100);
 
-    const pending = settlements.filter(s => s.status !== 'completed');
-    if (pending.length === 0) return Math.max(baseScore, 70);
+    const pending = settlements.filter((s) => s.status !== 'completed');
+    if (pending.length === 0) {
+      return Math.max(baseScore, 70);
+    }
 
-    const avgDaysOutstanding = pending.reduce((sum, s) => {
-      const days = Math.abs((new Date().getTime() - new Date(s.date).getTime()) / (1000 * 60 * 60 * 24));
-      return sum + days;
-    }, 0) / pending.length;
+    const avgDaysOutstanding =
+      pending.reduce((sum, s) => {
+        const days = Math.abs(
+          (new Date().getTime() - new Date(s.date).getTime()) / (1000 * 60 * 60 * 24),
+        );
+        return sum + days;
+      }, 0) / pending.length;
 
-    const timelinessDeduction = avgDaysOutstanding <= 3 ? 0 : avgDaysOutstanding <= 7 ? 10 : avgDaysOutstanding <= 14 ? 20 : 35;
+    const timelinessDeduction =
+      avgDaysOutstanding <= 3
+        ? 0
+        : avgDaysOutstanding <= 7
+          ? 10
+          : avgDaysOutstanding <= 14
+            ? 20
+            : 35;
 
     return Math.max(Math.min(baseScore - timelinessDeduction, 100), 10);
   }
 
   private classifyIncomeConsistency(income: DnaTransactionData[]): string {
-    if (income.length < 2) return income.length === 0 ? 'stable' : 'irregular';
+    if (income.length < 2) {
+      return income.length === 0 ? 'stable' : 'irregular';
+    }
 
-    const amounts = income.map(t => t.amount);
+    const amounts = income.map((t) => t.amount);
     const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length;
     const variance = amounts.reduce((s, a) => s + (a - avg) ** 2, 0) / amounts.length;
     const stdDev = Math.sqrt(variance);
     const cv = avg > 0 ? stdDev / avg : 0;
 
-    if (cv <= 0.3) return 'stable';
-    if (cv <= 0.7) return 'seasonal';
+    if (cv <= 0.3) {
+      return 'stable';
+    }
+    if (cv <= 0.7) {
+      return 'seasonal';
+    }
     return 'irregular';
   }
 
   private classifyBillPaymentBehavior(settlements: DnaSettlementData[]): string {
-    if (settlements.length === 0) return 'ontime';
+    if (settlements.length === 0) {
+      return 'ontime';
+    }
 
-    const completed = settlements.filter(s => s.status === 'completed');
-    if (completed.length === 0) return 'inconsistent';
+    const completed = settlements.filter((s) => s.status === 'completed');
+    if (completed.length === 0) {
+      return 'inconsistent';
+    }
 
-    const fastSettlements = completed.filter(s => {
-      const days = Math.abs((new Date().getTime() - new Date(s.date).getTime()) / (1000 * 60 * 60 * 24));
+    const fastSettlements = completed.filter((s) => {
+      const days = Math.abs(
+        (new Date().getTime() - new Date(s.date).getTime()) / (1000 * 60 * 60 * 24),
+      );
       return days <= 3;
     });
     const fastRatio = fastSettlements.length / completed.length;
 
-    if (fastRatio >= 0.8) return 'ontime';
-    if (fastRatio >= 0.4) return 'inconsistent';
+    if (fastRatio >= 0.8) {
+      return 'ontime';
+    }
+    if (fastRatio >= 0.4) {
+      return 'inconsistent';
+    }
     return 'late';
   }
 
@@ -362,7 +478,9 @@ export class FinancialDnaEngine {
       const cat = t.category || 'Other';
       categoryTotals.set(cat, (categoryTotals.get(cat) || 0) + t.amount);
     }
-    if (categoryTotals.size === 0) return undefined;
+    if (categoryTotals.size === 0) {
+      return undefined;
+    }
     return [...categoryTotals.entries()].sort((a, b) => b[1] - a[1])[0][0];
   }
 
@@ -385,7 +503,7 @@ export class FinancialDnaEngine {
     };
   }
 
-  private generateInsights(context: {
+  private async generateInsights(context: {
     spendingPersonality: string;
     savingPersonality: string;
     riskLevel: string;
@@ -406,55 +524,105 @@ export class FinancialDnaEngine {
     spendingToIncomeRatio: number;
     totalExpenses: number;
     effectiveIncome: number;
+  }): Promise<string[]> {
+    if (this.llm) {
+      try {
+        const prompt = `You are a financial personality analyst for an Indian user. Based on their financial DNA profile, generate 5-6 personalized insights.
+
+Profile:
+- Spending Personality: ${context.spendingPersonality}
+- Saving Personality: ${context.savingPersonality}
+- Risk Level: ${context.riskLevel}
+- Savings Rate: ${Math.round(context.savingsRate * 100)}%
+- Spending-to-Income Ratio: ${Math.round(context.spendingToIncomeRatio * 100)}%
+- Discipline Score: ${context.disciplineScore}/100
+- Weekend Spending: ${context.weekendSpendingPct}%
+- Luxury Spending: ${context.luxurySpendingScore}%
+- Impulse Score: ${context.impulsePurchaseScore}
+- Income: ₹${context.effectiveIncome.toLocaleString()}/month
+- Expenses: ₹${context.totalExpenses.toLocaleString()}/month
+- Top Category: ${context.topCategoryPreference || 'N/A'}
+- Bill Payment: ${context.billPaymentBehavior}
+- Settlement Reliability: ${context.settlementReliabilityScore}/100
+
+Return ONLY a JSON array of 5-6 short insight strings. Be specific with numbers. Mix strengths and areas for improvement.`;
+
+        const result = await this.llm.generateJson<string[]>(prompt, { temperature: 0.5 });
+        if (result && result.length >= 3) {
+          return result.slice(0, 6);
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    return this.getFallbackInsights(context);
+  }
+
+  private getFallbackInsights(context: {
+    savingsRate: number;
+    luxurySpendingScore: number;
+    weekendSpendingPct: number;
+    settlementReliabilityScore: number;
+    impulsePurchaseScore: number;
+    disciplineScore: number;
+    billPaymentBehavior: string;
+    familyContributionScore: number;
+    topCategoryPreference?: string;
   }): string[] {
     const insights: string[] = [];
-
     if (context.savingsRate >= 0.2) {
-      insights.push(`You save ${Math.round(context.savingsRate * 100)}% of your income — great financial habit!`);
+      insights.push(
+        `You save ${Math.round(context.savingsRate * 100)}% of your income — great financial habit!`,
+      );
     } else if (context.savingsRate < 0) {
       insights.push('Your expenses exceed your income. Consider reviewing your spending.');
     } else {
-      insights.push(`Your savings rate is ${Math.round(context.savingsRate * 100)}%. Aim for at least 20%.`);
+      insights.push(
+        `Your savings rate is ${Math.round(context.savingsRate * 100)}%. Aim for at least 20%.`,
+      );
     }
-
     if (context.luxurySpendingScore > 40) {
-      insights.push(`${context.luxurySpendingScore}% of your spending goes to luxury categories — consider balancing with essentials.`);
+      insights.push(
+        `${context.luxurySpendingScore}% of your spending goes to luxury categories — consider balancing with essentials.`,
+      );
     }
-
     if (context.weekendSpendingPct > 50) {
-      insights.push(`Most of your spending (${context.weekendSpendingPct}%) happens on weekends — those little outings add up!`);
+      insights.push(
+        `Most of your spending (${context.weekendSpendingPct}%) happens on weekends — those little outings add up!`,
+      );
     }
-
     if (context.settlementReliabilityScore < 50) {
       insights.push('Your settlement reliability needs improvement. Try settling dues faster.');
     } else if (context.settlementReliabilityScore >= 80) {
-      insights.push('You are highly reliable with settlements — your group members appreciate that!');
+      insights.push(
+        'You are highly reliable with settlements — your group members appreciate that!',
+      );
     }
-
     if (context.impulsePurchaseScore > 60) {
-      insights.push('Frequent large or irregular purchases detected. Try a 24-hour wait rule before big spends.');
+      insights.push(
+        'Frequent large or irregular purchases detected. Try a 24-hour wait rule before big spends.',
+      );
     }
-
     if (context.disciplineScore >= 80) {
       insights.push('Your spending discipline is excellent — you stick to your budgets well.');
     } else if (context.disciplineScore < 40) {
-      insights.push('Your spending patterns are inconsistent. Setting a monthly budget could help.');
+      insights.push(
+        'Your spending patterns are inconsistent. Setting a monthly budget could help.',
+      );
     }
-
     if (context.billPaymentBehavior === 'ontime') {
       insights.push('You always pay on time — your financial responsibility is commendable.');
     } else if (context.billPaymentBehavior === 'late') {
       insights.push('Late payments detected. Setting reminders could help avoid delays.');
     }
-
     if (context.familyContributionScore >= 70) {
-      insights.push('You are a strong contributor to shared expenses — your family/group values your support.');
+      insights.push(
+        'You are a strong contributor to shared expenses — your family/group values your support.',
+      );
     }
-
     if (context.topCategoryPreference) {
       insights.push(`Your top spending category is "${context.topCategoryPreference}".`);
     }
-
     return insights.slice(0, 6);
   }
 }

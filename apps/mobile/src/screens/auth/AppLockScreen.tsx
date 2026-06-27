@@ -7,6 +7,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { getLockKeys } from '../../store/LockContext';
+import { PinSetupScreen } from './PinSetupScreen';
 import { ConfirmDialog } from '../../components/ui';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -22,12 +23,27 @@ export function AppLockScreen({ onUnlock }: Props) {
   const [pin, setPin] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const pinLength = 4;
 
   useEffect(() => {
-    handleBiometric();
+    checkPinExists();
   }, []);
+
+  async function checkPinExists() {
+    const { appPin: appPinKey } = getLockKeys(user?.id);
+    try {
+      const stored = await SecureStore.getItemAsync(appPinKey);
+      if (!stored) {
+        setNeedsSetup(true);
+        return;
+      }
+      handleBiometric();
+    } catch {
+      setNeedsSetup(true);
+    }
+  }
 
   function triggerShake() {
     Animated.sequence([
@@ -100,16 +116,22 @@ export function AppLockScreen({ onUnlock }: Props) {
 
   const dotProgress = pin.length / pinLength;
 
+  if (needsSetup) {
+    return <PinSetupScreen onComplete={onUnlock} />;
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}>
       <LinearGradient colors={['#131315', '#0A0A0F', '#070708']} style={StyleSheet.absoluteFill} />
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <AntDesign  name="lock" size={28} color="#14B8A6" />
+          <AntDesign name="lock" size={28} color="#14B8A6" />
         </View>
         <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
+        <Text style={styles.subtitle}>
+          {user?.firstName || 'User'} · Enter your Dabbu app PIN (not phone PIN)
+        </Text>
       </View>
 
       <View style={styles.dotsSection}>
@@ -147,7 +169,7 @@ export function AppLockScreen({ onUnlock }: Props) {
                 onPress={handleDelete}
                 activeOpacity={0.5}
               >
-                <AntDesign  name="back" size={22} color="rgba(255,255,255,0.5)" />
+                <AntDesign name="back" size={22} color="rgba(255,255,255,0.5)" />
               </TouchableOpacity>
             );
           }
@@ -168,7 +190,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <AntDesign name="Safety" size={22} color="#14B8A6"  />
+          <AntDesign name="Safety" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>

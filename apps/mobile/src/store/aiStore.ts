@@ -24,10 +24,12 @@ export const useAIStore = create<AIStore>((set) => ({
   error: null,
 
   fetchInsights: async (accessToken, spaceId) => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     set({ loading: true, error: null });
     try {
-      const params = spaceId ? `?spaceId=${spaceId}` : '';
+      const params = spaceId ? `?section=dashboard&spaceId=${spaceId}` : '?section=dashboard';
       const res = await api.get<any>(`/ai/insights${params}`);
       const data = res?.data ?? res;
       set({
@@ -40,11 +42,13 @@ export const useAIStore = create<AIStore>((set) => ({
   },
 
   chat: async (accessToken, message, spaceId) => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     try {
-      const res = await api.post<any>('/ai/chat', { message, spaceId });
+      const res = await api.post<any>('/ai/chat', { prompt: message });
       const data = res?.data ?? res;
-      return data?.reply ?? data?.response ?? data?.message ?? null;
+      return data?.response ?? data?.text ?? data?.message ?? null;
     } catch {
       return null;
     }

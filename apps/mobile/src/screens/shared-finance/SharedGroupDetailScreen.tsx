@@ -178,6 +178,7 @@ export function SharedGroupDetailScreen() {
   const [activityData, setActivityData] = useState<any[]>([]);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [insights, setInsights] = useState<any[]>([]);
+  const [aiNarrative, setAiNarrative] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -211,13 +212,16 @@ export function SharedGroupDetailScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const [groupRes, expensesRes, activityRes, analyticsRes, insightsRes] =
+        const [groupRes, expensesRes, activityRes, analyticsRes, insightsRes, aiNarrativeRes] =
           await Promise.allSettled([
             api.get<any>(`/shared-finance/groups/${groupId}`),
             api.get<any>(`/shared-finance/groups/${groupId}/expenses`),
             api.get<any>(`/shared-finance/groups/${groupId}/settlements`),
             api.get<any>(`/shared-finance/groups/${groupId}/analytics`).catch(() => null),
             api.get<any>(`/shared-finance/groups/${groupId}/insights`).catch(() => null),
+            api
+              .post<any>('/ai/narrative', { section: 'shared_finance', context: { groupId } })
+              .catch(() => null),
           ]);
         if (groupRes.status === 'fulfilled') {
           setGroup(groupRes.value);
@@ -230,6 +234,8 @@ export function SharedGroupDetailScreen() {
         setAnalyticsData(ad);
         const id = insightsRes.status === 'fulfilled' ? insightsRes.value : [];
         setInsights(Array.isArray(id) ? id : []);
+        const aiN = aiNarrativeRes.status === 'fulfilled' ? aiNarrativeRes.value : null;
+        setAiNarrative(aiN?.data || aiN);
         if (groupRes.status === 'rejected' && expensesRes.status === 'rejected') {
           throw new Error('Unable to load data');
         }
@@ -1210,6 +1216,56 @@ export function SharedGroupDetailScreen() {
                     AI Insights
                   </Text>
                 </View>
+                {aiNarrative?.summary && (
+                  <View
+                    style={[
+                      s.insightCard,
+                      {
+                        backgroundColor: colors.accent.primary + '08',
+                        borderColor: colors.accent.primary + '20',
+                        marginBottom: 12,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: colors.text.primary,
+                        marginBottom: 4,
+                      }}
+                    >
+                      AI Analysis
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.text.secondary, lineHeight: 18 }}>
+                      {aiNarrative.summary}
+                    </Text>
+                    {aiNarrative.highlights?.length > 0 && (
+                      <View style={{ marginTop: 8 }}>
+                        {aiNarrative.highlights.slice(0, 3).map((h: any, i: number) => (
+                          <Text
+                            key={i}
+                            style={{ fontSize: 11, color: colors.status.success, marginBottom: 2 }}
+                          >
+                            • {typeof h === 'string' ? h : h?.text || ''}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                    {aiNarrative.recommendations?.length > 0 && (
+                      <View style={{ marginTop: 8 }}>
+                        {aiNarrative.recommendations.slice(0, 2).map((r: any, i: number) => (
+                          <Text
+                            key={i}
+                            style={{ fontSize: 11, color: colors.accent.primary, marginBottom: 2 }}
+                          >
+                            💡 {typeof r === 'string' ? r : r?.text || ''}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
                 {insights.map((ins: any, i: number) => {
                   const sevColor =
                     ins.severity === 'critical'

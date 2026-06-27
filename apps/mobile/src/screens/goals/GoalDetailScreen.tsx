@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  ScrollView,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -11,7 +23,7 @@ import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 const MILESTONES = [25, 50, 75, 100];
 
 function fmt(v: number) {
@@ -273,7 +285,7 @@ function QuickContributeModal({
                 onPress={handleSubmit}
                 activeOpacity={0.8}
               >
-                <AntDesign  name="pluscircleo" size={20} color="#FFF" />
+                <AntDesign name="pluscircleo" size={20} color="#FFF" />
                 <Text style={[typography.button, { color: '#FFF' }]}>Add Amount</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -354,6 +366,7 @@ export function GoalDetailScreen() {
 
   const [goal, setGoal] = useState<any>(null);
   const [prediction, setPrediction] = useState<any>(null);
+  const [aiForecast, setAiForecast] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showContribute, setShowContribute] = useState(false);
   const [contributing, setContributing] = useState(false);
@@ -376,8 +389,16 @@ export function GoalDetailScreen() {
         api.get<any>(`/goals/${goalId}`),
         api.get<any>(`/ai/goals/${goalId}/prediction`),
       ]);
-      if (goalRes.status === 'fulfilled') setGoal(goalRes.value);
-      if (predRes.status === 'fulfilled' && predRes.value?.data) setPrediction(predRes.value.data);
+      if (goalRes.status === 'fulfilled') {
+        setGoal(goalRes.value);
+      }
+      if (predRes.status === 'fulfilled' && predRes.value?.data) {
+        setPrediction(predRes.value.data);
+      }
+      api
+        .post('/ai/contextual/forecast', { goalId, months: 12 })
+        .then((r: any) => setAiForecast(r?.data || r))
+        .catch(() => {});
     } catch {
       alertService.alert('Error', 'Failed to load goal');
       navigation.goBack();
@@ -509,7 +530,7 @@ export function GoalDetailScreen() {
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <AntDesign  name="arrowleft" size={22} color="#FFF" />
+                <AntDesign name="arrowleft" size={22} color="#FFF" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -522,7 +543,7 @@ export function GoalDetailScreen() {
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <AntDesign  name="edit" size={20} color="#FFF" />
+                <AntDesign name="edit" size={20} color="#FFF" />
               </TouchableOpacity>
             </View>
             <View style={s.headerContent}>
@@ -541,7 +562,7 @@ export function GoalDetailScreen() {
                 </Text>
               </View>
               <View style={s.taglinePill}>
-                <AntDesign  name="star" size={14} color="rgba(255,255,255,0.9)" />
+                <AntDesign name="star" size={14} color="rgba(255,255,255,0.9)" />
                 <Text style={[typography.footnote, { color: '#FFF', fontWeight: '600' }]}>
                   {tagline}
                 </Text>
@@ -609,7 +630,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <AntDesign  name="wallet" size={18} color={colors.status.success} />
+              <AntDesign name="wallet" size={18} color={colors.status.success} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.text.primary }]}>
               {fmt(saved)}
@@ -623,7 +644,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <AntDesign  name="linechart" size={18} color={colors.status.warning} />
+              <AntDesign name="linechart" size={18} color={colors.status.warning} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.status.warning }]}>
               {fmt(remaining)}
@@ -637,7 +658,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <AntDesign  name="retweet" size={18} color={colors.accent.primary} />
+              <AntDesign name="retweet" size={18} color={colors.accent.primary} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.accent.primary }]}>
               {monthlyContrib > 0 ? fmt(monthlyContrib) : '—'}
@@ -668,7 +689,7 @@ export function GoalDetailScreen() {
           <View style={[s.glassBg, { backgroundColor: config.color + '08' }]} />
           <View style={s.completionRow}>
             <View style={[s.completionIcon, { backgroundColor: colors.bg.secondary }]}>
-              <AntDesign  name="calendar" size={22} color={config.color} />
+              <AntDesign name="calendar" size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
               {prediction?.predictedCompletionDate ? (
@@ -676,13 +697,28 @@ export function GoalDetailScreen() {
                   <Text
                     style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
                   >
-                    AI Forecast: {new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+                    AI Forecast:{' '}
+                    {new Date(prediction.predictedCompletionDate).toLocaleString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
-                    <Text style={[typography.footnote, {
-                      color: prediction.currentPace === 'ahead' ? colors.status.success : prediction.currentPace === 'ontrack' ? colors.status.warning : colors.status.error,
-                      fontWeight: '700', textTransform: 'capitalize',
-                    }]}>
+                    <Text
+                      style={[
+                        typography.footnote,
+                        {
+                          color:
+                            prediction.currentPace === 'ahead'
+                              ? colors.status.success
+                              : prediction.currentPace === 'ontrack'
+                                ? colors.status.warning
+                                : colors.status.error,
+                          fontWeight: '700',
+                          textTransform: 'capitalize',
+                        },
+                      ]}
+                    >
                       {prediction.currentPace}
                     </Text>
                     <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
@@ -690,7 +726,9 @@ export function GoalDetailScreen() {
                     </Text>
                   </View>
                   {prediction.requiredMonthlyContribution > 0 && (
-                    <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: 1 }]}>
+                    <Text
+                      style={[typography.footnote, { color: colors.text.tertiary, marginTop: 1 }]}
+                    >
                       Need {fmt(Math.round(prediction.requiredMonthlyContribution))}/mo
                     </Text>
                   )}
@@ -809,7 +847,7 @@ export function GoalDetailScreen() {
                     <View style={s.timelineNode}>
                       {reached ? (
                         <View style={[s.nodeReached, { backgroundColor: config.color }]}>
-                          <AntDesign  name="check" size={14} color="#FFF" />
+                          <AntDesign name="check" size={14} color="#FFF" />
                         </View>
                       ) : (
                         <View style={[s.nodeEmpty, { borderColor: colors.border.default }]} />
@@ -867,14 +905,64 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={{ flexDirection: 'row', gap: sp.sm, alignItems: 'flex-start' }}>
-              <AntDesign  name="bulb1" size={18} color={colors.accent.primary} />
+              <AntDesign name="bulb1" size={18} color={colors.accent.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+                <Text
+                  style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                >
                   AI Suggestion
                 </Text>
                 <Text style={[typography.footnote, { color: colors.text.secondary, marginTop: 4 }]}>
                   {prediction.improvementTip}
                 </Text>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* ─── AI 12-Month Forecast ─── */}
+        {aiForecast?.monthlyProjections?.length > 0 && (
+          <Animated.View
+            style={[
+              s.glassCard,
+              {
+                backgroundColor: colors.bg.secondary,
+                borderColor: colors.border.subtle,
+                borderLeftWidth: 3,
+                borderLeftColor: '#8B5CF6',
+                transform: [
+                  {
+                    translateY: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [85, 0] }),
+                  },
+                ],
+                opacity: entryAnim,
+              },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', gap: sp.sm, alignItems: 'flex-start' }}>
+              <AntDesign name="linechart" size={18} color="#8B5CF6" />
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                >
+                  12-Month Forecast
+                </Text>
+                {aiForecast.monthlyProjections.slice(0, 6).map((p: any, i: number) => (
+                  <Text
+                    key={i}
+                    style={[typography.footnote, { color: colors.text.secondary, marginTop: 2 }]}
+                  >
+                    {p.month}: {fmt(p.projectedAmount || p.amount || 0)}{' '}
+                    {p.status ? `(${p.status})` : ''}
+                  </Text>
+                ))}
+                {aiForecast.summary && (
+                  <Text
+                    style={[typography.footnote, { color: colors.text.tertiary, marginTop: 6 }]}
+                  >
+                    {aiForecast.summary}
+                  </Text>
+                )}
               </View>
             </View>
           </Animated.View>
@@ -902,7 +990,7 @@ export function GoalDetailScreen() {
           >
             <View style={[s.glassBg, { backgroundColor: colors.accent.primary + '06' }]} />
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
-              <AntDesign  name="filetext1" size={18} color={colors.text.tertiary} />
+              <AntDesign name="filetext1" size={18} color={colors.text.tertiary} />
               <View style={{ flex: 1 }}>
                 <Text style={[typography.callout, { color: colors.text.primary }]}>
                   {goal.notes}
@@ -934,7 +1022,7 @@ export function GoalDetailScreen() {
           onPress={() => setShowContribute(true)}
           activeOpacity={0.8}
         >
-          <AntDesign  name="pluscircleo" size={20} color="#FFF" />
+          <AntDesign name="pluscircleo" size={20} color="#FFF" />
           <Text style={[typography.button, { color: '#FFF' }]}>Add to Goal</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -948,7 +1036,7 @@ export function GoalDetailScreen() {
           }}
           activeOpacity={0.7}
         >
-          <AntDesign  name="edit" size={20} color={colors.text.primary} />
+          <AntDesign name="edit" size={20} color={colors.text.primary} />
           <Text style={[typography.button, { color: colors.text.primary }]}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -956,7 +1044,7 @@ export function GoalDetailScreen() {
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <AntDesign  name="delete" size={20} color={colors.status.error} />
+          <AntDesign name="delete" size={20} color={colors.status.error} />
         </TouchableOpacity>
       </Animated.View>
 
@@ -967,39 +1055,206 @@ export function GoalDetailScreen() {
         goalName={goal.name}
       />
 
-      <Modal visible={showEdit} transparent animationType="slide" onRequestClose={() => setShowEdit(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowEdit(false)} />
-          <View style={{ backgroundColor: colors.bg.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20 }}>
-            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.border.subtle, alignSelf: 'center', marginBottom: 16 }} />
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginBottom: 16 }}>Edit Goal</Text>
+      <Modal
+        visible={showEdit}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowEdit(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
+        >
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => setShowEdit(false)}
+          />
+          <View
+            style={{
+              backgroundColor: colors.bg.primary,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 20,
+              paddingBottom: insets.bottom + 20,
+            }}
+          >
+            <View
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: colors.border.subtle,
+                alignSelf: 'center',
+                marginBottom: 16,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 16,
+              }}
+            >
+              Edit Goal
+            </Text>
             <View style={{ gap: 12 }}>
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Name</Text>
-                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editName} onChangeText={setEditName} placeholder="Goal name" placeholderTextColor={colors.text.tertiary} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 6,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Name
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                  }}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Goal name"
+                  placeholderTextColor={colors.text.tertiary}
+                />
               </View>
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Target Amount (₹)</Text>
-                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editTarget} onChangeText={(t) => setEditTarget(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.text.tertiary} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 6,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Target Amount (₹)
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                  }}
+                  value={editTarget}
+                  onChangeText={(t) => setEditTarget(t.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.text.tertiary}
+                />
               </View>
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Monthly Contribution (₹)</Text>
-                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editMonthly} onChangeText={(t) => setEditMonthly(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.text.tertiary} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 6,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Monthly Contribution (₹)
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                  }}
+                  value={editMonthly}
+                  onChangeText={(t) => setEditMonthly(t.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.text.tertiary}
+                />
               </View>
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Notes</Text>
-                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle, minHeight: 60 }} value={editNotes} onChangeText={setEditNotes} placeholder="Optional notes" placeholderTextColor={colors.text.tertiary} multiline />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 6,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Notes
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: colors.text.primary,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    minHeight: 60,
+                  }}
+                  value={editNotes}
+                  onChangeText={setEditNotes}
+                  placeholder="Optional notes"
+                  placeholderTextColor={colors.text.tertiary}
+                  multiline
+                />
               </View>
             </View>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-              <TouchableOpacity style={{ flex: 1, paddingVertical: 16, borderRadius: 14, backgroundColor: colors.bg.tertiary, alignItems: 'center' }} onPress={() => setShowEdit(false)} activeOpacity={0.7}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.secondary }}>Cancel</Text>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  backgroundColor: colors.bg.tertiary,
+                  alignItems: 'center',
+                }}
+                onPress={() => setShowEdit(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.secondary }}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 16, borderRadius: 14, backgroundColor: config.color, alignItems: 'center', opacity: editSaving ? 0.6 : 1 }}
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  borderRadius: 14,
+                  backgroundColor: config.color,
+                  alignItems: 'center',
+                  opacity: editSaving ? 0.6 : 1,
+                }}
                 onPress={async () => {
-                  if (!editName.trim()) { alertService.alert('Error', 'Name is required'); return; }
-                  if (!editTarget || Number(editTarget) <= 0) { alertService.alert('Error', 'Enter a valid target amount'); return; }
+                  if (!editName.trim()) {
+                    alertService.alert('Error', 'Name is required');
+                    return;
+                  }
+                  if (!editTarget || Number(editTarget) <= 0) {
+                    alertService.alert('Error', 'Enter a valid target amount');
+                    return;
+                  }
                   setEditSaving(true);
                   try {
                     await api.patch(`/goals/${goalId}`, {
@@ -1018,7 +1273,9 @@ export function GoalDetailScreen() {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>{editSaving ? 'Saving...' : 'Save'}</Text>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>
+                  {editSaving ? 'Saving...' : 'Save'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

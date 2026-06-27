@@ -44,40 +44,161 @@ export function DashboardNavigator() {
   const theme = useTheme();
   return (
     <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
-      <Stack.Screen name="LifeDashboard" component={LifeDashboardScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="NotificationCenter" component={NotificationCenterScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="LifeDashboard"
+        component={LifeDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NotificationCenter"
+        component={NotificationCenterScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="GoalsList" component={GoalsListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="GoalDetail" component={GoalDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="GoalDetail"
+        component={GoalDetailScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="NetWorth" component={NetWorthScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="HealthScore" component={HealthScoreScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="EmergencyFund" component={EmergencyFundScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="FinancialCenter" component={FinancialCenterScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="HealthScore"
+        component={HealthScoreScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EmergencyFund"
+        component={EmergencyFundScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FinancialCenter"
+        component={FinancialCenterScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="DabbuAI" component={DabbuAIScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="DocumentVault" component={DocumentVaultScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="DocumentDetail" component={DocumentDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="DocumentVault"
+        component={DocumentVaultScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DocumentDetail"
+        component={DocumentDetailScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="BadgeWall" component={BadgeWallScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Streaks" component={StreaksScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="GlobalSearch" component={GlobalSearchScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="HousePlanner" component={HousePlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="BabyPlanner" component={BabyPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="RetirementPlanner" component={RetirementPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="InvestmentPlanner" component={InvestmentPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CarPlanner" component={CarPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="EducationPlanner" component={EducationPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="VacationPlanner" component={VacationPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="WeddingPlanner" component={WeddingPlannerScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="LifeEventsList" component={LifeEventsListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="LifeEventDetail" component={LifeEventDetailScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CreateLifeEvent" component={CreateLifeEventScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CoupleSavings" component={CoupleSavingsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CoupleGoals" component={CoupleGoalsScreen} options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="CoupleTimeline" component={CoupleTimelineScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CoupleBudgets" component={CoupleBudgetsScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="AddExpense" component={AddExpenseScreen} options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="CoupleSpace" component={CoupleSpaceScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CreateFamilyWorkspace" component={CreateFamilyWorkspaceScreen} options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="FamilyWorkspace" component={FamilyWorkspaceScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="GlobalSearch"
+        component={GlobalSearchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="YearlySummary"
+        component={YearlySummaryScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HousePlanner"
+        component={HousePlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="BabyPlanner"
+        component={BabyPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="RetirementPlanner"
+        component={RetirementPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="InvestmentPlanner"
+        component={InvestmentPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CarPlanner"
+        component={CarPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EducationPlanner"
+        component={EducationPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="VacationPlanner"
+        component={VacationPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="WeddingPlanner"
+        component={WeddingPlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LifeEventsList"
+        component={LifeEventsListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LifeEventDetail"
+        component={LifeEventDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateLifeEvent"
+        component={CreateLifeEventScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleSavings"
+        component={CoupleSavingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleGoals"
+        component={CoupleGoalsScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="CoupleTimeline"
+        component={CoupleTimelineScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleBudgets"
+        component={CoupleBudgetsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddExpense"
+        component={AddExpenseScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="CoupleSpace"
+        component={CoupleSpaceScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateFamilyWorkspace"
+        component={CreateFamilyWorkspaceScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="FamilyWorkspace"
+        component={FamilyWorkspaceScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

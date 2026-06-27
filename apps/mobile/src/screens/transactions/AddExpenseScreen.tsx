@@ -63,7 +63,7 @@ export function AddExpenseScreen() {
 
   function handleSelect(type: OptionCard['type']) {
     const map: Record<string, string> = {
-      manual: 'CreateTransaction',
+      manual: 'AddExpense',
       camera: 'BillScanner',
       group: 'CreateExpenseGroup',
     };
@@ -80,14 +80,17 @@ export function AddExpenseScreen() {
       >
         {/* Header */}
         <View style={s.headerRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.closeBtn, { backgroundColor: `${colors.accent.secondary}10` }]}>
-            <AntDesign  name="close" size={22} color={colors.accent.secondary} />
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.closeBtn, { backgroundColor: `${colors.accent.secondary}10` }]}
+          >
+            <AntDesign name="close" size={22} color={colors.accent.secondary} />
           </TouchableOpacity>
         </View>
 
         <View style={s.hero}>
           <View style={[s.heroIcon, { backgroundColor: `${colors.accent.secondary}12` }]}>
-            <AntDesign  name="wallet" size={32} color={colors.accent.secondary} />
+            <AntDesign name="wallet" size={32} color={colors.accent.secondary} />
           </View>
           <Text style={s.heroTitle}>Add expense</Text>
           <Text style={s.heroDesc}>Choose how you'd like to capture this spend.</Text>
@@ -140,7 +143,7 @@ export function AddExpenseScreen() {
                       {option.description}
                     </Text>
                   </View>
-                  <AntDesign  name="right" size={18} color={colors.text.tertiary} />
+                  <AntDesign name="right" size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </Animated.View>
             );

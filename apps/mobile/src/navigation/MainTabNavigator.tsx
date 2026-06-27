@@ -1,5 +1,13 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
@@ -231,7 +239,7 @@ export function MainTabNavigator() {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'CoupleBudgets' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' }),
       },
       create_couple_goal: {
         label: 'Couple Goal',
@@ -289,7 +297,7 @@ export function MainTabNavigator() {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'CoupleBudgets' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' }),
       },
       pay_bill: {
         label: 'Pay Bill',
@@ -342,7 +350,7 @@ export function MainTabNavigator() {
         label: 'Create Space',
         icon: 'team',
         color: '#D97706',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateSpace' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateFamilyWorkspace' }),
       },
       export_report: {
         label: 'Export Report',
@@ -354,7 +362,7 @@ export function MainTabNavigator() {
         label: 'Add Investment',
         icon: 'linechart',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('WalletTab', { screen: 'AddInvestment' }),
+        onPress: () => navigation.navigate('LifeHubTab', { screen: 'InvestmentPlanner' }),
       },
       add_family_member: {
         label: 'Family Members',
@@ -385,12 +393,7 @@ export function MainTabNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Animated.View
-        style={[
-          { flex: 1 },
-          { opacity: tabContentAnim },
-        ]}
-      >
+      <Animated.View style={[{ flex: 1 }, { opacity: tabContentAnim }]}>
         <Tab.Navigator
           tabBar={(props) => {
             setTabIndex(props.state.index);
@@ -417,30 +420,30 @@ export function MainTabNavigator() {
             tabBarStyle: { backgroundColor: colors.bg.primary, borderTopWidth: 0, elevation: 0 },
           }}
         >
-        {ALL_TAB_CONFIGS.map((tab) => {
-          const iconName = tabIcons[tab.name] || tab.icon;
-          const activeIconName = tabIcons[tab.name] || tab.activeIcon;
-          return (
-            <Tab.Screen
-              key={tab.name}
-              name={tab.name}
-              component={tab.component}
-              options={{
-                tabBarLabel: tabLabels[tab.name] || tab.label,
-                tabBarIcon: iconName
-                  ? ({ focused, color }) => (
-                      <AntDesign
-                        name={(focused ? activeIconName : iconName) as any}
-                        size={22}
-                        color={color}
-                      />
-                    )
-                  : () => null,
-              }}
-            />
-          );
-        })}
-      </Tab.Navigator>
+          {ALL_TAB_CONFIGS.map((tab) => {
+            const iconName = tabIcons[tab.name] || tab.icon;
+            const activeIconName = tabIcons[tab.name] || tab.activeIcon;
+            return (
+              <Tab.Screen
+                key={tab.name}
+                name={tab.name}
+                component={tab.component}
+                options={{
+                  tabBarLabel: tabLabels[tab.name] || tab.label,
+                  tabBarIcon: iconName
+                    ? ({ focused, color }) => (
+                        <AntDesign
+                          name={(focused ? activeIconName : iconName) as any}
+                          size={22}
+                          color={color}
+                        />
+                      )
+                    : () => null,
+                }}
+              />
+            );
+          })}
+        </Tab.Navigator>
       </Animated.View>
 
       {quickActions.length > 0 && (

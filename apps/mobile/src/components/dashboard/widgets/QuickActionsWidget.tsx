@@ -110,7 +110,7 @@ const FULL_ACTIONS: QuickActionDef[] = [
     label: 'Add Investment',
     icon: 'linechart',
     color: '#3B82F6',
-    screen: 'AddInvestment',
+    screen: 'InvestmentPlanner',
   },
 ];
 

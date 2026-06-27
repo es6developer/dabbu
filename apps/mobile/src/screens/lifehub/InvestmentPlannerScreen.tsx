@@ -10,11 +10,13 @@ type RiskLevel = 'Low' | 'Medium' | 'High';
 
 const ANNUAL_RETURNS: Record<RiskLevel, number> = {
   Low: 0.06,
-  Medium: 0.10,
+  Medium: 0.1,
   High: 0.15,
 };
 
-function fmt(v: number) { return '₹' + Math.round(v).toLocaleString('en-IN'); }
+function fmt(v: number) {
+  return '₹' + Math.round(v).toLocaleString('en-IN');
+}
 
 export function InvestmentPlannerScreen({ navigation }: any) {
   const { colors } = useTheme();
@@ -22,11 +24,17 @@ export function InvestmentPlannerScreen({ navigation }: any) {
   const [monthlyInvestment, setMonthlyInvestment] = useState('');
   const [riskLevel, setRiskLevel] = useState<RiskLevel>('Medium');
   const [horizon, setHorizon] = useState(10);
-  const [result, setResult] = useState<{ totalInvestment: number; estimatedReturns: number; totalValue: number } | null>(null);
+  const [result, setResult] = useState<{
+    totalInvestment: number;
+    estimatedReturns: number;
+    totalValue: number;
+  } | null>(null);
 
   const calculate = () => {
     const monthly = parseFloat(monthlyInvestment) || 0;
-    if (monthly <= 0) return;
+    if (monthly <= 0) {
+      return;
+    }
     const r = ANNUAL_RETURNS[riskLevel];
     const n = horizon;
     const annualInvestment = monthly * 12;
@@ -38,17 +46,62 @@ export function InvestmentPlannerScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity onPress={() => navigation?.goBack()} style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          paddingBottom: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => navigation?.goBack()}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginLeft: 8 }}>Investment Planner</Text>
+        <Text
+          style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginLeft: 8 }}
+        >
+          Investment Planner
+        </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 20, marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary, marginBottom: 6 }}>Monthly Investment</Text>
+        <View
+          style={{
+            backgroundColor: colors.bg.card,
+            borderRadius: 20,
+            padding: 20,
+            marginBottom: 16,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: colors.text.tertiary,
+              marginBottom: 6,
+            }}
+          >
+            Monthly Investment
+          </Text>
           <TextInput
-            style={{ backgroundColor: colors.bg.tertiary, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, fontWeight: '600', color: colors.text.primary }}
+            style={{
+              backgroundColor: colors.bg.tertiary,
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontSize: 16,
+              fontWeight: '600',
+              color: colors.text.primary,
+            }}
             value={monthlyInvestment}
             onChangeText={setMonthlyInvestment}
             keyboardType="decimal-pad"
@@ -56,7 +109,17 @@ export function InvestmentPlannerScreen({ navigation }: any) {
             placeholderTextColor={colors.text.tertiary}
           />
 
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary, marginBottom: 6, marginTop: 16 }}>Risk Level</Text>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: colors.text.tertiary,
+              marginBottom: 6,
+              marginTop: 16,
+            }}
+          >
+            Risk Level
+          </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {RISK_OPTIONS.map((r) => (
               <TouchableOpacity
@@ -70,12 +133,30 @@ export function InvestmentPlannerScreen({ navigation }: any) {
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: riskLevel === r ? '#fff' : colors.text.primary }}>{r}</Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: riskLevel === r ? '#fff' : colors.text.primary,
+                  }}
+                >
+                  {r}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary, marginBottom: 6, marginTop: 16 }}>Investment Horizon</Text>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: colors.text.tertiary,
+              marginBottom: 6,
+              marginTop: 16,
+            }}
+          >
+            Investment Horizon
+          </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {HORIZON_OPTIONS.map((h) => (
               <TouchableOpacity
@@ -89,14 +170,28 @@ export function InvestmentPlannerScreen({ navigation }: any) {
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: horizon === h ? '#fff' : colors.text.primary }}>{h}yr</Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: horizon === h ? '#fff' : colors.text.primary,
+                  }}
+                >
+                  {h}yr
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <TouchableOpacity
             onPress={calculate}
-            style={{ backgroundColor: colors.accent.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 20 }}
+            style={{
+              backgroundColor: colors.accent.primary,
+              borderRadius: 14,
+              paddingVertical: 14,
+              alignItems: 'center',
+              marginTop: 20,
+            }}
           >
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Calculate</Text>
           </TouchableOpacity>
@@ -104,19 +199,54 @@ export function InvestmentPlannerScreen({ navigation }: any) {
 
         {result && (
           <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 20 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 16 }}>Projected Returns</Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 16,
+              }}
+            >
+              Projected Returns
+            </Text>
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Total Investment</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>{fmt(result.totalInvestment)}</Text>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                {fmt(result.totalInvestment)}
+              </Text>
             </View>
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Estimated Returns</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.status.success }}>{fmt(result.estimatedReturns)}</Text>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.status.success }}>
+                {fmt(result.estimatedReturns)}
+              </Text>
+            </View>
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 12, color: colors.text.tertiary }}>CAGR</Text>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.accent.primary }}>
+                {(ANNUAL_RETURNS[riskLevel] * 100).toFixed(1)}%
+              </Text>
             </View>
             <View>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Total Value</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>{fmt(result.totalValue)}</Text>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                {fmt(result.totalValue)}
+              </Text>
             </View>
+            <TouchableOpacity
+              onPress={() =>
+                navigation?.navigate('AddExpense', { type: 'income', category: 'Investments' })
+              }
+              style={{
+                backgroundColor: colors.accent.primary,
+                borderRadius: 14,
+                paddingVertical: 14,
+                alignItems: 'center',
+                marginTop: 20,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Add Investment</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>

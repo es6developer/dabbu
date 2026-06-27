@@ -1,7 +1,17 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, Image, Dimensions, Text } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Dimensions,
+  Text,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -12,7 +22,7 @@ interface PremiumAuthLayoutProps {
 
 export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
@@ -21,17 +31,37 @@ export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 25}
       >
-        <View style={[styles.headerSection, { paddingTop: insets.top + 40 }]}>
-          <Image
-            source={require('../../../assets/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+        <LinearGradient
+          colors={[colors.bg.gradientStart, colors.bg.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerSection, { paddingTop: insets.top + 40 }]}
+        >
+          <View style={[styles.glowBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+            <View style={[styles.glowInner, { backgroundColor: colors.accent.primary + '20' }]}>
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
           <Text style={[styles.brandName, { color: colors.text.primary }]}>Dabbu</Text>
-          {subtitle ? <Text style={[styles.tagline, { color: colors.text.tertiary }]}>{subtitle}</Text> : null}
-        </View>
+          {subtitle ? (
+            <Text style={[styles.tagline, { color: colors.text.tertiary }]}>{subtitle}</Text>
+          ) : null}
+        </LinearGradient>
 
-        <View style={[styles.formCard, { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.default }]}>
+        <View
+          style={[
+            styles.formCard,
+            {
+              backgroundColor: colors.bg.secondary,
+              borderTopColor: colors.border.subtle,
+              ...shadows.lg,
+            },
+          ]}
+        >
           {children}
         </View>
       </KeyboardAvoidingView>
@@ -48,40 +78,47 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: 'center',
-    paddingBottom: 12,
+    paddingBottom: spacing['3xl'],
+    paddingHorizontal: spacing.xl,
   },
-  glowWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 220,
-    zIndex: 0,
+  glowBadge: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  glowInner: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
     width: 40,
     height: 40,
-    zIndex: 1,
   },
   brandName: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
-    marginTop: 8,
     letterSpacing: -0.5,
-    zIndex: 1,
+    marginBottom: spacing.xs,
   },
   tagline: {
-    fontSize: 13,
-    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '500',
     letterSpacing: 0.2,
-    zIndex: 1,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   formCard: {
     flex: 1,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderTopWidth: 1,
-    paddingHorizontal: 24,
-    paddingTop: 28,
+    paddingHorizontal: spacing['2xl'],
+    paddingTop: spacing['2xl'],
   },
 });

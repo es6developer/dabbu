@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, Animated, RefreshControl, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  ActivityIndicator,
+  Animated,
+  RefreshControl,
+  Dimensions,
+} from 'react-native';
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -15,7 +27,7 @@ import {
   ContactMatch,
 } from '../../services/contacts';
 
-import { alertService } from "../../components/ui";
+import { alertService } from '../../components/ui';
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 16;
 const CARD_HORIZONTAL = 20;
@@ -82,8 +94,14 @@ const ROLE_MAP: Record<string, string> = {
 };
 
 const PROFILE_COLORS = [
-  '#7C3AED', '#3B82F6', '#22C55E', '#F59E0B',
-  '#EF4444', '#EC4899', '#14B8A6', '#F97316',
+  '#7C3AED',
+  '#3B82F6',
+  '#22C55E',
+  '#F59E0B',
+  '#EF4444',
+  '#EC4899',
+  '#14B8A6',
+  '#F97316',
 ];
 
 function getProfileColor(id: string): string {
@@ -103,7 +121,9 @@ function fmt(v: number) {
 }
 
 function fmtDate(iso: string) {
-  if (!iso) { return ''; }
+  if (!iso) {
+    return '';
+  }
   const d = new Date(iso);
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -131,11 +151,28 @@ function MemberCardSkeleton() {
   return (
     <View style={[styles.skeletonCard, { backgroundColor: colors.bg.secondary }]}>
       <View style={styles.skeletonRow}>
-        <Animated.View style={[styles.skeletonAvatar, { backgroundColor: colors.bg.tertiary, opacity }]} />
+        <Animated.View
+          style={[styles.skeletonAvatar, { backgroundColor: colors.bg.tertiary, opacity }]}
+        />
         <View style={{ flex: 1, gap: 8 }}>
-          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '50%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '35%', opacity }]} />
-          <Animated.View style={[styles.skeletonLine, { backgroundColor: colors.bg.tertiary, width: '60%', opacity }]} />
+          <Animated.View
+            style={[
+              styles.skeletonLine,
+              { backgroundColor: colors.bg.tertiary, width: '50%', opacity },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.skeletonLine,
+              { backgroundColor: colors.bg.tertiary, width: '35%', opacity },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.skeletonLine,
+              { backgroundColor: colors.bg.tertiary, width: '60%', opacity },
+            ]}
+          />
         </View>
       </View>
     </View>
@@ -162,13 +199,7 @@ function ExpandIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
-function MemberCard({
-  member,
-  index,
-}: {
-  member: FamilyMember;
-  index: number;
-}) {
+function MemberCard({ member, index }: { member: FamilyMember; index: number }) {
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const animHeight = useRef(new Animated.Value(INITIAL_HEIGHT)).current;
@@ -211,17 +242,11 @@ function MemberCard({
 
   return (
     <Animated.View
-      style={[
-        styles.cardOuter,
-        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-      ]}
+      style={[styles.cardOuter, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
     >
       <TouchableOpacity activeOpacity={0.7} onPress={toggleExpand}>
         <Animated.View
-          style={[
-            styles.card,
-            { borderColor: colors.border.subtle, height: animHeight },
-          ]}
+          style={[styles.card, { borderColor: colors.border.subtle, height: animHeight }]}
         >
           <View style={styles.cardHeader}>
             <View style={[styles.avatar, { backgroundColor: profileColor + '20' }]}>
@@ -237,7 +262,9 @@ function MemberCard({
                 <RoleBadge role={member.role} />
               </View>
               <Text style={[styles.joinedDate, { color: colors.text.tertiary }]}>
-                {member.profile.phone ? `📞 ${member.profile.phone}` : `Joined ${fmtDate(member.joinedAt)}`}
+                {member.profile.phone
+                  ? `📞 ${member.profile.phone}`
+                  : `Joined ${fmtDate(member.joinedAt)}`}
               </Text>
               <Text style={[styles.contributionAmount, { color: colors.text.primary }]}>
                 {fmt(member.totalContributed)} contributed
@@ -251,22 +278,30 @@ function MemberCard({
               <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
 
               <View style={styles.expandedSection}>
-                <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Monthly Activity</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+                  Monthly Activity
+                </Text>
                 <View style={styles.activityRow}>
                   <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
-                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Income</Text>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>
+                      Income
+                    </Text>
                     <Text style={[styles.activityValue, { color: colors.status.success }]}>
                       {fmt(member.monthlyActivity.income)}
                     </Text>
                   </View>
                   <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
-                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Expenses</Text>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>
+                      Expenses
+                    </Text>
                     <Text style={[styles.activityValue, { color: colors.status.error }]}>
                       {fmt(member.monthlyActivity.expenses)}
                     </Text>
                   </View>
                   <View style={[styles.activityItem, { backgroundColor: colors.bg.primary }]}>
-                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>Transactions</Text>
+                    <Text style={[styles.activityLabel, { color: colors.text.tertiary }]}>
+                      Transactions
+                    </Text>
                     <Text style={[styles.activityValue, { color: colors.text.primary }]}>
                       {member.monthlyActivity.transactionCount}
                     </Text>
@@ -276,17 +311,21 @@ function MemberCard({
 
               {member.responsibilities.length > 0 && (
                 <View style={styles.expandedSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Responsibilities</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+                    Responsibilities
+                  </Text>
                   <Text style={[styles.responsibilityCount, { color: colors.text.primary }]}>
-                    {member.responsibilities.filter(r => !r.completed).length} pending ·{' '}
-                    {member.responsibilities.filter(r => r.completed).length} completed
+                    {member.responsibilities.filter((r) => !r.completed).length} pending ·{' '}
+                    {member.responsibilities.filter((r) => r.completed).length} completed
                   </Text>
                 </View>
               )}
 
               {member.contributionHistory.length > 0 && (
                 <View style={styles.expandedSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>Contribution History</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+                    Contribution History
+                  </Text>
                   {member.contributionHistory.slice(0, 3).map((ch, i) => (
                     <View key={i} style={styles.historyRow}>
                       <Text style={[styles.historyPeriod, { color: colors.text.secondary }]}>
@@ -303,14 +342,18 @@ function MemberCard({
               <View style={styles.actionRow}>
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.accent.primary + '15' }]}
-                  onPress={() => {/* TODO: Edit member role */}}
+                  onPress={() => {
+                    /* TODO: Edit member role */
+                  }}
                 >
                   <AntDesign name="edit" size={14} color={colors.accent.primary} />
                   <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.status.error + '15' }]}
-                  onPress={() => {/* TODO: Confirm remove */}}
+                  onPress={() => {
+                    /* TODO: Confirm remove */
+                  }}
                 >
                   <AntDesign name="delete" size={14} color={colors.status.error} />
                   <Text style={[styles.actionBtnText, { color: colors.status.error }]}>Remove</Text>
@@ -337,19 +380,37 @@ export default function FamilyMembersScreen({ navigation }: any) {
   const [contactQuery, setContactQuery] = useState('');
   const [deviceContacts, setDeviceContacts] = useState<DeviceContact[]>([]);
   const [matchedContacts, setMatchedContacts] = useState<ContactMatch[]>([]);
-  const [allContacts, setAllContacts] = useState<((ContactMatch & { kind: 'match' }) | (DeviceContact & { kind: 'device' }))[]>([]);
+  const [allContacts, setAllContacts] = useState<
+    ((ContactMatch & { kind: 'match' }) | (DeviceContact & { kind: 'device' }))[]
+  >([]);
   const [hasContactPermission, setHasContactPermission] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<{ name: string; phone: string; userId?: string } | null>(null);
+  const [selectedContact, setSelectedContact] = useState<{
+    name: string;
+    phone: string;
+    userId?: string;
+  } | null>(null);
   const [selectedRelation, setSelectedRelation] = useState('');
   const [familyFound, setFamilyFound] = useState(true);
 
-  const RELATIONSHIPS = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister', 'Other'];
+  const RELATIONSHIPS = [
+    'Spouse',
+    'Son',
+    'Daughter',
+    'Father',
+    'Mother',
+    'Brother',
+    'Sister',
+    'Other',
+  ];
 
   const fetchMembers = useCallback(async (refresh = false) => {
-    if (refresh) { setRefreshing(true); }
-    else { setLoading(true); }
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const families: Family[] = await api.get('/family');
@@ -400,19 +461,22 @@ export default function FamilyMembersScreen({ navigation }: any) {
     try {
       const perm = await requestRawPermission();
       if (!perm.granted) {
-        alertService.alert('Permission Required', 'Enable contact access to add family members from your phonebook.');
+        alertService.alert(
+          'Permission Required',
+          'Enable contact access to add family members from your phonebook.',
+        );
         setSyncing(false);
         return;
       }
       setHasContactPermission(true);
       const { matched, unmatched } = await syncContacts();
       setMatchedContacts(matched);
-      const untyped: (DeviceContact & { kind: 'device' })[] = unmatched.map((c) => ({ ...c, kind: 'device' as const }));
+      const untyped: (DeviceContact & { kind: 'device' })[] = unmatched.map((c) => ({
+        ...c,
+        kind: 'device' as const,
+      }));
       setDeviceContacts(unmatched);
-      setAllContacts([
-        ...matched.map((m) => ({ ...m, kind: 'match' as const })),
-        ...untyped,
-      ]);
+      setAllContacts([...matched.map((m) => ({ ...m, kind: 'match' as const })), ...untyped]);
     } catch {
       alertService.alert('Error', 'Failed to sync contacts');
     } finally {
@@ -421,27 +485,37 @@ export default function FamilyMembersScreen({ navigation }: any) {
   }, []);
 
   const filteredContacts = useMemo(() => {
-    if (!contactQuery.trim()) return allContacts;
+    if (!contactQuery.trim()) {
+      return allContacts;
+    }
     const q = contactQuery.toLowerCase();
     return allContacts.filter((c) => {
       const name = 'kind' in c ? (c as any).name || '' : '';
       const phone = 'kind' in c ? (c as any).phone || '' : '';
-      return name.toLowerCase().includes(q) || phone.replace(/[^0-9]/g, '').includes(q.replace(/[^0-9]/g, ''));
+      return (
+        name.toLowerCase().includes(q) ||
+        phone.replace(/[^0-9]/g, '').includes(q.replace(/[^0-9]/g, ''))
+      );
     });
   }, [allContacts, contactQuery]);
 
   // ── Add member ──
-  const handleSelectContact = useCallback((contact: { name: string; phone: string; userId?: string }) => {
-    setSelectedContact(contact);
-    setSelectedRelation('');
-    setAddStep('relationship');
-  }, []);
+  const handleSelectContact = useCallback(
+    (contact: { name: string; phone: string; userId?: string }) => {
+      setSelectedContact(contact);
+      setSelectedRelation('');
+      setAddStep('relationship');
+    },
+    [],
+  );
 
   const handleConfirmAdd = useCallback(async () => {
-    if (!selectedContact || !selectedRelation) return;
+    if (!selectedContact || !selectedRelation) {
+      return;
+    }
     setAdding(true);
     try {
-      let families: Family[] = await api.get('/family');
+      const families: Family[] = await api.get('/family');
       let familyId = families?.[0]?.id;
       if (!familyId) {
         const newFamily: Family = await api.post('/family', { name: 'My Family', description: '' });
@@ -471,7 +545,9 @@ export default function FamilyMembersScreen({ navigation }: any) {
   }, [fetchMembers]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
+    >
       <View style={[styles.header, { paddingHorizontal: CARD_HORIZONTAL }]}>
         <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Family Members</Text>
         <TouchableOpacity
@@ -494,11 +570,15 @@ export default function FamilyMembersScreen({ navigation }: any) {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: 8, paddingHorizontal: CARD_HORIZONTAL, paddingBottom: insets.bottom + 100 },
+            {
+              paddingTop: 8,
+              paddingHorizontal: CARD_HORIZONTAL,
+              paddingBottom: insets.bottom + 100,
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {[1, 2, 3, 4, 5].map(i => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <MemberCardSkeleton key={i} />
           ))}
         </ScrollView>
@@ -528,11 +608,15 @@ export default function FamilyMembersScreen({ navigation }: any) {
       ) : members.length === 0 ? (
         <View style={styles.centerState}>
           <AntDesign name="addusergroup" size={48} color={colors.text.tertiary} />
-          <Text style={[styles.stateText, { color: colors.text.secondary }]}>No family group found</Text>
-          <Text style={[styles.stateSubtext, { color: colors.text.tertiary }]}>Create a family to start managing shared finances.</Text>
+          <Text style={[styles.stateText, { color: colors.text.secondary }]}>
+            No family group found
+          </Text>
+          <Text style={[styles.stateSubtext, { color: colors.text.tertiary }]}>
+            Create a family to start managing shared finances.
+          </Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
-            onPress={() => navigation.navigate('CreateFamily')}
+            onPress={() => navigation.navigate('HomeTab', { screen: 'CreateFamilyWorkspace' })}
           >
             <AntDesign name="addusergroup" size={16} color={colors.text.inverse} />
             <Text style={[styles.retryText, { color: colors.text.inverse }]}>Create Family</Text>
@@ -542,7 +626,11 @@ export default function FamilyMembersScreen({ navigation }: any) {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: 4, paddingHorizontal: CARD_HORIZONTAL, paddingBottom: insets.bottom + 100 },
+            {
+              paddingTop: 4,
+              paddingHorizontal: CARD_HORIZONTAL,
+              paddingBottom: insets.bottom + 100,
+            },
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -562,19 +650,39 @@ export default function FamilyMembersScreen({ navigation }: any) {
 
       {showAddModal && (
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.bg.primary, maxHeight: '80%' }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <View
+            style={[styles.modalCard, { backgroundColor: colors.bg.primary, maxHeight: '80%' }]}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
               <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
                 {addStep === 'contacts' ? 'Add Family Member' : 'Set Relationship'}
               </Text>
-              <TouchableOpacity onPress={() => { setShowAddModal(false); setAddStep('contacts'); setContactQuery(''); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddModal(false);
+                  setAddStep('contacts');
+                  setContactQuery('');
+                }}
+              >
                 <AntDesign name="close" size={20} color={colors.text.tertiary} />
               </TouchableOpacity>
             </View>
 
             {addStep === 'contacts' && (
               <>
-                <View style={[styles.modalInput, { borderColor: colors.border.subtle, marginBottom: 12 }]}>
+                <View
+                  style={[
+                    styles.modalInput,
+                    { borderColor: colors.border.subtle, marginBottom: 12 },
+                  ]}
+                >
                   <AntDesign name="search1" size={16} color={colors.text.tertiary} />
                   <TextInput
                     style={[styles.modalInputField, { color: colors.text.primary }]}
@@ -593,21 +701,35 @@ export default function FamilyMembersScreen({ navigation }: any) {
                     onPress={syncDeviceContacts}
                   >
                     <AntDesign name="team" size={16} color={colors.accent.primary} />
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>Sync Contacts</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>
+                      Sync Contacts
+                    </Text>
                   </TouchableOpacity>
                 )}
 
                 {syncing && (
                   <View style={{ alignItems: 'center', paddingVertical: 20 }}>
                     <ActivityIndicator size="small" color={colors.accent.primary} />
-                    <Text style={{ marginTop: 8, fontSize: 13, color: colors.text.tertiary }}>Syncing contacts...</Text>
+                    <Text style={{ marginTop: 8, fontSize: 13, color: colors.text.tertiary }}>
+                      Syncing contacts...
+                    </Text>
                   </View>
                 )}
 
                 {allContacts.length > 0 && (
                   <>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu · {deviceContacts.length} contacts
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '600',
+                        color: colors.text.tertiary,
+                        marginBottom: 6,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on
+                      Dabbu · {deviceContacts.length} contacts
                     </Text>
                     <FlatList
                       data={filteredContacts}
@@ -627,19 +749,57 @@ export default function FamilyMembersScreen({ navigation }: any) {
                             {isAppUser ? (
                               <Avatar name={name} size={40} />
                             ) : (
-                              <View style={[styles.contactAvatar, { backgroundColor: colors.bg.tertiary }]}>
-                                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.tertiary }}>
+                              <View
+                                style={[
+                                  styles.contactAvatar,
+                                  { backgroundColor: colors.bg.tertiary },
+                                ]}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 16,
+                                    fontWeight: '700',
+                                    color: colors.text.tertiary,
+                                  }}
+                                >
                                   {name[0]?.toUpperCase() || '?'}
                                 </Text>
                               </View>
                             )}
                             <View style={{ flex: 1, marginLeft: 10 }}>
-                              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{name}</Text>
-                              <Text style={{ fontSize: 12, color: colors.text.tertiary }} numberOfLines={1}>{phone}</Text>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: '600',
+                                  color: colors.text.primary,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {name}
+                              </Text>
+                              <Text
+                                style={{ fontSize: 12, color: colors.text.tertiary }}
+                                numberOfLines={1}
+                              >
+                                {phone}
+                              </Text>
                             </View>
                             {isAppUser && (
-                              <View style={[styles.statusBadge, { backgroundColor: colors.status.success + '20' }]}>
-                                <Text style={{ fontSize: 10, fontWeight: '600', color: colors.status.success }}>On Dabbu</Text>
+                              <View
+                                style={[
+                                  styles.statusBadge,
+                                  { backgroundColor: colors.status.success + '20' },
+                                ]}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: '600',
+                                    color: colors.status.success,
+                                  }}
+                                >
+                                  On Dabbu
+                                </Text>
                               </View>
                             )}
                           </TouchableOpacity>
@@ -655,37 +815,80 @@ export default function FamilyMembersScreen({ navigation }: any) {
               <>
                 <View style={{ alignItems: 'center', marginBottom: 16 }}>
                   <Avatar name={selectedContact.name} size={56} />
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>{selectedContact.name}</Text>
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary }}>{selectedContact.phone}</Text>
+                  <Text
+                    style={{
+                      fontSize: 17,
+                      fontWeight: '700',
+                      color: colors.text.primary,
+                      marginTop: 8,
+                    }}
+                  >
+                    {selectedContact.name}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: colors.text.tertiary }}>
+                    {selectedContact.phone}
+                  </Text>
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, marginBottom: 8 }}>What is their relationship to you?</Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: colors.text.secondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  What is their relationship to you?
+                </Text>
                 <View style={styles.relationGrid}>
                   {RELATIONSHIPS.map((r) => (
                     <TouchableOpacity
                       key={r}
                       style={[
                         styles.relationChip,
-                        { borderColor: selectedRelation === r ? colors.accent.primary : colors.border.subtle },
+                        {
+                          borderColor:
+                            selectedRelation === r ? colors.accent.primary : colors.border.subtle,
+                        },
                         selectedRelation === r && { backgroundColor: colors.accent.primary + '15' },
                       ]}
                       onPress={() => setSelectedRelation(r)}
                     >
-                      <Text style={[
-                        styles.relationChipText,
-                        { color: selectedRelation === r ? colors.accent.primary : colors.text.secondary },
-                      ]}>{r}</Text>
+                      <Text
+                        style={[
+                          styles.relationChipText,
+                          {
+                            color:
+                              selectedRelation === r
+                                ? colors.accent.primary
+                                : colors.text.secondary,
+                          },
+                        ]}
+                      >
+                        {r}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
                 <View style={styles.modalActions}>
                   <TouchableOpacity
                     style={[styles.modalBtn, { backgroundColor: colors.bg.tertiary }]}
-                    onPress={() => { setAddStep('contacts'); setSelectedContact(null); }}
+                    onPress={() => {
+                      setAddStep('contacts');
+                      setSelectedContact(null);
+                    }}
                   >
-                    <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>Back</Text>
+                    <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>
+                      Back
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.modalBtn, { backgroundColor: colors.accent.primary, opacity: adding || !selectedRelation ? 0.5 : 1 }]}
+                    style={[
+                      styles.modalBtn,
+                      {
+                        backgroundColor: colors.accent.primary,
+                        opacity: adding || !selectedRelation ? 0.5 : 1,
+                      },
+                    ]}
                     onPress={handleConfirmAdd}
                     disabled={adding || !selectedRelation}
                   >

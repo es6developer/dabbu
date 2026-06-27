@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { LensDataService } from '../../common/lens/lens-data.service';
 import { NotificationEventsService } from '../notification/notification-events.service';
@@ -18,6 +18,9 @@ export class TransactionsService {
   ) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
+    if (dto.date && new Date(dto.date) > new Date()) {
+      throw new BadRequestException('Transaction date cannot be in the future');
+    }
     const [spaceId, lensId] = await Promise.all([
       this.lensData.getSpaceIdForLens(userId),
       this.lensData.getActiveLens(userId),
@@ -258,6 +261,9 @@ export class TransactionsService {
   }
 
   async update(userId: string, id: string, dto: UpdateTransactionDto) {
+    if (dto.date && new Date(dto.date) > new Date()) {
+      throw new BadRequestException('Transaction date cannot be in the future');
+    }
     const existing = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null, ...(await this.lensWhere(userId)) },
     });
@@ -693,7 +699,12 @@ export class TransactionsService {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0, 23, 59, 59);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, deletedAt: null, ...(await this.lensWhere(userId)), date: { gte: start, lte: end } },
+      where: {
+        userId,
+        deletedAt: null,
+        ...(await this.lensWhere(userId)),
+        date: { gte: start, lte: end },
+      },
       include: { category: true },
       orderBy: { date: 'asc' },
     });

@@ -1,5 +1,16 @@
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Platform,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +25,20 @@ const DAYS_IN_MONTH = 30;
 
 function Label({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase', color: colors.text.tertiary, marginBottom: 10 }}>{children}</Text>;
+  return (
+    <Text
+      style={{
+        fontSize: 11,
+        fontWeight: '800',
+        letterSpacing: 0.6,
+        textTransform: 'uppercase',
+        color: colors.text.tertiary,
+        marginBottom: 10,
+      }}
+    >
+      {children}
+    </Text>
+  );
 }
 
 export function CreateExpenseGroupScreen() {
@@ -50,7 +74,9 @@ export function CreateExpenseGroupScreen() {
 
   const budgetNum = parseFloat(monthlyBudget) || 0;
   const budgetBreakdown = useMemo(() => {
-    if (budgetNum <= 0) return null;
+    if (budgetNum <= 0) {
+      return null;
+    }
     const perDay = budgetNum / DAYS_IN_MONTH;
     const perWeek = perDay * 7;
     return { perDay, perWeek };
@@ -67,7 +93,10 @@ export function CreateExpenseGroupScreen() {
       setTimeout(async () => {
         try {
           const res = await api.get<any>(`/users/search?query=${digits}`);
-          setSearchResults((prev) => ({ ...prev, [index]: Array.isArray(res) ? res : res?.data || [] }));
+          setSearchResults((prev) => ({
+            ...prev,
+            [index]: Array.isArray(res) ? res : res?.data || [],
+          }));
         } catch {
           setSearchResults((prev) => ({ ...prev, [index]: [] }));
         }
@@ -103,8 +132,11 @@ export function CreateExpenseGroupScreen() {
         delete n[index];
         return n;
       });
-      if (index + 1 >= members.length) addRow();
-      else setTimeout(() => inputsRef.current[index + 1]?.focus(), 150);
+      if (index + 1 >= members.length) {
+        addRow();
+      } else {
+        setTimeout(() => inputsRef.current[index + 1]?.focus(), 150);
+      }
     },
     [members.length],
   );
@@ -122,12 +154,20 @@ export function CreateExpenseGroupScreen() {
     }
     setError('');
     setSaving(true);
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     try {
       const payload: any = { name: name.trim(), icon, currency: 'INR' };
-      if (description.trim()) payload.description = description.trim();
-      if (budgetNum > 0) payload.monthlyBudget = budgetNum;
-      if (validPhones.length > 0) payload.memberPhones = validPhones;
+      if (description.trim()) {
+        payload.description = description.trim();
+      }
+      if (budgetNum > 0) {
+        payload.monthlyBudget = budgetNum;
+      }
+      if (validPhones.length > 0) {
+        payload.memberPhones = validPhones;
+      }
       await api.post('/expense-groups', payload);
       showToast('Group created successfully');
       navigation.goBack();
@@ -147,11 +187,32 @@ export function CreateExpenseGroupScreen() {
         locations={[0, 1]}
         style={{ flex: 1 }}
       >
-        <View style={{ paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.bg.card, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{
+            paddingHorizontal: 24,
+            paddingTop: insets.top + 12,
+            paddingBottom: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: colors.bg.card,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <AntDesign name="close" size={18} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>Create Circle</Text>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
+            Create Circle
+          </Text>
           <View style={{ width: 36 }} />
         </View>
 
@@ -167,9 +228,23 @@ export function CreateExpenseGroupScreen() {
               keyboardShouldPersistTaps="handled"
             >
               {error ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, backgroundColor: colors.status.error + '12', gap: 8, marginBottom: 20 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 14,
+                    borderRadius: 14,
+                    backgroundColor: colors.status.error + '12',
+                    gap: 8,
+                    marginBottom: 20,
+                  }}
+                >
                   <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.error, flex: 1 }}>{error}</Text>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '600', color: colors.status.error, flex: 1 }}
+                  >
+                    {error}
+                  </Text>
                   <TouchableOpacity onPress={() => setError('')}>
                     <AntDesign name="close" size={14} color={colors.status.error} />
                   </TouchableOpacity>
@@ -189,16 +264,37 @@ export function CreateExpenseGroupScreen() {
                           onPress={() => setIcon(ic.key)}
                           style={{ alignItems: 'center', gap: 6 }}
                         >
-                          <View style={{
-                            width: 52, height: 52, borderRadius: 26,
-                            alignItems: 'center', justifyContent: 'center',
-                            borderWidth: 2,
-                            backgroundColor: active ? ic.color + '18' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
-                            borderColor: active ? ic.color : 'transparent',
-                          }}>
-                            <AntDesign name={ic.key as any} size={22} color={active ? ic.color : colors.text.tertiary} />
+                          <View
+                            style={{
+                              width: 52,
+                              height: 52,
+                              borderRadius: 26,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderWidth: 2,
+                              backgroundColor: active
+                                ? ic.color + '18'
+                                : isDark
+                                  ? 'rgba(255,255,255,0.06)'
+                                  : 'rgba(0,0,0,0.04)',
+                              borderColor: active ? ic.color : 'transparent',
+                            }}
+                          >
+                            <AntDesign
+                              name={ic.key as any}
+                              size={22}
+                              color={active ? ic.color : colors.text.tertiary}
+                            />
                           </View>
-                          <Text style={{ fontSize: 10, fontWeight: active ? '700' : '500', color: active ? ic.color : colors.text.tertiary }}>{ic.label}</Text>
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: active ? '700' : '500',
+                              color: active ? ic.color : colors.text.tertiary,
+                            }}
+                          >
+                            {ic.label}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
@@ -207,15 +303,35 @@ export function CreateExpenseGroupScreen() {
               </View>
 
               <View style={{ marginBottom: 16 }}>
-                <Label>Group Name <Text style={{ color: colors.status.error }}>*</Text></Label>
-                <View style={{
-                  flexDirection: 'row', alignItems: 'center',
-                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
-                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
-                }}>
-                  <AntDesign name="team" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />
+                <Label>
+                  Group Name <Text style={{ color: colors.status.error }}>*</Text>
+                </Label>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    backgroundColor: colors.bg.card,
+                  }}
+                >
+                  <AntDesign
+                    name="team"
+                    size={18}
+                    color={colors.text.tertiary}
+                    style={{ marginRight: 10 }}
+                  />
                   <TextInput
-                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, padding: 0 }}
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: colors.text.primary,
+                      padding: 0,
+                    }}
                     value={name}
                     onChangeText={setName}
                     placeholder="e.g. Goa Trip, Roommates"
@@ -226,15 +342,34 @@ export function CreateExpenseGroupScreen() {
 
               <View style={{ marginBottom: 16 }}>
                 <Label>Description</Label>
-                <View style={{
-                  flexDirection: 'row', alignItems: 'flex-start',
-                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
-                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
-                  minHeight: 56,
-                }}>
-                  <AntDesign name="edit" size={18} color={colors.text.tertiary} style={{ marginRight: 10, marginTop: 2 }} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    backgroundColor: colors.bg.card,
+                    minHeight: 56,
+                  }}
+                >
+                  <AntDesign
+                    name="edit"
+                    size={18}
+                    color={colors.text.tertiary}
+                    style={{ marginRight: 10, marginTop: 2 }}
+                  />
                   <TextInput
-                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, minHeight: 24, padding: 0 }}
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: colors.text.primary,
+                      minHeight: 24,
+                      padding: 0,
+                    }}
                     value={description}
                     onChangeText={setDescription}
                     placeholder="What's this group for?"
@@ -246,14 +381,36 @@ export function CreateExpenseGroupScreen() {
 
               <View style={{ marginBottom: 16 }}>
                 <Label>Monthly Budget</Label>
-                <View style={{
-                  flexDirection: 'row', alignItems: 'center',
-                  borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
-                  paddingHorizontal: 16, paddingVertical: 14, backgroundColor: colors.bg.card,
-                }}>
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginRight: 8 }}>₹</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    backgroundColor: colors.bg.card,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: '700',
+                      color: colors.text.primary,
+                      marginRight: 8,
+                    }}
+                  >
+                    ₹
+                  </Text>
                   <TextInput
-                    style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, padding: 0 }}
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: colors.text.primary,
+                      padding: 0,
+                    }}
                     value={monthlyBudget}
                     onChangeText={(t) => setMonthlyBudget(t.replace(/[^0-9]/g, ''))}
                     placeholder="0"
@@ -262,29 +419,90 @@ export function CreateExpenseGroupScreen() {
                   />
                 </View>
                 {budgetBreakdown && (
-                  <View style={{
-                    marginTop: 12, borderRadius: 14, borderWidth: 1, borderColor: colors.border.subtle,
-                    padding: 16, backgroundColor: colors.bg.secondary,
-                  }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }}>
+                  <View
+                    style={{
+                      marginTop: 12,
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      borderColor: colors.border.subtle,
+                      padding: 16,
+                      backgroundColor: colors.bg.secondary,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                      }}
+                    >
                       {[
                         { value: `₹${budgetBreakdown.perDay.toFixed(0)}`, label: '/ day' },
                         { value: `₹${budgetBreakdown.perWeek.toFixed(0)}`, label: '/ week' },
                         { value: `₹${budgetNum.toLocaleString()}`, label: '/ month' },
                       ].map((item, i) => (
                         <React.Fragment key={item.label}>
-                          {i > 0 && <View style={{ width: 1, height: 28, backgroundColor: colors.border.subtle }} />}
+                          {i > 0 && (
+                            <View
+                              style={{
+                                width: 1,
+                                height: 28,
+                                backgroundColor: colors.border.subtle,
+                              }}
+                            />
+                          )}
                           <View style={{ alignItems: 'center', gap: 2 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text.primary }}>{item.value}</Text>
-                            <Text style={{ fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, color: colors.text.tertiary }}>{item.label}</Text>
+                            <Text
+                              style={{
+                                fontSize: 16,
+                                fontWeight: '800',
+                                color: colors.text.primary,
+                              }}
+                            >
+                              {item.value}
+                            </Text>
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                color: colors.text.tertiary,
+                              }}
+                            >
+                              {item.label}
+                            </Text>
                           </View>
                         </React.Fragment>
                       ))}
                     </View>
-                    <View style={{ height: 4, borderRadius: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0', marginTop: 14, overflow: 'hidden' }}>
-                      <View style={{ width: `${Math.min(100, budgetNum > 0 ? 30 : 0)}%`, height: '100%', borderRadius: 2, backgroundColor: colors.brand.primary }} />
+                    <View
+                      style={{
+                        height: 4,
+                        borderRadius: 2,
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0',
+                        marginTop: 14,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: `${Math.min(100, budgetNum > 0 ? 30 : 0)}%`,
+                          height: '100%',
+                          borderRadius: 2,
+                          backgroundColor: colors.brand.primary,
+                        }}
+                      />
                     </View>
-                    <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 8, textAlign: 'center' }}>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '500',
+                        color: colors.text.tertiary,
+                        marginTop: 8,
+                        textAlign: 'center',
+                      }}
+                    >
                       Track expenses against this budget after creating the group
                     </Text>
                   </View>
@@ -295,23 +513,47 @@ export function CreateExpenseGroupScreen() {
                 <Label>Members</Label>
                 {members.map((phone, index) => (
                   <View key={index} style={{ marginBottom: 10 }}>
-                    <View style={{
-                      flexDirection: 'row', alignItems: 'center',
-                      borderRadius: 16, borderWidth: 1, borderColor: colors.border.subtle,
-                      backgroundColor: colors.bg.card, paddingRight: 8, minHeight: 52, gap: 10,
-                    }}>
-                      <View style={{
-                        width: 34, height: 34, borderRadius: 17,
-                        alignItems: 'center', justifyContent: 'center', marginLeft: 12,
-                        backgroundColor: colors.brand.primary + '15',
-                      }}>
-                        <Text style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '700' }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: colors.border.subtle,
+                        backgroundColor: colors.bg.card,
+                        paddingRight: 8,
+                        minHeight: 52,
+                        gap: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 17,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginLeft: 12,
+                          backgroundColor: colors.brand.primary + '15',
+                        }}
+                      >
+                        <Text
+                          style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '700' }}
+                        >
                           {(phone || '?')[0]}
                         </Text>
                       </View>
                       <TextInput
-                        ref={(ref) => { inputsRef.current[index] = ref; }}
-                        style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text.primary, paddingVertical: 13 }}
+                        ref={(ref) => {
+                          inputsRef.current[index] = ref;
+                        }}
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          fontWeight: '500',
+                          color: colors.text.primary,
+                          paddingVertical: 13,
+                        }}
                         value={phone}
                         onChangeText={(v) => updateMember(index, v)}
                         placeholder="Enter phone number"
@@ -320,7 +562,9 @@ export function CreateExpenseGroupScreen() {
                         maxLength={10}
                         returnKeyType="done"
                         onSubmitEditing={() => {
-                          index === members.length - 1 ? addRow() : inputsRef.current[index + 1]?.focus();
+                          index === members.length - 1
+                            ? addRow()
+                            : inputsRef.current[index + 1]?.focus();
                         }}
                       />
                       {phone.trim() ? (
@@ -330,35 +574,70 @@ export function CreateExpenseGroupScreen() {
                       ) : null}
                     </View>
                     {searchResults[index]?.length > 0 && (
-                      <View style={{
-                        marginTop: 4, borderRadius: 14, borderWidth: 1, borderColor: colors.border.subtle,
-                        overflow: 'hidden', backgroundColor: colors.bg.elevated,
-                      }}>
+                      <View
+                        style={{
+                          marginTop: 4,
+                          borderRadius: 14,
+                          borderWidth: 1,
+                          borderColor: colors.border.subtle,
+                          overflow: 'hidden',
+                          backgroundColor: colors.bg.elevated,
+                        }}
+                      >
                         {searchResults[index].map((user: any) => (
                           <TouchableOpacity
                             key={user.id}
                             style={{
-                              flexDirection: 'row', alignItems: 'center', gap: 10,
-                              paddingVertical: 10, paddingHorizontal: 12,
-                              borderBottomWidth: 0.5, borderBottomColor: colors.border.subtle,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 10,
+                              paddingVertical: 10,
+                              paddingHorizontal: 12,
+                              borderBottomWidth: 0.5,
+                              borderBottomColor: colors.border.subtle,
                             }}
                             onPress={() => selectUser(index, user)}
                           >
-                            <View style={{
-                              width: 34, height: 34, borderRadius: 17,
-                              alignItems: 'center', justifyContent: 'center',
-                              backgroundColor: colors.brand.primary + '15',
-                            }}>
-                              <Text style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '800' }}>
+                            <View
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 17,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: colors.brand.primary + '15',
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: colors.brand.primary,
+                                  fontSize: 13,
+                                  fontWeight: '800',
+                                }}
+                              >
                                 {user.firstName?.[0] || user.phone?.[0] || '?'}
                               </Text>
                             </View>
                             <View style={{ flex: 1 }}>
-                              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: '700',
+                                  color: colors.text.primary,
+                                }}
+                              >
                                 {user.firstName || ''} {user.lastName || ''}
                               </Text>
-                              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
-                                {user.phone || ''}{user.email ? ` · ${user.email}` : ''}
+                              <Text
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: '500',
+                                  color: colors.text.tertiary,
+                                  marginTop: 1,
+                                }}
+                              >
+                                {user.phone || ''}
+                                {user.email ? ` · ${user.email}` : ''}
                               </Text>
                             </View>
                             <AntDesign name="pluscircleo" size={20} color={colors.brand.primary} />
@@ -371,24 +650,47 @@ export function CreateExpenseGroupScreen() {
                 <TouchableOpacity
                   onPress={addRow}
                   activeOpacity={0.7}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, paddingVertical: 10, paddingHorizontal: 4 }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginTop: 4,
+                    paddingVertical: 10,
+                    paddingHorizontal: 4,
+                  }}
                 >
                   <AntDesign name="pluscircleo" size={16} color={colors.brand.primary} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.brand.primary }}>Add Member</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.brand.primary }}>
+                    Add Member
+                  </Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={{
-                flexDirection: 'row', alignItems: 'center', gap: 8,
-                paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
-                borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary,
-                marginBottom: 16,
-              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border.subtle,
+                  backgroundColor: colors.bg.tertiary,
+                  marginBottom: 16,
+                }}
+              >
                 <AntDesign name="Safety" size={14} color={colors.status.error} />
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, flex: 1 }}
+                >
                   Free plan: 5 circles max · 2 members per circle
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('ProfileTab', { screen: 'SubscriptionCenter' })
+                  }
+                >
                   <LinearGradient
                     colors={['#FF6B6B', '#EF4444']}
                     start={{ x: 0, y: 0 }}
@@ -404,15 +706,23 @@ export function CreateExpenseGroupScreen() {
                 onPress={handleCreate}
                 disabled={saving}
                 activeOpacity={0.85}
-                style={{ borderRadius: 16, overflow: 'hidden', marginTop: 8, opacity: saving ? 0.6 : 1 }}
+                style={{
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  marginTop: 8,
+                  opacity: saving ? 0.6 : 1,
+                }}
               >
                 <LinearGradient
                   colors={[colors.brand.primary, colors.brand.primary + 'dd']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
-                    flexDirection: 'row', paddingVertical: 18,
-                    alignItems: 'center', justifyContent: 'center', gap: 8,
+                    flexDirection: 'row',
+                    paddingVertical: 18,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
                   }}
                 >
                   {saving ? (
@@ -420,7 +730,9 @@ export function CreateExpenseGroupScreen() {
                   ) : (
                     <>
                       <AntDesign name="addusergroup" size={18} color="#FFF" />
-                      <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>Create Circle</Text>
+                      <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
+                        Create Circle
+                      </Text>
                     </>
                   )}
                 </LinearGradient>

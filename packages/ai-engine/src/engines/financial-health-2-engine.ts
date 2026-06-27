@@ -1,3 +1,5 @@
+import { LlmClient } from '../llm-client';
+
 interface HealthTxData {
   id: string;
   amount: number;
@@ -63,7 +65,13 @@ interface FinancialHealth2Output {
 }
 
 export class FinancialHealth2Engine {
-  calculateScore(params: {
+  private llm: LlmClient | null;
+
+  constructor(llm?: LlmClient) {
+    this.llm = llm || null;
+  }
+
+  async calculateScore(params: {
     transactions: HealthTxData[];
     budgets: HealthBudgetData[];
     bills: HealthBillData[];
@@ -72,23 +80,22 @@ export class FinancialHealth2Engine {
     accounts: HealthAccountData[];
     monthlyIncome: number;
     previousScore?: number;
-  }): FinancialHealth2Output {
-    const {
-      transactions, budgets, bills, goals, accounts, monthlyIncome, previousScore,
-    } = params;
+  }): Promise<FinancialHealth2Output> {
+    const { transactions, budgets, bills, goals, accounts, monthlyIncome, previousScore } = params;
 
     const totalExpenses = transactions
-      .filter(t => t.type === 'expense' || t.amount < 0)
+      .filter((t) => t.type === 'expense' || t.amount < 0)
       .reduce((s, t) => s + Math.abs(t.amount), 0);
 
     const savingsRate = this.calculateSavingsRate(monthlyIncome, totalExpenses);
 
     const debtPayments = transactions
-      .filter(t =>
-        t.category?.toLowerCase().includes('debt') ||
-        t.category?.toLowerCase().includes('loan') ||
-        t.category?.toLowerCase().includes('emi') ||
-        t.category?.toLowerCase() === 'credit card'
+      .filter(
+        (t) =>
+          t.category?.toLowerCase().includes('debt') ||
+          t.category?.toLowerCase().includes('loan') ||
+          t.category?.toLowerCase().includes('emi') ||
+          t.category?.toLowerCase() === 'credit card',
       )
       .reduce((s, t) => s + Math.abs(t.amount), 0);
     const debtRatio = this.calculateDebtRatio(debtPayments, monthlyIncome);
@@ -103,20 +110,22 @@ export class FinancialHealth2Engine {
 
     const overallScore = Math.round(
       savingsRate * 0.25 +
-      debtRatio * 0.20 +
-      budgetDiscipline * 0.20 +
-      goalProgress * 0.15 +
-      billConsistency * 0.10 +
-      emergencyFund * 0.10
+        debtRatio * 0.2 +
+        budgetDiscipline * 0.2 +
+        goalProgress * 0.15 +
+        billConsistency * 0.1 +
+        emergencyFund * 0.1,
     );
 
     const monthlyChange = previousScore !== undefined ? overallScore - previousScore : 0;
 
     const financialLevel = this.determineFinancialLevel(overallScore);
 
-    const improvementTips = this.generateImprovementTips({
-      savingsRate, debtRatio, budgetDiscipline, goalProgress, billConsistency, emergencyFund,
-    });
+    const improvementTips = await this.generateImprovementTips(
+      { savingsRate, debtRatio, budgetDiscipline, goalProgress, billConsistency, emergencyFund },
+      monthlyIncome,
+      totalExpenses,
+    );
 
     return {
       overallScore,
@@ -136,26 +145,42 @@ export class FinancialHealth2Engine {
   }
 
   private calculateSavingsRate(monthlyIncome: number, totalExpenses: number): number {
-    if (monthlyIncome <= 0) return 0;
+    if (monthlyIncome <= 0) {
+      return 0;
+    }
     const savings = monthlyIncome - totalExpenses;
     const rate = savings / monthlyIncome;
-    if (rate >= 0.3) return 100;
-    if (rate <= 0) return 0;
+    if (rate >= 0.3) {
+      return 100;
+    }
+    if (rate <= 0) {
+      return 0;
+    }
     return Math.round(rate * 100);
   }
 
   private calculateDebtRatio(debtPayments: number, monthlyIncome: number): number {
-    if (monthlyIncome <= 0) return 100;
+    if (monthlyIncome <= 0) {
+      return 100;
+    }
     const ratio = debtPayments / monthlyIncome;
-    if (ratio < 0.1) return 100;
-    if (ratio > 0.5) return 0;
+    if (ratio < 0.1) {
+      return 100;
+    }
+    if (ratio > 0.5) {
+      return 0;
+    }
     return Math.round(100 - ((ratio - 0.1) / 0.4) * 100);
   }
 
   private calculateBudgetDiscipline(budgets: HealthBudgetData[]): number {
-    if (budgets.length === 0) return 100;
+    if (budgets.length === 0) {
+      return 100;
+    }
     const total = budgets.reduce((sum, b) => {
-      if (b.spent <= b.amount) return sum + 100;
+      if (b.spent <= b.amount) {
+        return sum + 100;
+      }
       const overRatio = b.spent / b.amount;
       const score = Math.max(0, 100 - (overRatio - 1) * 100);
       return sum + score;
@@ -164,9 +189,13 @@ export class FinancialHealth2Engine {
   }
 
   private calculateGoalProgress(goals: HealthGoalData[]): number {
-    if (goals.length === 0) return 100;
+    if (goals.length === 0) {
+      return 100;
+    }
     const totalWeight = goals.reduce((s, g) => s + g.targetAmount, 0);
-    if (totalWeight === 0) return 100;
+    if (totalWeight === 0) {
+      return 100;
+    }
     const weightedProgress = goals.reduce((sum, g) => {
       const progress = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 1;
       return sum + Math.min(progress, 1) * g.targetAmount;
@@ -175,10 +204,16 @@ export class FinancialHealth2Engine {
   }
 
   private calculateBillConsistency(bills: HealthBillData[]): number {
-    if (bills.length === 0) return 100;
-    const paidOnTime = bills.filter(b => {
-      if (!b.isPaid) return false;
-      if (!b.paidDate) return true;
+    if (bills.length === 0) {
+      return 100;
+    }
+    const paidOnTime = bills.filter((b) => {
+      if (!b.isPaid) {
+        return false;
+      }
+      if (!b.paidDate) {
+        return true;
+      }
       return b.paidDate <= b.dueDate;
     });
     return Math.round((paidOnTime.length / bills.length) * 100);
@@ -186,28 +221,79 @@ export class FinancialHealth2Engine {
 
   private calculateEmergencyFund(accounts: HealthAccountData[], monthlyExpenses: number): number {
     const totalSavingsBalance = accounts
-      .filter(a => a.type?.toLowerCase().includes('savings'))
+      .filter((a) => a.type?.toLowerCase().includes('savings'))
       .reduce((s, a) => s + a.balance, 0);
     if (monthlyExpenses <= 0) {
       return totalSavingsBalance > 0 ? 100 : 0;
     }
     const monthsCovered = totalSavingsBalance / monthlyExpenses;
-    if (monthsCovered >= 6) return 100;
-    if (monthsCovered >= 3) return 75;
-    if (monthsCovered >= 1) return 50;
-    if (monthsCovered > 0) return 25;
+    if (monthsCovered >= 6) {
+      return 100;
+    }
+    if (monthsCovered >= 3) {
+      return 75;
+    }
+    if (monthsCovered >= 1) {
+      return 50;
+    }
+    if (monthsCovered > 0) {
+      return 25;
+    }
     return 0;
   }
 
-  private determineFinancialLevel(score: number): 'critical' | 'building' | 'stable' | 'thriving' | 'exceptional' {
-    if (score >= 85) return 'exceptional';
-    if (score >= 70) return 'thriving';
-    if (score >= 50) return 'stable';
-    if (score >= 30) return 'building';
+  private determineFinancialLevel(
+    score: number,
+  ): 'critical' | 'building' | 'stable' | 'thriving' | 'exceptional' {
+    if (score >= 85) {
+      return 'exceptional';
+    }
+    if (score >= 70) {
+      return 'thriving';
+    }
+    if (score >= 50) {
+      return 'stable';
+    }
+    if (score >= 30) {
+      return 'building';
+    }
     return 'critical';
   }
 
-  private generateImprovementTips(components: Record<string, number>): string[] {
+  private async generateImprovementTips(
+    components: Record<string, number>,
+    monthlyIncome?: number,
+    totalExpenses?: number,
+  ): Promise<string[]> {
+    if (this.llm) {
+      try {
+        const prompt = `You are a personal finance coach for an Indian user. Their financial health scores are:
+- Savings Rate: ${components.savingsRate}/100
+- Debt Ratio: ${components.debtRatio}/100
+- Budget Discipline: ${components.budgetDiscipline}/100
+- Goal Progress: ${components.goalProgress}/100
+- Bill Consistency: ${components.billConsistency}/100
+- Emergency Fund: ${components.emergencyFund}/100
+${monthlyIncome ? `- Monthly Income: ₹${monthlyIncome.toLocaleString()}` : ''}
+${totalExpenses ? `- Monthly Expenses: ₹${totalExpenses.toLocaleString()}` : ''}
+
+Generate exactly 3 specific, actionable improvement tips. Use Indian Rupees (₹) for amounts.
+Each tip should be 1-2 sentences, reference the actual scores, and be something the user can act on.
+Return ONLY a JSON array of 3 strings.`;
+
+        const tips = await this.llm.generateJson<string[]>(prompt, { temperature: 0.5 });
+        if (tips && tips.length >= 2) {
+          return tips.slice(0, 4);
+        }
+      } catch {
+        /* fall through to template */
+      }
+    }
+
+    return this.getFallbackTips(components);
+  }
+
+  private getFallbackTips(components: Record<string, number>): string[] {
     const thresholds: Record<string, { low: number; tips: string[] }> = {
       savingsRate: {
         low: 50,
@@ -252,29 +338,22 @@ export class FinancialHealth2Engine {
         ],
       },
     };
-
     const sorted = Object.entries(components)
       .map(([key, score]) => ({ key, score, threshold: thresholds[key] }))
       .sort((a, b) => a.score - b.score);
-
     const tips: string[] = [];
-    const usedTips = new Set<string>();
-
     for (const item of sorted) {
       if (item.score < item.threshold.low && tips.length < 4) {
         for (const tip of item.threshold.tips) {
-          if (!usedTips.has(tip) && tips.length < 4) {
-            usedTips.add(tip);
+          if (tips.length < 4) {
             tips.push(tip);
           }
         }
       }
     }
-
     if (tips.length === 0) {
       tips.push('Excellent financial health! Keep up the great habits.');
     }
-
     return tips;
   }
 }

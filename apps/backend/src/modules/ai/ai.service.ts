@@ -26,6 +26,7 @@ import {
   AiTaxPreparationAssistant,
   MonthlyAiReviewEngine,
   FeedEngine,
+  LlmClient,
 } from '../../../../../packages/ai-engine/dist';
 
 export interface AiInsight {
@@ -64,7 +65,6 @@ export class AiService {
   private readonly goalEngine = new GoalAchievementEngine();
   private readonly familyEngine = new FamilyIntelligenceEngine();
   private readonly coupleEngine = new CoupleIntelligenceEngine();
-  private readonly dnaEngine = new FinancialDnaEngine();
   private readonly lifeEventEngine = new LifeEventDetectionEngine();
   private readonly notifEngine = new SmartNotificationEngine();
   private readonly dashboardEngine = new SmartDashboardEngine();
@@ -72,14 +72,17 @@ export class AiService {
   private readonly categoryEngine = new SmartCategoryLearningEngine();
   private readonly groupSpaceEngine = new GroupSpaceAiEngine();
   private readonly joyEngine = new JoyfulMomentsEngine();
-  private readonly health2Engine = new FinancialHealth2Engine();
   private readonly ocrEngine = new SmartOcrEngine();
   private readonly investHealthEngine = new InvestmentHealthEngine();
   private readonly retirementEngine = new RetirementProjectionEngine();
   private readonly wealthForecastEngine = new FamilyWealthForecastEngine();
   private readonly taxAssistantEngine = new AiTaxPreparationAssistant();
-  private readonly monthlyReviewEngine = new MonthlyAiReviewEngine();
   private readonly feedEngine = new FeedEngine();
+
+  private llmClient: LlmClient;
+  private readonly dnaEngine: FinancialDnaEngine;
+  private readonly health2Engine: FinancialHealth2Engine;
+  private readonly monthlyReviewEngine: MonthlyAiReviewEngine;
 
   constructor(
     private readonly config: ConfigService,
@@ -94,6 +97,18 @@ export class AiService {
     this.apiKey = aiConfig?.apiKey || '';
     this.timeout = aiConfig?.timeout || 30000;
     this.maxRetries = aiConfig?.maxRetries || 2;
+
+    this.llmClient = new LlmClient({
+      baseUrl: this.baseUrl,
+      model: this.model,
+      apiKey: this.apiKey,
+      timeout: this.timeout,
+      maxRetries: this.maxRetries,
+    });
+
+    this.dnaEngine = new FinancialDnaEngine(this.llmClient);
+    this.health2Engine = new FinancialHealth2Engine(this.llmClient);
+    this.monthlyReviewEngine = new MonthlyAiReviewEngine(this.llmClient);
   }
 
   isEnabled(): boolean {
@@ -1442,7 +1457,7 @@ ${JSON.stringify(context, null, 2)}`;
       const monthlyIncome =
         income > 0 ? income / Math.max(1, Math.ceil(transactions.length / 30)) : 0;
 
-      const result = this.dnaEngine.generateDna({
+      const result = await this.dnaEngine.generateDna({
         transactions: transactions.map((t) => ({
           id: t.id,
           amount: Number(t.amount),
@@ -1864,7 +1879,7 @@ ${JSON.stringify(context, null, 2)}`;
         orderBy: { computedAt: 'desc' },
       });
 
-      const result = this.health2Engine.calculateScore({
+      const result = await this.health2Engine.calculateScore({
         transactions: transactions.map((t) => ({
           id: t.id,
           amount: Number(t.amount),
@@ -3140,7 +3155,7 @@ ${JSON.stringify(context, null, 2)}`;
         orderBy: { computedAt: 'desc' },
       });
 
-      const result = this.monthlyReviewEngine.generateMonthlyReview({
+      const result = await this.monthlyReviewEngine.generateMonthlyReview({
         month: now.getMonth() + 1,
         year: now.getFullYear(),
         transactions: transactions.map((t) => ({

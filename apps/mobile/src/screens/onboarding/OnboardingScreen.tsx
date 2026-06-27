@@ -1,12 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
-import { useAuth } from '../../store/AuthContext';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useLensStore, LensMode } from '../../store/lensStore';
 import { api, getAccessToken } from '../../services/api';
 
@@ -16,29 +25,29 @@ const LENS_OPTIONS: { id: LensMode; icon: any; title: string; desc: string; user
   {
     id: 'PERSONAL',
     icon: 'user',
-    title: 'Personal Finance',
-    desc: 'Manage your personal finances, savings, and investments.',
+    title: 'Personal',
+    desc: 'Your own finances, savings & investments.',
     userType: 'single',
   },
   {
     id: 'PARTNERED',
     icon: 'heart',
-    title: 'Couple Finance',
-    desc: 'Track finances together, split expenses, and share goals.',
+    title: 'Couple',
+    desc: 'Shared expenses, goals & budgets together.',
     userType: 'couple',
   },
   {
     id: 'FAMILY',
     icon: 'team',
-    title: 'Family Finance',
-    desc: 'Manage family budgets, allowances, and shared goals.',
+    title: 'Family',
+    desc: 'Family budgets, allowances & shared goals.',
     userType: 'family',
   },
   {
     id: 'FULL',
     icon: 'earth',
-    title: 'All (Recommended)',
-    desc: 'Access all features — personal, couple, family, and group.',
+    title: 'All Access',
+    desc: 'Personal, couple, family & group — everything.',
     userType: 'friends',
   },
 ];
@@ -47,11 +56,304 @@ const RISK_LEVELS = ['Low', 'Medium', 'High'];
 const SPLIT_OPTIONS = ['50/50', 'Proportional', 'Custom'];
 const RESPONSIBILITIES = ['Bills', 'Groceries', 'Rent', 'Savings', 'Kids', 'Other'];
 
-export function OnboardingScreen({ route }: any) {
+function PillInput({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  keyboardType,
+  autoCapitalize,
+  onSubmitEditing,
+  returnKeyType,
+  inputRef,
+  colors,
+}: {
+  icon?: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  onSubmitEditing?: () => void;
+  returnKeyType?: 'next' | 'done';
+  inputRef?: React.RefObject<TextInput>;
+  colors: any;
+}) {
+  const [focused, setFocused] = useState(false);
+  const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(labelAnim, {
+      toValue: focused || value.length > 0 ? 1 : 0,
+      useNativeDriver: false,
+      friction: 10,
+      tension: 80,
+    }).start();
+  }, [focused, value]);
+
+  const labelTop = labelAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [18, -8],
+  });
+  const labelFontSize = labelAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 11],
+  });
+
+  return (
+    <View style={{ position: 'relative', height: 58, marginBottom: 14 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.bg.secondary,
+          borderRadius: borderRadius['2xl'],
+          borderWidth: 1.5,
+          borderColor: focused ? colors.accent.primary : colors.border.subtle,
+          paddingHorizontal: spacing.lg,
+          height: 58,
+          ...shadows.sm,
+        }}
+      >
+        {icon && (
+          <AntDesign
+            name={icon as any}
+            size={18}
+            color={focused ? colors.accent.primary : colors.text.tertiary}
+          />
+        )}
+        <TextInput
+          ref={inputRef}
+          style={{
+            flex: 1,
+            fontSize: 15,
+            fontWeight: '500',
+            color: colors.text.primary,
+            paddingTop: 8,
+            marginLeft: icon ? 10 : 0,
+          }}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder=""
+          placeholderTextColor={colors.text.tertiary}
+          keyboardType={keyboardType || 'default'}
+          autoCapitalize={autoCapitalize || 'none'}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onSubmitEditing={onSubmitEditing}
+          returnKeyType={returnKeyType}
+        />
+      </View>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: icon ? 50 : 16,
+          top: labelTop,
+          paddingHorizontal: 4,
+          backgroundColor: colors.bg.secondary,
+          zIndex: 1,
+        }}
+        pointerEvents="none"
+      >
+        <Animated.Text
+          style={{
+            fontSize: labelFontSize,
+            fontWeight: '600',
+            color: focused ? colors.accent.primary : colors.text.tertiary,
+          }}
+        >
+          {placeholder}
+        </Animated.Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+function ChipSelector({
+  options,
+  selected,
+  onSelect,
+  colors,
+}: {
+  options: string[];
+  selected: string;
+  onSelect: (v: string) => void;
+  colors: any;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      {options.map((o) => {
+        const sel = selected === o;
+        return (
+          <TouchableOpacity
+            key={o}
+            onPress={() => onSelect(o)}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              borderRadius: borderRadius['2xl'],
+              backgroundColor: sel ? colors.accent.primary : colors.bg.secondary,
+              borderWidth: 1,
+              borderColor: sel ? colors.accent.primary : colors.border.subtle,
+              ...shadows.sm,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: sel ? colors.text.inverse : colors.text.primary,
+              }}
+            >
+              {o}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+function MultiChipSelector({
+  options,
+  selected,
+  onToggle,
+  colors,
+}: {
+  options: string[];
+  selected: string[];
+  onToggle: (v: string) => void;
+  colors: any;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+      {options.map((o) => {
+        const sel = selected.includes(o);
+        return (
+          <TouchableOpacity
+            key={o}
+            onPress={() => onToggle(o)}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              borderRadius: borderRadius['2xl'],
+              backgroundColor: sel ? colors.accent.primary : colors.bg.secondary,
+              borderWidth: 1,
+              borderColor: sel ? colors.accent.primary : colors.border.subtle,
+              ...shadows.sm,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: sel ? colors.text.inverse : colors.text.primary,
+              }}
+            >
+              {o}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+function Stepper({
+  value,
+  min,
+  onChange,
+  colors,
+}: {
+  value: number;
+  min: number;
+  onChange: (v: number) => void;
+  colors: any;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.bg.secondary,
+        borderRadius: borderRadius['2xl'],
+        borderWidth: 1,
+        borderColor: colors.border.subtle,
+        paddingVertical: 8,
+        marginBottom: 16,
+        ...shadows.sm,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => onChange(Math.max(min, value - 1))}
+        style={{ paddingHorizontal: 28, paddingVertical: 10 }}
+      >
+        <AntDesign name="minus" size={20} color={colors.text.primary} />
+      </TouchableOpacity>
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: '700',
+          color: colors.text.primary,
+          marginHorizontal: 24,
+          minWidth: 40,
+          textAlign: 'center',
+        }}
+      >
+        {value}
+      </Text>
+      <TouchableOpacity
+        onPress={() => onChange(value + 1)}
+        style={{ paddingHorizontal: 28, paddingVertical: 10 }}
+      >
+        <AntDesign name="plus" size={20} color={colors.text.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function SectionDivider({ colors }: { colors: any }) {
+  return <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 20 }} />;
+}
+
+function SectionTitle({
+  title,
+  subtitle,
+  colors,
+}: {
+  title: string;
+  subtitle?: string;
+  colors: any;
+}) {
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text
+        style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.2 }}
+      >
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '500',
+            color: colors.text.tertiary,
+            marginTop: 2,
+            lineHeight: 18,
+          }}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+export function OnboardingScreen({ route, onComplete }: any) {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { isAuthenticated, guestLogin } = useAuth();
 
   const [step, setStep] = useState<Step>('lens');
   const [selectedLens, setSelectedLens] = useState<LensMode>('FULL');
@@ -64,16 +366,12 @@ export function OnboardingScreen({ route }: any) {
   const [sharedGoal, setSharedGoal] = useState('');
   const [splitPref, setSplitPref] = useState('50/50');
   const [maritalStatus, setMaritalStatus] = useState('');
-  const [partnerPhone, setPartnerPhone] = useState('');
   const [householdMembers, setHouseholdMembers] = useState(2);
   const [householdIncome, setHouseholdIncome] = useState('');
   const [responsibilities, setResponsibilities] = useState<string[]>([]);
 
-  const toggleResponsibility = (r: string) => {
-    setResponsibilities((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
-  };
-
-  const selectedOption = LENS_OPTIONS.find((o) => o.id === selectedLens);
+  const lensFadeAnim = useRef(new Animated.Value(0)).current;
+  const setupFadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const refCode = route?.params?.referralCode;
@@ -82,15 +380,29 @@ export function OnboardingScreen({ route }: any) {
     }
   }, [route?.params?.referralCode]);
 
+  useEffect(() => {
+    Animated.timing(lensFadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
+
+  useEffect(() => {
+    if (step === 'setup') {
+      setupFadeAnim.setValue(0);
+      Animated.timing(setupFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    }
+  }, [step]);
+
+  const toggleResponsibility = (r: string) => {
+    setResponsibilities((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
+  };
+
+  const selectedOption = LENS_OPTIONS.find((o) => o.id === selectedLens);
+
   async function finishOnboarding(lens: LensMode, ut: string) {
     setSubmitting(true);
     try {
       await AsyncStorage.setItem('userType', ut);
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
       useLensStore.getState().setLens(lens);
-      if (!isAuthenticated) {
-        await guestLogin();
-      }
       const token = getAccessToken();
       if (token) {
         const profileData: any = { userType: ut, activeLens: lens };
@@ -123,8 +435,9 @@ export function OnboardingScreen({ route }: any) {
         }
         api.patch('/users/profile', profileData).catch(() => {});
       }
+      onComplete?.();
     } catch {
-      // navigation handled by RootNavigator
+      // error handled silently
     } finally {
       setSubmitting(false);
     }
@@ -148,675 +461,430 @@ export function OnboardingScreen({ route }: any) {
     await finishOnboarding(selectedLens, selectedOption.userType);
   }
 
-  const inputStyle = {
-    backgroundColor: colors.bg.card,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontWeight: '500' as const,
-    color: colors.text.primary,
-  };
+  const lensHasPersonal = selectedLens === 'PERSONAL' || selectedLens === 'FULL';
+  const lensHasPartnered = selectedLens === 'PARTNERED' || selectedLens === 'FULL';
+  const lensHasFamily = selectedLens === 'FAMILY' || selectedLens === 'FULL';
 
-  const labelStyle = {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: colors.text.secondary,
-    marginBottom: 8,
-  };
-
-  function renderHeader(showBack: boolean) {
-    return (
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
+      {/* Header */}
       <View
         style={{
           paddingTop: insets.top + 12,
           flexDirection: 'row',
           justifyContent: 'space-between',
-          paddingHorizontal: PADDING,
+          alignItems: 'center',
+          paddingHorizontal: spacing.xl,
+          paddingBottom: 8,
         }}
       >
-        {showBack ? (
-          <TouchableOpacity onPress={() => setStep('lens')} style={{ paddingVertical: 8 }}>
-            <AntDesign name="arrowleft" size={22} color={colors.text.primary} />
+        {step === 'setup' ? (
+          <TouchableOpacity
+            onPress={() => setStep('lens')}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.bg.secondary,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: colors.border.subtle,
+            }}
+          >
+            <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
         ) : (
-          <View style={{ width: 38 }} />
+          <View style={{ width: 40 }} />
         )}
+        {/* Step indicators */}
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: step === 'lens' ? colors.accent.primary : colors.border.subtle,
+            }}
+          />
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: step === 'setup' ? colors.accent.primary : colors.border.subtle,
+            }}
+          />
+        </View>
         <TouchableOpacity onPress={handleSkip} style={{ paddingVertical: 8 }}>
           <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
         </TouchableOpacity>
       </View>
-    );
-  }
 
-  if (step === 'setup') {
-    return (
-      <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-        {renderHeader(true)}
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <ScrollView
-            contentContainerStyle={{ paddingHorizontal: PADDING, paddingBottom: 32 }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+      {/* Lens Selection Step */}
+      {step === 'lens' && (
+        <Animated.View style={{ flex: 1, opacity: lensFadeAnim }}>
+          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: spacing.xl }}>
             <Text
               style={{
                 fontSize: 28,
                 fontWeight: '800',
                 color: colors.text.primary,
+                textAlign: 'center',
                 marginBottom: 8,
                 letterSpacing: -0.5,
               }}
             >
-              Quick Setup
+              How will you use Dabbu?
             </Text>
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: '500',
                 color: colors.text.tertiary,
-                marginBottom: 28,
+                textAlign: 'center',
+                marginBottom: 32,
                 lineHeight: 22,
               }}
             >
-              {selectedOption?.title}
+              Choose your lens so we can tailor the experience for you
             </Text>
-
-            {/* PERSONAL / FULL fields — progressive setup */}
-            {(selectedLens === 'PERSONAL' || selectedLens === 'FULL') && (
-              <>
-                <Text style={labelStyle}>Income Source</Text>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="e.g. Salary, Freelance"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={incomeSource}
-                  onChangeText={setIncomeSource}
-                />
-                <Text style={[labelStyle, { marginTop: 16 }]}>Monthly Savings Goal</Text>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="e.g. 50000"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="numeric"
-                  value={savingsGoal}
-                  onChangeText={setSavingsGoal}
-                />
-                <Text style={[labelStyle, { marginTop: 16 }]}>Risk Level</Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  {RISK_LEVELS.map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      onPress={() => setRiskLevel(r)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 12,
-                        borderRadius: borderRadius.lg,
-                        backgroundColor: riskLevel === r ? colors.accent.primary : colors.bg.card,
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: riskLevel === r ? colors.accent.primary : colors.border.subtle,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontWeight: '600',
-                          color: riskLevel === r ? '#FFF' : colors.text.primary,
-                        }}
-                      >
-                        {r}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {selectedLens === 'FULL' && (
-                  <>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
+              {LENS_OPTIONS.map((opt) => {
+                const isSelected = selectedLens === opt.id;
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    activeOpacity={0.8}
+                    onPress={() => setSelectedLens(opt.id)}
+                    style={{ width: '50%', paddingHorizontal: 6, marginBottom: 12 }}
+                  >
                     <View
                       style={{
-                        height: 1,
-                        backgroundColor: colors.border.subtle,
-                        marginVertical: 24,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: colors.text.primary,
-                        marginBottom: 4,
-                      }}
-                    >
-                      Relationship Details
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: colors.text.tertiary,
-                        marginBottom: 16,
-                        lineHeight: 18,
-                      }}
-                    >
-                      Optional — set up partner and family features now
-                    </Text>
-                    <Text style={[labelStyle, { marginTop: 8 }]}>Marital Status</Text>
-                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
-                      {['Single', 'Married', 'Engaged', 'Dating', 'Living Together', 'Other'].map(
-                        (s) => {
-                          const sel = maritalStatus === s;
-                          return (
-                            <TouchableOpacity
-                              key={s}
-                              onPress={() => setMaritalStatus(s)}
-                              style={{
-                                paddingHorizontal: 10,
-                                paddingVertical: 10,
-                                borderRadius: borderRadius.lg,
-                                backgroundColor: sel ? colors.accent.primary : colors.bg.card,
-                                borderWidth: 1,
-                                borderColor: sel ? colors.accent.primary : colors.border.subtle,
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: 10,
-                                  fontWeight: '600',
-                                  color: sel ? '#FFF' : colors.text.primary,
-                                  textAlign: 'center',
-                                }}
-                              >
-                                {s}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        },
-                      )}
-                    </View>
-
-                    <Text style={[labelStyle, { marginTop: 16 }]}>Partner Email / Phone</Text>
-                    <TextInput
-                      style={inputStyle}
-                      placeholder="partner@email.com or phone"
-                      placeholderTextColor={colors.text.tertiary}
-                      value={partnerEmail}
-                      onChangeText={setPartnerEmail}
-                    />
-                    <Text style={[labelStyle, { marginTop: 16 }]}>Shared Goal</Text>
-                    <TextInput
-                      style={inputStyle}
-                      placeholder="e.g. Save for a house"
-                      placeholderTextColor={colors.text.tertiary}
-                      value={sharedGoal}
-                      onChangeText={setSharedGoal}
-                    />
-                    <Text style={[labelStyle, { marginTop: 16 }]}>Expense Split</Text>
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                      {SPLIT_OPTIONS.map((s) => (
-                        <TouchableOpacity
-                          key={s}
-                          onPress={() => setSplitPref(s)}
-                          style={{
-                            flex: 1,
-                            paddingVertical: 12,
-                            borderRadius: borderRadius.lg,
-                            backgroundColor:
-                              splitPref === s ? colors.accent.primary : colors.bg.card,
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderColor:
-                              splitPref === s ? colors.accent.primary : colors.border.subtle,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight: '600',
-                              color: splitPref === s ? '#FFF' : colors.text.primary,
-                            }}
-                          >
-                            {s}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-
-                    <View
-                      style={{
-                        height: 1,
-                        backgroundColor: colors.border.subtle,
-                        marginVertical: 24,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: colors.text.primary,
-                        marginBottom: 12,
-                      }}
-                    >
-                      Family Setup
-                    </Text>
-                    <Text style={labelStyle}>Household Members</Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
+                        backgroundColor: isSelected
+                          ? colors.accent.primary + '12'
+                          : colors.bg.secondary,
+                        borderRadius: borderRadius['2xl'],
+                        padding: 16,
+                        borderWidth: 2,
+                        borderColor: isSelected ? colors.accent.primary : colors.border.subtle,
+                        minHeight: 170,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: colors.bg.card,
-                        borderRadius: borderRadius.xl,
-                        borderWidth: 1,
-                        borderColor: colors.border.subtle,
-                        paddingVertical: 12,
+                        ...(isSelected ? shadows.md : {}),
                       }}
                     >
-                      <TouchableOpacity
-                        onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))}
-                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: isSelected
+                            ? colors.accent.primary + '20'
+                            : colors.border.subtle + '60',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: 12,
+                        }}
                       >
-                        <AntDesign name="minus" size={20} color={colors.text.primary} />
-                      </TouchableOpacity>
+                        <AntDesign
+                          name={opt.icon}
+                          size={24}
+                          color={isSelected ? colors.accent.primary : colors.text.tertiary}
+                        />
+                      </View>
                       <Text
                         style={{
-                          fontSize: 24,
+                          fontSize: 15,
                           fontWeight: '700',
                           color: colors.text.primary,
-                          marginHorizontal: 20,
-                          minWidth: 40,
                           textAlign: 'center',
+                          marginBottom: 4,
                         }}
                       >
-                        {householdMembers}
+                        {opt.title}
                       </Text>
-                      <TouchableOpacity
-                        onPress={() => setHouseholdMembers(householdMembers + 1)}
-                        style={{ paddingHorizontal: 24, paddingVertical: 8 }}
-                      >
-                        <AntDesign name="plus" size={20} color={colors.text.primary} />
-                      </TouchableOpacity>
-                    </View>
-                    <Text style={[labelStyle, { marginTop: 20 }]}>Household Income</Text>
-                    <TextInput
-                      style={inputStyle}
-                      placeholder="e.g. 150000"
-                      placeholderTextColor={colors.text.tertiary}
-                      keyboardType="numeric"
-                      value={householdIncome}
-                      onChangeText={setHouseholdIncome}
-                    />
-                  </>
-                )}
-              </>
-            )}
-
-            {/* PARTNERED fields */}
-            {selectedLens === 'PARTNERED' && (
-              <>
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: '700',
-                    color: colors.text.primary,
-                    marginBottom: 4,
-                  }}
-                >
-                  Relationship Details
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginBottom: 16,
-                    lineHeight: 18,
-                  }}
-                >
-                  Tell us about your relationship so we can tailor the couple experience
-                </Text>
-                <Text style={[labelStyle, { marginTop: 8 }]}>Marital Status</Text>
-                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
-                  {['Married', 'Engaged', 'Dating', 'Living Together', 'Other'].map((s) => {
-                    const sel = maritalStatus === s;
-                    return (
-                      <TouchableOpacity
-                        key={s}
-                        onPress={() => setMaritalStatus(s)}
-                        style={{
-                          paddingHorizontal: 12,
-                          paddingVertical: 10,
-                          borderRadius: borderRadius.lg,
-                          flex: 1,
-                          backgroundColor: sel ? colors.accent.primary : colors.bg.card,
-                          borderWidth: 1,
-                          borderColor: sel ? colors.accent.primary : colors.border.subtle,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '600',
-                            color: sel ? '#FFF' : colors.text.primary,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {s}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-                <Text style={[labelStyle, { marginTop: 16 }]}>Partner Email / Phone</Text>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="partner@email.com or phone number"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={partnerEmail}
-                  onChangeText={setPartnerEmail}
-                />
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginTop: 4,
-                    lineHeight: 16,
-                  }}
-                >
-                  We'll send them an invite to connect on Dabbu
-                </Text>
-                <Text style={[labelStyle, { marginTop: 16 }]}>Shared Goal</Text>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="e.g. Save for a house"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={sharedGoal}
-                  onChangeText={setSharedGoal}
-                />
-                <Text style={[labelStyle, { marginTop: 16 }]}>Expense Split Preference</Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  {SPLIT_OPTIONS.map((s) => (
-                    <TouchableOpacity
-                      key={s}
-                      onPress={() => setSplitPref(s)}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 12,
-                        borderRadius: borderRadius.lg,
-                        backgroundColor: splitPref === s ? colors.accent.primary : colors.bg.card,
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: splitPref === s ? colors.accent.primary : colors.border.subtle,
-                      }}
-                    >
                       <Text
                         style={{
-                          fontSize: 13,
-                          fontWeight: '600',
-                          color: splitPref === s ? '#FFF' : colors.text.primary,
+                          fontSize: 12,
+                          fontWeight: '500',
+                          color: colors.text.tertiary,
+                          textAlign: 'center',
+                          lineHeight: 16,
                         }}
                       >
-                        {s}
+                        {opt.desc}
                       </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
-
-            {/* FAMILY fields */}
-            {selectedLens === 'FAMILY' && (
-              <>
-                <Text style={labelStyle}>Household Members</Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: colors.bg.card,
-                    borderRadius: borderRadius.xl,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    paddingVertical: 12,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => setHouseholdMembers(Math.max(1, householdMembers - 1))}
-                    style={{ paddingHorizontal: 24, paddingVertical: 8 }}
-                  >
-                    <AntDesign name="minus" size={20} color={colors.text.primary} />
-                  </TouchableOpacity>
-                  <Text
-                    style={{
-                      fontSize: 24,
-                      fontWeight: '700',
-                      color: colors.text.primary,
-                      marginHorizontal: 20,
-                      minWidth: 40,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {householdMembers}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setHouseholdMembers(householdMembers + 1)}
-                    style={{ paddingHorizontal: 24, paddingVertical: 8 }}
-                  >
-                    <AntDesign name="plus" size={20} color={colors.text.primary} />
-                  </TouchableOpacity>
-                </View>
-                <Text style={[labelStyle, { marginTop: 20 }]}>Household Income</Text>
-                <TextInput
-                  style={inputStyle}
-                  placeholder="e.g. 150000"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="numeric"
-                  value={householdIncome}
-                  onChangeText={setHouseholdIncome}
-                />
-                <Text style={[labelStyle, { marginTop: 20 }]}>Responsibilities Split</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {RESPONSIBILITIES.map((r) => {
-                    const selected = responsibilities.includes(r);
-                    return (
-                      <TouchableOpacity
-                        key={r}
-                        onPress={() => toggleResponsibility(r)}
-                        style={{
-                          paddingHorizontal: 16,
-                          paddingVertical: 10,
-                          borderRadius: borderRadius.lg,
-                          backgroundColor: selected ? colors.accent.primary : colors.bg.card,
-                          borderWidth: 1,
-                          borderColor: selected ? colors.accent.primary : colors.border.subtle,
-                        }}
-                      >
-                        <Text
+                      {isSelected && (
+                        <View
                           style={{
-                            fontSize: 13,
-                            fontWeight: '600',
-                            color: selected ? '#FFF' : colors.text.primary,
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                            backgroundColor: colors.accent.primary,
+                            alignItems: 'center',
+                            justifyContent: 'center',
                           }}
                         >
-                          {r}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </>
-            )}
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-        <View
-          style={{
-            paddingHorizontal: PADDING,
-            paddingBottom: insets.bottom + 24,
-            backgroundColor: colors.bg.primary,
-            borderTopLeftRadius: borderRadius.xl,
-            borderTopRightRadius: borderRadius.xl,
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleFinish}
-            disabled={submitting}
-            style={{
-              backgroundColor: colors.accent.primary,
-              paddingVertical: 16,
-              borderRadius: borderRadius.xl,
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: submitting ? 0.6 : 1,
-              ...shadows.md,
-              shadowColor: colors.accent.primary,
-            }}
-          >
-            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
-              {submitting ? 'Setting up...' : 'Get Started'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // Step 1: Lens Choice
-  return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      {renderHeader(false)}
-      <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: PADDING }}>
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: '800',
-            color: colors.text.primary,
-            textAlign: 'center',
-            marginBottom: 8,
-            letterSpacing: -0.5,
-          }}
-        >
-          How will you use Dabbu?
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            fontWeight: '500',
-            color: colors.text.tertiary,
-            textAlign: 'center',
-            marginBottom: 32,
-            lineHeight: 22,
-          }}
-        >
-          Choose your lens so we can tailor the experience for you
-        </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
-          {LENS_OPTIONS.map((opt) => {
-            const isSelected = selectedLens === opt.id;
-            return (
-              <TouchableOpacity
-                key={opt.id}
-                activeOpacity={0.8}
-                onPress={() => setSelectedLens(opt.id)}
-                style={{ width: '50%', paddingHorizontal: 6, marginBottom: 12 }}
+                          <AntDesign name="check" size={14} color={colors.text.inverse} />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+          <View style={{ paddingHorizontal: spacing.xl, paddingBottom: insets.bottom + 24 }}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={handleContinueToSetup}
+              disabled={!selectedLens}
+            >
+              <LinearGradient
+                colors={[colors.accent.primary, colors.accent.hover]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  paddingVertical: 16,
+                  borderRadius: borderRadius['2xl'],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: selectedLens ? 1 : 0.4,
+                  ...shadows.md,
+                }}
               >
-                <View
-                  style={{
-                    backgroundColor: isSelected ? colors.accent.primary + '15' : colors.bg.card,
-                    borderRadius: borderRadius['2xl'],
-                    padding: 16,
-                    borderWidth: 2,
-                    borderColor: isSelected ? colors.accent.primary : colors.border.subtle,
-                    minHeight: 170,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: isSelected
-                        ? colors.accent.primary + '25'
-                        : colors.border.subtle + '60',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 12,
-                    }}
-                  >
-                    <AntDesign
-                      name={opt.icon}
-                      size={24}
-                      color={isSelected ? colors.accent.primary : colors.text.tertiary}
-                    />
-                  </View>
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                  Continue
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Setup Step */}
+      {step === 'setup' && (
+        <Animated.View style={{ flex: 1, opacity: setupFadeAnim }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <ScrollView
+              contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 32 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: '800',
+                  color: colors.text.primary,
+                  marginBottom: 4,
+                  letterSpacing: -0.5,
+                }}
+              >
+                Quick Setup
+              </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '500',
+                  color: colors.text.tertiary,
+                  marginBottom: 24,
+                  lineHeight: 22,
+                }}
+              >
+                {selectedOption?.title}
+              </Text>
+
+              {/* PERSONAL / FULL: Finance Basics */}
+              {lensHasPersonal && (
+                <>
+                  <SectionTitle
+                    title="Finance Basics"
+                    subtitle="Set your preferences"
+                    colors={colors}
+                  />
+                  <PillInput
+                    icon="wallet"
+                    placeholder="Income Source"
+                    value={incomeSource}
+                    onChangeText={setIncomeSource}
+                    colors={colors}
+                  />
+                  <PillInput
+                    icon="save"
+                    placeholder="Monthly Savings Goal"
+                    value={savingsGoal}
+                    onChangeText={setSavingsGoal}
+                    keyboardType="numeric"
+                    colors={colors}
+                  />
                   <Text
                     style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: colors.text.primary,
-                      textAlign: 'center',
-                      marginBottom: 4,
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: colors.text.secondary,
+                      marginBottom: 8,
                     }}
                   >
-                    {opt.title}
+                    Risk Level
                   </Text>
+                  <ChipSelector
+                    options={RISK_LEVELS}
+                    selected={riskLevel}
+                    onSelect={setRiskLevel}
+                    colors={colors}
+                  />
+                </>
+              )}
+
+              {/* PARTNERED / FULL: Relationship */}
+              {lensHasPartnered && (
+                <>
+                  {lensHasPersonal && <SectionDivider colors={colors} />}
+                  <SectionTitle
+                    title="Relationship"
+                    subtitle="Set up partner sharing"
+                    colors={colors}
+                  />
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      textAlign: 'center',
-                      lineHeight: 16,
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: colors.text.secondary,
+                      marginBottom: 8,
                     }}
                   >
-                    {opt.desc}
+                    Status
                   </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-      <View style={{ paddingHorizontal: PADDING, paddingBottom: insets.bottom + 24 }}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handleContinueToSetup}
-          disabled={!selectedLens}
-          style={{
-            backgroundColor: selectedLens ? colors.accent.primary : colors.border.subtle,
-            paddingVertical: 16,
-            borderRadius: borderRadius.xl,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: selectedLens ? 1 : 0.5,
-            ...shadows.md,
-            shadowColor: colors.accent.primary,
-          }}
-        >
-          <Text
+                  <ChipSelector
+                    options={['Single', 'Married', 'Engaged', 'Dating', 'Living Together', 'Other']}
+                    selected={maritalStatus}
+                    onSelect={setMaritalStatus}
+                    colors={colors}
+                  />
+                  <PillInput
+                    icon="mail"
+                    placeholder="Partner email or phone"
+                    value={partnerEmail}
+                    onChangeText={setPartnerEmail}
+                    keyboardType="email-address"
+                    colors={colors}
+                  />
+                  <PillInput
+                    icon="flag"
+                    placeholder="Shared goal (e.g. Save for a house)"
+                    value={sharedGoal}
+                    onChangeText={setSharedGoal}
+                    colors={colors}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: colors.text.secondary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Expense Split
+                  </Text>
+                  <ChipSelector
+                    options={SPLIT_OPTIONS}
+                    selected={splitPref}
+                    onSelect={setSplitPref}
+                    colors={colors}
+                  />
+                </>
+              )}
+
+              {/* FAMILY / FULL: Household */}
+              {lensHasFamily && (
+                <>
+                  {(lensHasPersonal || lensHasPartnered) && <SectionDivider colors={colors} />}
+                  <SectionTitle
+                    title="Household"
+                    subtitle="Set up family sharing"
+                    colors={colors}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: colors.text.secondary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Members
+                  </Text>
+                  <Stepper
+                    value={householdMembers}
+                    min={1}
+                    onChange={setHouseholdMembers}
+                    colors={colors}
+                  />
+                  <PillInput
+                    icon="wallet"
+                    placeholder="Monthly household income"
+                    value={householdIncome}
+                    onChangeText={setHouseholdIncome}
+                    keyboardType="numeric"
+                    colors={colors}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: colors.text.secondary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Responsibilities
+                  </Text>
+                  <MultiChipSelector
+                    options={RESPONSIBILITIES}
+                    selected={responsibilities}
+                    onToggle={toggleResponsibility}
+                    colors={colors}
+                  />
+                </>
+              )}
+            </ScrollView>
+          </KeyboardAvoidingView>
+
+          <View
             style={{
-              color: selectedLens ? '#FFF' : colors.text.tertiary,
-              fontSize: 17,
-              fontWeight: '700',
+              paddingHorizontal: spacing.xl,
+              paddingBottom: insets.bottom + 24,
+              paddingTop: 8,
             }}
           >
-            Continue
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity activeOpacity={0.9} onPress={handleFinish} disabled={submitting}>
+              <LinearGradient
+                colors={[colors.accent.primary, colors.accent.hover]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  paddingVertical: 16,
+                  borderRadius: borderRadius['2xl'],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: submitting ? 0.6 : 1,
+                  ...shadows.md,
+                }}
+              >
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                  {submitting ? 'Setting up...' : 'Get Started'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  root: { flex: 1 },
-});
