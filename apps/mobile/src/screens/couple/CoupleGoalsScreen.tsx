@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Animated, StyleSheet, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Animated,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +37,11 @@ function fmt(v: number) {
 }
 
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(d).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 function ProgressBar({ pct, color }: { pct: number; color: string }) {
@@ -56,9 +69,7 @@ function useStagger(count: number, baseDelay = 80) {
   useEffect(() => {
     Animated.stagger(
       baseDelay,
-      anims.map((a) =>
-        Animated.timing(a, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ),
+      anims.map((a) => Animated.timing(a, { toValue: 1, duration: 400, useNativeDriver: true })),
     ).start();
   }, [count]);
   return anims;
@@ -88,7 +99,11 @@ function GoalsSkeleton() {
   return (
     <View style={{ paddingHorizontal: spacing.xl, gap: 12, paddingTop: spacing.lg }}>
       <Skeleton width={120} height={16} borderRadius={8} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 10 }}
+      >
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} width={CARD_WIDTH} height={100} borderRadius={20} />
         ))}
@@ -118,7 +133,9 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
   const stagger = useStagger(activeGoals.length + 1);
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    if (!isRefresh) {
+      setLoading(true);
+    }
     try {
       const dashboard = await api.get<any>('/couple/dashboard');
       const goalsData = dashboard?.goals || [];
@@ -130,7 +147,9 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
           try {
             const pred = await api.get(`/ai/goals/${goal.id}/prediction`);
             predMap[goal.id] = (pred as any)?.data || pred;
-          } catch { }
+          } catch {
+            /* ignore */
+          }
         }),
       );
       setAiPredictions(predMap);
@@ -142,14 +161,18 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData(true);
   }, [fetchData]);
 
-  if (loading) return <LoadingScreen skeleton={<GoalsSkeleton />} />;
+  if (loading) {
+    return <LoadingScreen skeleton={<GoalsSkeleton />} />;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
@@ -165,8 +188,16 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
         }
       >
         {/* Header */}
-        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View
+          style={{
+            paddingTop: insets.top + 12,
+            paddingHorizontal: spacing.xl,
+            paddingBottom: spacing.sm,
+          }}
+        >
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+          >
             <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Goals</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('LifePlanForm')}
@@ -203,7 +234,9 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
             {/* Section 1: Goal Templates */}
             <View style={{ paddingTop: spacing.md }}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Goal Templates</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                  Goal Templates
+                </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('LifePlanForm')}>
                   <Text style={[styles.seeAll, { color: colors.accent.primary }]}>See All</Text>
                 </TouchableOpacity>
@@ -230,7 +263,9 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                     <View style={[styles.templateIcon, { backgroundColor: `${t.color}18` }]}>
                       <AntDesign name={t.icon as any} size={22} color={t.color} />
                     </View>
-                    <Text style={[styles.templateLabel, { color: colors.text.primary }]}>{t.label}</Text>
+                    <Text style={[styles.templateLabel, { color: colors.text.primary }]}>
+                      {t.label}
+                    </Text>
                     <View style={[styles.templateCta, { backgroundColor: colors.accent.primary }]}>
                       <Text style={styles.templateCtaText}>Create</Text>
                     </View>
@@ -265,10 +300,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                     const predSuggestion = prediction?.suggestion;
 
                     return (
-                      <Animated.View
-                        key={goal.id}
-                        style={{ opacity: stagger[idx] }}
-                      >
+                      <Animated.View key={goal.id} style={{ opacity: stagger[idx] }}>
                         <TouchableOpacity
                           activeOpacity={0.75}
                           onPress={() => navigation.navigate('Goals', { goalId: goal.id })}
@@ -283,7 +315,10 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                               <AntDesign name={icon as any} size={20} color={iconColor} />
                             </View>
                             <View style={{ flex: 1 }}>
-                              <Text style={[styles.goalName, { color: colors.text.primary }]} numberOfLines={1}>
+                              <Text
+                                style={[styles.goalName, { color: colors.text.primary }]}
+                                numberOfLines={1}
+                              >
                                 {goal.name}
                               </Text>
                               <Text style={[styles.goalTarget, { color: colors.text.tertiary }]}>
@@ -302,14 +337,18 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                               <Text style={[styles.goalSaved, { color: colors.text.primary }]}>
                                 {fmt(saved)}
                               </Text>
-                              <Text style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}>
+                              <Text
+                                style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}
+                              >
                                 saved
                               </Text>
                             </View>
                             {predDate && (
                               <View style={styles.forecast}>
                                 <AntDesign name="calendar" size={11} color={colors.text.tertiary} />
-                                <Text style={[styles.forecastText, { color: colors.text.tertiary }]}>
+                                <Text
+                                  style={[styles.forecastText, { color: colors.text.tertiary }]}
+                                >
                                   Est. {fmtDate(predDate)}
                                 </Text>
                               </View>
@@ -317,11 +356,18 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                           </View>
 
                           {(predDate || predSuggestion) && (
-                            <View style={[styles.aiSnippet, { backgroundColor: `${colors.status.warning}10` }]}>
+                            <View
+                              style={[
+                                styles.aiSnippet,
+                                { backgroundColor: `${colors.status.warning}10` },
+                              ]}
+                            >
                               <AntDesign name="bulb1" size={12} color="#FBBF24" />
-                              <Text style={[styles.aiText, { color: colors.text.secondary }]} numberOfLines={2}>
-                                {predSuggestion ||
-                                  `AI predicts completion by ${fmtDate(predDate)}`}
+                              <Text
+                                style={[styles.aiText, { color: colors.text.secondary }]}
+                                numberOfLines={2}
+                              >
+                                {predSuggestion || `AI predicts completion by ${fmtDate(predDate)}`}
                               </Text>
                             </View>
                           )}
@@ -345,7 +391,12 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                     <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
                       Completed
                     </Text>
-                    <View style={[styles.completedCount, { backgroundColor: colors.status.successLight }]}>
+                    <View
+                      style={[
+                        styles.completedCount,
+                        { backgroundColor: colors.status.successLight },
+                      ]}
+                    >
                       <Text style={[styles.completedCountText, { color: colors.status.success }]}>
                         {completedGoals.length}
                       </Text>
@@ -358,7 +409,9 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                   />
                 </TouchableOpacity>
                 {completedExpanded && (
-                  <View style={{ paddingHorizontal: spacing.xl, gap: 10, paddingBottom: spacing.lg }}>
+                  <View
+                    style={{ paddingHorizontal: spacing.xl, gap: 10, paddingBottom: spacing.lg }}
+                  >
                     {completedGoals.map((goal: any) => {
                       const target = Number(goal.targetAmount || 0);
                       const saved = Number(goal.savedAmount || 0);
@@ -371,11 +424,23 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                           ]}
                         >
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                            <View style={[styles.completedIcon, { backgroundColor: colors.status.successLight }]}>
-                              <AntDesign name="checkcircle" size={18} color={colors.status.success} />
+                            <View
+                              style={[
+                                styles.completedIcon,
+                                { backgroundColor: colors.status.successLight },
+                              ]}
+                            >
+                              <AntDesign
+                                name="checkcircle"
+                                size={18}
+                                color={colors.status.success}
+                              />
                             </View>
                             <View style={{ flex: 1 }}>
-                              <Text style={[styles.goalName, { color: colors.text.primary }]} numberOfLines={1}>
+                              <Text
+                                style={[styles.goalName, { color: colors.text.primary }]}
+                                numberOfLines={1}
+                              >
                                 {goal.name}
                               </Text>
                               <Text style={[styles.goalTarget, { color: colors.text.tertiary }]}>

@@ -1,5 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,21 +30,63 @@ interface ReportTile {
 
 function getReportTiles(colors: any): ReportTile[] {
   return [
-    { id: '1', icon: 'barschart', title: 'Monthly Spend', subtitle: 'View spending trends', color: '#3B82F6', gradientColors: ['#3B82F6', '#2563EB'] },
-    { id: '2', icon: 'piechart', title: 'Category Breakdown', subtitle: 'Spend by category', color: colors.accent.secondary, gradientColors: [colors.accent.secondary, colors.accent.primary] },
-    { id: '3', icon: 'arrowup', title: 'Savings Report', subtitle: 'Savings performance', color: colors.status.success, gradientColors: [colors.status.success, colors.accent.primary] },
-    { id: '4', icon: 'linechart', title: 'Investment Report', subtitle: 'Portfolio performance', color: '#EC4899', gradientColors: ['#EC4899', '#DB2777'] },
-    { id: '5', icon: 'swap', title: 'Vs Last Month', subtitle: 'Compare spending', color: colors.status.warning, gradientColors: [colors.status.warning, colors.accent.secondary] },
-    { id: '6', icon: 'calendar', title: 'Yearly Summary', subtitle: 'Annual overview', color: '#6366F1', gradientColors: ['#6366F1', '#4F46E5'] },
+    {
+      id: '1',
+      icon: 'barschart',
+      title: 'Monthly Spend',
+      subtitle: 'View spending trends',
+      color: '#3B82F6',
+      gradientColors: ['#3B82F6', '#2563EB'],
+    },
+    {
+      id: '2',
+      icon: 'piechart',
+      title: 'Category Breakdown',
+      subtitle: 'Spend by category',
+      color: colors.accent.secondary,
+      gradientColors: [colors.accent.secondary, colors.accent.primary],
+    },
+    {
+      id: '3',
+      icon: 'arrowup',
+      title: 'Savings Report',
+      subtitle: 'Savings performance',
+      color: colors.status.success,
+      gradientColors: [colors.status.success, colors.accent.primary],
+    },
+    {
+      id: '4',
+      icon: 'linechart',
+      title: 'Investment Report',
+      subtitle: 'Portfolio performance',
+      color: '#EC4899',
+      gradientColors: ['#EC4899', '#DB2777'],
+    },
+    {
+      id: '5',
+      icon: 'swap',
+      title: 'Vs Last Month',
+      subtitle: 'Compare spending',
+      color: colors.status.warning,
+      gradientColors: [colors.status.warning, colors.accent.secondary],
+    },
+    {
+      id: '6',
+      icon: 'calendar',
+      title: 'Yearly Summary',
+      subtitle: 'Annual overview',
+      color: '#6366F1',
+      gradientColors: ['#6366F1', '#4F46E5'],
+    },
   ];
 }
 
-const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void; colors: any }> = ({ tile, onPress, colors }) => (
-  <TouchableOpacity
-    style={styles.reportTile}
-    activeOpacity={0.85}
-    onPress={onPress}
-  >
+const ReportTileCard: React.FC<{ tile: ReportTile; onPress: () => void; colors: any }> = ({
+  tile,
+  onPress,
+  colors,
+}) => (
+  <TouchableOpacity style={styles.reportTile} activeOpacity={0.85} onPress={onPress}>
     <View style={[styles.tileGradient, { backgroundColor: tile.color + '20' }]}>
       <View style={[styles.tileIconContainer, { backgroundColor: tile.color + '30' }]}>
         <AntDesign name={tile.icon} size={26} color={tile.color} />
@@ -60,17 +111,31 @@ export default function FamilyReportsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async (silent = false, refresh = false) => {
-    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else if (!silent) {
+      setLoading(true);
+    }
     try {
       const res = await api.get('/family-space/reports');
       const data = (res as any)?.data || res || {};
       setInsights(data);
-    } catch {} finally {
-      setLoading(false); setRefreshing(false);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
 
   const handleTilePress = (tile: ReportTile) => {
     const routes: Record<string, string> = {
@@ -93,37 +158,70 @@ export default function FamilyReportsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.bg.primary,
+            paddingTop: insets.top,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.status.success} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
+    >
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
       </View>
 
       <View style={styles.headerSummary}>
         <View style={[styles.headerSummaryCard, { backgroundColor: colors.bg.secondary }]}>
-          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>Reports Available</Text>
-          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>{reportTiles.length}</Text>
+          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>
+            Reports Available
+          </Text>
+          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>
+            {reportTiles.length}
+          </Text>
         </View>
         <View style={[styles.headerSummaryCard, { backgroundColor: colors.bg.secondary }]}>
-          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>Last Updated</Text>
-          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>{lastUpdated}</Text>
+          <Text style={[styles.headerSummaryLabel, { color: colors.text.tertiary }]}>
+            Last Updated
+          </Text>
+          <Text style={[styles.headerSummaryValue, { color: colors.text.primary }]}>
+            {lastUpdated}
+          </Text>
         </View>
       </View>
 
       <View style={styles.filterRow}>
-        {['1M', '3M', '6M', '1Y', 'All'].map(filter => (
+        {['1M', '3M', '6M', '1Y', 'All'].map((filter) => (
           <TouchableOpacity
             key={filter}
-            style={[styles.filterTab, { backgroundColor: selectedFilter === filter ? colors.status.success : colors.bg.secondary }, selectedFilter === filter && styles.filterTabActive]}
+            style={[
+              styles.filterTab,
+              {
+                backgroundColor:
+                  selectedFilter === filter ? colors.status.success : colors.bg.secondary,
+              },
+              selectedFilter === filter && styles.filterTabActive,
+            ]}
             onPress={() => setSelectedFilter(filter)}
           >
-            <Text style={[styles.filterText, { color: selectedFilter === filter ? colors.bg.primary : colors.text.tertiary }, selectedFilter === filter && styles.filterTextActive]}>
+            <Text
+              style={[
+                styles.filterText,
+                { color: selectedFilter === filter ? colors.bg.primary : colors.text.tertiary },
+                selectedFilter === filter && styles.filterTextActive,
+              ]}
+            >
               {filter}
             </Text>
           </TouchableOpacity>
@@ -134,10 +232,16 @@ export default function FamilyReportsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(false, true)} tintColor={colors.status.success} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(false, true)}
+            tintColor={colors.status.success}
+          />
+        }
       >
         <View style={styles.tilesGrid}>
-          {reportTiles.map(tile => (
+          {reportTiles.map((tile) => (
             <ReportTileCard
               key={tile.id}
               tile={tile}
@@ -150,24 +254,37 @@ export default function FamilyReportsScreen() {
         <View style={[styles.insightCard, { backgroundColor: colors.bg.secondary }]}>
           <View style={styles.insightHeaderRow}>
             <AntDesign name="star" size={18} color={colors.status.success} />
-            <Text style={[styles.insightTitle, { color: colors.text.primary }]}>Quick Insights</Text>
-          </View>
-          <View style={styles.insightRow}>
-            <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
-            <Text style={[styles.insightText, { color: colors.text.secondary }]}>
-              Total spend this month is <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>₹{totalSpend.toLocaleString('en-IN')}</Text>
+            <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+              Quick Insights
             </Text>
           </View>
           <View style={styles.insightRow}>
             <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
             <Text style={[styles.insightText, { color: colors.text.secondary }]}>
-              Savings rate: <Text style={[styles.insightHighlight, { color: colors.status.success }]}>{savingsRate}%</Text> of income
+              Total spend this month is{' '}
+              <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>
+                ₹{totalSpend.toLocaleString('en-IN')}
+              </Text>
             </Text>
           </View>
           <View style={styles.insightRow}>
             <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
             <Text style={[styles.insightText, { color: colors.text.secondary }]}>
-              Top category: <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>{topCategory}</Text> ({topCategoryPct}% of spend)
+              Savings rate:{' '}
+              <Text style={[styles.insightHighlight, { color: colors.status.success }]}>
+                {savingsRate}%
+              </Text>{' '}
+              of income
+            </Text>
+          </View>
+          <View style={styles.insightRow}>
+            <View style={[styles.insightDot, { backgroundColor: colors.status.success }]} />
+            <Text style={[styles.insightText, { color: colors.text.secondary }]}>
+              Top category:{' '}
+              <Text style={[styles.insightHighlight, { color: colors.text.primary }]}>
+                {topCategory}
+              </Text>{' '}
+              ({topCategoryPct}% of spend)
             </Text>
           </View>
         </View>
@@ -223,8 +340,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-  filterTabActive: {
-  },
+  filterTabActive: {},
   filterText: {
     fontSize: 13,
     fontWeight: '500',

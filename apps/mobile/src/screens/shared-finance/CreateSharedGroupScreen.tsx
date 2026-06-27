@@ -41,30 +41,48 @@ export function CreateSharedGroupScreen() {
   const [upiStatus, setUpiStatus] = useState<'idle' | 'valid' | 'invalid' | 'checking'>('idle');
   const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;
+  const UPI_PATTERN = /^[\w.-]+@[\w-]+$/;
   const showPartnerInput = type === 'couple';
   const showUpi = type === 'sports';
 
   async function validateUpiDebounced(value: string) {
-    if (upiTimer.current) clearTimeout(upiTimer.current);
-    if (!value.trim()) { setUpiStatus('idle'); return; }
-    if (!UPI_PATTERN.test(value.trim())) { setUpiStatus('invalid'); return; }
+    if (upiTimer.current) {
+      clearTimeout(upiTimer.current);
+    }
+    if (!value.trim()) {
+      setUpiStatus('idle');
+      return;
+    }
+    if (!UPI_PATTERN.test(value.trim())) {
+      setUpiStatus('invalid');
+      return;
+    }
     setUpiStatus('checking');
     upiTimer.current = setTimeout(async () => {
       try {
         const res = await api.post<any>('/shared-finance/validate-upi', { upiId: value.trim() });
         setUpiStatus(res?.valid ? 'valid' : 'invalid');
-      } catch { setUpiStatus('valid'); }
+      } catch {
+        setUpiStatus('valid');
+      }
     }, 600);
   }
 
   async function handleCreate() {
-    if (!name.trim()) { setError('Group name is required'); return; }
-    if (type === 'couple' && !partnerPhone.trim()) { setError('Partner phone number is required for couple spaces'); return; }
+    if (!name.trim()) {
+      setError('Group name is required');
+      return;
+    }
+    if (type === 'couple' && !partnerPhone.trim()) {
+      setError('Partner phone number is required for couple spaces');
+      return;
+    }
     setError('');
     setSaving(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.post<any>('/shared-finance/groups', {
         name: name.trim(),
         type: type.toLowerCase(),
@@ -80,7 +98,10 @@ export function CreateSharedGroupScreen() {
           });
         } catch (addErr: any) {
           setSaving(false);
-          setError('Space created, but could not add partner: ' + (addErr.message || 'Phone number may be invalid or the user may not be registered'));
+          setError(
+            'Space created, but could not add partner: ' +
+              (addErr.message || 'Phone number may be invalid or the user may not be registered'),
+          );
           return;
         }
       }
@@ -153,21 +174,29 @@ export function CreateSharedGroupScreen() {
             value={upiId}
             onChangeText={(t) => {
               setUpiId(t);
-              if (UPI_PATTERN.test(t.trim())) setUpiStatus('valid');
-              else setUpiStatus('idle');
+              if (UPI_PATTERN.test(t.trim())) {
+                setUpiStatus('valid');
+              } else {
+                setUpiStatus('idle');
+              }
             }}
             onBlur={() => validateUpiDebounced(upiId)}
             placeholder="e.g. user@paytm"
             autoCapitalize="none"
             right={
-              upiStatus === 'valid' ? <AntDesign name="checkcircleo" size={20} color="#34C759" /> :
-              upiStatus === 'invalid' ? <AntDesign name="exclamationcircle" size={20} color="#FF4D4F" /> :
-              upiStatus === 'checking' ? <AntDesign name="sync" size={18} color={colors.text.tertiary} /> :
-              null
+              upiStatus === 'valid' ? (
+                <AntDesign name="checkcircleo" size={20} color="#34C759" />
+              ) : upiStatus === 'invalid' ? (
+                <AntDesign name="exclamationcircle" size={20} color="#FF4D4F" />
+              ) : upiStatus === 'checking' ? (
+                <AntDesign name="sync" size={18} color={colors.text.tertiary} />
+              ) : null
             }
           />
           {upiStatus === 'invalid' && (
-            <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 2 }}>Enter a valid UPI ID (e.g. user@paytm)</Text>
+            <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 2 }}>
+              Enter a valid UPI ID (e.g. user@paytm)
+            </Text>
           )}
         </FormSection>
       )}

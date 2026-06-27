@@ -1,5 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, TextInput, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
@@ -18,7 +27,7 @@ export function DabbuAIScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Insights');
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Insights');
   const [insights, setInsights] = useState<any[]>([]);
   const [healthScore, setHealthScore] = useState<any>(null);
   const [savingsOpps, setSavingsOpps] = useState<any[]>([]);
@@ -46,17 +55,22 @@ export function DabbuAIScreen() {
     }
     lastFetchRef.current = now;
     try {
-      if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
-      const [insRes, healthRes, saveRes, predRes, dnaRes, anomalyRes, milestoneRes, feedRes] = await Promise.all([
-        api.get('/ai/insights?section=dashboard').catch(() => ({})),
-        api.get('/ai/health-score').catch(() => ({})),
-        api.get('/ai/savings-opportunities').catch(() => ({})),
-        api.get('/ai/predictions').catch(() => ({})),
-        api.get('/ai/dna').catch(() => null),
-        api.get('/ai/anomalies').catch(() => ({data: []})),
-        api.get('/ai/milestones').catch(() => ({data: []})),
-        api.get('/ai/today-feed').catch(() => ({data: []})),
-      ]);
+      if (refresh) {
+        setRefreshing(true);
+      } else if (!silent) {
+        setLoading(true);
+      }
+      const [insRes, healthRes, saveRes, predRes, dnaRes, anomalyRes, milestoneRes, feedRes] =
+        await Promise.all([
+          api.get('/ai/insights?section=dashboard').catch(() => ({})),
+          api.get('/ai/health-score').catch(() => ({})),
+          api.get('/ai/savings-opportunities').catch(() => ({})),
+          api.get('/ai/predictions').catch(() => ({})),
+          api.get('/ai/dna').catch(() => null),
+          api.get('/ai/anomalies').catch(() => ({ data: [] })),
+          api.get('/ai/milestones').catch(() => ({ data: [] })),
+          api.get('/ai/today-feed').catch(() => ({ data: [] })),
+        ]);
       const ires = insRes as any;
       setInsights(Array.isArray(ires?.data) ? ires.data : []);
       setHealthScore((healthRes as any)?.data || healthRes);
@@ -69,29 +83,55 @@ export function DabbuAIScreen() {
       const feed = (feedRes as any)?.data || feedRes;
       setFeedCards(Array.isArray(feed?.cards) ? feed.cards : Array.isArray(feed) ? feed : []);
       setFeedSummary(feed?.summary || null);
-    } catch { /* ignore */ } finally { setLoading(false); setRefreshing(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
-  useSilentRefresh(useCallback((isInitial) => { loadData(!isInitial); }, [loadData]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadData(!isInitial);
+      },
+      [loadData],
+    ),
+  );
 
-  const switchTab = (tab: typeof TABS[number], idx: number) => {
+  const switchTab = (tab: (typeof TABS)[number], idx: number) => {
     setActiveTab(tab);
-    Animated.spring(indicatorPos, { toValue: idx * tabW, tension: 120, friction: 10, useNativeDriver: true }).start();
+    Animated.spring(indicatorPos, {
+      toValue: idx * tabW,
+      tension: 120,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
   };
 
   const sendMessage = async () => {
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim()) {
+      return;
+    }
     const msg = chatInput.trim();
     setChatInput('');
-    setChatMessages(prev => [...prev, { role: 'user', text: msg }]);
+    setChatMessages((prev) => [...prev, { role: 'user', text: msg }]);
     setChatLoading(true);
     try {
       const res = await api.post('/ai/chat', { prompt: msg });
       const r = res as any;
-      const reply = r?.data?.response || r?.data?.text || r?.data?.message || 'Could not process your request.';
-      setChatMessages(prev => [...prev, { role: 'assistant', text: typeof reply === 'string' ? reply : JSON.stringify(reply) }]);
+      const reply =
+        r?.data?.response || r?.data?.text || r?.data?.message || 'Could not process your request.';
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: typeof reply === 'string' ? reply : JSON.stringify(reply) },
+      ]);
     } catch {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, I encountered an error.' }]);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: 'Sorry, I encountered an error.' },
+      ]);
     }
     setChatLoading(false);
   };
@@ -109,14 +149,39 @@ export function DabbuAIScreen() {
       <View style={[styles.tabBar, { backgroundColor: colors.bg.tertiary }]}>
         {TABS.map((tab, idx) => (
           <TouchableOpacity key={tab} style={styles.tab} onPress={() => switchTab(tab, idx)}>
-            <Text style={[styles.tabText, { color: activeTab === tab ? colors.text.primary : colors.text.tertiary, fontWeight: activeTab === tab ? '600' : '400' }]}>
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color: activeTab === tab ? colors.text.primary : colors.text.tertiary,
+                  fontWeight: activeTab === tab ? '600' : '400',
+                },
+              ]}
+            >
               {tab}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentInner} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); try { await loadData(false, true); } finally { setRefreshing(false); } }} tintColor={colors.accent?.primary || colors.brand?.primary} />}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentInner}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              try {
+                await loadData(false, true);
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            tintColor={colors.accent?.primary || colors.brand?.primary}
+          />
+        }
+      >
         {activeTab === 'Insights' && (
           <>
             {healthScore && (
@@ -125,23 +190,49 @@ export function DabbuAIScreen() {
                 onPress={() => navigation.navigate('Dashboard')}
               >
                 <View>
-                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Dabbu Health Score</Text>
-                  <Text style={[styles.healthScore, { color: colors.text.primary }]}>{overallScore}/100</Text>
+                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>
+                    Dabbu Health Score
+                  </Text>
+                  <Text style={[styles.healthScore, { color: colors.text.primary }]}>
+                    {overallScore}/100
+                  </Text>
                   <Text style={[styles.healthLevel, { color: colors.text.tertiary }]}>{level}</Text>
                 </View>
-                <View style={[styles.healthRing, {
-                  borderColor: overallScore >= 70 ? colors.status.success : overallScore >= 40 ? colors.status.warning : colors.status.error,
-                }]}>
-                  <Text style={[styles.healthRingText, {
-                    color: overallScore >= 70 ? colors.status.success : overallScore >= 40 ? colors.status.warning : colors.status.error,
-                  }]}>{overallScore}</Text>
+                <View
+                  style={[
+                    styles.healthRing,
+                    {
+                      borderColor:
+                        overallScore >= 70
+                          ? colors.status.success
+                          : overallScore >= 40
+                            ? colors.status.warning
+                            : colors.status.error,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.healthRingText,
+                      {
+                        color:
+                          overallScore >= 70
+                            ? colors.status.success
+                            : overallScore >= 40
+                              ? colors.status.warning
+                              : colors.status.error,
+                      },
+                    ]}
+                  >
+                    {overallScore}
+                  </Text>
                 </View>
               </TouchableOpacity>
             )}
 
             {insights.length === 0 && !loading && (
               <View style={styles.emptyState}>
-                <AntDesign name="bulb1" size={32} color={colors.text.tertiary}  />
+                <AntDesign name="bulb1" size={32} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   Add more transactions to get personalized insights.
                 </Text>
@@ -150,10 +241,22 @@ export function DabbuAIScreen() {
 
             {insights.map((insight: any, i: number) => (
               <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
-                <View style={[styles.insightDot, { backgroundColor: insight.type === 'warning' ? colors.status.error : colors.accent.primary }]} />
+                <View
+                  style={[
+                    styles.insightDot,
+                    {
+                      backgroundColor:
+                        insight.type === 'warning' ? colors.status.error : colors.accent.primary,
+                    },
+                  ]}
+                />
                 <View style={styles.insightContent}>
-                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{insight.title || 'Insight'}</Text>
-                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{insight.description || insight.message || insight.text}</Text>
+                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                    {insight.title || 'Insight'}
+                  </Text>
+                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>
+                    {insight.description || insight.message || insight.text}
+                  </Text>
                 </View>
               </View>
             ))}
@@ -165,7 +268,9 @@ export function DabbuAIScreen() {
             {financialDna ? (
               <View style={[styles.healthCard, { backgroundColor: colors.card.balance }]}>
                 <View>
-                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Financial DNA</Text>
+                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>
+                    Financial DNA
+                  </Text>
                   <Text style={[styles.healthScore, { color: colors.text.primary }]}>
                     {financialDna.archetype || financialDna.personality || 'Analyzing...'}
                   </Text>
@@ -176,25 +281,39 @@ export function DabbuAIScreen() {
               </View>
             ) : null}
 
-            {financialDna?.traits && Array.isArray(financialDna.traits) && financialDna.traits.map((trait: any, i: number) => (
-              <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
-                <View style={[styles.insightDot, { backgroundColor: colors.accent.primary }]} />
-                <View style={styles.insightContent}>
-                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{trait.name || trait.label}</Text>
-                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{trait.value || trait.description}</Text>
+            {financialDna?.traits &&
+              Array.isArray(financialDna.traits) &&
+              financialDna.traits.map((trait: any, i: number) => (
+                <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
+                  <View style={[styles.insightDot, { backgroundColor: colors.accent.primary }]} />
+                  <View style={styles.insightContent}>
+                    <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                      {trait.name || trait.label}
+                    </Text>
+                    <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>
+                      {trait.value || trait.description}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
 
             {anomalies.length > 0 && (
               <View style={{ marginTop: 16 }}>
-                <Text style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}>Recent Anomalies</Text>
+                <Text
+                  style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}
+                >
+                  Recent Anomalies
+                </Text>
                 {anomalies.slice(0, 3).map((a: any, i: number) => (
                   <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
                     <View style={[styles.insightDot, { backgroundColor: colors.status.error }]} />
                     <View style={styles.insightContent}>
-                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{a.title || 'Unusual transaction'}</Text>
-                      <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{a.description || a.message}</Text>
+                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                        {a.title || 'Unusual transaction'}
+                      </Text>
+                      <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>
+                        {a.description || a.message}
+                      </Text>
                     </View>
                   </View>
                 ))}
@@ -203,13 +322,21 @@ export function DabbuAIScreen() {
 
             {milestones.length > 0 && (
               <View style={{ marginTop: 16 }}>
-                <Text style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}>Milestones</Text>
+                <Text
+                  style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}
+                >
+                  Milestones
+                </Text>
                 {milestones.slice(0, 3).map((m: any, i: number) => (
                   <View key={i} style={[styles.savingCard, { backgroundColor: colors.bg.card }]}>
                     <AntDesign name="star" size={18} color="#FBBF24" />
                     <View style={styles.savingInfo}>
-                      <Text style={[styles.savingTitle, { color: colors.text.primary }]}>{m.title || m.name || 'Milestone'}</Text>
-                      <Text style={[styles.savingDesc, { color: colors.text.secondary }]}>{m.description || m.message || ''}</Text>
+                      <Text style={[styles.savingTitle, { color: colors.text.primary }]}>
+                        {m.title || m.name || 'Milestone'}
+                      </Text>
+                      <Text style={[styles.savingDesc, { color: colors.text.secondary }]}>
+                        {m.description || m.message || ''}
+                      </Text>
                     </View>
                   </View>
                 ))}
@@ -231,9 +358,11 @@ export function DabbuAIScreen() {
           <>
             {predictions?.endOfMonthBalance && (
               <View style={[styles.predictCard, { backgroundColor: colors.card.income }]}>
-                <AntDesign name="caretup" size={20} color={colors.status.success}  />
+                <AntDesign name="caretup" size={20} color={colors.status.success} />
                 <View style={styles.predictInfo}>
-                  <Text style={[styles.predictLabel, { color: colors.text.secondary }]}>Projected Month End</Text>
+                  <Text style={[styles.predictLabel, { color: colors.text.secondary }]}>
+                    Projected Month End
+                  </Text>
                   <Text style={[styles.predictValue, { color: colors.status.success }]}>
                     {fmt(predictions.endOfMonthBalance)}
                   </Text>
@@ -243,7 +372,7 @@ export function DabbuAIScreen() {
 
             {savingsOpps.length === 0 && !loading && (
               <View style={styles.emptyState}>
-                <AntDesign name="wallet" size={32} color={colors.text.tertiary}  />
+                <AntDesign name="wallet" size={32} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No savings opportunities found yet. Keep tracking expenses!
                 </Text>
@@ -252,9 +381,11 @@ export function DabbuAIScreen() {
 
             {savingsOpps.map((opp: any, i: number) => (
               <View key={i} style={[styles.savingCard, { backgroundColor: colors.bg.card }]}>
-                <AntDesign name="tago" size={18} color={colors.status.success}  />
+                <AntDesign name="tago" size={18} color={colors.status.success} />
                 <View style={styles.savingInfo}>
-                  <Text style={[styles.savingTitle, { color: colors.text.primary }]}>{opp.title || opp.category || 'Opportunity'}</Text>
+                  <Text style={[styles.savingTitle, { color: colors.text.primary }]}>
+                    {opp.title || opp.category || 'Opportunity'}
+                  </Text>
                   <Text style={[styles.savingDesc, { color: colors.text.secondary }]}>
                     Save up to {opp.potentialSavings ? fmt(opp.potentialSavings) : 'more'} per month
                   </Text>
@@ -269,29 +400,50 @@ export function DabbuAIScreen() {
             {feedSummary && (
               <View style={[styles.healthCard, { backgroundColor: colors.card.balance }]}>
                 <View>
-                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>Today's AI Feed</Text>
+                  <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>
+                    Today's AI Feed
+                  </Text>
                   <Text style={[styles.healthScore, { color: colors.text.primary, fontSize: 16 }]}>
                     {feedSummary.title || 'Your financial snapshot'}
                   </Text>
                   {feedSummary.description && (
-                    <Text style={[styles.healthLevel, { color: colors.text.tertiary }]}>{feedSummary.description}</Text>
+                    <Text style={[styles.healthLevel, { color: colors.text.tertiary }]}>
+                      {feedSummary.description}
+                    </Text>
                   )}
                 </View>
               </View>
             )}
 
             {feedCards.map((card: any, i: number) => (
-              <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card, marginBottom: 8 }]}>
-                <View style={[styles.insightDot, {
-                  backgroundColor: card.type === 'warning' ? colors.status.error
-                    : card.type === 'success' ? colors.status.success
-                    : colors.accent.primary,
-                }]} />
+              <View
+                key={i}
+                style={[styles.insightCard, { backgroundColor: colors.bg.card, marginBottom: 8 }]}
+              >
+                <View
+                  style={[
+                    styles.insightDot,
+                    {
+                      backgroundColor:
+                        card.type === 'warning'
+                          ? colors.status.error
+                          : card.type === 'success'
+                            ? colors.status.success
+                            : colors.accent.primary,
+                    },
+                  ]}
+                />
                 <View style={styles.insightContent}>
-                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{card.title || card.name}</Text>
-                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>{card.description || card.message}</Text>
-                  {card.amount != null && (
-                    <Text style={[styles.insightTitle, { color: colors.accent.primary, marginTop: 4 }]}>
+                  <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                    {card.title || card.name}
+                  </Text>
+                  <Text style={[styles.insightDesc, { color: colors.text.secondary }]}>
+                    {card.description || card.message}
+                  </Text>
+                  {card.amount !== null && (
+                    <Text
+                      style={[styles.insightTitle, { color: colors.accent.primary, marginTop: 4 }]}
+                    >
                       {fmt(Number(card.amount))}
                     </Text>
                   )}
@@ -310,24 +462,44 @@ export function DabbuAIScreen() {
           </>
         )}
 
-        {(activeTab === 'Ask Dabbu') && (
+        {activeTab === 'Ask Dabbu' && (
           <View style={styles.chatContainer}>
             <ScrollView style={styles.chatScroll} contentContainerStyle={styles.chatScrollInner}>
               {chatMessages.length === 0 && (
                 <View style={styles.chatEmpty}>
-                  <AntDesign name="message1" size={40} color={colors.text.tertiary}  />
-                  <Text style={[styles.chatEmptyTitle, { color: colors.text.primary }]}>Ask Dabbu anything</Text>
+                  <AntDesign name="message1" size={40} color={colors.text.tertiary} />
+                  <Text style={[styles.chatEmptyTitle, { color: colors.text.primary }]}>
+                    Ask Dabbu anything
+                  </Text>
                   <Text style={[styles.chatEmptyDesc, { color: colors.text.tertiary }]}>
-                    Try: "How much did I spend on food this month?" or "Create a budget for groceries"
+                    Try: "How much did I spend on food this month?" or "Create a budget for
+                    groceries"
                   </Text>
                 </View>
               )}
               {chatMessages.map((msg, i) => (
-                <View key={i} style={[styles.chatMsg, { alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start' }]}>
-                  <View style={[styles.chatBubble, {
-                    backgroundColor: msg.role === 'user' ? colors.accent.primary : colors.bg.tertiary,
-                  }]}>
-                    <Text style={[styles.chatText, { color: msg.role === 'user' ? '#FFF' : colors.text.primary }]}>
+                <View
+                  key={i}
+                  style={[
+                    styles.chatMsg,
+                    { alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start' },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.chatBubble,
+                      {
+                        backgroundColor:
+                          msg.role === 'user' ? colors.accent.primary : colors.bg.tertiary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chatText,
+                        { color: msg.role === 'user' ? '#FFF' : colors.text.primary },
+                      ]}
+                    >
                       {msg.text}
                     </Text>
                   </View>
@@ -341,9 +513,17 @@ export function DabbuAIScreen() {
                 </View>
               )}
             </ScrollView>
-            <View style={[styles.chatInputRow, { backgroundColor: colors.bg.primary, borderTopColor: colors.border.subtle }]}>
+            <View
+              style={[
+                styles.chatInputRow,
+                { backgroundColor: colors.bg.primary, borderTopColor: colors.border.subtle },
+              ]}
+            >
               <TextInput
-                style={[styles.chatInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary }]}
+                style={[
+                  styles.chatInput,
+                  { backgroundColor: colors.bg.tertiary, color: colors.text.primary },
+                ]}
                 placeholder="Ask Dabbu..."
                 placeholderTextColor={colors.text.tertiary}
                 value={chatInput}
@@ -352,7 +532,11 @@ export function DabbuAIScreen() {
                 returnKeyType="send"
               />
               <TouchableOpacity onPress={sendMessage} disabled={chatLoading || !chatInput.trim()}>
-                <AntDesign name="arrowright" size={20} color={chatInput.trim() ? colors.accent.primary : colors.text.tertiary}  />
+                <AntDesign
+                  name="arrowright"
+                  size={20}
+                  color={chatInput.trim() ? colors.accent.primary : colors.text.tertiary}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -389,18 +573,45 @@ const styles = StyleSheet.create({
   healthLabel: { fontSize: 12, fontWeight: '500' },
   healthScore: { fontSize: 24, fontWeight: '700', marginTop: 2 },
   healthLevel: { fontSize: 13, marginTop: 1, textTransform: 'capitalize' },
-  healthRing: { width: 56, height: 56, borderRadius: 28, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
+  healthRing: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   healthRingText: { fontSize: 18, fontWeight: '800' },
-  insightCard: { flexDirection: 'row', borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.sm, gap: spacing.md },
+  insightCard: {
+    flexDirection: 'row',
+    borderRadius: borderRadius['2xl'],
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
   insightDot: { width: 4, borderRadius: 2, marginTop: 4 },
   insightContent: { flex: 1 },
   insightTitle: { fontSize: 14, fontWeight: '600' },
   insightDesc: { fontSize: 13, marginTop: 2, lineHeight: 18 },
-  predictCard: { flexDirection: 'row', borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md, gap: spacing.md, alignItems: 'center' },
+  predictCard: {
+    flexDirection: 'row',
+    borderRadius: borderRadius['2xl'],
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    gap: spacing.md,
+    alignItems: 'center',
+  },
   predictInfo: { flex: 1 },
   predictLabel: { fontSize: 12 },
   predictValue: { fontSize: 20, fontWeight: '700', marginTop: 1 },
-  savingCard: { flexDirection: 'row', borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.sm, gap: spacing.md, alignItems: 'center' },
+  savingCard: {
+    flexDirection: 'row',
+    borderRadius: borderRadius['2xl'],
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+    alignItems: 'center',
+  },
   savingInfo: { flex: 1 },
   savingTitle: { fontSize: 14, fontWeight: '600' },
   savingDesc: { fontSize: 12, marginTop: 1 },
@@ -415,6 +626,18 @@ const styles = StyleSheet.create({
   chatMsg: { marginBottom: spacing.sm, maxWidth: '80%' },
   chatBubble: { borderRadius: borderRadius['2xl'], padding: spacing.md },
   chatText: { fontSize: 14, lineHeight: 20 },
-  chatInputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  chatInput: { flex: 1, borderRadius: borderRadius['2xl'], paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, fontSize: 14 },
+  chatInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  chatInput: {
+    flex: 1,
+    borderRadius: borderRadius['2xl'],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    fontSize: 14,
+  },
 });
