@@ -97,6 +97,34 @@ const TAB_HOME_SCREENS: Record<string, string> = {
   SpacesTab: 'SpacesDashboard',
 };
 
+const SCREEN_TAB_MAP: Record<string, string> = {
+  InvestmentPlanner: 'LifeHubTab',
+  HousePlanner: 'LifeHubTab',
+  BabyPlanner: 'LifeHubTab',
+  RetirementPlanner: 'LifeHubTab',
+  CarPlanner: 'LifeHubTab',
+  EducationPlanner: 'LifeHubTab',
+  VacationPlanner: 'LifeHubTab',
+  WeddingPlanner: 'LifeHubTab',
+  LifeHubHome: 'LifeHubTab',
+  GoalsList: 'HomeTab',
+  CoupleBudgets: 'HomeTab',
+  CoupleGoals: 'HomeTab',
+  NetWorth: 'HomeTab',
+  CreateFamilyWorkspace: 'HomeTab',
+  LifeDashboard: 'HomeTab',
+  AddExpense: 'WalletTab',
+  BillsList: 'WalletTab',
+  Analytics: 'WalletTab',
+  WalletHome: 'WalletTab',
+  SpacesDashboard: 'SpacesTab',
+  Settlement: 'SpacesTab',
+  CreateSharedGroup: 'SpacesTab',
+  FamilyMembersHome: 'FamilyMembersTab',
+  PartnerHome: 'PartnerTab',
+  SettingsMain: 'ProfileTab',
+};
+
 export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
@@ -172,17 +200,24 @@ export function MainTabNavigator() {
       lensQuickActions.some((qa: any) => qa.screen)
     ) {
       return lensQuickActions.map((qa: any) => {
-        const tabConfig = ALL_TAB_CONFIGS.find(
-          (t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''),
-        );
-        const targetTab = tabConfig?.name || 'WalletTab';
+        let targetTab = ALL_TAB_CONFIGS.find((t) => t.name === qa.screen)?.name;
+        if (!targetTab) {
+          const tabConfig = ALL_TAB_CONFIGS.find(
+            (t) => t.lensKey === qa.screen?.toLowerCase()?.replace('tab', ''),
+          );
+          targetTab = tabConfig?.name;
+        }
+        if (!targetTab) {
+          targetTab = SCREEN_TAB_MAP[qa.screen];
+        }
+        const finalTab = targetTab || 'LifeHubTab';
+        const homeScreen = TAB_HOME_SCREENS[finalTab] || 'LifeHubHome';
         return {
           label: qa.label,
           icon: qa.icon || 'pluscircle',
           color: qa.color || colors.accent?.primary || colors.brand?.primary || '#7C3AED',
           onPress: () => {
-            const homeScreen = TAB_HOME_SCREENS[targetTab] || 'WalletHome';
-            navigation.navigate(targetTab, { screen: qa.screen || homeScreen });
+            navigation.navigate(finalTab, { screen: qa.screen || homeScreen });
           },
         };
       });
