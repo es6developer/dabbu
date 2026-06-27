@@ -25,6 +25,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
+import { onDataRefresh } from '../../services/dataRefresh';
 import { HomeHeader } from '../../components/dashboard/HomeHeader';
 import { NetWorthCard } from '../../components/dashboard/NetWorthCard';
 import { AICoachCarousel } from '../../components/dashboard/AICoachCarousel';
@@ -263,6 +264,7 @@ export function HomeScreen() {
     return tips[Math.floor(Math.random() * tips.length)];
   });
   const abortRef = useRef<AbortController | null>(null);
+  const loadingRef = useRef(false);
   const hasLoadedOnce = useRef(false);
 
   useEffect(() => {
@@ -631,18 +633,16 @@ export function HomeScreen() {
       } catch {
         /* ignore */
       } finally {
-        if (!ctrl.signal.aborted) {
-          if (isFirstLoad) {
-            setLoadingProgress(100);
-            setTimeout(() => {
-              if (!ctrl.signal.aborted) {
-                setLoading(false);
-                setRefreshing(false);
-              }
-            }, 400);
-          } else {
+        if (isFirstLoad) {
+          loadingRef.current = false;
+          setLoadingProgress(100);
+          setTimeout(() => {
+            setLoading(false);
             setRefreshing(false);
-          }
+          }, 400);
+        } else {
+          loadingRef.current = false;
+          setRefreshing(false);
         }
       }
     },
@@ -655,6 +655,14 @@ export function HomeScreen() {
       fetchLifeEvents();
     }, [loadData, fetchLifeEvents]),
   );
+
+  useEffect(() => {
+    const unsub = onDataRefresh(() => {
+      loadData();
+      fetchLifeEvents();
+    });
+    return unsub;
+  }, [loadData, fetchLifeEvents]);
 
   const INCOME_KEYWORDS = new Set([
     'salary',

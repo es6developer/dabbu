@@ -3353,7 +3353,7 @@ ${JSON.stringify(context, null, 2)}`;
           ...(await this.lensWhere(userId)),
         },
         orderBy: { date: 'desc' },
-        take: 20,
+        take: 1000,
         include: { category: { select: { name: true } } },
       }),
       this.prisma.transaction.groupBy({

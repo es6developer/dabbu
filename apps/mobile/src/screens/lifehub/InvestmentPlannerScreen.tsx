@@ -28,6 +28,7 @@ export function InvestmentPlannerScreen({ navigation }: any) {
     totalInvestment: number;
     estimatedReturns: number;
     totalValue: number;
+    cagr: number;
   } | null>(null);
 
   const calculate = () => {
@@ -41,7 +42,8 @@ export function InvestmentPlannerScreen({ navigation }: any) {
     const totalInvestment = annualInvestment * n;
     const totalValue = annualInvestment * ((Math.pow(1 + r, n) - 1) / r);
     const estimatedReturns = totalValue - totalInvestment;
-    setResult({ totalInvestment, estimatedReturns, totalValue });
+    const cagr = n > 0 ? (Math.pow(totalValue / totalInvestment, 1 / n) - 1) * 100 : 0;
+    setResult({ totalInvestment, estimatedReturns, totalValue, cagr });
   };
 
   return (
@@ -224,7 +226,7 @@ export function InvestmentPlannerScreen({ navigation }: any) {
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>CAGR</Text>
               <Text style={{ fontSize: 22, fontWeight: '800', color: colors.accent.primary }}>
-                {(ANNUAL_RETURNS[riskLevel] * 100).toFixed(1)}%
+                {result.cagr ? result.cagr.toFixed(1) + '%' : '-'}
               </Text>
             </View>
             <View>
@@ -233,22 +235,23 @@ export function InvestmentPlannerScreen({ navigation }: any) {
                 {fmt(result.totalValue)}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() =>
-                navigation?.navigate('AddExpense', { type: 'income', category: 'Investments' })
-              }
-              style={{
-                backgroundColor: colors.accent.primary,
-                borderRadius: 14,
-                paddingVertical: 14,
-                alignItems: 'center',
-                marginTop: 20,
-              }}
-            >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Add Investment</Text>
-            </TouchableOpacity>
           </View>
         )}
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation?.navigate('AddExpense', { type: 'income', category: 'Investments' })
+          }
+          style={{
+            backgroundColor: colors.accent.primary,
+            borderRadius: 14,
+            paddingVertical: 14,
+            alignItems: 'center',
+            marginTop: 20,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Add Investment</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );

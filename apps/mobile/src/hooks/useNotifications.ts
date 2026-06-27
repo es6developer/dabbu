@@ -147,6 +147,7 @@ export function useNotifications() {
           registerForPushNotifications(accessToken).catch(() => {});
         }
         fetchUnreadCount();
+        triggerDataRefresh('app_foreground');
       }
       appState.current = nextAppState;
     });

@@ -98,10 +98,14 @@ export function CreateSharedGroupScreen() {
           });
         } catch (addErr: any) {
           setSaving(false);
-          setError(
-            'Space created, but could not add partner: ' +
-              (addErr.message || 'Phone number may be invalid or the user may not be registered'),
-          );
+          if (addErr?.name === 'AbortError' || addErr?.message?.includes('aborted')) {
+            setError('Space created, but adding partner timed out. Try adding them later.');
+          } else {
+            setError(
+              'Space created, but could not add partner: ' +
+                (addErr.message || 'Phone number may be invalid or the user may not be registered'),
+            );
+          }
           return;
         }
       }
@@ -111,7 +115,11 @@ export function CreateSharedGroupScreen() {
         navigation.goBack();
       }
     } catch (e: any) {
-      setError(e?.message || 'Failed to create group');
+      if (e?.name === 'AbortError' || e?.message?.includes('aborted')) {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(e?.message || 'Failed to create group');
+      }
     } finally {
       setSaving(false);
     }

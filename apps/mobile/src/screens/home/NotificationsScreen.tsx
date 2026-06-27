@@ -153,7 +153,7 @@ export function NotificationsScreen() {
           <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
-        <View style={{ width: 90, alignItems: 'flex-end' }}>
+        <View style={{ minWidth: 90, alignItems: 'flex-end' }}>
           {unreadCount > 0 && (
             <TouchableOpacity onPress={handleMarkAllRead}>
               <Text style={[styles.markAllBtn, { color: colors.accent.primary }]}>

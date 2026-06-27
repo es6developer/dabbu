@@ -26,15 +26,6 @@ export function PremiumSignupScreen() {
   const insets = useSafeAreaInsets();
   const { register, googleLogin, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      if (navigation.getParent()) {
-        navigation.getParent()?.reset({ index: 0, routes: [{ name: 'MainTabNavigator' }] });
-      } else {
-        navigation.reset({ index: 0, routes: [{ name: 'MainTabNavigator' }] });
-      }
-    }
-  }, [isAuthenticated]);
   const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
 

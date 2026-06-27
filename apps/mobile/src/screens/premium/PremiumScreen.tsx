@@ -363,7 +363,7 @@ export function PremiumScreen() {
               <AntDesign name="filetext1" size={18} color="#FFFFFF" />
               <Text style={styles.billingBtnText}> Billing History</Text>
             </TouchableOpacity>
-            {!currentSub?.cancelAtPeriodEnd && (
+            {!currentSub?.cancelAtPeriodEnd && currentSub?.plan?.code !== 'FREE' && (
               <TouchableOpacity
                 style={styles.cancelBtn}
                 onPress={() => navigation.navigate('Cancellation')}

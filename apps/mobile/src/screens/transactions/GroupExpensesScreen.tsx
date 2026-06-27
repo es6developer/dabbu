@@ -110,7 +110,11 @@ export function GroupExpensesScreen() {
         const mems = Array.isArray(gData?.members) ? gData.members : [];
         setMembers(mems);
       } catch (e: any) {
-        setError(e.message || 'Unable to load');
+        if (e?.name === 'AbortError' || e?.message?.includes('aborted')) {
+          setError('Request timed out. Please check your connection and try again.');
+        } else {
+          setError(e.message || 'Unable to load');
+        }
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -162,7 +166,11 @@ export function GroupExpensesScreen() {
         showToast('Export queued. Check your downloads.');
       }
     } catch (e: any) {
-      alertService.alert('Export failed', e.message || 'Try again');
+      const msg =
+        e?.name === 'AbortError' || e?.message?.includes('aborted')
+          ? 'Request timed out. Please check your connection and try again.'
+          : e.message || 'Try again';
+      alertService.alert('Export failed', msg);
     } finally {
       setExporting(false);
     }
@@ -182,7 +190,11 @@ export function GroupExpensesScreen() {
       setSettingsOpen(false);
       showToast('Group saved');
     } catch (e: any) {
-      alertService.alert('Error', e.message || 'Try again');
+      const msg =
+        e?.name === 'AbortError' || e?.message?.includes('aborted')
+          ? 'Request timed out. Please check your connection and try again.'
+          : e.message || 'Try again';
+      alertService.alert('Error', msg);
     } finally {
       setSaving(false);
     }
@@ -208,7 +220,12 @@ export function GroupExpensesScreen() {
               await loadData(true);
               showToast('Member removed');
             } catch (e: any) {
-              alertService.alert('Error', e.message || 'Try again');
+              alertService.alert(
+                'Error',
+                e?.name === 'AbortError' || e?.message?.includes('aborted')
+                  ? 'Request timed out. Please check your connection and try again.'
+                  : e.message || 'Try again',
+              );
             }
           },
         },
@@ -223,7 +240,12 @@ export function GroupExpensesScreen() {
               await loadData(true);
               showToast('Member removed');
             } catch (e: any) {
-              alertService.alert('Error', e.message || 'Try again');
+              alertService.alert(
+                'Error',
+                e?.name === 'AbortError' || e?.message?.includes('aborted')
+                  ? 'Request timed out. Please check your connection and try again.'
+                  : e.message || 'Try again',
+              );
             }
           },
         },
@@ -246,7 +268,12 @@ export function GroupExpensesScreen() {
             navigation.goBack();
             showToast('Left the group');
           } catch (e: any) {
-            alertService.alert('Error', e.message || 'Try again');
+            alertService.alert(
+              'Error',
+              e?.name === 'AbortError' || e?.message?.includes('aborted')
+                ? 'Request timed out. Please check your connection and try again.'
+                : e.message || 'Try again',
+            );
           }
         },
       },
@@ -261,7 +288,12 @@ export function GroupExpensesScreen() {
             navigation.goBack();
             showToast('Left the group');
           } catch (e: any) {
-            alertService.alert('Error', e.message || 'Try again');
+            alertService.alert(
+              'Error',
+              e?.name === 'AbortError' || e?.message?.includes('aborted')
+                ? 'Request timed out. Please check your connection and try again.'
+                : e.message || 'Try again',
+            );
           }
         },
       },

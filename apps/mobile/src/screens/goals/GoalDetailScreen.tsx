@@ -339,7 +339,7 @@ export function GoalDetailScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ GoalDetail: { goalId: string } }, 'GoalDetail'>>();
-  const { goalId } = route.params;
+  const { goalId } = route.params ?? {};
 
   type GoalConfig = {
     icon: string;
@@ -408,8 +408,12 @@ export function GoalDetailScreen() {
   }, [goalId, accessToken]);
 
   useEffect(() => {
+    if (!goalId) {
+      navigation.goBack();
+      return;
+    }
     loadGoal();
-  }, [loadGoal]);
+  }, [loadGoal, goalId, navigation]);
 
   useEffect(() => {
     Animated.parallel([
@@ -502,7 +506,25 @@ export function GoalDetailScreen() {
     return <GoalDetailSkeleton />;
   }
   if (!goal) {
-    return null;
+    return (
+      <BaseScreen noPadding>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={[typography.h2, { color: colors.text.secondary }]}>Goal not found</Text>
+          <TouchableOpacity
+            style={{
+              marginTop: 16,
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+              backgroundColor: colors.accent.primary,
+              borderRadius: 12,
+            }}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={[typography.button, { color: '#FFF' }]}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </BaseScreen>
+    );
   }
 
   return (

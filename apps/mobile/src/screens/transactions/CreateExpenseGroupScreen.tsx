@@ -172,7 +172,11 @@ export function CreateExpenseGroupScreen() {
       showToast('Group created successfully');
       navigation.goBack();
     } catch (e: any) {
-      setError(e.message || 'Failed to create group');
+      if (e?.name === 'AbortError' || e?.message?.includes('aborted')) {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(e.message || 'Failed to create group');
+      }
     } finally {
       setSaving(false);
     }

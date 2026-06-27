@@ -226,7 +226,22 @@ export function FavoriteContactsScreen() {
                     </View>
                   </TouchableOpacity>
                 ) : (
-                  <View style={styles.row}>
+                  <TouchableOpacity
+                    style={styles.row}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      navigation.navigate('WalletTab', {
+                        screen: 'AddExpense',
+                        params: {
+                          contact: {
+                            name: user.firstName || user.email,
+                            userId: user.id,
+                            phone: user.phone,
+                          },
+                        },
+                      })
+                    }
+                  >
                     <Avatar
                       uri={user.avatarUrl}
                       name={`${user.firstName || ''} ${user.lastName || ''}`.trim()}
@@ -260,7 +275,7 @@ export function FavoriteContactsScreen() {
                         <AntDesign name="staro" size={16} color={colors.accent.primary} />
                       )}
                     </TouchableOpacity>
-                  </View>
+                  </TouchableOpacity>
                 )}
                 {i < searchResults.length - 1 && (
                   <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />

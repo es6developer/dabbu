@@ -96,6 +96,7 @@ export function AddExpenseScreen() {
   const expenseGroupId = route.params?.expenseGroupId;
   const returnTo = route.params?.returnTo as string | undefined;
   const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
   const keyRef = useRef(0);
   const [type, setType] = useState<'expense' | 'income'>(initialType);
 
@@ -104,6 +105,10 @@ export function AddExpenseScreen() {
     setAmount('');
     setError('');
     setType(initialType);
+    setCategory(initialType === 'expense' ? 'Food & Dining' : 'Salary');
+    setDescription('');
+    setDate(new Date());
+    setDateStr(fmtDate(new Date()));
   }, [route.params?.type]);
   const [category, setCategory] = useState(initialType === 'expense' ? 'Food & Dining' : 'Salary');
   const [description, setDescription] = useState('');
@@ -113,7 +118,6 @@ export function AddExpenseScreen() {
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState('monthly');
-  const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const categories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -135,6 +139,11 @@ export function AddExpenseScreen() {
   const handleSave = useCallback(async () => {
     if (!amount || parseFloat(amount) <= 0) {
       setError('Please enter an amount');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+      return;
+    }
+    if (date > new Date()) {
+      setError('Expense date cannot be in the future');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
       return;
     }

@@ -82,7 +82,7 @@ const SECTIONS: SectionConfig[] = [
     title: 'Support',
     items: [
       { label: 'Help Center', icon: 'questioncircleo', screen: 'HelpCenter' },
-      { label: 'Contact Us', icon: 'message1', screen: 'Support' },
+      { label: 'Contact Us', icon: 'message1', screen: 'ContactUs' },
       { label: 'Privacy Policy', icon: 'filetext1', screen: 'Privacy' },
     ],
   },

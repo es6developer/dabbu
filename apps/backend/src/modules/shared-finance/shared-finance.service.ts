@@ -1282,6 +1282,9 @@ export class SharedFinanceService {
   }
 
   async updateExpense(expenseId: string, userId: string, dto: UpdateExpenseDto) {
+    if (dto.date && new Date(dto.date) > new Date()) {
+      throw new BadRequestException('Expense date cannot be in the future');
+    }
     const expense = await this.prisma.sharedExpense.findUnique({
       where: { id: expenseId },
       select: { id: true, paidBy: true, groupId: true },

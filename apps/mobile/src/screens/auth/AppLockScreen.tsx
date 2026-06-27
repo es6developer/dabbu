@@ -24,12 +24,19 @@ export function AppLockScreen({ onUnlock }: Props) {
   const [error, setError] = useState('');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const pinLength = 4;
 
   useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+    setAuthReady(true);
     checkPinExists();
-  }, []);
+    // Note: LocalAuthentication on iOS falls back to the device passcode
+    // by default — this is expected system behavior, not a bug.
+  }, [user?.id]);
 
   async function checkPinExists() {
     const { appPin: appPinKey } = getLockKeys(user?.id);
@@ -115,6 +122,19 @@ export function AppLockScreen({ onUnlock }: Props) {
   }
 
   const dotProgress = pin.length / pinLength;
+
+  if (!authReady) {
+    return (
+      <View
+        style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}
+      >
+        <LinearGradient
+          colors={['#131315', '#0A0A0F', '#070708']}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+    );
+  }
 
   if (needsSetup) {
     return <PinSetupScreen onComplete={onUnlock} />;

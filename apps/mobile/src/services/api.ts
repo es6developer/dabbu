@@ -398,7 +398,15 @@ function setCached(key: string, data: any, ttl: number): void {
 }
 
 const MUTATION_AFFECTED_PREFIXES: Record<string, string[]> = {
-  '/transactions': ['/transactions', '/accounts', '/dashboard', '/analytics', '/wealth', '/goals', '/budgets'],
+  '/transactions': [
+    '/transactions',
+    '/accounts',
+    '/dashboard',
+    '/analytics',
+    '/wealth',
+    '/goals',
+    '/budgets',
+  ],
   '/expense-groups': ['/expense-groups', '/shared-finance', '/dashboard'],
   '/goals': ['/goals', '/dashboard', '/wealth'],
   '/budgets': ['/budgets', '/dashboard', '/analytics'],
@@ -696,6 +704,9 @@ async function executeRequest<T>(
       if (stale) {
         return stale;
       }
+    }
+    if (err?.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your connection and try again.');
     }
     throw err;
   }
