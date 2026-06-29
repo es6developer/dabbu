@@ -476,7 +476,7 @@ export function MainTabNavigator() {
                     ? ({ focused, color }) => (
                         <AntDesign
                           name={(focused ? activeIconName : iconName) as any}
-                          size={22}
+size={20}
                           color={color}
                         />
                       )
@@ -576,7 +576,7 @@ function IOSTabBar({
     const labelColor = isFocused ? '#FFFFFF' : colors.text.tertiary;
 
     const icon = options.tabBarIcon
-      ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 20 })
+      ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 18 })
       : null;
 
     return (
@@ -601,14 +601,12 @@ function IOSTabBar({
           ]}
         >
           {icon}
-          {isFocused && (
-            <Text
-              style={[tabStyles.pillLabel, { color: labelColor }]}
-              numberOfLines={1}
-            >
-              {options.tabBarLabel || route.name}
-            </Text>
-          )}
+          <Text
+            style={[tabStyles.pillLabel, { color: labelColor }]}
+            numberOfLines={1}
+          >
+            {options.tabBarLabel || route.name}
+          </Text>
         </Animated.View>
       </TouchableOpacity>
     );
@@ -698,13 +696,15 @@ function IOSTabBar({
 const tabStyles = StyleSheet.create({
   container: {
     overflow: 'hidden',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   pillsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    gap: 4,
+    paddingHorizontal: 12,
+    gap: 6,
   },
   tabOuter: {
     alignItems: 'center',
@@ -714,24 +714,24 @@ const tabStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    height: 38,
-    borderRadius: 19,
-    gap: 4,
+    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 22,
+    gap: 6,
   },
   pillLabel: {
     fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   fabOuter: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   fabPill: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

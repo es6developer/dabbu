@@ -16,19 +16,19 @@ export const spacing = {
   '8xl': 80,
 } as const;
 
-// ─── CORNER RADIUS ──────────────────────────────────────────
+// ─── CORNER RADIUS (One UI 8.5 — larger, more rounded) ────
 export const borderRadius = {
-  sm: 6,
-  md: 8,
-  lg: 10,
-  xl: 12,
-  '2xl': 16,
-  '3xl': 20,
-  '4xl': 24,
-  '5xl': 28,
-  '6xl': 32,
-  '7xl': 36,
-  '8xl': 40,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 22,
+  '2xl': 26,
+  '3xl': 28,
+  '4xl': 32,
+  '5xl': 36,
+  '6xl': 40,
+  '7xl': 44,
+  '8xl': 48,
   full: 9999,
 } as const;
 
@@ -39,43 +39,43 @@ export const buttonHeight = {
   lg: 56,
 } as const;
 
-// ─── PREMIUM SHADOWS ────────────────────────────────────────
+// ─── SHADOWS (One UI 8.5 — softer, more elevated) ───────
 export const shadows = {
   none: {} as ViewStyle,
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.02,
-    shadowRadius: 1,
-    elevation: 0.5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   } as ViewStyle,
   md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  } as ViewStyle,
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  } as ViewStyle,
-  premium: {
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  } as ViewStyle,
-  glass: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  } as ViewStyle,
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 5,
+  } as ViewStyle,
+  premium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+  } as ViewStyle,
+  glass: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   } as ViewStyle,
 } as const;
 
@@ -145,29 +145,29 @@ type Colors = {
   status: { success: string; error: string; successLight: string; errorLight: string };
 };
 
-/** Premium card with depth */
+/** One UI 8.5 card with depth */
 export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'elevated' | 'highlight' | 'premium' | 'glass' = 'default'): ViewStyle {
   const presets: Record<string, ViewStyle> = {
     default: {
-      borderRadius: borderRadius['3xl'],
+      borderRadius: borderRadius['5xl'],
       padding: spacing.xl,
       backgroundColor: colors.bg.card,
       ...shadows.md,
     },
     compact: {
-      borderRadius: borderRadius['3xl'],
+      borderRadius: borderRadius['5xl'],
       padding: spacing.lg,
       backgroundColor: colors.bg.card,
-      ...shadows.md,
+      ...shadows.sm,
     },
     elevated: {
-      borderRadius: borderRadius['4xl'],
+      borderRadius: borderRadius['6xl'],
       padding: spacing['2xl'],
       backgroundColor: colors.bg.card,
       ...shadows.lg,
     },
     highlight: {
-      borderRadius: borderRadius['4xl'],
+      borderRadius: borderRadius['6xl'],
       padding: spacing.xl,
       backgroundColor: colors.bg.card,
       borderLeftWidth: 4,
@@ -175,7 +175,7 @@ export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'eleva
       ...shadows.md,
     },
     premium: {
-      borderRadius: borderRadius['4xl'],
+      borderRadius: borderRadius['6xl'],
       padding: spacing['2xl'],
       backgroundColor: colors.bg.card,
       ...shadows.premium,
@@ -183,7 +183,7 @@ export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'eleva
       borderColor: colors.accent.primary + '20',
     },
     glass: {
-      borderRadius: borderRadius['4xl'],
+      borderRadius: borderRadius['6xl'],
       padding: spacing['2xl'],
       backgroundColor: colors.bg.glass,
       ...shadows.glass,
