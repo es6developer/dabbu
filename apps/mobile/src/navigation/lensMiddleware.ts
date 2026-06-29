@@ -75,6 +75,8 @@ const LENS_REDIRECT_MAP: Record<string, string> = {
   CoupleGoals: 'HomeTab',
   CoupleSavings: 'HomeTab',
   CoupleBudgets: 'HomeTab',
+  CreateBudget: 'HomeTab',
+  BudgetsList: 'HomeTab',
   SpacesTab: 'HomeTab',
   RoommateGroups: 'HomeTab',
   TripGroups: 'HomeTab',
