@@ -187,7 +187,7 @@ export function DabbuAIScreen() {
             {healthScore && (
               <TouchableOpacity
                 style={[styles.healthCard, { backgroundColor: colors.card.balance }]}
-                onPress={() => navigation.navigate('Dashboard')}
+                onPress={() => navigation.navigate('LifeDashboard')}
               >
                 <View>
                   <Text style={[styles.healthLabel, { color: colors.text.secondary }]}>

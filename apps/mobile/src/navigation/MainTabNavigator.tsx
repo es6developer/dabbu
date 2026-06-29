@@ -91,7 +91,7 @@ const ALL_TAB_CONFIGS = [
 const FALLBACK_TABS = ['HomeTab', 'WalletTab', 'LifeHubTab'];
 
 const TAB_HOME_SCREENS: Record<string, string> = {
-  HomeTab: 'Personal',
+  HomeTab: 'LifeDashboard',
   WalletTab: 'WalletHome',
   LifeHubTab: 'LifeHubHome',
   SpacesTab: 'SpacesDashboard',
@@ -281,7 +281,7 @@ export function MainTabNavigator() {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateBudget' }),
       },
       create_couple_goal: {
         label: 'Couple Goal',
@@ -339,7 +339,7 @@ export function MainTabNavigator() {
         label: 'Create Budget',
         icon: 'wallet',
         color: '#3B82F6',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'CreateBudget' }),
       },
       pay_bill: {
         label: 'Pay Bill',
@@ -550,7 +550,7 @@ function IOSTabBar({
     }
 
     const onPress = () => {
-      springTap(route.name, 0.92);
+      springTap(route.name, 0.9);
       setTimeout(() => springTap(route.name, 1), 100);
       const event = navigation.emit({
         type: 'tabPress',
@@ -570,44 +570,52 @@ function IOSTabBar({
       }
     };
 
-    const focusedColor = colors.accent.primary;
-    const unfocusedColor = colors.text.tertiary;
+    const accentColor = colors.accent.primary;
+    const iconColor = isFocused ? '#FFFFFF' : colors.text.tertiary;
+    const pillBg = isFocused ? accentColor : 'transparent';
+    const labelColor = isFocused ? '#FFFFFF' : colors.text.tertiary;
+
     const icon = options.tabBarIcon
-      ? options.tabBarIcon({
-          focused: isFocused,
-          color: isFocused ? focusedColor : unfocusedColor,
-          size: 22,
-        })
+      ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 20 })
       : null;
 
     return (
       <TouchableOpacity
         key={route.key}
         activeOpacity={0.7}
-        style={tabStyles.tabItem}
+        style={tabStyles.tabOuter}
         onPress={onPress}
       >
-        <Animated.View style={{ transform: [{ scale: scaleAnims[route.name] }] }}>
-          {icon}
-        </Animated.View>
-        <Text
+        <Animated.View
           style={[
-            tabStyles.label,
+            tabStyles.tabPill,
             {
-              color: isFocused ? focusedColor : unfocusedColor,
-              fontWeight: isFocused ? '700' : '500',
+              backgroundColor: pillBg,
+              transform: [{ scale: scaleAnims[route.name] }],
+              shadowColor: isFocused ? accentColor : 'transparent',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isFocused ? 0.35 : 0,
+              shadowRadius: 6,
+              elevation: isFocused ? 3 : 0,
             },
           ]}
         >
-          {options.tabBarLabel || route.name}
-        </Text>
+          {icon}
+          {isFocused && (
+            <Text
+              style={[tabStyles.pillLabel, { color: labelColor }]}
+              numberOfLines={1}
+            >
+              {options.tabBarLabel || route.name}
+            </Text>
+          )}
+        </Animated.View>
       </TouchableOpacity>
     );
   }
 
   const visibleRouteNames = (visibleTabs || []).map((t: any) => t.name);
   const visibleRoutes = state.routes.filter((r: any) => visibleRouteNames.includes(r.name));
-  const midIndex = Math.floor(visibleRoutes.length / 2);
 
   const fabRotation = fabRotate.interpolate({
     inputRange: [0, 1],
@@ -624,100 +632,106 @@ function IOSTabBar({
       style={[
         tabStyles.container,
         {
-          paddingBottom: insets.bottom + 4,
-          backgroundColor: isDark ? 'rgba(12,12,14,0.95)' : 'rgba(245,245,248,0.95)',
+          paddingBottom: insets.bottom + 8,
+          paddingTop: 6,
+          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(240,240,245,0.85)',
           transform: [{ translateY: tabBarTranslate }],
         },
       ]}
     >
-      <BlurView intensity={90} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-      <View
-        style={[
-          tabStyles.outerWrapper,
-          {
-            backgroundColor: isDark ? 'rgba(22,22,26,0.9)' : 'rgba(255,255,255,0.9)',
-            borderColor: isDark ? colors.accent?.primary + '33' : colors.accent?.primary + '1F',
-            shadowColor: colors.accent?.primary || '#7C3AED',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: isDark ? 0.2 : 0.08,
-            shadowRadius: 12,
-            elevation: 4,
-          },
-        ]}
-      >
-        <View style={tabStyles.innerRow}>
-          <View style={tabStyles.sideGroup}>
-            {visibleRoutes.slice(0, midIndex).map((route: any) => renderTab(route))}
-          </View>
-          {showCenterButton && (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              style={tabStyles.centerFab}
-              onPressIn={() => {
-                Animated.spring(fabScale, { toValue: 0.88, ...PRESS_SPRING }).start();
-                Animated.spring(fabRotate, {
-                  toValue: 1,
-                  tension: 140,
-                  friction: 14,
-                  useNativeDriver: true,
-                }).start();
-              }}
-              onPressOut={() => {
-                Animated.spring(fabScale, { toValue: 1, ...PRESS_SPRING }).start();
-                setTimeout(
-                  () =>
-                    Animated.spring(fabRotate, {
-                      toValue: 0,
-                      tension: 140,
-                      friction: 14,
-                      useNativeDriver: true,
-                    }).start(),
-                  200,
-                );
-              }}
-              onPress={() => onCenterPress()}
-              onLongPress={onCenterLongPress}
-              delayLongPress={400}
+      <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+      <View style={tabStyles.pillsRow}>
+        {visibleRoutes.map((route: any) => renderTab(route))}
+        {showCenterButton && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={tabStyles.fabOuter}
+            onPressIn={() => {
+              Animated.spring(fabScale, { toValue: 0.85, ...PRESS_SPRING }).start();
+              Animated.spring(fabRotate, {
+                toValue: 1,
+                tension: 140,
+                friction: 14,
+                useNativeDriver: true,
+              }).start();
+            }}
+            onPressOut={() => {
+              Animated.spring(fabScale, { toValue: 1, ...PRESS_SPRING }).start();
+              setTimeout(
+                () =>
+                  Animated.spring(fabRotate, {
+                    toValue: 0,
+                    tension: 140,
+                    friction: 14,
+                    useNativeDriver: true,
+                  }).start(),
+                200,
+              );
+            }}
+            onPress={() => onCenterPress()}
+            onLongPress={onCenterLongPress}
+            delayLongPress={400}
+          >
+            <Animated.View
+              style={[
+                tabStyles.fabPill,
+                {
+                  backgroundColor: colors.accent.primary,
+                  transform: [{ scale: fabScale }, { rotate: fabRotation }],
+                  shadowColor: colors.accent.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  elevation: 6,
+                },
+              ]}
             >
-              <Animated.View
-                style={[
-                  tabStyles.centerFabInner,
-                  {
-                    backgroundColor: colors.accent.primary,
-                    transform: [{ scale: fabScale }, { rotate: fabRotation }],
-                    shadowColor: colors.accent.primary,
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 12,
-                    elevation: 6,
-                  },
-                ]}
-              >
-                <AntDesign name="plus" size={26} color="#FFF" />
-              </Animated.View>
-            </TouchableOpacity>
-          )}
-          <View style={tabStyles.sideGroup}>
-            {visibleRoutes.slice(midIndex).map((route: any) => renderTab(route))}
-          </View>
-        </View>
+              <AntDesign name="plus" size={22} color="#FFF" />
+            </Animated.View>
+          </TouchableOpacity>
+        )}
       </View>
     </Animated.View>
   );
 }
 
 const tabStyles = StyleSheet.create({
-  container: { overflow: 'hidden' },
-  outerWrapper: { marginHorizontal: 12, borderRadius: 30, borderWidth: 1, minHeight: 60 },
-  innerRow: { flexDirection: 'row', alignItems: 'center', minHeight: 60 },
-  sideGroup: { flex: 1, flexDirection: 'row' },
-  tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
-  label: { fontSize: 10, letterSpacing: 0.2, marginTop: 2 },
-  centerFab: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
-  centerFabInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  container: {
+    overflow: 'hidden',
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    gap: 4,
+  },
+  tabOuter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    height: 38,
+    borderRadius: 19,
+    gap: 4,
+  },
+  pillLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  fabOuter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabPill: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
   },

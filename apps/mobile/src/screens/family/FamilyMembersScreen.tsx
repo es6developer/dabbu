@@ -28,6 +28,7 @@ import {
 } from '../../services/contacts';
 
 import { alertService } from '../../components/ui';
+import { useToast } from '../../store/ToastContext';
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 16;
 const CARD_HORIZONTAL = 20;
@@ -199,9 +200,10 @@ function ExpandIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
-function MemberCard({ member, index }: { member: FamilyMember; index: number }) {
+function MemberCard({ member, index, familyId, onMemberUpdate }: { member: FamilyMember; index: number; familyId: string; onMemberUpdate: () => void }) {
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const animHeight = useRef(new Animated.Value(INITIAL_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -343,7 +345,21 @@ function MemberCard({ member, index }: { member: FamilyMember; index: number }) 
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.accent.primary + '15' }]}
                   onPress={() => {
-                    /* TODO: Edit member role */
+                    const roleOptions: { text: string; onPress: () => void }[] = [
+                      { text: 'Admin', onPress: () => updateRole('admin') },
+                      { text: 'Contributor', onPress: () => updateRole('member') },
+                      { text: 'Viewer', onPress: () => updateRole('viewer') },
+                      { text: 'Cancel', onPress: () => {} },
+                    ];
+                    alertService.alert('Change Role', `Select a new role for ${member.profile.firstName}`, roleOptions);
+                    async function updateRole(role: string) {
+                      try {
+                        await api.patch(`/family/${familyId}/members/role`, { memberId: member.id, role });
+                        onMemberUpdate();
+                      } catch (err: any) {
+                        alertService.alert('Error', err?.message || 'Failed to update role');
+                      }
+                    }
                   }}
                 >
                   <AntDesign name="edit" size={14} color={colors.accent.primary} />
@@ -352,11 +368,14 @@ function MemberCard({ member, index }: { member: FamilyMember; index: number }) 
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.status.error + '15' }]}
                   onPress={() => {
-                    /* TODO: Confirm remove */
+                    alertService.alert('Remove Member', `Are you sure you want to remove ${member.profile.firstName}?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Remove', style: 'destructive', onPress: async () => { setRemoving(true); try { await api.delete(`/family/${familyId}/members/${member.id}`); onMemberUpdate(); } catch (err: any) { alertService.alert('Error', err?.message || 'Failed to remove member'); } finally { setRemoving(false); } } },
+                    ]);
                   }}
                 >
                   <AntDesign name="delete" size={14} color={colors.status.error} />
-                  <Text style={[styles.actionBtnText, { color: colors.status.error }]}>Remove</Text>
+                  <Text style={[styles.actionBtnText, { color: colors.status.error }]}>{removing ? 'Removing...' : 'Remove'}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -370,6 +389,7 @@ function MemberCard({ member, index }: { member: FamilyMember; index: number }) 
 export default function FamilyMembersScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const [familyId, setFamilyId] = useState<string | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -421,6 +441,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
       }
       setFamilyFound(true);
       const activeFamily = families[0];
+      setFamilyId(activeFamily.id);
       const familyDetail: any = await api.get(`/family/${activeFamily.id}`);
       const rawMembers: any[] = familyDetail?.members || [];
       const data: FamilyMember[] = rawMembers.map((m: any) => ({
@@ -643,7 +664,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
           }
         >
           {members.map((member, i) => (
-            <MemberCard key={member.id} member={member} index={i} />
+            <MemberCard key={member.id} member={member} index={i} familyId={familyId!} onMemberUpdate={fetchMembers} />
           ))}
         </ScrollView>
       )}

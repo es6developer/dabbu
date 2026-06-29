@@ -614,7 +614,7 @@ export function PersonalLensDashboard() {
                 Budget Progress
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
+                onPress={() => navigation.navigate('HomeTab', { screen: 'BudgetsList' })}
               >
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>
                   See All
@@ -671,7 +671,7 @@ export function PersonalLensDashboard() {
                     No budgets set
                   </Text>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'CreateBudget' })}
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,

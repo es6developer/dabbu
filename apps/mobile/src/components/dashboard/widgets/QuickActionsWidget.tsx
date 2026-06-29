@@ -78,7 +78,7 @@ const FAMILY_ACTIONS: QuickActionDef[] = [
     screen: 'AddExpense',
     params: { type: 'family' },
   },
-  { id: 'add_bill', label: 'Add Bill', icon: 'filetext1', color: '#F59E0B', screen: 'AddBill' },
+  { id: 'add_bill', label: 'Add Bill', icon: 'filetext1', color: '#F59E0B', screen: 'BillsList' },
   { id: 'add_goal', label: 'Add Goal', icon: 'flag', color: '#3B82F6', screen: 'GoalsList' },
   {
     id: 'record_allowance',
@@ -102,7 +102,7 @@ const FULL_ACTIONS: QuickActionDef[] = [
     label: 'Create Space',
     icon: 'team',
     color: '#D97706',
-    screen: 'CreateSpace',
+    screen: 'CreateSharedGroup',
   },
   { id: 'add_goal', label: 'Add Goal', icon: 'flag', color: '#F59E0B', screen: 'GoalsList' },
   {

@@ -133,7 +133,7 @@ export function FamilyHubScreen() {
         key={group.id}
         activeOpacity={0.7}
         style={[styles.groupCard, { backgroundColor: colors.bg.card, shadowColor: colors.shadow }]}
-        onPress={() => navigation.navigate('SharedGroupDetail', { groupId: group.id, group })}
+        onPress={() => navigation.navigate('SpacesTab', { screen: 'SharedGroupDetail', params: { groupId: group.id, group } })}
       >
         <View style={styles.groupHeader}>
           <View style={[styles.groupIcon, { backgroundColor: cat.color + '20' }]}>
@@ -244,7 +244,7 @@ export function FamilyHubScreen() {
           </View>
           <TouchableOpacity
             style={[styles.createBtn, { backgroundColor: colors.accent.primary + '15' }]}
-            onPress={() => navigation.navigate('CreateSharedGroup')}
+            onPress={() => navigation.navigate('SpacesTab', { screen: 'CreateSharedGroup' })}
           >
             <AntDesign name="plus" size={22} color={colors.accent.primary} />
           </TouchableOpacity>
@@ -355,7 +355,7 @@ export function FamilyHubScreen() {
             </Text>
             <TouchableOpacity
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('CreateSharedGroup')}
+              onPress={() => navigation.navigate('SpacesTab', { screen: 'CreateSharedGroup' })}
             >
               <AntDesign name="plus" size={18} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create Your First Group</Text>

@@ -4,7 +4,6 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { SplashScreen } from '../screens/auth/SplashScreen';
 import { MainTabNavigator } from './MainTabNavigator';
 import { AuthNavigator } from './AuthNavigator';
-import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { PhoneScreen } from '../screens/auth/PhoneScreen';
 import { AppLockScreen } from '../screens/auth/AppLockScreen';

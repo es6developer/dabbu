@@ -32,6 +32,15 @@ function getTemplates(colors: any) {
   ];
 }
 
+const PLANNER_MAP: Record<string, string> = {
+  HOUSE: 'HousePlanner',
+  CAR: 'CarPlanner',
+  BABY: 'BabyPlanner',
+  VACATION: 'VacationPlanner',
+  WEDDING: 'WeddingPlanner',
+  INVESTMENT: 'InvestmentPlanner',
+};
+
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
@@ -200,7 +209,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
           >
             <Text style={[styles.largeTitle, { color: colors.text.primary }]}>Goals</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('LifePlanForm')}
+              onPress={() => navigation.navigate('CreateLifeEvent')}
               style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}
             >
               <AntDesign name="plus" size={20} color={colors.accent.primary} />
@@ -223,7 +232,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
             <TouchableOpacity
               style={[styles.emptyCta, { backgroundColor: colors.accent.primary }]}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate('LifePlanForm')}
+              onPress={() => navigation.navigate('CreateLifeEvent')}
             >
               <AntDesign name="pluscircleo" size={18} color="#FFF" />
               <Text style={styles.emptyCtaText}>Create Goal</Text>
@@ -237,7 +246,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
                   Goal Templates
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('LifePlanForm')}>
+                <TouchableOpacity onPress={() => navigation.navigate('CreateLifeEvent')}>
                   <Text style={[styles.seeAll, { color: colors.accent.primary }]}>See All</Text>
                 </TouchableOpacity>
               </View>
@@ -250,7 +259,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                   <TouchableOpacity
                     key={t.type}
                     activeOpacity={0.8}
-                    onPress={() => navigation.navigate('LifePlanForm', { plannerType: t.type })}
+                    onPress={() => navigation.navigate(PLANNER_MAP[t.type] || 'CreateLifeEvent')}
                     style={[
                       styles.templateCard,
                       {
@@ -303,7 +312,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                       <Animated.View key={goal.id} style={{ opacity: stagger[idx] }}>
                         <TouchableOpacity
                           activeOpacity={0.75}
-                          onPress={() => navigation.navigate('Goals', { goalId: goal.id })}
+                          onPress={() => navigation.navigate('GoalDetail', { goalId: goal.id })}
                           style={[
                             styles.goalCard,
                             { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
@@ -462,7 +471,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
       {/* FAB */}
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('LifePlanForm')}
+        onPress={() => navigation.navigate('CreateLifeEvent')}
         style={[
           styles.fab,
           {

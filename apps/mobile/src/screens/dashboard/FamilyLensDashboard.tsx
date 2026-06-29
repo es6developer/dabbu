@@ -510,7 +510,7 @@ export function FamilyLensDashboard() {
                     No family budget set
                   </Text>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('HomeTab', { screen: 'CoupleBudgets' })}
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'CreateBudget' })}
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,

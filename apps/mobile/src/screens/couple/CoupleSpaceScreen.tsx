@@ -571,7 +571,7 @@ export function CoupleSpaceScreen() {
                 <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
                   Upcoming Bills
                 </Text>
-                <TouchableOpacity onPress={() => (navigation as any).navigate('Bills')}>
+                <TouchableOpacity onPress={() => (navigation as any).navigate('BillsList')}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
                     See All
                   </Text>

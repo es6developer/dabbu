@@ -267,7 +267,7 @@ export function CoupleFinance({ navigation }: any) {
               title="Shared Accounts"
               color={COLORS.accounts}
               delay={200}
-              onPress={() => navigation.navigate('Budgets')}
+              onPress={() => navigation.navigate('BudgetsList')}
             >
               <Text style={[styles.amountLabel, { color: COLORS.accounts }]}>
                 {fmt(sharedBalance)}
@@ -320,7 +320,7 @@ export function CoupleFinance({ navigation }: any) {
               title="Contributions"
               color={COLORS.contribution}
               delay={400}
-              onPress={() => navigation.navigate('Reports')}
+              onPress={() => navigation.navigate('BudgetsList')}
             >
               <View style={styles.cardList}>
                 <View style={styles.contributionRow}>
@@ -371,7 +371,7 @@ export function CoupleFinance({ navigation }: any) {
               title="Who Paid What"
               color={COLORS.whoPaid}
               delay={500}
-              onPress={() => navigation.navigate('Reports')}
+              onPress={() => navigation.navigate('BudgetsList')}
             >
               {recentExpensesSlice.length > 0 ? (
                 <View style={styles.cardList}>

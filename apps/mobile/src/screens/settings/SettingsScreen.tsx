@@ -176,7 +176,7 @@ export function SettingsScreen() {
     }
     const crossTabMap: Record<string, { tab: string; screen: string }> = {
       Reports: { tab: 'LifeHubTab', screen: 'Analytics' },
-      BudgetsList: { tab: 'WalletTab', screen: 'BillsList' },
+      BudgetsList: { tab: 'HomeTab', screen: 'BudgetsList' },
       Streaks: { tab: 'HomeTab', screen: 'Streaks' },
       YearlySummary: { tab: 'HomeTab', screen: 'YearlySummary' },
       Analytics: { tab: 'WalletTab', screen: 'Analytics' },

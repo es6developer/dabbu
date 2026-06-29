@@ -77,7 +77,7 @@ export function UpgradeBanner({
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
+          onPress={() => navigation.navigate('ProfileTab', { screen: 'Premium' })}
         >
           <Text style={styles.buttonText}>Upgrade</Text>
         </TouchableOpacity>
