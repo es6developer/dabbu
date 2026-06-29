@@ -226,30 +226,6 @@ function normalizeSettlementList(raw: any): Settlement[] {
   return raw.map(normalizeSettlement);
 }
 
-function normalizeChatMessage(raw: any): ChatMessage {
-  const senderUser = raw.sender;
-  const senderName = senderUser
-    ? [senderUser.firstName, senderUser.lastName].filter(Boolean).join(' ').trim()
-    : raw.senderName || 'Unknown';
-  return {
-    id: raw.id,
-    sender: {
-      id: senderUser?.id || raw.senderId,
-      name: senderName,
-      email: senderUser?.email,
-      avatar: senderUser?.avatarUrl,
-      balance: 0,
-      isOnline: false,
-      role: 'member',
-    },
-    content: raw.content,
-    type: raw.type || 'text',
-    referenceId: raw.referenceId,
-    createdAt: raw.createdAt,
-    readBy: raw.readBy || [],
-  };
-}
-
 export const api = {
   getTempToken,
   setTempToken,
@@ -476,24 +452,6 @@ export const api = {
     ) => {
       return post<any>(`/shared-finance/settlements/guest/${action}`, { settlementId, reason });
     },
-
-    getGuestDashboard: async (groupId: string) => {
-      return get<any>(`/shared-finance/settlements/guest/dashboard/${groupId}`);
-    },
-  },
-
-  chat: {
-    list: async (groupId: string) => {
-      const res = await get<any[]>(`/shared-finance/groups/${groupId}/chat/messages`);
-      if (res.error) {
-        return res as ApiResponse<ChatMessage[]>;
-      }
-      return { data: (res.data || []).map(normalizeChatMessage), status: res.status };
-    },
-
-    send: async (groupId: string, content: string) => {
-      return post<any>(`/shared-finance/groups/${groupId}/chat/messages`, { content });
-    },
   },
 };
 
@@ -558,14 +516,4 @@ export interface Settlement {
   date: string;
   groupId: string;
   createdAt: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  sender: Member;
-  content: string;
-  type: 'text' | 'expense' | 'settlement' | 'system';
-  referenceId?: string;
-  createdAt: string;
-  readBy: string[];
 }

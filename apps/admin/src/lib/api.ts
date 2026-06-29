@@ -149,14 +149,6 @@ export interface AppConfig {
   smtpFromEmail: string | null;
 }
 
-// Auth
-export function adminLogin(email: string, password: string) {
-  return request<{ data: { accessToken: string; admin: any } }>('/admin/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
 export function createAdmin(data: {
   email: string;
   name: string;
@@ -229,10 +221,6 @@ export function deleteFamily(id: string) {
 // Plans
 export function listPlans() {
   return request<{ data: SubscriptionPlan[] }>('/admin/plans');
-}
-
-export function getPlan(id: string) {
-  return request<{ data: SubscriptionPlan }>(`/admin/plans/${id}`);
 }
 
 export function createPlan(data: Partial<SubscriptionPlan>) {
@@ -333,13 +321,6 @@ export function updateAppConfig(data: Partial<AppConfig>) {
   });
 }
 
-export function sendTestEmail(to: string) {
-  return request<{ data: { messageId: string } }>('/admin/configuration/test-email', {
-    method: 'POST',
-    body: JSON.stringify({ to }),
-  });
-}
-
 // ─── Support Tickets ────────────────────────────────────────
 
 export interface SupportTicket {
@@ -387,10 +368,6 @@ export function listTickets(params?: {
   }
   const q = qs.toString();
   return request<PaginatedResponse<SupportTicket>>(`/admin/tickets${q ? `?${q}` : ''}`);
-}
-
-export function getTicketDetail(id: string) {
-  return request<{ data: SupportTicket }>(`/admin/tickets/${id}`);
 }
 
 export function updateTicket(
@@ -465,33 +442,8 @@ export function createCoupon(data: {
   });
 }
 
-export function updateCoupon(id: string, data: Partial<Coupon>) {
-  return request<{ data: Coupon }>(`/admin/coupons/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(data),
-  });
-}
-
 export function deleteCoupon(id: string) {
   return request<{ data: { message: string } }>(`/admin/coupons/${id}`, { method: 'DELETE' });
-}
-
-// ─── Expiring Subscriptions ─────────────────────────────────
-
-export interface ExpiringSubscription {
-  id: string;
-  user: { id: string; email: string; firstName: string; lastName: string };
-  plan: { name: string; price: number; interval: string };
-  currentPeriodEnd: string;
-  status: string;
-}
-
-export function getExpiringSubscriptions(days = 7) {
-  return request<{ data: ExpiringSubscription[] }>(`/admin/subscriptions/expiring?days=${days}`);
-}
-
-export function getFailedPayments() {
-  return request<{ data: any[] }>('/admin/subscriptions/failed-payments');
 }
 
 export function getSubscriptionDetail(id: string) {
@@ -520,15 +472,10 @@ export interface MfaSetupData {
   qrCodeUrl: string;
 }
 
-export function loginWithMfa(email: string, password: string, totpCode: string) {
-  return request<{ data: { accessToken: string; admin: any } }>('/admin/auth/login-mfa', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, totpCode }),
-  });
-}
-
 export function getMfaStatus() {
-  return request<{ data: { required: boolean; verified: boolean; email: string } }>('/admin/mfa/status');
+  return request<{ data: { required: boolean; verified: boolean; email: string } }>(
+    '/admin/mfa/status',
+  );
 }
 
 export function setupMfa() {

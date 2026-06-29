@@ -20,7 +20,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { useAppLock } from '../../store/LockContext';
 import { ConfirmDialog } from '../../components/ui';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { PADDING, borderRadius } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 import { alertService } from '../../components/ui';

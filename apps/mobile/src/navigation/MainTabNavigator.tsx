@@ -123,6 +123,13 @@ const SCREEN_TAB_MAP: Record<string, string> = {
   FamilyMembersHome: 'FamilyMembersTab',
   PartnerHome: 'PartnerTab',
   SettingsMain: 'ProfileTab',
+  FamilyHub: 'HomeTab',
+  CouplePlanner: 'HomeTab',
+  CoupleFinance: 'HomeTab',
+  Settlements: 'HomeTab',
+  CoupleSettings: 'HomeTab',
+  Expenses: 'HomeTab',
+  Income: 'HomeTab',
 };
 
 export function MainTabNavigator() {

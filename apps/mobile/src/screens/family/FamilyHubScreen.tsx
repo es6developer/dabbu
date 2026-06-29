@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Animated,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,9 +19,15 @@ import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 
 function fmtCompact(v: number) {
-  if (v >= 10000000) return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
-  if (v >= 100000) return '\u20B9' + (v / 100000).toFixed(1) + 'L';
-  if (v >= 1000) return '\u20B9' + (v / 1000).toFixed(1) + 'K';
+  if (v >= 10000000) {
+    return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
+  }
+  if (v >= 100000) {
+    return '\u20B9' + (v / 100000).toFixed(1) + 'L';
+  }
+  if (v >= 1000) {
+    return '\u20B9' + (v / 1000).toFixed(1) + 'K';
+  }
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
@@ -22,9 +36,13 @@ function fmt(v: number) {
 }
 
 function getInitials(name: string): string {
-  if (!name) return '?';
+  if (!name) {
+    return '?';
+  }
   const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
   return name.slice(0, 2).toUpperCase();
 }
 
@@ -46,17 +64,31 @@ export function FamilyHubScreen() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   const loadGroups = useCallback(async (silent = false, refresh = false) => {
-    if (refresh) setRefreshing(true); else if (!silent) setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else if (!silent) {
+      setLoading(true);
+    }
     try {
       const res = await api.get('/shared-finance/groups');
       const data = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.groups || [];
       setGroups(data);
-    } catch { /* ignore */ } finally {
-      setLoading(false); setRefreshing(false);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
-  useSilentRefresh(useCallback((isInitial) => { loadGroups(!isInitial); }, [loadGroups]));
+  useSilentRefresh(
+    useCallback(
+      (isInitial) => {
+        loadGroups(!isInitial);
+      },
+      [loadGroups],
+    ),
+  );
 
   const onRefresh = useCallback(async () => {
     await loadGroups(false, true);
@@ -66,19 +98,20 @@ export function FamilyHubScreen() {
     const map: Record<string, any[]> = { couple: [], family: [], friends: [], trip: [], other: [] };
     groups.forEach((g: any) => {
       const type = (g.type || g.groupType || 'other').toLowerCase();
-      if (map[type]) map[type].push(g);
-      else map.other.push(g);
+      if (map[type]) {
+        map[type].push(g);
+      } else {
+        map.other.push(g);
+      }
     });
     return map;
   }, [groups]);
 
-  const filteredGroups = activeFilter
-    ? categorized[activeFilter] || []
-    : groups;
+  const filteredGroups = activeFilter ? categorized[activeFilter] || [] : groups;
 
   function renderGroupCard(group: any) {
     const type = (group.type || group.groupType || 'friends').toLowerCase();
-    const cat = HUB_CATEGORIES.find(c => c.key === type) || HUB_CATEGORIES[2];
+    const cat = HUB_CATEGORIES.find((c) => c.key === type) || HUB_CATEGORIES[2];
     const memberCount = group.members?.length || group._count?.members || 0;
     const balance = group.balance || 0;
     const totalSpent = group.totalSpent || 0;
@@ -89,7 +122,9 @@ export function FamilyHubScreen() {
 
     function getBalanceDisplay(member: any): string {
       const mb = member.balance || 0;
-      if (mb === 0) return 'settled';
+      if (mb === 0) {
+        return 'settled';
+      }
       return (mb < 0 ? 'owes ' : 'gets ') + fmt(Math.abs(mb));
     }
 
@@ -112,16 +147,45 @@ export function FamilyHubScreen() {
               <Text style={[styles.groupMeta, { color: colors.text.tertiary }]}>
                 {memberCount} members
               </Text>
-              <View style={[{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6, backgroundColor: cat.color + '20' }]}>
-                <Text style={{ color: cat.color, fontSize: 9, fontWeight: '700', textTransform: 'uppercase' }}>{cat.label}</Text>
+              <View
+                style={[
+                  {
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
+                    borderRadius: 6,
+                    backgroundColor: cat.color + '20',
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: cat.color,
+                    fontSize: 9,
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {cat.label}
+                </Text>
               </View>
             </View>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={[styles.balanceAmount, {
-              color: balance > 0 ? colors.status.success : balance < 0 ? colors.status.error : colors.text.secondary
-            }]}>
-              {balance > 0 ? '+' : ''}{fmtCompact(balance)}
+            <Text
+              style={[
+                styles.balanceAmount,
+                {
+                  color:
+                    balance > 0
+                      ? colors.status.success
+                      : balance < 0
+                        ? colors.status.error
+                        : colors.text.secondary,
+                },
+              ]}
+            >
+              {balance > 0 ? '+' : ''}
+              {fmtCompact(balance)}
             </Text>
             <Text style={[styles.balanceLabel, { color: colors.text.tertiary }]}>
               {balance > 0 ? 'you get' : balance < 0 ? 'you owe' : 'settled'}
@@ -134,14 +198,27 @@ export function FamilyHubScreen() {
             const name = m.user?.firstName || m.user?.email || 'M';
             const color = HUB_CATEGORIES[i % HUB_CATEGORIES.length].color;
             return (
-              <View key={m.id || i} style={[styles.avatar, { backgroundColor: color + '25', borderColor: color + '40' }]}>
+              <View
+                key={m.id || i}
+                style={[
+                  styles.avatar,
+                  { backgroundColor: color + '25', borderColor: color + '40' },
+                ]}
+              >
                 <Text style={[styles.avatarText, { color }]}>{getInitials(name)}</Text>
               </View>
             );
           })}
           {overflow > 0 && (
-            <View style={[styles.avatar, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
-              <Text style={[styles.avatarText, { color: colors.text.tertiary, fontSize: 11 }]}>+{overflow}</Text>
+            <View
+              style={[
+                styles.avatar,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
+              <Text style={[styles.avatarText, { color: colors.text.tertiary, fontSize: 11 }]}>
+                +{overflow}
+              </Text>
             </View>
           )}
         </View>
@@ -169,20 +246,20 @@ export function FamilyHubScreen() {
             style={[styles.createBtn, { backgroundColor: colors.accent.primary + '15' }]}
             onPress={() => navigation.navigate('CreateSharedGroup')}
           >
-            <AntDesign name="plus" size={22} color={colors.accent.primary}  />
+            <AntDesign name="plus" size={22} color={colors.accent.primary} />
           </TouchableOpacity>
         </View>
 
         {couple.showCoupleFeatures && (
           <TouchableOpacity
             style={[styles.coupleBanner, { backgroundColor: COUPLE_COLORS.bg }]}
-            onPress={() => navigation.navigate('CoupleSplash')}
+            onPress={() => navigation.navigate('PartnerTab', { screen: 'PartnerHome' })}
           >
-            <AntDesign name="heart" size={18} color={COUPLE_COLORS.primary}  />
+            <AntDesign name="heart" size={18} color={COUPLE_COLORS.primary} />
             <Text style={[styles.coupleText, { color: COUPLE_COLORS.primary }]}>
               {couple.isInCouple ? 'View Couple Dashboard' : 'Connect with Partner'}
             </Text>
-            <AntDesign name="right" size={16} color={COUPLE_COLORS.primary}  />
+            <AntDesign name="right" size={16} color={COUPLE_COLORS.primary} />
           </TouchableOpacity>
         )}
 
@@ -193,29 +270,53 @@ export function FamilyHubScreen() {
           contentContainerStyle={styles.filterContent}
         >
           <TouchableOpacity
-            style={[styles.filterChip, {
-              backgroundColor: !activeFilter ? colors.accent.primary : colors.bg.tertiary,
-            }]}
+            style={[
+              styles.filterChip,
+              {
+                backgroundColor: !activeFilter ? colors.accent.primary : colors.bg.tertiary,
+              },
+            ]}
             onPress={() => setActiveFilter(null)}
           >
-            <Text style={[styles.filterText, {
-              color: !activeFilter ? '#FFF' : colors.text.secondary,
-              fontWeight: !activeFilter ? '600' : '400',
-            }]}>All</Text>
+            <Text
+              style={[
+                styles.filterText,
+                {
+                  color: !activeFilter ? '#FFF' : colors.text.secondary,
+                  fontWeight: !activeFilter ? '600' : '400',
+                },
+              ]}
+            >
+              All
+            </Text>
           </TouchableOpacity>
-          {HUB_CATEGORIES.map(cat => (
+          {HUB_CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat.key}
-              style={[styles.filterChip, {
-                backgroundColor: activeFilter === cat.key ? cat.color : colors.bg.tertiary,
-              }]}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor: activeFilter === cat.key ? cat.color : colors.bg.tertiary,
+                },
+              ]}
               onPress={() => setActiveFilter(activeFilter === cat.key ? null : cat.key)}
             >
-              <AntDesign name={cat.icon as any} size={14} color={activeFilter === cat.key ? '#FFF' : cat.color} />
-              <Text style={[styles.filterText, {
-                color: activeFilter === cat.key ? '#FFF' : colors.text.secondary,
-                marginLeft: 4,
-              }]}>{cat.label}</Text>
+              <AntDesign
+                name={cat.icon as any}
+                size={14}
+                color={activeFilter === cat.key ? '#FFF' : cat.color}
+              />
+              <Text
+                style={[
+                  styles.filterText,
+                  {
+                    color: activeFilter === cat.key ? '#FFF' : colors.text.secondary,
+                    marginLeft: 4,
+                  },
+                ]}
+              >
+                {cat.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -229,14 +330,24 @@ export function FamilyHubScreen() {
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.bg.card }]}>
-              <View style={[styles.skeletonLine, { backgroundColor: colors.skeleton.base, width: '60%' }]} />
-              <View style={[styles.skeletonLine, { backgroundColor: colors.skeleton.base, width: '40%', marginTop: 8 }]} />
+              <View
+                style={[
+                  styles.skeletonLine,
+                  { backgroundColor: colors.skeleton.base, width: '60%' },
+                ]}
+              />
+              <View
+                style={[
+                  styles.skeletonLine,
+                  { backgroundColor: colors.skeleton.base, width: '40%', marginTop: 8 },
+                ]}
+              />
             </View>
           ))
         ) : filteredGroups.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-              <AntDesign name="team" size={40} color={colors.text.tertiary}  />
+              <AntDesign name="team" size={40} color={colors.text.tertiary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No groups yet</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
@@ -246,7 +357,7 @@ export function FamilyHubScreen() {
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
               onPress={() => navigation.navigate('CreateSharedGroup')}
             >
-              <AntDesign name="plus" size={18} color="#FFF"  />
+              <AntDesign name="plus" size={18} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create Your First Group</Text>
             </TouchableOpacity>
           </View>
@@ -305,14 +416,27 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   groupHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  groupIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  groupIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   groupInfo: { flex: 1 },
   groupName: { fontSize: 16, fontWeight: '600' },
   groupMeta: { fontSize: 12, marginTop: 2 },
   groupBalance: { alignItems: 'flex-end' },
   balanceAmount: { fontSize: 16, fontWeight: '700' },
   balanceLabel: { fontSize: 11, marginTop: 1 },
-  avatar: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  avatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
   avatarText: { fontSize: 10, fontWeight: '700' },
   groupFooter: {
     marginTop: spacing.md,
@@ -330,7 +454,14 @@ const styles = StyleSheet.create({
   },
   skeletonLine: { height: 14, borderRadius: 7 },
   emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: spacing.xl },
-  emptyIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
   emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: spacing.sm },
   emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: spacing['2xl'] },
   emptyBtn: {

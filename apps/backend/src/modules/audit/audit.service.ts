@@ -51,15 +51,29 @@ export class AuditService {
     offset?: number;
   }) {
     const where: any = {};
-    if (query.userId) where.userId = query.userId;
-    if (query.adminId) where.adminId = query.adminId;
-    if (query.action) where.action = query.action;
-    if (query.entity) where.entity = query.entity;
-    if (query.entityId) where.entityId = query.entityId;
+    if (query.userId) {
+      where.userId = query.userId;
+    }
+    if (query.adminId) {
+      where.adminId = query.adminId;
+    }
+    if (query.action) {
+      where.action = query.action;
+    }
+    if (query.entity) {
+      where.entity = query.entity;
+    }
+    if (query.entityId) {
+      where.entityId = query.entityId;
+    }
     if (query.startDate || query.endDate) {
       where.createdAt = {};
-      if (query.startDate) where.createdAt.gte = query.startDate;
-      if (query.endDate) where.createdAt.lte = query.endDate;
+      if (query.startDate) {
+        where.createdAt.gte = query.startDate;
+      }
+      if (query.endDate) {
+        where.createdAt.lte = query.endDate;
+      }
     }
 
     const [data, total] = await Promise.all([
@@ -114,25 +128,23 @@ export class AuditService {
 
     if (format === 'csv') {
       const headers = 'ID,Action,Entity,Entity ID,Description,IP Address,Created At\n';
-      const rows = logs.map(l =>
-        `"${l.id}","${l.action}","${l.entity}","${l.entityId || ''}","${(l.description || '').replace(/"/g, '""')}","${l.ipAddress || ''}","${l.createdAt.toISOString()}"`
-      ).join('\n');
-      return { data: headers + rows, contentType: 'text/csv', filename: `audit-log-${Date.now()}.csv` };
+      const rows = logs
+        .map(
+          (l) =>
+            `"${l.id}","${l.action}","${l.entity}","${l.entityId || ''}","${(l.description || '').replace(/"/g, '""')}","${l.ipAddress || ''}","${l.createdAt.toISOString()}"`,
+        )
+        .join('\n');
+      return {
+        data: headers + rows,
+        contentType: 'text/csv',
+        filename: `audit-log-${Date.now()}.csv`,
+      };
     }
 
-    return { data: JSON.stringify(logs, null, 2), contentType: 'application/json', filename: `audit-log-${Date.now()}.json` };
-  }
-
-  async getAdminAuditTrail(adminId: string, limit = 50, offset = 0) {
-    const [data, total] = await Promise.all([
-      this.prisma.auditLog.findMany({
-        where: { adminId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-      }),
-      this.prisma.auditLog.count({ where: { adminId } }),
-    ]);
-    return { data, total, limit, offset };
+    return {
+      data: JSON.stringify(logs, null, 2),
+      contentType: 'application/json',
+      filename: `audit-log-${Date.now()}.json`,
+    };
   }
 }

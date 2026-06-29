@@ -8,7 +8,6 @@ import {
   Animated,
   Dimensions,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';

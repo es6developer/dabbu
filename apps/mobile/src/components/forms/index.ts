@@ -13,5 +13,3 @@ export { FormFooter } from './FormFooter';
 export { FormError } from './FormError';
 export { FormAvatar } from './FormAvatar';
 export { FormBottomSheet } from './FormBottomSheet';
-export * from './FormValidation';
-export { formStyles } from './styles';

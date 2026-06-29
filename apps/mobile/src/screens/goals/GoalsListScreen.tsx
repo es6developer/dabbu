@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Animated, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -294,7 +302,7 @@ function MilestoneDot({
                 transform: [{ scale: scaleAnim }],
               }}
             >
-              <AntDesign  name="check" size={14} color="#FFF" />
+              <AntDesign name="check" size={14} color="#FFF" />
             </Animated.View>
           </>
         ) : (
@@ -344,7 +352,16 @@ function GoalCard({
   const estDate = prediction?.predictedCompletionDate
     ? `Forecast: ${new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
     : getEstimatedCompletion(saved, target, monthly, item.deadline || item.targetDate);
-  const paceColor = prediction?.currentPace === 'ahead' ? '#10B981' : prediction?.currentPace === 'ontrack' ? '#F59E0B' : prediction?.currentPace === 'behind' ? '#EF4444' : prediction?.currentPace === 'critical' ? '#DC2626' : colors.text.tertiary;
+  const paceColor =
+    prediction?.currentPace === 'ahead'
+      ? '#10B981'
+      : prediction?.currentPace === 'ontrack'
+        ? '#F59E0B'
+        : prediction?.currentPace === 'behind'
+          ? '#EF4444'
+          : prediction?.currentPace === 'critical'
+            ? '#DC2626'
+            : colors.text.tertiary;
 
   const entryAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -464,7 +481,7 @@ function GoalCard({
             {daysLeft !== null && (
               <View style={s.footerBadge}>
                 <AntDesign
-                   name="calendar"
+                  name="calendar"
                   size={11}
                   color={daysLeft <= 30 ? colors.status.error : colors.text.tertiary}
                 />
@@ -483,7 +500,7 @@ function GoalCard({
             )}
             {monthly > 0 && (
               <View style={s.footerBadge}>
-                <AntDesign  name="retweet" size={11} color={colors.text.tertiary} />
+                <AntDesign name="retweet" size={11} color={colors.text.tertiary} />
                 <Text style={[typography.footnote, { color: colors.text.secondary }]}>
                   {fmt(monthly)}/mo
                 </Text>
@@ -491,7 +508,7 @@ function GoalCard({
             )}
             {prediction && (
               <View style={s.footerBadge}>
-                <AntDesign  name="hearto" size={11} color={paceColor} />
+                <AntDesign name="hearto" size={11} color={paceColor} />
                 <Text style={[typography.footnote, { color: paceColor, fontWeight: '700' }]}>
                   {prediction.currentPace}
                 </Text>
@@ -500,7 +517,11 @@ function GoalCard({
             <Text
               style={[
                 typography.footnote,
-                { color: prediction ? paceColor : colors.text.tertiary, marginTop: 2, textAlign: 'right' },
+                {
+                  color: prediction ? paceColor : colors.text.tertiary,
+                  marginTop: 2,
+                  textAlign: 'right',
+                },
               ]}
               numberOfLines={1}
             >
@@ -511,15 +532,18 @@ function GoalCard({
 
         {prediction?.improvementTip && (
           <View style={[s.taglineRow, { backgroundColor: colors.bg.tertiary }]}>
-            <AntDesign  name="bulb1" size={13} color={config.color} />
-            <Text style={[typography.footnote, { color: colors.text.secondary, flex: 1 }]} numberOfLines={2}>
+            <AntDesign name="bulb1" size={13} color={config.color} />
+            <Text
+              style={[typography.footnote, { color: colors.text.secondary, flex: 1 }]}
+              numberOfLines={2}
+            >
               {prediction.improvementTip}
             </Text>
           </View>
         )}
         {!prediction?.improvementTip && (
           <View style={[s.taglineRow, { backgroundColor: 'transparent' }]}>
-            <AntDesign  name="star" size={13} color={config.color} />
+            <AntDesign name="star" size={13} color={config.color} />
             <Text style={[typography.footnote, { color: config.color, fontWeight: '600' }]}>
               {tagline}
             </Text>
@@ -528,7 +552,7 @@ function GoalCard({
 
         {flashMilestone !== null && (
           <View style={[StyleSheet.absoluteFill, s.celebrationFlash]}>
-            <AntDesign  name="checkcircleo" size={56} color={config.color} />
+            <AntDesign name="checkcircleo" size={56} color={config.color} />
             <Text style={[typography.h4, { color: '#FFF', marginTop: 4 }]}>
               {flashMilestone}% Reached!
             </Text>
@@ -738,7 +762,7 @@ function GoalsEmptyState({
                   Target: {fmt(sg.target)}
                 </Text>
               </View>
-              <AntDesign  name="pluscircleo" size={24} color={colors.accent.primary} />
+              <AntDesign name="pluscircleo" size={24} color={colors.accent.primary} />
             </TouchableOpacity>
           );
         })}
@@ -773,8 +797,12 @@ export function GoalsListScreen() {
         goalList.map(async (g: any) => {
           try {
             const predRes = await api.get<any>(`/ai/goals/${g.id}/prediction`);
-            if (predRes?.data) predictionMap[g.id] = predRes.data;
-          } catch { /* ignore */ }
+            if (predRes?.data) {
+              predictionMap[g.id] = predRes.data;
+            }
+          } catch {
+            /* ignore */
+          }
         }),
       );
       setPredictions(predictionMap);
@@ -782,7 +810,9 @@ export function GoalsListScreen() {
       try {
         const rebalRes = await api.get<any>('/ai/goals/rebalance');
         setRebalanceData(rebalRes?.data?.suggestions || []);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     } catch {
       // silent
     } finally {
@@ -863,7 +893,7 @@ export function GoalsListScreen() {
                     style={[s.addBtn, { backgroundColor: colors.accent.primary + '20' }]}
                     activeOpacity={0.7}
                   >
-                    <AntDesign  name="plus" size={22} color={colors.accent.primary} />
+                    <AntDesign name="plus" size={22} color={colors.accent.primary} />
                   </TouchableOpacity>
                 }
               />
@@ -876,23 +906,86 @@ export function GoalsListScreen() {
               )}
               {rebalanceData.length > 0 && (
                 <View style={{ marginTop: 8, marginBottom: 4 }}>
-                  <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <AntDesign  name="swap" size={16} color={colors.accent.primary} />
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
+                  <View
+                    style={[
+                      s.rebalCard,
+                      { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                    ]}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <AntDesign name="swap" size={16} color={colors.accent.primary} />
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>
+                        AI Rebalance Suggestions
+                      </Text>
                     </View>
                     {rebalanceData.slice(0, 3).map((s: any) => (
-                      <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
-                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || colors.accent.primary) + '20', alignItems: 'center', justifyContent: 'center' }}>
-                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || colors.accent.primary} />
+                      <View
+                        key={s.goalId}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          paddingVertical: 6,
+                          borderTopWidth: 1,
+                          borderTopColor: colors.border.subtle,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 6,
+                            backgroundColor: (s.goalColor || colors.accent.primary) + '20',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <AntDesign
+                            name={s.goalIcon as any}
+                            size={12}
+                            color={s.goalColor || colors.accent.primary}
+                          />
                         </View>
-                        <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>
+                        <Text
+                          style={{
+                            flex: 1,
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: colors.text.primary,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {s.goalName}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '700',
+                            color: s.action === 'increase' ? '#16A34A' : '#DC2626',
+                          }}
+                        >
                           {s.action === 'increase' ? '+' : '-'}₹{s.diff.toLocaleString('en-IN')}
                         </Text>
                       </View>
                     ))}
-                    <Text style={{ fontSize: 10, fontWeight: '500', color: colors.text.tertiary, marginTop: 6, textAlign: 'center' }}>Based on your income, deadlines, and progress</Text>
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '500',
+                        color: colors.text.tertiary,
+                        marginTop: 6,
+                        textAlign: 'center',
+                      }}
+                    >
+                      Based on your income, deadlines, and progress
+                    </Text>
                   </View>
                 </View>
               )}
@@ -919,7 +1012,6 @@ export function GoalsListScreen() {
         onCreated={loadGoals}
         prefill={prefill}
       />
-
     </>
   );
 }

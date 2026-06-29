@@ -37,6 +37,13 @@ import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
 import { CreateFamilyWorkspaceScreen } from '../screens/family/CreateFamilyWorkspaceScreen';
 import { FamilyWorkspaceScreen } from '../screens/family/FamilyWorkspaceScreen';
+import { FamilyHubScreen } from '../screens/family/FamilyHubScreen';
+import { CouplePlannerScreen } from '../screens/couple/CouplePlannerScreen';
+import { CoupleFinance } from '../screens/couple/CoupleFinance';
+import { CoupleSettlementsScreen } from '../screens/couple/CoupleSettlementsScreen';
+import { CoupleSettingsScreen } from '../screens/couple/CoupleSettingsScreen';
+import { CoupleExpensesScreen } from '../screens/couple/CoupleExpensesScreen';
+import { CoupleIncomeScreen } from '../screens/couple/CoupleIncomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -189,6 +196,33 @@ export function DashboardNavigator() {
         component={CoupleSpaceScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="FamilyHub" component={FamilyHubScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="CouplePlanner"
+        component={CouplePlannerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleFinance"
+        component={CoupleFinance}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Settlements"
+        component={CoupleSettlementsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CoupleSettings"
+        component={CoupleSettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Expenses"
+        component={CoupleExpensesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="Income" component={CoupleIncomeScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="CreateFamilyWorkspace"
         component={CreateFamilyWorkspaceScreen}

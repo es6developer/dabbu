@@ -42,10 +42,16 @@ export class LensDataService {
     return user?.activeLens || 'PERSONAL';
   }
 
-  /** Build a Prisma where clause that filters data to the user's active lens.
+  /** Build a Prisma where clause that filters data to the given lens (or the user's active lens if not provided).
    *  For FULL lens, no filter is applied (all data visible). */
-  async buildLensFilter(userId: string): Promise<{ lensId?: string }> {
-    const lens = await this.getActiveLens(userId);
+  async buildLensFilter(userId: string, lens?: string): Promise<{ lensId?: string }> {
+    if (!lens) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { activeLens: true },
+      });
+      lens = user?.activeLens || 'PERSONAL';
+    }
     if (lens === 'FULL') {
       return {};
     }

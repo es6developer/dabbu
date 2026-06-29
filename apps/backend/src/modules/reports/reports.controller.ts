@@ -38,18 +38,21 @@ export class ReportsController {
 
   @Get('monthly')
   @ApiOperation({
-    summary: 'Get monthly report for the last N months (optionally scoped to a group)',
+    summary: 'Get monthly report for the last N months (optionally scoped to a group or lens)',
   })
   @ApiQuery({ name: 'groupId', required: false })
+  @ApiQuery({ name: 'lens', required: false, enum: ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] })
   async getMonthlyReport(
     @CurrentUser('id') userId: string,
     @Query('months') months?: string,
     @Query('groupId') groupId?: string,
+    @Query('lens') lens?: string,
   ) {
     const report = await this.reportsService.getMonthlyReport(
       userId,
       months ? parseInt(months) : 6,
       groupId,
+      lens,
     );
     return { data: report };
   }
@@ -57,29 +60,42 @@ export class ReportsController {
   @Get('annual')
   @ApiOperation({ summary: 'Get annual report for a given year (optionally scoped to a group)' })
   @ApiQuery({ name: 'groupId', required: false })
+  @ApiQuery({ name: 'lens', required: false, enum: ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] })
   async getAnnualReport(
     @CurrentUser('id') userId: string,
     @Query('year') year?: string,
     @Query('groupId') groupId?: string,
+    @Query('lens') lens?: string,
   ) {
     const report = await this.reportsService.getAnnualReport(
       userId,
       year ? parseInt(year) : undefined,
       groupId,
+      lens,
     );
     return { data: report };
   }
 
   @Get('categories')
-  @ApiOperation({ summary: 'Get category-wise spending report (optionally scoped to a group)' })
+  @ApiOperation({
+    summary: 'Get category-wise spending report (optionally scoped to a group or lens)',
+  })
   @ApiQuery({ name: 'groupId', required: false })
+  @ApiQuery({ name: 'lens', required: false, enum: ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] })
   async getCategoryReport(
     @CurrentUser('id') userId: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('groupId') groupId?: string,
+    @Query('lens') lens?: string,
   ) {
-    const report = await this.reportsService.getCategoryReport(userId, startDate, endDate, groupId);
+    const report = await this.reportsService.getCategoryReport(
+      userId,
+      startDate,
+      endDate,
+      groupId,
+      lens,
+    );
     return { data: report };
   }
 
@@ -90,25 +106,28 @@ export class ReportsController {
   @ApiQuery({ name: 'endDate', required: false })
   @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'groupId', required: false })
+  @ApiQuery({ name: 'lens', required: false, enum: ['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'] })
   async getCustomReport(
     @CurrentUser('id') userId: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('categoryId') categoryId?: string,
     @Query('groupId') groupId?: string,
+    @Query('lens') lens?: string,
   ) {
     const report = await this.reportsService.getCustomReport(userId, {
       startDate,
       endDate,
       categoryId,
       groupId,
+      lens,
     });
     return { data: report };
   }
 
   @Post('export')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Export report as PDF/Excel/CSV' })
+  @ApiOperation({ summary: 'Export report as PDF/Excel/CSV (optionally scoped to a lens)' })
   async exportReport(
     @CurrentUser('id') userId: string,
     @Body() dto: ExportReportDto,
@@ -119,6 +138,7 @@ export class ReportsController {
         userId,
         type: dto.type,
         format: dto.format,
+        lens: dto.lens,
         options: {
           startDate: dto.startDate,
           endDate: dto.endDate,
@@ -133,6 +153,7 @@ export class ReportsController {
       endDate: dto.endDate,
       categoryId: dto.categoryId,
       groupId: dto.groupId,
+      lens: dto.lens,
     });
     const fmt = FORMAT_MAP[dto.format] || { ext: dto.format, mime: 'application/octet-stream' };
     res.setHeader('Content-Type', fmt.mime);

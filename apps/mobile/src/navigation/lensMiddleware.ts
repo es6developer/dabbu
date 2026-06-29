@@ -140,7 +140,7 @@ const LENS_TAB_LABELS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'Home',
     WalletTab: 'Wallet',
     SpacesTab: 'Spaces',
-    LifeHubTab: 'Goals',
+    LifeHubTab: 'Reports',
   },
 };
 
@@ -167,7 +167,7 @@ const LENS_TAB_ICONS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'home',
     WalletTab: 'wallet',
     SpacesTab: 'team',
-    LifeHubTab: 'flag',
+    LifeHubTab: 'barschart',
   },
 };
 
@@ -176,13 +176,13 @@ const LENS_TAB_HOME_SCREENS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'LifeDashboard',
     WalletTab: 'WalletHome',
     SpacesTab: 'SpacesDashboard',
-    LifeHubTab: 'Analytics',
+    LifeHubTab: 'PersonalReports',
   },
   PARTNERED: {
     HomeTab: 'LifeDashboard',
     PartnerTab: 'PartnerHome',
     WalletTab: 'WalletHome',
-    LifeHubTab: 'CoupleReports',
+    LifeHubTab: 'PartneredReports',
   },
   FAMILY: {
     HomeTab: 'LifeDashboard',
@@ -194,7 +194,7 @@ const LENS_TAB_HOME_SCREENS: Record<LensMode, Record<string, string>> = {
     HomeTab: 'LifeDashboard',
     WalletTab: 'WalletHome',
     SpacesTab: 'SpacesDashboard',
-    LifeHubTab: 'GoalsList',
+    LifeHubTab: 'FullReports',
   },
 };
 
@@ -213,8 +213,24 @@ const LENS_QUICK_ACTION_FILTER: Record<LensMode, string[]> = {
     'plan_expense',
     'export_report',
   ],
-  FAMILY: ['add_family_expense', 'add_income', 'add_bill', 'add_goal', 'record_allowance', 'create_reminder', 'create_budget'],
-  FULL: ['add_expense', 'create_space', 'add_goal', 'export_report', 'add_investment', 'add_family_member', 'add_income'],
+  FAMILY: [
+    'add_family_expense',
+    'add_income',
+    'add_bill',
+    'add_goal',
+    'record_allowance',
+    'create_reminder',
+    'create_budget',
+  ],
+  FULL: [
+    'add_expense',
+    'create_space',
+    'add_goal',
+    'export_report',
+    'add_investment',
+    'add_family_member',
+    'add_income',
+  ],
 };
 
 function getLensForTab(tabName: string): LensMode | null {

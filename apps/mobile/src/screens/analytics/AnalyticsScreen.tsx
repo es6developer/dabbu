@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Dimensions, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Dimensions,
+} from 'react-native';
 import { AnalyticsSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { AntDesign } from '@expo/vector-icons';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
@@ -139,7 +148,9 @@ export function AnalyticsScreen() {
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     setExporting(format);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const range = getDateRange();
       const reportType =
         reportTab === 'wallet' ? 'expense' : reportTab === 'arrowdown' ? 'income' : 'savings';
@@ -155,6 +166,7 @@ export function AnalyticsScreen() {
         format,
       );
     } catch {
+      // export failed silently
     } finally {
       setExporting(null);
     }
@@ -298,13 +310,15 @@ export function AnalyticsScreen() {
                   </Text>
                   <View style={styles.trendRow}>
                     <AntDesign
-                      name={(i === 0
+                      name={
+                        (i === 0
                           ? incomeTrend >= 0
                             ? 'arrowup'
                             : 'arrowdown'
                           : expenseTrend <= 0
                             ? 'arrowdown'
-                            : 'arrowup') as any}
+                            : 'arrowup') as any
+                      }
                       size={12}
                       color={
                         i === 0
@@ -372,30 +386,92 @@ export function AnalyticsScreen() {
 
             {/* AI Review */}
             {aiReview && (
-              <View style={[styles.chartCard, { backgroundColor: colors.accent.primary + '12', borderWidth: 1, borderColor: colors.accent.primary + '25' }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.accent.primary + '20', alignItems: 'center', justifyContent: 'center' }}>
+              <View
+                style={[
+                  styles.chartCard,
+                  {
+                    backgroundColor: colors.accent.primary + '12',
+                    borderWidth: 1,
+                    borderColor: colors.accent.primary + '25',
+                  },
+                ]}
+              >
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}
+                >
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      backgroundColor: colors.accent.primary + '20',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
                     <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
                   </View>
-                  <Text style={[styles.chartTitle, { color: colors.text.primary, marginBottom: 0, flex: 1 }]}>
+                  <Text
+                    style={[
+                      styles.chartTitle,
+                      { color: colors.text.primary, marginBottom: 0, flex: 1 },
+                    ]}
+                  >
                     AI Monthly Review
                   </Text>
                 </View>
                 {aiReview.summary && (
-                  <Text style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 20, marginBottom: 12 }}>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.text.secondary,
+                      lineHeight: 20,
+                      marginBottom: 12,
+                    }}
+                  >
                     {aiReview.summary}
                   </Text>
                 )}
                 {(aiReview.highlights || []).slice(0, 3).map((h: any, i: number) => (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-                    <AntDesign name="checkcircle" size={14} color={colors.status.success} style={{ marginTop: 2 }} />
-                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>{h.text || h}</Text>
+                  <View
+                    key={i}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <AntDesign
+                      name="checkcircle"
+                      size={14}
+                      color={colors.status.success}
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                      {h.text || h}
+                    </Text>
                   </View>
                 ))}
                 {(aiReview.recommendations || []).slice(0, 2).map((r: any, i: number) => (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-                    <AntDesign name="bulb1" size={14} color={colors.status.warning} style={{ marginTop: 2 }} />
-                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>{r.text || r}</Text>
+                  <View
+                    key={i}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      gap: 8,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <AntDesign
+                      name="bulb1"
+                      size={14}
+                      color={colors.status.warning}
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                      {r.text || r}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -519,7 +595,7 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
-                <AntDesign name="barschart" size={48} color={colors.text.tertiary}  />
+                <AntDesign name="barschart" size={48} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>
@@ -557,13 +633,34 @@ export function AnalyticsScreen() {
             {/* Export buttons */}
             <View style={styles.exportRow}>
               {[
-                { format: 'pdf' as const, label: 'PDF', color: '#EF4444', bg: '#FEF2F2', icon: 'filetext1' },
-                { format: 'excel' as const, label: 'Excel', color: '#22C55E', bg: '#F0FDF4', icon: 'appstore1' },
-                { format: 'csv' as const, label: 'CSV', color: '#3B82F6', bg: '#EFF6FF', icon: 'paperclip' },
+                {
+                  format: 'pdf' as const,
+                  label: 'PDF',
+                  color: '#EF4444',
+                  bg: '#FEF2F2',
+                  icon: 'filetext1',
+                },
+                {
+                  format: 'excel' as const,
+                  label: 'Excel',
+                  color: '#22C55E',
+                  bg: '#F0FDF4',
+                  icon: 'appstore1',
+                },
+                {
+                  format: 'csv' as const,
+                  label: 'CSV',
+                  color: '#3B82F6',
+                  bg: '#EFF6FF',
+                  icon: 'paperclip',
+                },
               ].map((btn) => (
                 <TouchableOpacity
                   key={btn.format}
-                  style={[styles.exportBtn, { backgroundColor: btn.bg, opacity: exporting === btn.format ? 0.6 : 1 }]}
+                  style={[
+                    styles.exportBtn,
+                    { backgroundColor: btn.bg, opacity: exporting === btn.format ? 0.6 : 1 },
+                  ]}
                   onPress={() => handleExport(btn.format)}
                   disabled={exporting !== null}
                   activeOpacity={0.7}
@@ -573,7 +670,9 @@ export function AnalyticsScreen() {
                   ) : (
                     <>
                       <AntDesign name={btn.icon as any} size={15} color={btn.color} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: btn.color }}>{btn.label}</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: btn.color }}>
+                        {btn.label}
+                      </Text>
                     </>
                   )}
                 </TouchableOpacity>

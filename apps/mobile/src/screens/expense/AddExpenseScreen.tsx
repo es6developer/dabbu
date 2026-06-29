@@ -15,7 +15,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 
 const EXPENSE_CATEGORIES = [

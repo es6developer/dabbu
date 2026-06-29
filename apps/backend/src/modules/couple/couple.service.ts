@@ -421,37 +421,6 @@ export class CoupleService {
     return { message: 'Successfully joined couple space' };
   }
 
-  async findCoupleGroup(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        isCouple: true,
-        partnerId: true,
-        partner: { select: { id: true, firstName: true } },
-      },
-    });
-    if (!user?.partnerId) {
-      throw new NotFoundException('Couple not found');
-    }
-
-    const couple = await (this.prisma as any).couple.findFirst({
-      where: {
-        OR: [
-          { partner1Id: userId, partner2Id: user.partnerId },
-          { partner1Id: user.partnerId, partner2Id: userId },
-        ],
-        status: 'active',
-      },
-    });
-
-    if (!couple) {
-      throw new NotFoundException('Couple not found');
-    }
-
-    return couple;
-  }
-
   async getCoupleDashboard(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -517,23 +486,49 @@ export class CoupleService {
       userGoalsList,
     ] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { userId: user.partnerId, deletedAt: null, date: { gte: startOfMonth }, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId: user.partnerId,
+          deletedAt: null,
+          date: { gte: startOfMonth },
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, date: { gte: startOfMonth }, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId,
+          deletedAt: null,
+          date: { gte: startOfMonth },
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { amount: true },
       }),
       this.prisma.goal.aggregate({
-        where: { userId: user.partnerId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId: user.partnerId,
+          deletedAt: null,
+          isCompleted: false,
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { currentAmount: true, targetAmount: true },
       }),
       this.prisma.goal.aggregate({
-        where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId,
+          deletedAt: null,
+          isCompleted: false,
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { currentAmount: true, targetAmount: true },
       }),
       this.prisma.bill.findMany({
-        where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: now }, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId,
+          deletedAt: null,
+          isPaid: false,
+          dueDate: { gte: now },
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         take: 5,
         orderBy: { dueDate: 'asc' },
         select: { id: true, name: true, amount: true, dueDate: true, category: true },
@@ -605,7 +600,12 @@ export class CoupleService {
       }),
       coupleProfile?.groupId
         ? this.prisma.goal.findMany({
-            where: { userId: user.partnerId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
+            where: {
+              userId: user.partnerId,
+              deletedAt: null,
+              isCompleted: false,
+              ...(await this.lensData.buildLensFilter(userId)),
+            },
             select: {
               id: true,
               name: true,
@@ -622,7 +622,12 @@ export class CoupleService {
         : Promise.resolve([]),
       coupleProfile?.groupId
         ? this.prisma.goal.findMany({
-            where: { userId, deletedAt: null, isCompleted: false, ...(await this.lensData.buildLensFilter(userId)) },
+            where: {
+              userId,
+              deletedAt: null,
+              isCompleted: false,
+              ...(await this.lensData.buildLensFilter(userId)),
+            },
             select: {
               id: true,
               name: true,

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useLoadingContext, type ScreenType, type LoadingOptions } from './LoadingContext';
+import { type ScreenType, type LoadingOptions } from './LoadingContext';
 import DashboardLoader from './screens/DashboardLoader';
 import SplitLoader from './screens/SplitLoader';
 import PaymentLoader from './screens/PaymentLoader';
@@ -12,7 +12,6 @@ import ReportLoader from './screens/ReportLoader';
 import PremiumLoader from './PremiumLoader';
 import FactCarouselLoader from './FactCarouselLoader';
 import MiniGameLoader from './MiniGameLoader';
-import ProgressiveLoader from './ProgressiveLoader';
 import SmartProgressBar from './SmartProgressBar';
 import ErrorLoadingScreen from './ErrorLoadingScreen';
 

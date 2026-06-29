@@ -96,11 +96,21 @@ export class CoupleDashboardService {
         select: { id: true, firstName: true, lastName: true, avatarUrl: true, maritalStatus: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId, deletedAt: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId,
+          deletedAt: null,
+          date: { gte: monthStart, lte: monthEnd },
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { userId: partnerId, deletedAt: null, date: { gte: monthStart, lte: monthEnd }, ...(await this.lensData.buildLensFilter(userId)) },
+        where: {
+          userId: partnerId,
+          deletedAt: null,
+          date: { gte: monthStart, lte: monthEnd },
+          ...(await this.lensData.buildLensFilter(userId)),
+        },
         _sum: { amount: true },
       }),
       groupId
@@ -154,7 +164,11 @@ export class CoupleDashboardService {
         : Promise.resolve([]),
       groupId
         ? this.prisma.bill.findMany({
-            where: { OR: [{ userId }, { userId: partnerId }], isPaid: false, ...(await this.lensData.buildLensFilter(userId)) },
+            where: {
+              OR: [{ userId }, { userId: partnerId }],
+              isPaid: false,
+              ...(await this.lensData.buildLensFilter(userId)),
+            },
             orderBy: { dueDate: 'asc' },
             take: 10,
           })
@@ -1016,7 +1030,12 @@ export class CoupleDashboardService {
     return {
       hasPartner: true,
       partner: partner
-        ? { id: partner.id, name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim(), email: partner.email, avatarUrl: partner.avatarUrl }
+        ? {
+            id: partner.id,
+            name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim(),
+            email: partner.email,
+            avatarUrl: partner.avatarUrl,
+          }
         : null,
       relationship: {
         coupleId: couple.id,
@@ -1046,12 +1065,22 @@ export class CoupleDashboardService {
     if (!couple) {
       throw new NotFoundException('Couple not found');
     }
-    if (body.sinceDate || body.maritalStatus || body.anniversaryDate) {
-      await (this.prisma as any).couple.update({
-        where: { id: couple.id },
-        data: {
+    if (body.maritalStatus) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { maritalStatus: body.maritalStatus },
+      });
+    }
+    if (body.sinceDate || body.anniversaryDate) {
+      await (this.prisma as any).couplePreference.upsert({
+        where: { coupleId: couple.id },
+        create: {
+          coupleId: couple.id,
           sinceDate: body.sinceDate ? new Date(body.sinceDate) : undefined,
-          maritalStatus: body.maritalStatus,
+          anniversaryDate: body.anniversaryDate ? new Date(body.anniversaryDate) : undefined,
+        },
+        update: {
+          sinceDate: body.sinceDate ? new Date(body.sinceDate) : undefined,
           anniversaryDate: body.anniversaryDate ? new Date(body.anniversaryDate) : undefined,
         },
       });

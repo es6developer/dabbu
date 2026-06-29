@@ -9,7 +9,7 @@ export class ReportsService {
     private readonly lensData: LensDataService,
   ) {}
 
-  async getMonthlyReport(userId: string, months = 6, groupId?: string) {
+  async getMonthlyReport(userId: string, months = 6, groupId?: string, lens?: string) {
     if (groupId) {
       return this.getGroupMonthlyReport(userId, groupId, months);
     }
@@ -17,9 +17,9 @@ export class ReportsService {
     const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    const lensFilter = await this.lensData.buildLensFilter(userId);
+    const lensFilter = await this.lensData.buildLensFilter(userId, lens);
     const transactions = await this.prisma.transaction.findMany({
-              where: {
+      where: {
         userId,
         ...lensFilter,
         date: { gte: startDate, lte: endDate },
@@ -96,7 +96,7 @@ export class ReportsService {
     };
   }
 
-  async getAnnualReport(userId: string, year?: number, groupId?: string) {
+  async getAnnualReport(userId: string, year?: number, groupId?: string, lens?: string) {
     if (groupId) {
       return this.getGroupAnnualReport(userId, groupId, year);
     }
@@ -104,7 +104,7 @@ export class ReportsService {
     const startDate = new Date(targetYear, 0, 1);
     const endDate = new Date(targetYear, 11, 31, 23, 59, 59);
 
-    const lensFilter = await this.lensData.buildLensFilter(userId);
+    const lensFilter = await this.lensData.buildLensFilter(userId, lens);
     const transactions = await this.prisma.transaction.findMany({
       where: { userId, ...lensFilter, date: { gte: startDate, lte: endDate }, deletedAt: null },
       include: { category: true },
@@ -150,7 +150,13 @@ export class ReportsService {
     };
   }
 
-  async getCategoryReport(userId: string, startDate?: string, endDate?: string, groupId?: string) {
+  async getCategoryReport(
+    userId: string,
+    startDate?: string,
+    endDate?: string,
+    groupId?: string,
+    lens?: string,
+  ) {
     if (groupId) {
       return this.getGroupCategoryReport(userId, groupId, startDate, endDate);
     }
@@ -159,9 +165,15 @@ export class ReportsService {
       ? new Date(startDate)
       : new Date(end.getFullYear(), end.getMonth() - 5, 1);
 
-    const lensFilter = await this.lensData.buildLensFilter(userId);
+    const lensFilter = await this.lensData.buildLensFilter(userId, lens);
     const transactions = await this.prisma.transaction.findMany({
-      where: { userId, ...lensFilter, date: { gte: start, lte: end }, deletedAt: null, type: 'expense' },
+      where: {
+        userId,
+        ...lensFilter,
+        date: { gte: start, lte: end },
+        deletedAt: null,
+        type: 'expense',
+      },
       include: { category: true },
     });
 
@@ -373,21 +385,23 @@ export class ReportsService {
 
   private async getReportData(userId: string, type: string, options?: any): Promise<any> {
     const groupId = options?.groupId;
+    const lens = options?.lens;
     if (type === 'custom') {
       return this.getCustomReport(userId, options);
     }
     if (type === 'monthly') {
-      return this.getMonthlyReport(userId, parseInt(options?.months) || 6, groupId);
+      return this.getMonthlyReport(userId, parseInt(options?.months) || 6, groupId, lens);
     }
     if (type === 'annual') {
       return this.getAnnualReport(
         userId,
         parseInt(options?.year) || new Date().getFullYear(),
         groupId,
+        lens,
       );
     }
     if (type === 'category' || type === 'categories') {
-      return this.getCategoryReport(userId, options?.startDate, options?.endDate, groupId);
+      return this.getCategoryReport(userId, options?.startDate, options?.endDate, groupId, lens);
     }
     throw new Error(`Unsupported report type: ${type}`);
   }
@@ -433,7 +447,7 @@ export class ReportsService {
       };
     }
 
-    const lensFilter = await this.lensData.buildLensFilter(userId);
+    const lensFilter = await this.lensData.buildLensFilter(userId, options?.lens);
     const where: any = {
       userId,
       ...lensFilter,

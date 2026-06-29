@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cn, formatCurrency, formatDate, getInitials, getRandomColor } from '@/lib/utils';
+import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { MemberAvatar } from './member-avatar';
 import { api, type Settlement } from '@/lib/api';

@@ -5,7 +5,6 @@ export { useLoader } from '@/hooks/useLoader';
 export { default as SmartProgressBar } from './SmartProgressBar';
 export { default as FactCarouselLoader } from './FactCarouselLoader';
 export { default as MiniGameLoader } from './MiniGameLoader';
-export { default as ProgressiveLoader } from './ProgressiveLoader';
 export { default as PremiumLoader } from './PremiumLoader';
 export { default as OverlayLoader } from './OverlayLoader';
 export { default as ErrorLoadingScreen } from './ErrorLoadingScreen';

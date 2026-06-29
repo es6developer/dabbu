@@ -36,17 +36,4 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     await this.$disconnect();
     this.logger.log('Database disconnected');
   }
-
-  async cleanDatabase(): Promise<void> {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Cannot clean database in production');
-    }
-    const tableNames = Object.values(this).filter(
-      (value): value is { tableName: string } =>
-        typeof value === 'object' && value !== null && 'tableName' in value,
-    );
-    for (const table of tableNames) {
-      await this.$executeRawUnsafe(`DELETE FROM \`${table.tableName}\``);
-    }
-  }
 }

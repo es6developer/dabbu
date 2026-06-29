@@ -16,12 +16,11 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { borderRadius, shadows } from '../../theme/design';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
-import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
@@ -29,10 +28,8 @@ import { onDataRefresh } from '../../services/dataRefresh';
 import { HomeHeader } from '../../components/dashboard/HomeHeader';
 import { NetWorthCard } from '../../components/dashboard/NetWorthCard';
 import { AICoachCarousel } from '../../components/dashboard/AICoachCarousel';
-import { QuickAddBar } from '../../components/dashboard/QuickAddBar';
 import { SpaceSwitcher } from '../../components/global/SpaceSwitcher';
 import { DabbuScoreMini } from '../../components/global/DabbuScoreMini';
-import { AIInsightCard } from '../../components/global/AIInsightCard';
 import { useLifeEventStore } from '../../store/lifeEventStore';
 
 const W = Dimensions.get('window').width;
@@ -1737,7 +1734,7 @@ export function HomeScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('FamilyHub', { screen: 'FamilyHome' })}
+                  onPress={() => navigation.navigate('SpacesTab', { screen: 'SpacesDashboard' })}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                     See All
@@ -1761,14 +1758,14 @@ export function HomeScreen() {
                       activeOpacity={0.7}
                       onPress={() => {
                         if (g.type === 'couple') {
-                          navigation.navigate('CoupleFinance', {
-                            groupId: g.id,
-                            groupName: g.name,
+                          navigation.navigate('PartnerTab', {
+                            screen: 'PartnerHome',
+                            params: { groupId: g.id, groupName: g.name },
                           });
                         } else if (g.type === 'family') {
-                          navigation.navigate('FamilyDashboard', {
-                            groupId: g.id,
-                            groupName: g.name,
+                          navigation.navigate('FamilyMembersTab', {
+                            screen: 'FamilyMembersHome',
+                            params: { groupId: g.id, groupName: g.name },
                           });
                         } else {
                           navigation.navigate('SharedGroupDetail', {
@@ -1885,9 +1882,8 @@ export function HomeScreen() {
                       key={r.id || i}
                       activeOpacity={0.7}
                       onPress={() =>
-                        navigation.navigate('FamilyHub', {
-                          screen: 'ReminderDetail',
-                          params: { id: r.id },
+                        navigation.navigate('HomeTab', {
+                          screen: 'LifeDashboard',
                         })
                       }
                       style={{
@@ -1940,7 +1936,7 @@ export function HomeScreen() {
                 })}
                 {reminders.length > 0 && (
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('FamilyHub')}
+                    onPress={() => navigation.navigate('HomeTab', { screen: 'LifeDashboard' })}
                     style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
                   >
                     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>

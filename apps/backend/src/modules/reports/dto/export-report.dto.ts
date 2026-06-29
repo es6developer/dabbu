@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsIn } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ExportReportDto {
@@ -7,6 +7,11 @@ export class ExportReportDto {
 
   @IsString()
   format: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['PERSONAL', 'PARTNERED', 'FAMILY', 'FULL'])
+  lens?: string;
 
   @IsOptional()
   @IsString()
