@@ -2,7 +2,6 @@ import { api } from './api';
 
 const PRELOAD_ENDPOINTS: string[] = [
   // HomeScreen dashboard — critical for first paint
-  '/accounts/stats',
   '/transactions/stats?months=1',
 
   // Reminders & notification badge (HomeScreen header)
@@ -19,9 +18,6 @@ const PRELOAD_ENDPOINTS: string[] = [
 
   // Goals & savings
   '/goals',
-
-  // Account summary (used by multiple screens)
-  '/accounts/summary',
 
   // Premium status (settings, upsells)
   '/premium/check',

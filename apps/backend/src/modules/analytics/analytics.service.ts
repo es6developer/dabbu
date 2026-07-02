@@ -25,11 +25,7 @@ export class AnalyticsService {
 
     const lensFilter = await this.lensData.buildLensFilter(userId);
 
-    const [accountAgg, incomeAgg, expenseAgg, activeAccounts, upcomingBills, activeBudgets, recentTransactions, budgetsWithSpend] = await Promise.all([
-      this.prisma.account.aggregate({
-        where: { userId, ...lensFilter, isArchived: false },
-        _sum: { balance: true },
-      }),
+    const [incomeAgg, expenseAgg, upcomingBills, activeBudgets, recentTransactions, budgetsWithSpend] = await Promise.all([
       this.prisma.transaction.aggregate({
         where: {
           userId,
@@ -48,9 +44,6 @@ export class AnalyticsService {
         },
         _sum: { amount: true },
       }),
-      this.prisma.account.count({
-        where: { userId, ...lensFilter, isArchived: false },
-      }),
       this.prisma.bill.count({
         where: { userId, ...lensFilter, isPaid: false },
       }),
@@ -63,7 +56,6 @@ export class AnalyticsService {
         take: 10,
         include: {
           category: true,
-          account: true,
         },
       }),
       this.prisma.budget.findMany({
@@ -72,7 +64,7 @@ export class AnalyticsService {
       }),
     ]);
 
-    const totalBalance = accountAgg._sum.balance?.toNumber() ?? 0;
+    const totalBalance = 0;
     const monthlyIncome = incomeAgg._sum.amount?.toNumber() ?? 0;
     const monthlyExpense = expenseAgg._sum.amount?.toNumber() ?? 0;
     const savingsRate = monthlyIncome > 0
@@ -103,7 +95,6 @@ export class AnalyticsService {
       monthlyIncome,
       monthlyExpense,
       savingsRate: Math.round(savingsRate * 100) / 100,
-      activeAccounts,
       upcomingBills,
       activeBudgets,
       recentTransactions,
@@ -225,11 +216,7 @@ export class AnalyticsService {
     const { startDate, endDate } = this.resolveDateRange(query);
     const lensFilter = await this.lensData.buildLensFilter(userId);
 
-    const [accounts, bills] = await Promise.all([
-      this.prisma.account.findMany({
-        where: { userId, ...lensFilter, isArchived: false },
-        select: { balance: true },
-      }),
+    const [bills] = await Promise.all([
       this.prisma.bill.findMany({
         where: {
           userId,
@@ -242,29 +229,14 @@ export class AnalyticsService {
       }),
     ]);
 
-    const totalAssets = accounts.reduce((sum, a) => sum + a.balance.toNumber(), 0);
+    const totalAssets = 0;
     const totalLiabilities = bills.reduce((sum, b) => sum + b.amount.toNumber(), 0);
 
-    const liabilityByDate = new Map<string, number>();
-    let runningLiability = totalLiabilities;
-    for (const bill of bills) {
-      const key = this.formatDateKey(bill.dueDate);
-      runningLiability -= bill.amount.toNumber();
-      liabilityByDate.set(key, Math.max(0, runningLiability));
-    }
-
-    const timeline = Array.from(liabilityByDate.entries()).map(([date, liabilities]) => ({
-      date,
-      assets: totalAssets,
-      liabilities: Math.round(liabilities * 100) / 100,
-      netWorth: Math.round((totalAssets - liabilities) * 100) / 100,
-    }));
-
     return {
-      totalAssets: Math.round(totalAssets * 100) / 100,
+      totalAssets: 0,
       totalLiabilities: Math.round(totalLiabilities * 100) / 100,
-      netWorth: Math.round((totalAssets - totalLiabilities) * 100) / 100,
-      timeline,
+      netWorth: Math.round((-totalLiabilities) * 100) / 100,
+      timeline: [],
     };
   }
 

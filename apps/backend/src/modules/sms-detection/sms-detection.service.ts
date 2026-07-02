@@ -144,11 +144,6 @@ export class SmsDetectionService {
         return { success: false, message: 'Duplicate SMS — already processed', existing };
       }
 
-      const account = await this.prisma.account.findFirst({
-        where: { userId, isActive: true, isArchived: false, isDeleted: false },
-        orderBy: { sortOrder: 'asc' },
-      });
-
       const txType =
         categorization?.categoryType === 'income'
           ? 'income'
@@ -160,7 +155,6 @@ export class SmsDetectionService {
         this.prisma.transaction.create({
           data: {
             userId,
-            accountId: account?.id || null,
             categoryId,
             amount: parsed.amount,
             type: txType,
@@ -225,15 +219,9 @@ export class SmsDetectionService {
         return { success: false, message: 'No amount detected' };
       }
 
-      const account = await this.prisma.account.findFirst({
-        where: { userId, isActive: true, isArchived: false, isDeleted: false },
-        orderBy: { sortOrder: 'asc' },
-      });
-
       const transaction = await this.prisma.transaction.create({
         data: {
           userId,
-          accountId: account?.id || null,
           categoryId: detection.categoryId,
           amount: detection.detectedAmount,
           type: detection.detectedType || 'expense',

@@ -19,9 +19,9 @@ const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
-  Expense: { label: 'Expenses', icon: 'filetext1', desc: 'Transactions & accounts' },
+  Expense: { label: 'Expenses', icon: 'filetext1', desc: 'Transactions' },
   QuickAction: { label: 'Quick Action', icon: 'pluscircle', desc: 'Center FAB with quick actions' },
-  Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
+  Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses with groups' },
   Settings: { label: 'Settings', icon: 'settings', desc: 'Profile, preferences & more' },
 };
 
@@ -206,7 +206,6 @@ export function CustomiseBottomMenuScreen() {
 
 function migrateConfig(config: TabConfig[]): TabConfig[] {
   const oldKeyMap: Record<string, string> = {
-    Accounts: 'Expense',
     Shared: 'Spaces',
   };
   return config.map((t) => ({

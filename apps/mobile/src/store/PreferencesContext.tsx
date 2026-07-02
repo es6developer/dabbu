@@ -55,7 +55,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [quickActionVisible, setQuickActionVisibleState] = useState(true);
 
   const oldKeyMap: Record<string, string> = {
-    Accounts: 'Expense',
     Shared: 'Spaces',
     Expense: 'Goals',
   };

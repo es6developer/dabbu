@@ -109,7 +109,6 @@ export function CoupleFinance({ navigation }: any) {
   const COLORS = {
     expenses: colors.status.error,
     income: colors.status.success,
-    accounts: '#3B82F6',
     settlement: '#F97316',
     contribution: colors.accent.secondary,
     whoPaid: '#14B8A6',
@@ -261,34 +260,7 @@ export function CoupleFinance({ navigation }: any) {
               )}
             </WidgetCard>
 
-            {/* 3. Shared Accounts */}
-            <WidgetCard
-              icon="wallet"
-              title="Shared Accounts"
-              color={COLORS.accounts}
-              delay={200}
-              onPress={() => navigation.navigate('BudgetsList')}
-            >
-              <Text style={[styles.amountLabel, { color: COLORS.accounts }]}>
-                {fmt(sharedBalance)}
-              </Text>
-              <View style={styles.cardList}>
-                <View style={styles.cardListItem}>
-                  <Text style={[styles.cardListItemText, { color: colors.text.secondary }]}>Combined</Text>
-                  <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
-                    {shortFmt(sharedBalance)}
-                  </Text>
-                </View>
-                <View style={styles.cardListItem}>
-                  <Text style={[styles.cardListItemText, { color: colors.text.secondary }]}>This Month</Text>
-                  <Text style={[styles.cardListItemAmount, { color: colors.text.primary }]}>
-                    {shortFmt(expenses + income)}
-                  </Text>
-                </View>
-              </View>
-            </WidgetCard>
-
-            {/* 4. Settlement */}
+            {/* 3. Settlement */}
             <WidgetCard
               icon="swap"
               title="Settlement"

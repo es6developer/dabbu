@@ -48,7 +48,6 @@ export class TransactionsService {
         userId,
         spaceId,
         lensId,
-        accountId: dto.accountId || null,
         categoryId,
         expenseGroupId: dto.expenseGroupId || null,
         amount: dto.amount,
@@ -177,9 +176,6 @@ export class TransactionsService {
     if (filter.categoryId) {
       where.categoryId = filter.categoryId;
     }
-    if (filter.accountId) {
-      where.accountId = filter.accountId;
-    }
     if (filter.startDate) {
       where.date = { ...where.date, gte: new Date(filter.startDate) };
     }
@@ -288,7 +284,6 @@ export class TransactionsService {
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
         ...(dto.categoryId !== undefined && { categoryId: dto.categoryId }),
-        ...(dto.accountId !== undefined && { accountId: dto.accountId }),
         ...(dto.date !== undefined && { date: new Date(dto.date) }),
         ...(dto.tags !== undefined && { tags: dto.tags }),
         ...(dto.isRecurring !== undefined && { isRecurring: dto.isRecurring }),
@@ -496,7 +491,7 @@ export class TransactionsService {
   async getRecurring(userId: string) {
     const transactions = await this.prisma.transaction.findMany({
       where: { userId, isRecurring: true, deletedAt: null, ...(await this.lensWhere(userId)) },
-      include: { category: true, account: { select: { name: true } } },
+      include: { category: true },
       orderBy: { date: 'desc' },
     });
     return { data: transactions };
@@ -529,7 +524,6 @@ export class TransactionsService {
         userId,
         spaceId,
         lensId,
-        accountId: dto.accountId || null,
         categoryId: dto.categoryId || null,
         expenseGroupId: dto.expenseGroupId || null,
         amount: dto.amount,

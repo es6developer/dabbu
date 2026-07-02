@@ -80,7 +80,7 @@ export function HealthScoreScreen() {
           </View>
           {!loading && !hasScore && (
             <Text style={[styles.noDataText, { color: colors.text.tertiary }]}>
-              Add transactions and accounts to see your financial health score
+              Add transactions to see your financial health score
             </Text>
           )}
         </View>
@@ -90,7 +90,7 @@ export function HealthScoreScreen() {
             <AntDesign name="barschart" size={48} color={colors.text.tertiary}  />
             <Text style={[styles.noDataTitle, { color: colors.text.primary }]}>No data yet</Text>
             <Text style={[styles.noDataDesc, { color: colors.text.tertiary }]}>
-              Start adding income, expenses, and accounts to track your financial health
+              Start adding income and expenses to track your financial health
             </Text>
           </View>
         ) : (

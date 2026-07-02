@@ -25,7 +25,7 @@ export function DataExportScreen() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await api.post<any>('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'accounts', 'budgets', 'settings', 'streaks'] });
+      const res = await api.post<any>('/compliance/export?format=json', { includes: ['transactions', 'goals', 'bills', 'budgets', 'settings', 'streaks'] });
       const data = res.data?.data || res;
       if (data.data) {
         const jsonStr = JSON.stringify(data.data, null, 2);

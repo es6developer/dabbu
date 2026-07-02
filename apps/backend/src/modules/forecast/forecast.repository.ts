@@ -17,14 +17,6 @@ export class ForecastRepository {
     });
   }
 
-  async findAccounts(userId: string) {
-    const lensFilter = await this.lensData.buildLensFilter(userId);
-    return this.prisma.account.findMany({
-      where: { userId, ...lensFilter, deletedAt: null },
-      select: { balance: true, type: true },
-    });
-  }
-
   async findUnpaidBills(userId: string) {
     const lensFilter = await this.lensData.buildLensFilter(userId);
     return this.prisma.bill.findMany({
@@ -60,11 +52,4 @@ export class ForecastRepository {
     });
   }
 
-  async findAccountBalances(userId: string) {
-    const lensFilter = await this.lensData.buildLensFilter(userId);
-    return this.prisma.account.findMany({
-      where: { userId, ...lensFilter, deletedAt: null },
-      select: { balance: true },
-    });
-  }
 }

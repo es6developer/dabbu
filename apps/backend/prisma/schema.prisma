@@ -150,7 +150,6 @@ model User {
   smsDetections                SmsDetection[]
   settings                     Settings?
   auditLogs                    AuditLog[]
-  accounts                     Account[]
   budgets                      Budget[]
   bills                        Bill[]
   scannedBills                 ScannedBill[]
@@ -655,45 +654,6 @@ model SharedReminder {
   @@map("shared_reminders")
 }
 
-// ─── ACCOUNTS ──────────────────────────────────────────────
-// Financial accounts (bank, credit card, cash, investment, etc.)
-model Account {
-  id             String    @id @default(uuid()) @db.VarChar(36)
-  userId         String    @db.VarChar(36)
-  name           String    @db.VarChar(255)
-  type           String    @db.VarChar(20) // checking, savings, credit_card, cash, investment, loan, wallet
-  currency       String    @default("USD") @db.VarChar(10)
-  balance        Decimal   @default(0) @db.Decimal(15, 2)
-  initialBalance Decimal   @default(0) @db.Decimal(15, 2)
-  creditLimit    Decimal?  @db.Decimal(15, 2)
-  color          String?   @db.VarChar(50)
-  icon           String?   @db.VarChar(50)
-  isActive       Boolean   @default(true)
-  isArchived     Boolean   @default(false)
-  isDeleted      Boolean   @default(false)
-  lastSyncedAt   DateTime?
-  description    String?   @db.VarChar(500)
-  institution    String?   @db.VarChar(255)
-  lastFourDigits String?   @db.VarChar(4)
-  sortOrder      Int       @default(0)
-  lensId         String?   @db.VarChar(20)
-  deletedAt      DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-  bills        Bill[]
-  investments  Investment[]
-
-  @@index([userId, isActive])
-  @@index([userId, isDeleted])
-  @@index([userId, type])
-  @@index([userId, isArchived])
-  @@map("accounts")
-}
-
 // ─── TRANSACTION CATEGORIES ────────────────────────────────
 // Hierarchical transaction categories
 model TransactionCategory {
@@ -732,7 +692,6 @@ model TransactionCategory {
 model Transaction {
   id                  String    @id @default(uuid()) @db.VarChar(36)
   userId              String    @db.VarChar(36)
-  accountId           String?   @db.VarChar(36)
   categoryId          String?   @db.VarChar(36)
   amount              Decimal   @db.Decimal(15, 2)
   type                String    @db.VarChar(10) // income, expense, transfer
@@ -749,7 +708,6 @@ model Transaction {
   exchangeRate        Decimal?  @db.Decimal(10, 6)
   originalCurrency    String?   @db.VarChar(10)
   originalAmount      Decimal?  @db.Decimal(15, 2)
-  transferToAccountId String?   @db.VarChar(36)
   isReviewed          Boolean   @default(false)
   isSplit             Boolean   @default(false)
   parentTransactionId String?   @db.VarChar(36)
@@ -763,7 +721,6 @@ model Transaction {
 
   // Relations
   user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account           Account?             @relation(fields: [accountId], references: [id])
   category          TransactionCategory? @relation(fields: [categoryId], references: [id])
   expenseGroup      ExpenseGroup?        @relation(fields: [expenseGroupId], references: [id])
   space             Space?               @relation(fields: [spaceId], references: [id], onDelete: SetNull)
@@ -771,7 +728,6 @@ model Transaction {
   parentTransaction Transaction?         @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
 
   @@index([userId, date])
-  @@index([accountId, date])
   @@index([categoryId, date])
   @@index([userId, type, date])
   @@index([userId, status])
@@ -825,7 +781,6 @@ model Budget {
 model Bill {
   id           String    @id @default(uuid()) @db.VarChar(36)
   userId       String    @db.VarChar(36)
-  accountId    String?   @db.VarChar(36)
   categoryId   String?   @db.VarChar(36)
   lensId       String?   @db.VarChar(20)
   name         String    @db.VarChar(255)
@@ -846,7 +801,6 @@ model Bill {
 
   // Relations
   user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  Account?             @relation(fields: [accountId], references: [id])
   category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([userId, dueDate])
@@ -863,7 +817,6 @@ model Bill {
 model Goal {
   id                  String    @id @default(uuid()) @db.VarChar(36)
   userId              String    @db.VarChar(36)
-  accountId           String?   @db.VarChar(36)
   name                String    @db.VarChar(255)
   targetAmount        Decimal   @db.Decimal(15, 2)
   currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
@@ -901,7 +854,6 @@ model Goal {
 model Investment {
   id           String    @id @default(uuid()) @db.VarChar(36)
   userId       String    @db.VarChar(36)
-  accountId    String?   @db.VarChar(36)
   name         String    @db.VarChar(255)
   type         String    @db.VarChar(20) // stock, crypto, mutual_fund, etf, bond, real_estate, other
   symbol       String?   @db.VarChar(20)
@@ -918,7 +870,6 @@ model Investment {
 
   // Relations
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account Account? @relation(fields: [accountId], references: [id])
 
   @@index([userId, type])
   @@index([userId, symbol])

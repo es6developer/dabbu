@@ -152,7 +152,7 @@ export class LensDashboardService {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const [incomeAgg, expenseAgg, netWorth, goals, bills, budgets, accounts] = await Promise.all([
+    const [incomeAgg, expenseAgg, netWorth, goals, bills, budgets] = await Promise.all([
       this.prisma.transaction
         .aggregate({
           where: {
@@ -210,12 +210,6 @@ export class LensDashboardService {
           select: { id: true, name: true, amount: true, spent: true },
         })
         .catch(() => []),
-      this.prisma.account
-        .findMany({
-          where: { userId, deletedAt: null },
-          select: { id: true, name: true, type: true, balance: true, institution: true },
-        })
-        .catch(() => []),
     ]);
 
     const income = Number(incomeAgg._sum?.amount || 0);
@@ -264,13 +258,7 @@ export class LensDashboardService {
             ? Math.min(100, Math.round((Number(b.spent) / Number(b.amount)) * 100))
             : 0,
       })),
-      accountBalances: accounts.map((a) => ({
-        id: a.id,
-        name: a.name,
-        type: a.type,
-        balance: Number(a.balance),
-        institution: a.institution,
-      })),
+      accountBalances: [],
     };
   }
 

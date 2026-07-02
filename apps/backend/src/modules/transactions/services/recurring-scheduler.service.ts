@@ -61,7 +61,6 @@ export class RecurringSchedulerService {
           data: {
             userId: latest.userId,
             lensId: await this.lensData.getActiveLens(latest.userId),
-            accountId: latest.accountId,
             categoryId: latest.categoryId,
             expenseGroupId: latest.expenseGroupId,
             amount: latest.amount,

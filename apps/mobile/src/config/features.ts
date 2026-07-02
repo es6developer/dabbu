@@ -11,7 +11,6 @@ export type FeatureKey =
   | 'recurring_detection'
   | 'ai_insights'
   | 'export_data'
-  | 'unlimited_accounts'
   | 'family_sharing'
   | 'chat'
   | 'budgets'
@@ -36,7 +35,6 @@ const DEFAULT_FEATURES: FeatureFlag[] = [
   { key: 'recurring_detection', label: 'Recurring Detection', requiredTier: 'PREMIUM', enabled: true },
   { key: 'ai_insights', label: 'AI Insights', requiredTier: 'PREMIUM', enabled: true },
   { key: 'export_data', label: 'Export PDF/Excel', requiredTier: 'PREMIUM', enabled: true },
-  { key: 'unlimited_accounts', label: 'Unlimited Accounts', requiredTier: 'FREE', enabled: true },
   { key: 'family_sharing', label: 'Family Sharing', requiredTier: 'FAMILY', enabled: true },
   { key: 'chat', label: 'Family Chat', requiredTier: 'FAMILY', enabled: true },
   { key: 'budgets', label: 'Budgets', requiredTier: 'FREE', enabled: true },

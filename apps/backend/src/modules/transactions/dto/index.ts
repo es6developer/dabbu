@@ -22,8 +22,6 @@ export class CreateTransactionDto {
 
   @ApiProperty({ enum: TransactionType }) @IsEnum(TransactionType) type: TransactionType;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
-
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
@@ -67,7 +65,6 @@ export class UpdateTransactionDto {
   @IsOptional()
   @IsEnum(TransactionType)
   type?: TransactionType;
-  @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
@@ -84,7 +81,6 @@ export class UpdateTransactionDto {
 export class TransactionFilterDto {
   @ApiPropertyOptional() @IsOptional() @IsString() type?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) minAmount?: number;

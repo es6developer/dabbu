@@ -182,7 +182,6 @@ export function warmupBackend(): Promise<void> {
   const warmupEndpoints = [
     '/health',
     '/categories',
-    '/accounts/stats',
     '/transactions/stats?months=1',
   ];
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -251,8 +250,6 @@ function startKeepAlive(): void {
 const REQUEST_TIMEOUT = 20_000;
 
 const CACHE_TTL: Record<string, number> = {
-  '/accounts': 300_000,
-  '/accounts/stats': 300_000,
   '/transactions': 120_000,
   '/transactions/stats': 180_000,
   '/transactions/categories-summary': 300_000,
@@ -410,7 +407,6 @@ const MUTATION_AFFECTED_PREFIXES: Record<string, string[]> = {
   '/expense-groups': ['/expense-groups', '/shared-finance', '/dashboard'],
   '/goals': ['/goals', '/dashboard', '/wealth'],
   '/budgets': ['/budgets', '/dashboard', '/analytics'],
-  '/accounts': ['/accounts', '/dashboard', '/wealth'],
 };
 
 function invalidateCacheForMutation(path: string): void {

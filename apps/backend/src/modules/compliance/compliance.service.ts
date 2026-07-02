@@ -117,7 +117,7 @@ export class ComplianceService {
   }
 
   async exportUserData(userId: string, format: 'json' | 'pdf' = 'json', includes?: string[]) {
-    const exportIncludes = includes || ['transactions', 'goals', 'bills', 'accounts', 'budgets', 'settings', 'profile'];
+    const exportIncludes = includes || ['transactions', 'goals', 'bills', 'budgets', 'settings', 'profile'];
 
     const data: any = { exportedAt: new Date().toISOString(), userId };
 
@@ -149,12 +149,6 @@ export class ComplianceService {
 
     if (exportIncludes.includes('bills')) {
       data.bills = await this.prisma.bill.findMany({
-        where: { userId, deletedAt: null },
-      });
-    }
-
-    if (exportIncludes.includes('accounts')) {
-      data.accounts = await this.prisma.account.findMany({
         where: { userId, deletedAt: null },
       });
     }
@@ -433,21 +427,6 @@ export class ComplianceService {
           restored++;
         } catch (err: any) {
           errors.push(`Bill ${bill.id}: ${err.message}`);
-        }
-      }
-    }
-
-    if (exportData.accounts && Array.isArray(exportData.accounts)) {
-      for (const account of exportData.accounts) {
-        try {
-          await this.prisma.account.upsert({
-            where: { id: account.id || '' },
-            update: { ...account, userId },
-            create: { ...account, userId },
-          });
-          restored++;
-        } catch (err: any) {
-          errors.push(`Account ${account.id}: ${err.message}`);
         }
       }
     }

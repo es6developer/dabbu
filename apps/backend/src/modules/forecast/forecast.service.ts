@@ -14,14 +14,13 @@ export class ForecastService {
     const startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + monthsCap, 0, 23, 59, 59);
 
-    const [transactions, accounts, bills, loans] = await Promise.all([
+    const [transactions, bills, loans] = await Promise.all([
       this.repo.findTransactions(userId, startDate),
-      this.repo.findAccounts(userId),
       this.repo.findUnpaidBills(userId),
       this.repo.findLoans(userId),
     ]);
 
-    const currentBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
+    const currentBalance = 0;
 
     const monthlyData = new Map<string, { income: number; expense: number }>();
     for (let i = 5; i >= 0; i--) {
@@ -109,13 +108,12 @@ export class ForecastService {
     const monthsCap = Math.min(months, 120);
     const now = new Date();
 
-    const [accounts, goals] = await Promise.all([
-      this.repo.findAccountBalances(userId),
+    const [goals] = await Promise.all([
       this.repo.findGoals(userId),
     ]);
 
-    const currentBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
-    const savingsRate = monthlySavings ?? Math.round(currentBalance * 0.2);
+    const currentBalance = 0;
+    const savingsRate = monthlySavings ?? 0;
 
     type SavingsProjection = {
       month: string;

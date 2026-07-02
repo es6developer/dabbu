@@ -221,7 +221,6 @@ async function main() {
     prisma.bill.deleteMany(),
     prisma.budget.deleteMany(),
     prisma.transaction.deleteMany(),
-    prisma.account.deleteMany(),
     prisma.session.deleteMany(),
     prisma.device.deleteMany(),
     prisma.settings.deleteMany(),
@@ -477,7 +476,6 @@ async function main() {
 
   // ── Demo Mobile User ──
   const userRecords: Array<{ id: string; email: string; firstName: string; lastName: string }> = [];
-  const accountRecords: Array<{ id: string; userId: string; type: string; balance: any }> = [];
 
   const freePlanId = planRecords[0].id;
   const monthlyPremiumPlanId = planRecords[1].id;
@@ -552,47 +550,7 @@ async function main() {
   }
   userCategoryMap.set(demoUser.id, demoCatIds);
 
-  // Demo accounts
-  const demoAccounts = [
-    {
-      name: 'HDFC Salary Account',
-      type: 'bank',
-      balance: randomFloat(25000, 150000),
-      currency: 'INR',
-      institution: 'HDFC Bank',
-      lastFourDigits: '4521',
-    },
-    {
-      name: 'ICICI Savings',
-      type: 'bank',
-      balance: randomFloat(10000, 75000),
-      currency: 'INR',
-      institution: 'ICICI Bank',
-      lastFourDigits: '7834',
-    },
-    {
-      name: 'Cash Wallet',
-      type: 'cash',
-      balance: randomFloat(2000, 30000),
-      currency: 'INR',
-      institution: 'Cash',
-    },
-    {
-      name: 'AMEX Platinum',
-      type: 'credit',
-      balance: randomFloat(-50000, 0),
-      currency: 'INR',
-      institution: 'American Express',
-      lastFourDigits: '9901',
-    },
-  ];
-  for (const acct of demoAccounts) {
-    const a = await prisma.account.create({
-      data: { ...(acct as any), userId: demoUser.id, isActive: true },
-    });
-    accountRecords.push(a);
-  }
-  console.log('  ✓ 1 demo user with accounts and categories');
+  console.log('  ✓ 1 demo user with categories');
 
   // Demo transactions
   const demoCatByName = new Map<string, string>();
@@ -761,7 +719,6 @@ async function main() {
     await prisma.transaction.create({
       data: {
         userId: demoUser.id,
-        accountId: accountRecords[tx.accountIdx].id,
         categoryId: demoCatByName.get(tx.category)!,
         amount: tx.amount,
         type: tx.type,
@@ -839,31 +796,7 @@ async function main() {
     freeCatIds.push(cat.id);
   }
   userCategoryMap.set(freeUser.id, freeCatIds);
-
-  const freeAccounts = [
-    {
-      name: 'SBI Savings',
-      type: 'bank',
-      balance: randomFloat(5000, 25000),
-      currency: 'INR',
-      institution: 'State Bank of India',
-      lastFourDigits: '1234',
-    },
-    {
-      name: 'Cash',
-      type: 'cash',
-      balance: randomFloat(1000, 10000),
-      currency: 'INR',
-      institution: 'Cash',
-    },
-  ];
-  for (const acct of freeAccounts) {
-    const a = await prisma.account.create({
-      data: { ...(acct as any), userId: freeUser.id, isActive: true },
-    });
-    accountRecords.push(a);
-  }
-  console.log('  ✓ 1 free user with accounts and categories');
+  console.log('  ✓ 1 free user with categories');
 
   // ── Admin Users ──
   const adminHashedPw = await bcrypt.hash('Admin@123', 10);

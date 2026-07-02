@@ -20,8 +20,6 @@ import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 import { AddMemberScreen } from '../screens/social/AddMemberScreen';
-import { AccountDetailScreen } from '../screens/accounts/AccountDetailScreen';
-
 const Stack = createNativeStackNavigator();
 
 export function WalletNavigator() {
@@ -47,11 +45,6 @@ export function WalletNavigator() {
       <Stack.Screen
         name="MyWallet"
         component={MyWalletScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccountDetail"
-        component={AccountDetailScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

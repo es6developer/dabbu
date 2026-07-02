@@ -80,7 +80,6 @@ import { HealthScoreModule } from './modules/health-score/health-score.module';
 import { DabbuScoreModule } from './modules/dabbu-score/dabbu-score.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { SpacesModule } from './modules/spaces/spaces.module';
-import { AccountsModule } from './modules/accounts/accounts.module';
 import { LensModule } from './modules/lens/lens.module';
 
 @Module({
@@ -203,7 +202,6 @@ import { LensModule } from './modules/lens/lens.module';
     WealthModule,
     ChallengesModule,
     EmergencyFundModule,
-    AccountsModule,
     DashboardModule,
     AiFamilyAdvisorModule,
     RetentionModule,
