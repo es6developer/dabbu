@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 import { PremiumController } from './premium.controller';
@@ -11,6 +11,7 @@ import { FeatureGuard } from './guards/feature.guard';
 import { EntitlementEngine } from './entitlement.engine';
 import { UsageEngine } from './usage.engine';
 
+@Global()
 @Module({
   imports: [PrismaModule, EmailModule],
   controllers: [PremiumController, SubscriptionController],
