@@ -105,7 +105,7 @@ import { LensModule } from './modules/lens/lens.module';
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().min(32).required(),
         JWT_REFRESH_SECRET: Joi.string().min(32).required(),
-        REDIS_URL: Joi.string().required(),
+        REDIS_URL: Joi.string().optional(),
         ENCRYPTION_KEY: Joi.string().min(32).required(),
       }),
     }),

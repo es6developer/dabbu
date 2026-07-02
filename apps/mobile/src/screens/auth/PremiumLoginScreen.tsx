@@ -157,9 +157,9 @@ export function PremiumLoginScreen() {
   const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
   const { colors, isDark } = useTheme();
+  const [email, setEmail] = useState('demo@dabbu.app');
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('TestPass123!');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
