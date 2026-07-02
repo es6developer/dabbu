@@ -19,7 +19,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        marginBottom: 20,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -28,7 +28,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
             style={{
               width: 28,
               height: 28,
-              borderRadius: 8,
+              borderRadius: 30,
               backgroundColor: `${colors.accent.primary}15`,
               alignItems: 'center',
               justifyContent: 'center',
@@ -39,7 +39,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
         )}
         <Text
           style={{
-            fontSize: 13,
+            fontSize: 16,
             fontWeight: '600',
             letterSpacing: 0.5,
             textTransform: 'uppercase',
@@ -55,7 +55,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
           activeOpacity={0.7}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
         >
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: colors.accent.primary }}>
             {action}
           </Text>
           <AntDesign  name="right" size={14} color={colors.accent.primary} />

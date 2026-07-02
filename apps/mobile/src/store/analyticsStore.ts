@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api, setAccessToken } from '../services/api';
+import { api } from '../services/api';
 
 type AnalyticsEvent =
   | 'app_opened'
@@ -21,7 +21,6 @@ export const useAnalyticsStore = create<AnalyticsStore>(() => ({
     api.post('/analytics/track', { event, properties, timestamp: new Date().toISOString() }).catch(() => {});
   },
   trackWithToken: (accessToken, event, properties) => {
-    if (accessToken) setAccessToken(accessToken);
     api.post('/analytics/track', { event, properties, timestamp: new Date().toISOString() }).catch(() => {});
   },
 }));

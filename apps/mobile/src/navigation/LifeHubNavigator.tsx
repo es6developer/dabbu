@@ -190,18 +190,18 @@ export function LifeHubNavigator() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60, paddingHorizontal: 16 },
+  container: { flex: 1, paddingTop: 60, paddingHorizontal: 20 },
   title: { fontSize: 32, fontWeight: '700', marginBottom: 4 },
-  subtitle: { fontSize: 15, marginBottom: 24 },
+  subtitle: { fontSize: 15, marginBottom: 28 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  card: { width: '48%', borderRadius: 16, padding: 20, marginBottom: 16, alignItems: 'center' },
+  card: { width: '48%', borderRadius: 24, padding: 24, marginBottom: 20, alignItems: 'center' },
   iconWrap: {
     width: 56,
     height: 56,
-    borderRadius: 16,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   cardTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
   cardDesc: { fontSize: 12, textAlign: 'center', lineHeight: 16 },

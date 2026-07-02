@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ import { useAuth } from '../../store/AuthContext';
 import { getLockKeys } from '../../store/LockContext';
 import { PinSetupScreen } from './PinSetupScreen';
 import { ConfirmDialog } from '../../components/ui';
+import { useTheme } from '../../theme';
+import { palette } from '../../theme/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const KEY_SIZE = (SCREEN_W - 64) / 3;
@@ -17,9 +19,132 @@ interface Props {
   onUnlock: () => void;
 }
 
+function createStyles(colors: typeof palette.dark, isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 28,
+    },
+    topSection: {
+      alignItems: 'center',
+      paddingTop: 44,
+    },
+    iconRing: {
+      width: 72,
+      height: 72,
+      borderRadius: 24,
+      backgroundColor: isDark ? 'rgba(20,184,166,0.12)' : colors.bg.highlight,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: isDark ? 'rgba(20,184,166,0.2)' : colors.border.active,
+      marginBottom: 28,
+    },
+    title: {
+      color: colors.text.primary,
+      fontSize: 26,
+      fontWeight: '800',
+      marginBottom: 8,
+    },
+    subtitle: {
+      color: colors.text.secondary,
+      fontSize: 16,
+      fontWeight: '500',
+      textAlign: 'center',
+      paddingHorizontal: 20,
+    },
+    dotsSection: {
+      alignItems: 'center',
+      gap: 24,
+    },
+    dotsRow: {
+      flexDirection: 'row',
+      gap: 24,
+    },
+    dot: {
+      width: 14,
+      height: 14,
+      borderRadius: 20,
+      borderWidth: 2,
+    },
+    progressBar: {
+      width: 120,
+      height: 3,
+      borderRadius: 4,
+      backgroundColor: colors.border.subtle,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.accent.primary,
+      borderRadius: 4,
+    },
+    errorText: {
+      color: colors.status.error,
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    keypadSection: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: SCREEN_W - 48,
+      gap: 8,
+      justifyContent: 'center',
+    },
+    keyBtn: {
+      width: KEY_SIZE,
+      height: KEY_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    keyInner: {
+      width: KEY_SIZE - 8,
+      height: KEY_SIZE - 8,
+      borderRadius: 20,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : colors.border.subtle,
+    },
+    keyText: {
+      color: colors.text.primary,
+      fontSize: 26,
+      fontWeight: '600',
+    },
+    bottomSection: {
+      alignItems: 'center',
+      gap: 14,
+    },
+    biometricBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 18,
+      paddingHorizontal: 28,
+      borderRadius: 20,
+      backgroundColor: isDark ? 'rgba(20,184,166,0.1)' : colors.bg.highlight,
+    },
+    biometricText: {
+      color: colors.accent.primary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    forgotText: {
+      color: colors.text.tertiary,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+  });
+}
+
 export function AppLockScreen({ onUnlock }: Props) {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  const { colors, isDark } = useTheme();
   const [pin, setPin] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -28,21 +153,24 @@ export function AppLockScreen({ onUnlock }: Props) {
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const pinLength = 4;
 
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
   useEffect(() => {
     if (!user?.id) {
       return;
     }
     setAuthReady(true);
     checkPinExists();
-    // Note: LocalAuthentication on iOS falls back to the device passcode
-    // by default — this is expected system behavior, not a bug.
   }, [user?.id]);
 
   async function checkPinExists() {
-    const { appPin: appPinKey } = getLockKeys(user?.id);
+    const { appPin: appPinKey, appLockEnabled } = getLockKeys(user?.id);
     try {
-      const stored = await SecureStore.getItemAsync(appPinKey);
-      if (!stored) {
+      const [stored, lockEnabled] = await Promise.all([
+        SecureStore.getItemAsync(appPinKey),
+        SecureStore.getItemAsync(appLockEnabled),
+      ]);
+      if (!stored || lockEnabled !== 'true') {
         setNeedsSetup(true);
         return;
       }
@@ -129,7 +257,7 @@ export function AppLockScreen({ onUnlock }: Props) {
         style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}
       >
         <LinearGradient
-          colors={['#131315', '#0A0A0F', '#070708']}
+          colors={isDark ? ['#131315', '#0A0A0F', '#070708'] : [colors.bg.primary, colors.bg.secondary, colors.bg.primary]}
           style={StyleSheet.absoluteFill}
         />
       </View>
@@ -142,11 +270,14 @@ export function AppLockScreen({ onUnlock }: Props) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 20 }]}>
-      <LinearGradient colors={['#131315', '#0A0A0F', '#070708']} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={isDark ? ['#131315', '#0A0A0F', '#070708'] : [colors.bg.primary, colors.bg.secondary, colors.bg.primary]}
+        style={StyleSheet.absoluteFill}
+      />
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <AntDesign name="lock" size={28} color="#14B8A6" />
+          <AntDesign name="lock" size={28} color={colors.accent.primary} />
         </View>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>
@@ -162,8 +293,8 @@ export function AppLockScreen({ onUnlock }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: pin[i] ? '#14B8A6' : 'transparent',
-                  borderColor: pin[i] ? '#14B8A6' : 'rgba(255,255,255,0.12)',
+                  backgroundColor: pin[i] ? colors.accent.primary : 'transparent',
+                  borderColor: pin[i] ? colors.accent.primary : colors.border.subtle,
                   transform: pin[i] ? [{ scale: 1 }] : [{ scale: 0.85 }],
                 },
               ]}
@@ -189,7 +320,7 @@ export function AppLockScreen({ onUnlock }: Props) {
                 onPress={handleDelete}
                 activeOpacity={0.5}
               >
-                <AntDesign name="back" size={22} color="rgba(255,255,255,0.5)" />
+                <AntDesign name="back" size={22} color={colors.text.tertiary} />
               </TouchableOpacity>
             );
           }
@@ -210,7 +341,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <AntDesign name="Safety" size={22} color="#14B8A6" />
+          <AntDesign name="Safety" size={22} color={colors.accent.primary} />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
@@ -234,120 +365,3 @@ export function AppLockScreen({ onUnlock }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-  },
-  topSection: {
-    alignItems: 'center',
-    paddingTop: 40,
-  },
-  iconRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 24,
-    backgroundColor: 'rgba(20,184,166,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(20,184,166,0.2)',
-    marginBottom: 24,
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  dotsSection: {
-    alignItems: 'center',
-    gap: 20,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-  },
-  progressBar: {
-    width: 120,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#14B8A6',
-    borderRadius: 2,
-  },
-  errorText: {
-    color: '#FF4D4F',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  keypadSection: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: SCREEN_W - 48,
-    gap: 8,
-    justifyContent: 'center',
-  },
-  keyBtn: {
-    width: KEY_SIZE,
-    height: KEY_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  keyInner: {
-    width: KEY_SIZE - 8,
-    height: KEY_SIZE - 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  keyText: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '600',
-  },
-  bottomSection: {
-    alignItems: 'center',
-    gap: 12,
-  },
-  biometricBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    backgroundColor: 'rgba(20,184,166,0.1)',
-  },
-  biometricText: {
-    color: '#14B8A6',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  forgotText: {
-    color: 'rgba(255,255,255,0.35)',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-});

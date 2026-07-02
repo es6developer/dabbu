@@ -163,7 +163,7 @@ export function AddPartnerScreen() {
             styles.heroGradient,
             {
               paddingTop: insets.top + 60,
-              paddingBottom: 40,
+              paddingBottom: 44,
               backgroundColor: COUPLE_COLORS.primary,
             },
           ]}
@@ -277,7 +277,7 @@ export function AddPartnerScreen() {
           <ActivityIndicator
             size="small"
             color={colors.accent.primary}
-            style={{ marginVertical: 16 }}
+            style={{ marginVertical: 20 }}
           />
         ) : requests.received.length > 0 ? (
           <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
@@ -425,19 +425,19 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
 
   heroGradient: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroContent: { alignItems: 'center', marginTop: 16 },
+  heroContent: { alignItems: 'center', marginTop: 20 },
   heroIconWrap: {
     width: 88,
     height: 88,
@@ -445,38 +445,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   heroTitle: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
   heroSub: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 24,
     maxWidth: 260,
   },
 
-  body: { flex: 1, paddingHorizontal: 24, paddingTop: 24, gap: 20 },
-  bodyInner: { paddingHorizontal: 24, paddingTop: 24, gap: 20, paddingBottom: 40 },
+  body: { flex: 1, paddingHorizontal: 28, paddingTop: 28, gap: 24 },
+  bodyInner: { paddingHorizontal: 28, paddingTop: 28, gap: 24, paddingBottom: 44 },
 
   section: {
-    borderRadius: 20,
-    padding: 16,
-    gap: 12,
+    borderRadius: 28,
+    padding: 22,
+    gap: 14,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
   },
   requestCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     paddingVertical: 8,
   },
   requestName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   requestPhone: {
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   approveBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
@@ -495,19 +495,19 @@ const styles = StyleSheet.create({
   rejectBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: '#FF475720',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FF475740',
   },
   cancelBtn: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 20,
     backgroundColor: '#FF475710',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FF475730',
   },
   cancelText: {
@@ -517,78 +517,78 @@ const styles = StyleSheet.create({
   },
 
   phoneCard: {
-    borderRadius: 20,
-    padding: 20,
-    gap: 14,
+    borderRadius: 28,
+    padding: 24,
+    gap: 16,
   },
-  phoneLabel: { fontSize: 14, fontWeight: '700' },
+  phoneLabel: { fontSize: 16, fontWeight: '700' },
   phoneInput: {
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderRadius: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     fontSize: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
     fontWeight: '500',
   },
-  addBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
+  addBtn: { borderRadius: 30, overflow: 'hidden', marginTop: 4 },
   addBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   addBtnText: { fontSize: 16, fontWeight: '800', color: '#FFF' },
 
-  featuresList: { gap: 14, paddingHorizontal: 4, paddingBottom: 24 },
-  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  featureText: { fontSize: 14, fontWeight: '500', flex: 1 },
+  featuresList: { gap: 16, paddingHorizontal: 4, paddingBottom: 28 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  featureText: { fontSize: 16, fontWeight: '500', flex: 1 },
 
   partnerCard: {
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 32,
+    padding: 28,
     alignItems: 'center',
     gap: 8,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     marginBottom: 4,
   },
   heartSmall: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     backgroundColor: `${COUPLE_COLORS.heart}20`,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  partnerNames: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
+  partnerNames: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingTop: 12,
+    paddingTop: 14,
     marginTop: 4,
     borderTopWidth: 1,
     width: '100%',
   },
-  infoText: { fontSize: 14, fontWeight: '500' },
+  infoText: { fontSize: 16, fontWeight: '500' },
 
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
-    padding: 16,
+    gap: 14,
+    borderRadius: 30,
+    padding: 22,
   },
   statusDot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 10,
   },
-  statusLabel: { fontSize: 15, fontWeight: '700' },
+  statusLabel: { fontSize: 16, fontWeight: '700' },
   statusSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 
   removeBtn: {
@@ -596,10 +596,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 20,
+    borderRadius: 30,
     backgroundColor: '#FF475710',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FF475730',
   },
   removeText: {

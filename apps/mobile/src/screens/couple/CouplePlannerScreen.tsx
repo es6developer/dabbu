@@ -53,8 +53,8 @@ function PlannerCard({ item, onPress, categoryColors }: { item: any; onPress: ()
       style={{
         width: CARD_WIDTH,
         backgroundColor: colors.bg.card,
-        borderRadius: 18,
-        padding: 14,
+        borderRadius: 26,
+        padding: 18,
         marginBottom: 10,
       }}
     >
@@ -62,7 +62,7 @@ function PlannerCard({ item, onPress, categoryColors }: { item: any; onPress: ()
         style={{
           width: 36,
           height: 36,
-          borderRadius: 12,
+          borderRadius: 28,
           backgroundColor: `${color}18`,
           alignItems: 'center',
           justifyContent: 'center',
@@ -71,16 +71,16 @@ function PlannerCard({ item, onPress, categoryColors }: { item: any; onPress: ()
       >
         <AntDesign name={icon as any} size={18} color={color} />
       </View>
-      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
+      <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
         {item.title || item.plannerType}
       </Text>
-      <View style={{ marginTop: 8, height: 4, backgroundColor: colors.bg.tertiary, borderRadius: 2 }}>
+      <View style={{ marginTop: 8, height: 4, backgroundColor: colors.bg.tertiary, borderRadius: 4 }}>
         <View
           style={{
             width: `${Math.min(progress, 100)}%`,
             height: 4,
             backgroundColor: color,
-            borderRadius: 2,
+            borderRadius: 4,
           }}
         />
       </View>
@@ -88,7 +88,7 @@ function PlannerCard({ item, onPress, categoryColors }: { item: any; onPress: ()
         <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.primary }}>
           \u20B9{Math.round(current).toLocaleString('en-IN')}
         </Text>
-        <Text style={{ fontSize: 11, color: colors.text.secondary }}>{Math.round(progress)}%</Text>
+        <Text style={{ fontSize: 12, color: colors.text.secondary }}>{Math.round(progress)}%</Text>
       </View>
       {item.deadline && (
         <Text style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 4 }}>
@@ -191,8 +191,8 @@ export function CouplePlannerScreen() {
       <View
         style={{
           paddingTop: insets.top + 12,
-          paddingHorizontal: 20,
-          paddingBottom: 12,
+          paddingHorizontal: 24,
+          paddingBottom: 14,
           borderBottomWidth: StyleSheet.hairlineWidth,
           borderBottomColor: colors.border.default,
         }}
@@ -200,19 +200,19 @@ export function CouplePlannerScreen() {
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <AntDesign  name="left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <View>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Planners</Text>
+              <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text.primary }}>Planners</Text>
               <Text style={{ fontSize: 12, color: colors.text.secondary }}>
                 Dream it, save it, achieve it together
               </Text>
             </View>
           </View>
           <TouchableOpacity
-            style={{ backgroundColor: colors.accent.primary, borderRadius: 14, padding: 8 }}
+            style={{ backgroundColor: colors.accent.primary, borderRadius: 28, padding: 8 }}
             onPress={() => setShowCreate(true)}
           >
             <AntDesign  name="plus" size={20} color={colors.text.primary} />
@@ -224,8 +224,8 @@ export function CouplePlannerScreen() {
         data={planners}
         numColumns={2}
         keyExtractor={(item) => item.id}
-        columnWrapperStyle={{ gap: 10, paddingHorizontal: 20 }}
-        contentContainerStyle={{ paddingTop: 14, paddingBottom: 40 }}
+        columnWrapperStyle={{ gap: 10, paddingHorizontal: 24 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -235,12 +235,12 @@ export function CouplePlannerScreen() {
         }
         renderItem={({ item }) => <PlannerCard item={item} onPress={() => contribute(item.id)} categoryColors={categoryColors} />}
         ListEmptyComponent={
-          <View style={{ padding: 60, alignItems: 'center', gap: 12 }}>
+          <View style={{ padding: 60, alignItems: 'center', gap: 14 }}>
             <View
               style={{
                 width: 64,
                 height: 64,
-                borderRadius: 20,
+                borderRadius: 28,
                 backgroundColor: colors.brand.light,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -263,10 +263,10 @@ export function CouplePlannerScreen() {
               backgroundColor: colors.bg.card,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              padding: 24,
+              padding: 28,
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary, marginBottom: 20 }}>
+            <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text.primary, marginBottom: 24 }}>
               New Dream Board
             </Text>
             <TextInput
@@ -274,11 +274,13 @@ export function CouplePlannerScreen() {
               placeholderTextColor={colors.text.tertiary}
               style={{
                 backgroundColor: colors.bg.tertiary,
-                borderRadius: 12,
-                padding: 14,
-                fontSize: 14,
+                borderRadius: 28,
+                padding: 18,
+                fontSize: 16,
                 color: colors.text.primary,
-                marginBottom: 12,
+                marginBottom: 14,
+                borderWidth: 1.5,
+                borderColor: colors.border.default,
               }}
               value={form.title}
               onChangeText={(t) => setForm((f: Record<string, any>) => ({ ...f, title: t }))}
@@ -289,26 +291,28 @@ export function CouplePlannerScreen() {
               keyboardType="numeric"
               style={{
                 backgroundColor: colors.bg.tertiary,
-                borderRadius: 12,
-                padding: 14,
-                fontSize: 14,
+                borderRadius: 28,
+                padding: 18,
+                fontSize: 16,
                 color: colors.text.primary,
-                marginBottom: 12,
+                marginBottom: 14,
+                borderWidth: 1.5,
+                borderColor: colors.border.default,
               }}
               value={form.targetAmount}
               onChangeText={(t) => setForm((f: Record<string, any>) => ({ ...f, targetAmount: t }))}
             />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
               {Object.keys(categoryColors).map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={{
-                    paddingHorizontal: 14,
+                    paddingHorizontal: 24,
                     paddingVertical: 6,
-                    borderRadius: 20,
+                    borderRadius: 28,
                     backgroundColor:
                       form.category === cat ? `${categoryColors[cat]}30` : colors.bg.tertiary,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                     borderColor: form.category === cat ? categoryColors[cat] : colors.border.default,
                   }}
                   onPress={() => setForm((f: Record<string, any>) => ({ ...f, category: cat }))}
@@ -329,20 +333,20 @@ export function CouplePlannerScreen() {
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  padding: 14,
-                  borderRadius: 14,
+                  padding: 18,
+                  borderRadius: 28,
                   backgroundColor: colors.bg.tertiary,
                   alignItems: 'center',
                 }}
                 onPress={() => setShowCreate(false)}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.secondary }}>Cancel</Text>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  padding: 14,
-                  borderRadius: 14,
+                  padding: 18,
+                  borderRadius: 28,
                   backgroundColor: form.title && form.targetAmount ? colors.accent.primary : colors.bg.tertiary,
                   alignItems: 'center',
                 }}
@@ -351,7 +355,7 @@ export function CouplePlannerScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: '700',
                     color: form.title && form.targetAmount ? colors.text.primary : colors.text.tertiary,
                   }}
@@ -371,10 +375,10 @@ export function CouplePlannerScreen() {
               backgroundColor: '#161224',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              padding: 24,
+              padding: 28,
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF', marginBottom: 20 }}>
+            <Text style={{ fontSize: 19, fontWeight: '800', color: '#FFF', marginBottom: 24 }}>
               Add Contribution
             </Text>
             <TextInput
@@ -383,11 +387,13 @@ export function CouplePlannerScreen() {
               keyboardType="numeric"
               style={{
                 backgroundColor: '#1E293B',
-                borderRadius: 12,
-                padding: 14,
-                fontSize: 14,
+                borderRadius: 28,
+                padding: 18,
+                fontSize: 16,
                 color: '#FFF',
-                marginBottom: 20,
+                marginBottom: 24,
+                borderWidth: 1.5,
+                borderColor: '#334155',
               }}
               value={contributeAmount}
               onChangeText={setContributeAmount}
@@ -396,20 +402,20 @@ export function CouplePlannerScreen() {
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  padding: 14,
-                  borderRadius: 14,
+                  padding: 18,
+                  borderRadius: 28,
                   backgroundColor: '#1E293B',
                   alignItems: 'center',
                 }}
                 onPress={() => setContributeId(null)}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748B' }}>Cancel</Text>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#64748B' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  padding: 14,
-                  borderRadius: 14,
+                  padding: 18,
+                  borderRadius: 28,
                   backgroundColor:
                     contributeAmount && parseFloat(contributeAmount) > 0 ? colors.accent.primary : '#1E293B',
                   alignItems: 'center',
@@ -419,7 +425,7 @@ export function CouplePlannerScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: '700',
                     color:
                       contributeAmount && parseFloat(contributeAmount) > 0 ? '#FFF' : '#475569',

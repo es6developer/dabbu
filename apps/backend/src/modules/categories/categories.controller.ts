@@ -3,6 +3,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { CategoriesService } from './categories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { PremiumService } from '../premium/premium.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 
 @ApiTags('Categories')
@@ -10,13 +11,18 @@ import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 @UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(
+    private readonly categoriesService: CategoriesService,
+    private readonly premiumService: PremiumService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a transaction category' })
   async create(@CurrentUser('id') userId: string, @Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(userId, dto);
+    const result = await this.categoriesService.create(userId, dto);
+    await this.premiumService.incrementUsage(userId, 'categories');
+    return result;
   }
 
   @Get()

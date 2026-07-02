@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { useTheme } from '../../theme';
 
 interface AuthInputProps {
   placeholder: string;
@@ -35,6 +36,7 @@ export function AuthInput({
   onBlur,
   testID,
 }: AuthInputProps) {
+  const { colors, isDark } = useTheme();
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = secureTextEntry !== undefined;
@@ -57,16 +59,22 @@ export function AuthInput({
       <View
         style={[
           styles.container,
-          focused && styles.containerFocused,
-          error ? styles.containerError : null,
+          {
+            borderColor: error
+              ? colors.status.error
+              : focused
+                ? colors.accent.primary
+                : colors.border.default,
+            backgroundColor: colors.bg.tertiary,
+          },
         ]}
       >
         <TextInput
           ref={inputRef}
           testID={testID}
-          style={styles.input}
+          style={[styles.input, { color: colors.text.primary }]}
           placeholder={placeholder}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={colors.text.tertiary}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={isPassword && !showPassword}
@@ -90,11 +98,13 @@ export function AuthInput({
             style={styles.eyeButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <AntDesign name={showPassword ? 'eyeo' : 'eye'} size={18} color="#8E8E93" />
+            <AntDesign name={showPassword ? 'eyeo' : 'eye'} size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+      ) : null}
     </Animated.View>
   );
 }
@@ -103,26 +113,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    paddingHorizontal: 20,
+    height: 54,
     marginBottom: 14,
-  },
-  containerFocused: {
-    backgroundColor: '#F2F2F7',
-    borderWidth: 1.5,
-    borderColor: '#007AFF',
-  },
-  containerError: {
-    borderWidth: 1.5,
-    borderColor: '#FF3B30',
   },
   input: {
     flex: 1,
     fontSize: 16,
     fontWeight: '400',
-    color: '#000000',
     paddingTop: 0,
   },
   eyeButton: {
@@ -131,9 +131,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    fontWeight: '400',
-    color: '#FF3B30',
-    marginTop: -4,
+    fontWeight: '500',
+    marginTop: -6,
     marginBottom: 8,
     marginLeft: 4,
   },

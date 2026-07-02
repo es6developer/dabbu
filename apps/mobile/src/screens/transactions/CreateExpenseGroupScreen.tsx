@@ -28,9 +28,9 @@ function Label({ children }: { children: React.ReactNode }) {
   return (
     <Text
       style={{
-        fontSize: 11,
-        fontWeight: '800',
-        letterSpacing: 0.6,
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.8,
         textTransform: 'uppercase',
         color: colors.text.tertiary,
         marginBottom: 10,
@@ -193,7 +193,7 @@ export function CreateExpenseGroupScreen() {
       >
         <View
           style={{
-            paddingHorizontal: 24,
+            paddingHorizontal: 28,
             paddingTop: insets.top + 12,
             paddingBottom: 8,
             flexDirection: 'row',
@@ -206,7 +206,7 @@ export function CreateExpenseGroupScreen() {
             style={{
               width: 36,
               height: 36,
-              borderRadius: 12,
+              borderRadius: 28,
               backgroundColor: colors.bg.card,
               alignItems: 'center',
               justifyContent: 'center',
@@ -214,7 +214,7 @@ export function CreateExpenseGroupScreen() {
           >
             <AntDesign name="close" size={18} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
+          <Text style={{ fontSize: 19, fontWeight: '700', color: colors.text.primary }}>
             Create Circle
           </Text>
           <View style={{ width: 36 }} />
@@ -228,7 +228,7 @@ export function CreateExpenseGroupScreen() {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: 24, paddingTop: 20, paddingBottom: 40 }}
+              contentContainerStyle={{ padding: 28, paddingTop: 24, paddingBottom: 44 }}
               keyboardShouldPersistTaps="handled"
             >
               {error ? (
@@ -236,16 +236,16 @@ export function CreateExpenseGroupScreen() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    padding: 14,
-                    borderRadius: 14,
+                    padding: 18,
+                    borderRadius: 28,
                     backgroundColor: colors.status.error + '12',
                     gap: 8,
-                    marginBottom: 20,
+                    marginBottom: 24,
                   }}
                 >
                   <AntDesign name="exclamationcircle" size={16} color={colors.status.error} />
                   <Text
-                    style={{ fontSize: 13, fontWeight: '600', color: colors.status.error, flex: 1 }}
+                    style={{ fontSize: 16, fontWeight: '600', color: colors.status.error, flex: 1 }}
                   >
                     {error}
                   </Text>
@@ -255,7 +255,7 @@ export function CreateExpenseGroupScreen() {
                 </View>
               ) : null}
 
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: 28 }}>
                 <Label>Group Icon</Label>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -306,7 +306,7 @@ export function CreateExpenseGroupScreen() {
                 </ScrollView>
               </View>
 
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 24 }}>
                 <Label>
                   Group Name <Text style={{ color: colors.status.error }}>*</Text>
                 </Label>
@@ -314,11 +314,11 @@ export function CreateExpenseGroupScreen() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    paddingHorizontal: 16,
-                    paddingVertical: 14,
+                    borderRadius: 30,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
+                    paddingHorizontal: 24,
+                    paddingVertical: 18,
                     backgroundColor: colors.bg.card,
                   }}
                 >
@@ -326,12 +326,12 @@ export function CreateExpenseGroupScreen() {
                     name="team"
                     size={18}
                     color={colors.text.tertiary}
-                    style={{ marginRight: 10 }}
+                    style={{ marginRight: 12 }}
                   />
                   <TextInput
                     style={{
                       flex: 1,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: '500',
                       color: colors.text.primary,
                       padding: 0,
@@ -344,31 +344,31 @@ export function CreateExpenseGroupScreen() {
                 </View>
               </View>
 
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 24 }}>
                 <Label>Description</Label>
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'flex-start',
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    paddingHorizontal: 16,
-                    paddingVertical: 14,
+                    borderRadius: 30,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
+                    paddingHorizontal: 24,
+                    paddingVertical: 18,
                     backgroundColor: colors.bg.card,
-                    minHeight: 56,
+                    minHeight: 60,
                   }}
                 >
                   <AntDesign
                     name="edit"
                     size={18}
                     color={colors.text.tertiary}
-                    style={{ marginRight: 10, marginTop: 2 }}
+                    style={{ marginRight: 12, marginTop: 2 }}
                   />
                   <TextInput
                     style={{
                       flex: 1,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: '500',
                       color: colors.text.primary,
                       minHeight: 24,
@@ -383,23 +383,23 @@ export function CreateExpenseGroupScreen() {
                 </View>
               </View>
 
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 24 }}>
                 <Label>Monthly Budget</Label>
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    paddingHorizontal: 16,
-                    paddingVertical: 14,
+                    borderRadius: 30,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
+                    paddingHorizontal: 24,
+                    paddingVertical: 18,
                     backgroundColor: colors.bg.card,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 18,
+                      fontSize: 26,
                       fontWeight: '700',
                       color: colors.text.primary,
                       marginRight: 8,
@@ -410,7 +410,7 @@ export function CreateExpenseGroupScreen() {
                   <TextInput
                     style={{
                       flex: 1,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: '500',
                       color: colors.text.primary,
                       padding: 0,
@@ -425,11 +425,11 @@ export function CreateExpenseGroupScreen() {
                 {budgetBreakdown && (
                   <View
                     style={{
-                      marginTop: 12,
-                      borderRadius: 14,
-                      borderWidth: 1,
+                      marginTop: 14,
+                      borderRadius: 28,
+                      borderWidth: 1.5,
                       borderColor: colors.border.subtle,
-                      padding: 16,
+                      padding: 22,
                       backgroundColor: colors.bg.secondary,
                     }}
                   >
@@ -483,9 +483,9 @@ export function CreateExpenseGroupScreen() {
                     <View
                       style={{
                         height: 4,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0',
-                        marginTop: 14,
+                        marginTop: 16,
                         overflow: 'hidden',
                       }}
                     >
@@ -493,14 +493,14 @@ export function CreateExpenseGroupScreen() {
                         style={{
                           width: `${Math.min(100, budgetNum > 0 ? 30 : 0)}%`,
                           height: '100%',
-                          borderRadius: 2,
+                          borderRadius: 4,
                           backgroundColor: colors.brand.primary,
                         }}
                       />
                     </View>
                     <Text
                       style={{
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: '500',
                         color: colors.text.tertiary,
                         marginTop: 8,
@@ -513,36 +513,36 @@ export function CreateExpenseGroupScreen() {
                 )}
               </View>
 
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 24 }}>
                 <Label>Members</Label>
                 {members.map((phone, index) => (
-                  <View key={index} style={{ marginBottom: 10 }}>
+                  <View key={index} style={{ marginBottom: 12 }}>
                     <View
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        borderRadius: 16,
-                        borderWidth: 1,
-                        borderColor: colors.border.subtle,
+                        borderRadius: 30,
+                        borderWidth: 1.5,
+                        borderColor: colors.border.default,
                         backgroundColor: colors.bg.card,
                         paddingRight: 8,
-                        minHeight: 52,
-                        gap: 10,
+                        minHeight: 56,
+                        gap: 12,
                       }}
                     >
                       <View
                         style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 17,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 28,
                           alignItems: 'center',
                           justifyContent: 'center',
-                          marginLeft: 12,
+                          marginLeft: 16,
                           backgroundColor: colors.brand.primary + '15',
                         }}
                       >
                         <Text
-                          style={{ color: colors.brand.primary, fontSize: 13, fontWeight: '700' }}
+                          style={{ color: colors.brand.primary, fontSize: 16, fontWeight: '700' }}
                         >
                           {(phone || '?')[0]}
                         </Text>
@@ -553,10 +553,10 @@ export function CreateExpenseGroupScreen() {
                         }}
                         style={{
                           flex: 1,
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: '500',
                           color: colors.text.primary,
-                          paddingVertical: 13,
+                          paddingVertical: 18,
                         }}
                         value={phone}
                         onChangeText={(v) => updateMember(index, v)}
@@ -572,7 +572,7 @@ export function CreateExpenseGroupScreen() {
                         }}
                       />
                       {phone.trim() ? (
-                        <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 6 }}>
+                        <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 8 }}>
                           <AntDesign name="closecircle" size={18} color={colors.status.error} />
                         </TouchableOpacity>
                       ) : null}
@@ -581,8 +581,8 @@ export function CreateExpenseGroupScreen() {
                       <View
                         style={{
                           marginTop: 4,
-                          borderRadius: 14,
-                          borderWidth: 1,
+                          borderRadius: 28,
+                          borderWidth: 1.5,
                           borderColor: colors.border.subtle,
                           overflow: 'hidden',
                           backgroundColor: colors.bg.elevated,
@@ -596,7 +596,7 @@ export function CreateExpenseGroupScreen() {
                               alignItems: 'center',
                               gap: 10,
                               paddingVertical: 10,
-                              paddingHorizontal: 12,
+                              paddingHorizontal: 18,
                               borderBottomWidth: 0.5,
                               borderBottomColor: colors.border.subtle,
                             }}
@@ -606,7 +606,7 @@ export function CreateExpenseGroupScreen() {
                               style={{
                                 width: 34,
                                 height: 34,
-                                borderRadius: 17,
+                                borderRadius: 26,
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 backgroundColor: colors.brand.primary + '15',
@@ -615,7 +615,7 @@ export function CreateExpenseGroupScreen() {
                               <Text
                                 style={{
                                   color: colors.brand.primary,
-                                  fontSize: 13,
+                                  fontSize: 16,
                                   fontWeight: '800',
                                 }}
                               >
@@ -625,7 +625,7 @@ export function CreateExpenseGroupScreen() {
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={{
-                                  fontSize: 14,
+                                  fontSize: 16,
                                   fontWeight: '700',
                                   color: colors.text.primary,
                                 }}
@@ -634,7 +634,7 @@ export function CreateExpenseGroupScreen() {
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   fontWeight: '500',
                                   color: colors.text.tertiary,
                                   marginTop: 1,
@@ -664,7 +664,7 @@ export function CreateExpenseGroupScreen() {
                   }}
                 >
                   <AntDesign name="pluscircleo" size={16} color={colors.brand.primary} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: colors.brand.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.brand.primary }}>
                     Add Member
                   </Text>
                 </TouchableOpacity>
@@ -675,13 +675,13 @@ export function CreateExpenseGroupScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 8,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  borderRadius: 16,
-                  borderWidth: 1,
+                  paddingVertical: 18,
+                  paddingHorizontal: 24,
+                  borderRadius: 30,
+                  borderWidth: 1.5,
                   borderColor: colors.border.subtle,
                   backgroundColor: colors.bg.tertiary,
-                  marginBottom: 16,
+                  marginBottom: 20,
                 }}
               >
                 <AntDesign name="Safety" size={14} color={colors.status.error} />
@@ -699,7 +699,7 @@ export function CreateExpenseGroupScreen() {
                     colors={['#FF6B6B', '#EF4444']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 }}
+                    style={{ paddingHorizontal: 24, paddingVertical: 6, borderRadius: 28 }}
                   >
                     <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '800' }}>Upgrade</Text>
                   </LinearGradient>
@@ -711,9 +711,9 @@ export function CreateExpenseGroupScreen() {
                 disabled={saving}
                 activeOpacity={0.85}
                 style={{
-                  borderRadius: 16,
+                  borderRadius: 30,
                   overflow: 'hidden',
-                  marginTop: 8,
+                  marginTop: 12,
                   opacity: saving ? 0.6 : 1,
                 }}
               >
@@ -723,7 +723,7 @@ export function CreateExpenseGroupScreen() {
                   end={{ x: 1, y: 0 }}
                   style={{
                     flexDirection: 'row',
-                    paddingVertical: 18,
+                    paddingVertical: 20,
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
@@ -734,7 +734,7 @@ export function CreateExpenseGroupScreen() {
                   ) : (
                     <>
                       <AntDesign name="addusergroup" size={18} color="#FFF" />
-                      <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
+                      <Text style={{ color: '#FFF', fontSize: 19, fontWeight: '700' }}>
                         Create Circle
                       </Text>
                     </>

@@ -64,12 +64,12 @@ export function BadgeWallScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-        <View style={{ padding: 24, gap: 16 }}>
+        <View style={{ padding: 28, gap: 20 }}>
           <Skeleton width={160} height={14} />
-          <Skeleton width="100%" height={100} borderRadius={20} />
-          <Skeleton width="100%" height={60} borderRadius={12} />
-          <Skeleton width="100%" height={60} borderRadius={12} />
-          <Skeleton width="100%" height={60} borderRadius={12} />
+          <Skeleton width="100%" height={100} borderRadius={28} />
+          <Skeleton width="100%" height={60} borderRadius={20} />
+          <Skeleton width="100%" height={60} borderRadius={20} />
+          <Skeleton width="100%" height={60} borderRadius={20} />
         </View>
       </View>
     );
@@ -90,7 +90,7 @@ export function BadgeWallScreen() {
   return (
     <ScrollView
       style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 44 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -282,8 +282,8 @@ export function BadgeWallScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  hero: { paddingHorizontal: 24, paddingBottom: 28 },
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  hero: { paddingHorizontal: 28, paddingBottom: 28 },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 20 },
   heroBadgeWrap: {
     width: 56,
     height: 56,
@@ -292,22 +292,22 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroTitle: { fontSize: 24, fontWeight: '800', color: '#FFF' },
-  heroSub: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  section: { paddingHorizontal: 20, marginTop: 24 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 14 },
+  heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF' },
+  heroSub: { fontSize: 16, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  section: { paddingHorizontal: 24, marginTop: 28 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', marginBottom: 16 },
 
   // Streaks
   streakRow: { flexDirection: 'row', gap: 10 },
   streakCard: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 20,
+    borderRadius: 30,
     gap: 4,
   },
-  streakValue: { fontSize: 24, fontWeight: '800' },
-  streakMeta: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
+  streakValue: { fontSize: 26, fontWeight: '800' },
+  streakMeta: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
   streakSub: { fontSize: 10 },
 
   // Badge Grid
@@ -315,8 +315,8 @@ const s = StyleSheet.create({
   badgeCard: {
     width: (SCREEN_WIDTH - 50) / 2,
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 18,
+    padding: 22,
+    borderRadius: 26,
     gap: 6,
   },
   badgeLocked: { opacity: 0.6 },
@@ -328,29 +328,29 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
   },
-  badgeName: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  badgeName: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   badgeDesc: { fontSize: 10, textAlign: 'center', lineHeight: 14 },
   badgeDate: { fontSize: 9, marginTop: 2 },
   tierBadge: {
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 24,
     marginTop: 4,
   },
   tierText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
 
   // In Progress
-  progressCard: { borderRadius: 16, padding: 14, marginBottom: 8 },
+  progressCard: { borderRadius: 30, padding: 18, marginBottom: 8 },
   progressTop: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  progressIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  progressName: { fontSize: 13, fontWeight: '600' },
-  progressDesc: { fontSize: 11, marginTop: 1 },
-  progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
-  progressStat: { fontSize: 11, fontWeight: '500', marginTop: 4, textAlign: 'right' },
+  progressIcon: { width: 36, height: 36, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  progressName: { fontSize: 16, fontWeight: '600' },
+  progressDesc: { fontSize: 12, marginTop: 1 },
+  progressBar: { height: 6, borderRadius: 6, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 6 },
+  progressStat: { fontSize: 12, fontWeight: '500', marginTop: 4, textAlign: 'right' },
 
   // Empty
-  emptyState: { alignItems: 'center', paddingTop: 80, gap: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
+  emptyState: { alignItems: 'center', paddingTop: 80, gap: 14 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: 44, lineHeight: 18 },
 });

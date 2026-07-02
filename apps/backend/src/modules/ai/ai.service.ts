@@ -27,7 +27,7 @@ import {
   MonthlyAiReviewEngine,
   FeedEngine,
   LlmClient,
-} from '../../../../../packages/ai-engine/dist';
+} from '@dabbu/ai-engine';
 
 export interface AiInsight {
   type: string;

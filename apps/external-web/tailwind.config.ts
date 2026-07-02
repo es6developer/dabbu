@@ -9,6 +9,16 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      borderRadius: {
+        DEFAULT: '14px',
+        sm: '10px',
+        md: '14px',
+        lg: '16px',
+        xl: '22px',
+        '2xl': '28px',
+        '3xl': '36px',
+        '4xl': '40px',
+      },
       colors: {
         dabbu: {
           bg: '#000000',

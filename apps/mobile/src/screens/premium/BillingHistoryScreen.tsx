@@ -66,11 +66,11 @@ export function BillingHistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: insets.top + 8, paddingBottom: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: insets.top + 8, paddingBottom: 8 }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40, height: 40, justifyContent: 'center' }}>
           <AntDesign name="left" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '800', color: '#FFFFFF' }}>
+        <Text style={{ flex: 1, textAlign: 'center', fontSize: 19, fontWeight: '800', color: '#FFFFFF' }}>
           Billing History
         </Text>
         <View style={{ width: 40 }} />
@@ -79,7 +79,7 @@ export function BillingHistoryScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setPage(1); load(); }} tintColor="#FFD700" />
         }
-        contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 22, gap: 10, paddingBottom: 44 }}
         onMomentumScrollEnd={({ nativeEvent }) => {
           const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
           if (layoutMeasurement.height + contentOffset.y >= contentSize.height - 200) {
@@ -88,20 +88,20 @@ export function BillingHistoryScreen() {
         }}
       >
         {payments.length === 0 ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 }}>
+          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 14 }}>
             <AntDesign name="filetext1" size={48} color="rgba(255,255,255,0.3)" />
-            <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>No billing history yet</Text>
+            <Text style={{ fontSize: 16, color: 'rgba(255,255,255,0.4)' }}>No billing history yet</Text>
           </View>
         ) : (
           payments.map((p, i) => (
             <View key={p.id || i} style={{
               flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-              backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16,
-              borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+              backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 28, padding: 22,
+              borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)',
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                 <View style={{
-                  width: 36, height: 36, borderRadius: 10,
+                  width: 36, height: 36, borderRadius: 24,
                   backgroundColor: (statusColors[p.status] || '#7289DA') + '20',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
@@ -119,8 +119,8 @@ export function BillingHistoryScreen() {
                   </Text>
                 </View>
               </View>
-              <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: (statusColors[p.status] || '#7289DA') + '20' }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: statusColors[p.status] || '#7289DA' }}>
+              <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: (statusColors[p.status] || '#7289DA') + '20' }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', letterSpacing: 0.5, color: statusColors[p.status] || '#7289DA' }}>
                   {(p.status || 'UNKNOWN').toUpperCase()}
                 </Text>
               </View>
@@ -128,7 +128,7 @@ export function BillingHistoryScreen() {
           ))
         )}
         {loadingMore && (
-          <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+          <View style={{ paddingVertical: 20, alignItems: 'center' }}>
             <ActivityIndicator size="small" color="#FFD700" />
           </View>
         )}

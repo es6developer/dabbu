@@ -138,7 +138,7 @@ export function FamilyWorkspaceScreen() {
 
   if (!data?.workspace) {
     return (
-      <View style={[s.centered, { backgroundColor: colors.bg.primary, padding: 32, gap: 16 }]}>
+      <View style={[s.centered, { backgroundColor: colors.bg.primary, padding: 36, gap: 20 }]}>
         <View style={[s.bigCircle, { backgroundColor: colors.accent.primary + '15' }]}>
           <AntDesign name="team" size={36} color={colors.accent.primary} />
         </View>
@@ -189,24 +189,24 @@ export function FamilyWorkspaceScreen() {
           end={{ x: 0, y: 1 }}
           locations={[0, 0.5]}
         >
-          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
               <AntDesign name="arrowleft" size={18} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
 
-          <View style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <View style={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 28 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
               <View style={[s.bigCircle, { backgroundColor: coverColor + '20' }]}>
                 <AntDesign name={(workspace.icon || 'team') as any} size={32} color={coverColor} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                   {workspace.name}
                 </Text>
                 {workspace.description && (
                   <Text
-                    style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 2 }}
+                    style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 2 }}
                     numberOfLines={2}
                   >
                     {workspace.description}
@@ -237,7 +237,7 @@ export function FamilyWorkspaceScreen() {
           </View>
         </LinearGradient>
 
-        <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 8 }}>
           <View style={[s.card, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row' }}>
               <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
@@ -267,14 +267,14 @@ export function FamilyWorkspaceScreen() {
               </View>
             </View>
             {snapshot.budgetUtilization > 0 && (
-              <View style={{ marginTop: 12, gap: 4 }}>
+              <View style={{ marginTop: 14, gap: 4 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                     Budget Utilization
                   </Text>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: '600',
                       color:
                         snapshot.budgetUtilization > 80
@@ -304,8 +304,8 @@ export function FamilyWorkspaceScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
             Quick Actions
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -341,8 +341,8 @@ export function FamilyWorkspaceScreen() {
         </View>
 
         {members.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
               Members
             </Text>
             <ScrollView
@@ -394,7 +394,7 @@ export function FamilyWorkspaceScreen() {
         )}
 
         {activeGoals.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -402,7 +402,7 @@ export function FamilyWorkspaceScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Goals
               </Text>
               <TouchableOpacity onPress={() => handleQuickAction('GoalsList')}>
@@ -422,7 +422,7 @@ export function FamilyWorkspaceScreen() {
                     }}
                   >
                     <Text
-                      style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                      style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                       numberOfLines={1}
                     >
                       {g.name}
@@ -448,11 +448,11 @@ export function FamilyWorkspaceScreen() {
                   <View
                     style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}
                   >
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       {fmtShort(g.savedAmount)} / {fmtShort(g.targetAmount)}
                     </Text>
                     {g.deadline && (
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                         {daysUntil(g.deadline) !== null && daysUntil(g.deadline)! > 0
                           ? `${daysUntil(g.deadline)}d left`
                           : 'Overdue'}
@@ -466,8 +466,8 @@ export function FamilyWorkspaceScreen() {
         )}
 
         {upcomingBills.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
               Upcoming Bills
             </Text>
             <View style={{ gap: 8 }}>
@@ -483,7 +483,7 @@ export function FamilyWorkspaceScreen() {
                         backgroundColor: colors.bg.card,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        gap: 12,
+                        gap: 14,
                       },
                     ]}
                   >
@@ -504,16 +504,16 @@ export function FamilyWorkspaceScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text
-                        style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                        style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         numberOfLines={1}
                       >
                         {b.name}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                         {due !== null ? (due <= 0 ? 'Overdue' : `${due} days left`) : 'No due date'}
                       </Text>
                     </View>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.error }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.status.error }}>
                       {fmtShort(b.amount)}
                     </Text>
                   </View>
@@ -523,14 +523,14 @@ export function FamilyWorkspaceScreen() {
           </View>
         )}
 
-        <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
             Recent Transactions
           </Text>
           {recentTransactions.length === 0 ? (
-            <View style={{ paddingVertical: 32, alignItems: 'center', gap: 8 }}>
+            <View style={{ paddingVertical: 36, alignItems: 'center', gap: 8 }}>
               <AntDesign name="wallet" size={36} color={colors.text.tertiary} />
-              <Text style={{ fontSize: 14, color: colors.text.tertiary }}>No transactions yet</Text>
+              <Text style={{ fontSize: 16, color: colors.text.tertiary }}>No transactions yet</Text>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                 Add an expense or income above
               </Text>
@@ -557,7 +557,7 @@ export function FamilyWorkspaceScreen() {
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text
-                      style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                      style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                       numberOfLines={1}
                     >
                       {txn.description ||
@@ -577,7 +577,7 @@ export function FamilyWorkspaceScreen() {
                   </View>
                   <Text
                     style={{
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: '700',
                       color: txn.type === 'income' ? colors.status.success : colors.status.error,
                     }}
@@ -592,8 +592,8 @@ export function FamilyWorkspaceScreen() {
         </View>
 
         {health.overallScore > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
               Financial Health
             </Text>
             <View
@@ -603,7 +603,7 @@ export function FamilyWorkspaceScreen() {
                   backgroundColor: colors.bg.card,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 16,
+                  gap: 20,
                 },
               ]}
             >
@@ -620,33 +620,33 @@ export function FamilyWorkspaceScreen() {
                   },
                 ]}
               >
-                <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+                <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                   {health.overallScore}
                 </Text>
                 <Text style={{ fontSize: 9, color: colors.text.tertiary }}>/100</Text>
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Savings</Text>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Savings</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                     {health.categoryScores?.savings || 0}%
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Debt</Text>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Debt</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                     {health.categoryScores?.debt || 0}%
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Goals</Text>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Goals</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                     {health.categoryScores?.goals || 0}%
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Emergency Fund</Text>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Emergency Fund</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                     {health.categoryScores?.emergencyFund || 0}%
                   </Text>
                 </View>
@@ -656,8 +656,8 @@ export function FamilyWorkspaceScreen() {
         )}
 
         {insights.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
               Insights
             </Text>
             <View style={{ gap: 8 }}>
@@ -685,8 +685,8 @@ export function FamilyWorkspaceScreen() {
         )}
 
         {wealth.netWorth > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 6 }}>
-            <Text style={{ fontSize: 11, color: colors.text.tertiary, textAlign: 'center' }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 6 }}>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary, textAlign: 'center' }}>
               Combined Net Worth · {fmtShort(wealth.netWorth)}
             </Text>
           </View>
@@ -723,56 +723,56 @@ const s = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  noWorkspaceTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
+  noWorkspaceTitle: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
   createBtn: {
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: 28,
-    borderRadius: 16,
+    borderRadius: 30,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
   },
-  createBtnText: { fontSize: 15, fontWeight: '700' },
-  card: { borderRadius: 16, padding: 16 },
-  label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  value: { fontSize: 18, fontWeight: '800' },
+  createBtnText: { fontSize: 16, fontWeight: '700' },
+  card: { borderRadius: 30, padding: 22 },
+  label: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  value: { fontSize: 19, fontWeight: '800' },
   vDivider: { width: 1, height: 36, marginHorizontal: 4 },
-  progressBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
+  progressBg: { height: 6, borderRadius: 6, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 6 },
   actionCard: {
     width: (width - 50) / 2,
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 26,
+    padding: 22,
     alignItems: 'center',
     gap: 8,
   },
   actionIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionLabel: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
-  txnRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14 },
+  txnRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18, borderRadius: 28 },
   txnIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberCard: { width: 110, borderRadius: 16, padding: 12, alignItems: 'center' },
-  memberRole: { marginTop: 6, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  memberCard: { width: 110, borderRadius: 30, padding: 18, alignItems: 'center' },
+  memberRole: { marginTop: 6, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
   avatarOverflow: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -788,8 +788,8 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
 });

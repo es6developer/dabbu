@@ -170,10 +170,10 @@ export function ResetPasswordScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: '400',
               color: colors.text.secondary,
-              lineHeight: 22,
+              lineHeight: 24,
               marginBottom: spacing['4xl'],
             }}
           >
@@ -197,7 +197,7 @@ export function ResetPasswordScreen() {
             >
               <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
               <Text
-                style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                style={{ fontSize: 16, fontWeight: '500', color: colors.status.error, flex: 1 }}
               >
                 {error}
               </Text>
@@ -232,7 +232,7 @@ export function ResetPasswordScreen() {
                           : colors.border.default,
                       backgroundColor: digit ? `${colors.accent.primary}08` : colors.bg.secondary,
                       textAlign: 'center',
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: '700',
                       color: colors.text.primary,
                     }}
@@ -257,7 +257,7 @@ export function ResetPasswordScreen() {
                   ...shadows.md,
                 }}
               >
-                <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '600' }}>Continue</Text>
+                <Text style={{ color: '#FFF', fontSize: 19, fontWeight: '600' }}>Continue</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -361,7 +361,7 @@ export function ResetPasswordScreen() {
                 {loading ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '600' }}>
+                  <Text style={{ color: '#FFF', fontSize: 19, fontWeight: '600' }}>
                     Reset Password
                   </Text>
                 )}
@@ -373,7 +373,7 @@ export function ResetPasswordScreen() {
             onPress={() => navigation.navigate('Login')}
             style={{ paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text.secondary }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.secondary }}>
               Back to sign in
             </Text>
           </TouchableOpacity>

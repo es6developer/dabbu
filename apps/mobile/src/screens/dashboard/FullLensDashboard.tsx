@@ -125,7 +125,7 @@ export function FullLensDashboard() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
-          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
+          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 24 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TouchableOpacity
@@ -138,17 +138,17 @@ export function FullLensDashboard() {
               />
             </TouchableOpacity>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                 {greeting}
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {userName}
               </Text>
             </View>
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator size="large" color={colors.accent.primary} />
-            <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>
+            <Text style={{ marginTop: 14, fontSize: 16, color: colors.text.tertiary }}>
               Loading everything...
             </Text>
           </View>
@@ -177,7 +177,7 @@ export function FullLensDashboard() {
             />
           }
         >
-          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -190,11 +190,11 @@ export function FullLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -226,19 +226,19 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <TouchableOpacity
               onPress={() => navigation.navigate('HomeTab', { screen: 'NetWorth' })}
               activeOpacity={0.8}
             >
               <View style={[styles.heroCard, { backgroundColor: colors.accent.primary }]}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
                   Net Worth
                 </Text>
                 <Text style={{ fontSize: 36, fontWeight: '800', color: '#FFF', marginTop: 2 }}>
                   {fmt(fullNetWorth)}
                 </Text>
-                <View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }}>
+                <View style={{ flexDirection: 'row', marginTop: 20, gap: 14 }}>
                   <View style={styles.heroStat}>
                     <Text style={styles.heroStatLabel}>Total Income</Text>
                     <Text style={styles.heroStatValue}>{fmtShort(fullIncome)}</Text>
@@ -258,9 +258,9 @@ export function FullLensDashboard() {
             </TouchableOpacity>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Goal Progress
               </Text>
               <TouchableOpacity
@@ -278,7 +278,7 @@ export function FullLensDashboard() {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         >
                           {g.name}
                         </Text>
@@ -323,7 +323,7 @@ export function FullLensDashboard() {
                       style={{
                         height: 4,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         marginTop: 6,
                       }}
                     >
@@ -339,7 +339,7 @@ export function FullLensDashboard() {
                                 : g.lens === 'FAMILY'
                                   ? '#0D9488'
                                   : colors.accent.primary,
-                          borderRadius: 2,
+                          borderRadius: 4,
                         }}
                       />
                     </View>
@@ -350,11 +350,11 @@ export function FullLensDashboard() {
                 <View
                   style={[
                     styles.goalRow,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="flag" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No goals yet
                   </Text>
                   <TouchableOpacity
@@ -362,8 +362,8 @@ export function FullLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -376,9 +376,9 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Shared-finance spaces
               </Text>
               <TouchableOpacity
@@ -394,36 +394,36 @@ export function FullLensDashboard() {
                 <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
                   <View
                     style={{
-                      borderRadius: 16,
-                      padding: 16,
+                      borderRadius: 30,
+                      padding: 22,
                       alignItems: 'center',
                       backgroundColor: colors.bg.card,
                       flex: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: colors.accent.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.accent.primary }}>
                       {sharedGroups.length}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Total
                     </Text>
                   </View>
                   <View
                     style={{
-                      borderRadius: 16,
-                      padding: 16,
+                      borderRadius: 30,
+                      padding: 22,
                       alignItems: 'center',
                       backgroundColor: colors.bg.card,
                       flex: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: '#22C55E' }}>
                       {
                         sharedGroups.filter((g: any) => g.type === 'couple' || g.type === 'family')
                           .length
                       }
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Shared
                     </Text>
                   </View>
@@ -441,8 +441,8 @@ export function FullLensDashboard() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 14,
-                    padding: 14,
+                    borderRadius: 28,
+                    padding: 18,
                     gap: 10,
                     backgroundColor: colors.bg.card,
                   }}
@@ -451,7 +451,7 @@ export function FullLensDashboard() {
                     style={{
                       width: 8,
                       height: 8,
-                      borderRadius: 4,
+                      borderRadius: 8,
                       backgroundColor:
                         s.type === 'couple'
                           ? '#F43F5E'
@@ -463,10 +463,10 @@ export function FullLensDashboard() {
                     }}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                       {s.name}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       {s.memberCount || 0} members · {s.type}
                     </Text>
                   </View>
@@ -478,16 +478,16 @@ export function FullLensDashboard() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 14,
-                    paddingVertical: 24,
-                    paddingHorizontal: 14,
+                    borderRadius: 28,
+                    paddingVertical: 28,
+                    paddingHorizontal: 24,
                     gap: 10,
                     backgroundColor: colors.bg.card,
                     justifyContent: 'center',
                   }}
                 >
                   <AntDesign name="team" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No shared spaces yet
                   </Text>
                   <TouchableOpacity
@@ -497,8 +497,8 @@ export function FullLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -509,9 +509,9 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Investments
               </Text>
               <TouchableOpacity
@@ -531,18 +531,18 @@ export function FullLensDashboard() {
                     style={[styles.investmentRow, { backgroundColor: colors.bg.card }]}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {inv.name}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>{inv.type}</Text>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>{inv.type}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                         {fmt(inv.value)}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: '600',
                           color: (inv.returnsPct || 0) >= 0 ? '#22C55E' : '#EF4444',
                         }}
@@ -557,11 +557,11 @@ export function FullLensDashboard() {
                 <View
                   style={[
                     styles.investmentRow,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="linechart" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No investments tracked
                   </Text>
                   <TouchableOpacity
@@ -569,8 +569,8 @@ export function FullLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -583,9 +583,9 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Upcoming Bills
               </Text>
               <TouchableOpacity
@@ -616,7 +616,7 @@ export function FullLensDashboard() {
                   />
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.title}
                       </Text>
                       <View
@@ -648,7 +648,7 @@ export function FullLensDashboard() {
                         </Text>
                       </View>
                     </View>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       Due{' '}
                       {b.dueDate
                         ? new Date(b.dueDate).toLocaleDateString('en-IN', {
@@ -658,7 +658,7 @@ export function FullLensDashboard() {
                         : 'Soon'}
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                     {fmt(b.amount)}
                   </Text>
                 </View>
@@ -667,11 +667,11 @@ export function FullLensDashboard() {
                 <View
                   style={[
                     styles.billRow,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No upcoming bills
                   </Text>
                   <TouchableOpacity
@@ -679,8 +679,8 @@ export function FullLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -691,7 +691,7 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={[styles.insightCard, { backgroundColor: colors.bg.card }]}>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}
@@ -701,7 +701,7 @@ export function FullLensDashboard() {
                 >
                   <AntDesign name="bulb1" size={18} color={colors.accent.primary} />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   AI Insights
                 </Text>
               </View>
@@ -721,10 +721,10 @@ export function FullLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16, gap: 8 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20, gap: 8 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
                 marginBottom: 4,
@@ -794,36 +794,36 @@ export function FullLensDashboard() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCard: { borderRadius: 24, padding: 20 },
-  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 },
-  heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
+  heroCard: { borderRadius: 32, padding: 24 },
+  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 28, padding: 18 },
+  heroStatLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
   heroStatValue: { fontSize: 16, fontWeight: '700', color: '#FFF', marginTop: 2 },
-  goalRow: { borderRadius: 12, padding: 14 },
-  goalLensBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  spaceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, gap: 10 },
-  spaceDot: { width: 8, height: 8, borderRadius: 4 },
+  goalRow: { borderRadius: 28, padding: 18 },
+  goalLensBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  spaceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
+  spaceDot: { width: 8, height: 8, borderRadius: 8 },
   investmentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 28,
+    padding: 18,
     gap: 10,
   },
-  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, gap: 10 },
-  billDot: { width: 8, height: 8, borderRadius: 4 },
-  insightCard: { borderRadius: 20, padding: 18 },
+  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
+  billDot: { width: 8, height: 8, borderRadius: 8 },
+  insightCard: { borderRadius: 28, padding: 22 },
   insightIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -834,11 +834,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   qaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  qaCard: { width: '48%', borderRadius: 18, padding: 16, alignItems: 'center', gap: 8 },
+  qaCard: { width: '48%', borderRadius: 26, padding: 22, alignItems: 'center', gap: 8 },
   qaIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -125,20 +125,18 @@ export const useOnboardingStore = create<OnboardingStore>()(
 
       complete: async () => {
         try {
-          await api.post('/onboarding/complete');
           await AsyncStorage.setItem('dabbu-onboarding-completed', 'true');
           set({ completed: true });
-        } catch (e: any) {
+        } catch {
           set({ completed: true });
         }
       },
 
       skip: async () => {
         try {
-          await api.post('/onboarding/skip');
           await AsyncStorage.setItem('dabbu-onboarding-completed', 'true');
           set({ completed: true });
-        } catch (e: any) {
+        } catch {
           set({ completed: true });
         }
       },

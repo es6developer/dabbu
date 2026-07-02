@@ -15,13 +15,14 @@ interface CategoryConfig {
 interface CategoryPickerProps {
   value: string;
   onChange: (name: string) => void;
-  type?: 'wallet' | 'arrowdown';
+  type?: 'expense' | 'income' | 'wallet' | 'arrowdown';
   showLabel?: boolean;
 }
 
-export function CategoryPicker({ value, onChange, type = 'wallet', showLabel = true }: CategoryPickerProps) {
+export function CategoryPicker({ value, onChange, type = 'expense', showLabel = true }: CategoryPickerProps) {
   const { colors } = useTheme();
-  const cats = type === 'arrowdown' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const isExpense = type === 'expense' || type === 'wallet';
+  const cats = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   return (
     <View>
@@ -75,19 +76,19 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     gap: 6,
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingVertical: 14,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    paddingVertical: 18,
   },
   iconWrap: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   name: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },

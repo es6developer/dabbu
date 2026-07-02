@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import { alertService } from "../../components/ui";
+import { PremiumGate } from '../../components/ui/PremiumGate';
 export function DataExportScreen() {
   const { colors: c } = useTheme();
   const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
@@ -68,6 +69,7 @@ export function DataExportScreen() {
   };
 
   return (
+    <PremiumGate featureKey="export_pdf">
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Privacy & Data</Text>
@@ -111,7 +113,7 @@ export function DataExportScreen() {
         </View>
       )}
 
-      <View style={[styles.card, { backgroundColor: theme.card, borderWidth: 1, borderColor: '#ef444430' }]}>
+      <View style={[styles.card, { backgroundColor: theme.card, borderWidth: 1.5, borderColor: '#ef444430' }]}>
         <View style={[styles.iconWrap, { backgroundColor: '#ef444120' }]}>
           <AntDesign name="delete" size={28} color="#ef4444"  />
         </View>
@@ -147,23 +149,24 @@ export function DataExportScreen() {
         </View>
       </View>
     </ScrollView>
+    </PremiumGate>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  header: { paddingHorizontal: 24, paddingBottom: 20 },
   headerTitle: { fontSize: 28, fontWeight: '700' },
-  card: { marginHorizontal: 16, marginVertical: 8, borderRadius: 16, padding: 20 },
-  iconWrap: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  cardTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  cardDesc: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  button: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  card: { marginHorizontal: 20, marginVertical: 8, borderRadius: 30, padding: 24 },
+  iconWrap: { width: 48, height: 52, borderRadius: 32, justifyContent: 'center', alignItems: 'center', marginBottom: 14 },
+  cardTitle: { fontSize: 19, fontWeight: '700', marginBottom: 8 },
+  cardDesc: { fontSize: 16, lineHeight: 24, marginBottom: 20 },
+  button: { paddingVertical: 18, borderRadius: 28, alignItems: 'center' },
   buttonText: { color: 'white', fontSize: 16, fontWeight: '600' },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
-  historyText: { flex: 1, fontSize: 14 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  historyText: { flex: 1, fontSize: 16 },
+  statusDot: { width: 8, height: 8, borderRadius: 8 },
   policyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, gap: 8 },
-  policyText: { fontSize: 13, flex: 1 },
+  policyText: { fontSize: 16, flex: 1 },
 });

@@ -16,6 +16,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { downloadAndShareFile } from '../../utils/exportFile';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CHART_W = SCREEN_W - 64;
@@ -226,6 +227,7 @@ export function AnalyticsScreen() {
   const savingsTrend = savingsReport?.savingsTrend || [];
 
   return (
+    <PremiumGate featureKey="advanced_reports">
     <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       {/* Header */}
       <View style={styles.header}>
@@ -258,7 +260,7 @@ export function AnalyticsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -391,7 +393,7 @@ export function AnalyticsScreen() {
                   styles.chartCard,
                   {
                     backgroundColor: colors.accent.primary + '12',
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                     borderColor: colors.accent.primary + '25',
                   },
                 ]}
@@ -403,7 +405,7 @@ export function AnalyticsScreen() {
                     style={{
                       width: 32,
                       height: 32,
-                      borderRadius: 10,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary + '20',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -423,10 +425,10 @@ export function AnalyticsScreen() {
                 {aiReview.summary && (
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       color: colors.text.secondary,
-                      lineHeight: 20,
-                      marginBottom: 12,
+                      lineHeight: 24,
+                      marginBottom: 14,
                     }}
                   >
                     {aiReview.summary}
@@ -448,7 +450,7 @@ export function AnalyticsScreen() {
                       color={colors.status.success}
                       style={{ marginTop: 2 }}
                     />
-                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                    <Text style={{ fontSize: 16, color: colors.text.secondary, flex: 1 }}>
                       {h.text || h}
                     </Text>
                   </View>
@@ -469,7 +471,7 @@ export function AnalyticsScreen() {
                       color={colors.status.warning}
                       style={{ marginTop: 2 }}
                     />
-                    <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                    <Text style={{ fontSize: 16, color: colors.text.secondary, flex: 1 }}>
                       {r.text || r}
                     </Text>
                   </View>
@@ -852,46 +854,47 @@ export function AnalyticsScreen() {
         )}
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 8 },
-  pageTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5, marginBottom: 16 },
-  tabRow: { flexDirection: 'row', gap: 24 },
+  header: { paddingHorizontal: 24, paddingTop: 60, paddingBottom: 8 },
+  pageTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5, marginBottom: 20 },
+  tabRow: { flexDirection: 'row', gap: 28 },
   tab: { paddingBottom: 8 },
-  tabText: { fontSize: 15, fontWeight: '600' },
+  tabText: { fontSize: 16, fontWeight: '600' },
 
-  periodRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 16 },
-  periodBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
-  periodText: { fontSize: 13, fontWeight: '600' },
+  periodRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 24, marginBottom: 20 },
+  periodBtn: { paddingHorizontal: 24, paddingVertical: 8, borderRadius: 24 },
+  periodText: { fontSize: 16, fontWeight: '600' },
 
-  summaryRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginBottom: 12 },
-  summaryCard: { flex: 1, padding: 16, borderRadius: 18 },
+  summaryRow: { flexDirection: 'row', gap: 14, paddingHorizontal: 24, marginBottom: 14 },
+  summaryCard: { flex: 1, padding: 22, borderRadius: 26 },
   summaryIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
   },
   summaryLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  summaryAmount: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5 },
+  summaryAmount: { fontSize: 26, fontWeight: '700', letterSpacing: -0.5 },
   trendRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   trendText: { fontSize: 10, fontWeight: '600' },
 
-  chartCard: { marginHorizontal: 20, marginTop: 12, padding: 18, borderRadius: 20 },
-  chartTitle: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
-  chart: { borderRadius: 12, marginLeft: -8 },
+  chartCard: { marginHorizontal: 24, marginTop: 14, padding: 22, borderRadius: 28 },
+  chartTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  chart: { borderRadius: 28, marginLeft: -8 },
 
   catRow: {
     flexDirection: 'row',
@@ -900,45 +903,45 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(128,128,128,0.1)',
   },
-  catName: { fontSize: 13, fontWeight: '500' },
+  catName: { fontSize: 16, fontWeight: '500' },
   catCount: { fontSize: 10, marginTop: 2 },
   catRight: { alignItems: 'flex-end' },
-  catAmt: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
-  pctBar: { width: 80, height: 4, borderRadius: 2, overflow: 'hidden' },
-  pctFill: { height: '100%', borderRadius: 2 },
+  catAmt: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  pctBar: { width: 80, height: 4, borderRadius: 4, overflow: 'hidden' },
+  pctFill: { height: '100%', borderRadius: 4 },
 
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 48,
-    paddingHorizontal: 40,
+    paddingHorizontal: 44,
   },
-  emptyText: { fontSize: 15, fontWeight: '600', marginTop: 12 },
-  emptySub: { fontSize: 13, textAlign: 'center', marginTop: 6, lineHeight: 18 },
+  emptyText: { fontSize: 16, fontWeight: '600', marginTop: 14 },
+  emptySub: { fontSize: 16, textAlign: 'center', marginTop: 6, lineHeight: 18 },
 
-  reportTabRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 12 },
-  reportTab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
-  reportTabText: { fontSize: 13, fontWeight: '600' },
+  reportTabRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 24, marginBottom: 14 },
+  reportTab: { paddingHorizontal: 24, paddingVertical: 8, borderRadius: 24 },
+  reportTabText: { fontSize: 16, fontWeight: '600' },
 
-  exportRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, marginBottom: 12 },
+  exportRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 24, marginBottom: 14 },
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 28,
   },
-  exportText: { fontSize: 13, fontWeight: '700' },
+  exportText: { fontSize: 16, fontWeight: '700' },
 
-  reportCard: { marginHorizontal: 20, marginTop: 12, padding: 18, borderRadius: 20 },
-  reportTitle: { fontSize: 17, fontWeight: '700', marginBottom: 14 },
+  reportCard: { marginHorizontal: 24, marginTop: 14, padding: 22, borderRadius: 28 },
+  reportTitle: { fontSize: 19, fontWeight: '700', marginBottom: 16 },
   reportRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
   },
-  reportLabel: { fontSize: 13, fontWeight: '500' },
-  reportValue: { fontSize: 14, fontWeight: '700' },
+  reportLabel: { fontSize: 16, fontWeight: '500' },
+  reportValue: { fontSize: 16, fontWeight: '700' },
 });

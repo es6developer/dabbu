@@ -145,11 +145,11 @@ export function CoupleReportsScreen() {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            padding: 20,
+            padding: 24,
           }}
         >
           <AntDesign name="barschart" size={48} color={colors.accent.primary}  />
-          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 14 }]}>
             No Data
           </Text>
           <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>
@@ -164,7 +164,7 @@ export function CoupleReportsScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -176,7 +176,7 @@ export function CoupleReportsScreen() {
           />
         }
       >
-        <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
+        <View style={{ paddingHorizontal: 24, paddingTop: 14, gap: 14 }}>
           <View
             style={[
               styles.periodRow,
@@ -207,7 +207,7 @@ export function CoupleReportsScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10 }}
-            style={{ marginHorizontal: -20, paddingHorizontal: 20 }}
+            style={{ marginHorizontal: -20, paddingHorizontal: 24 }}
           >
             {summaryCards.map((card, i) => (
               <View key={i} style={[styles.summaryCard, { borderColor: colors.border.subtle }]}>
@@ -414,9 +414,9 @@ const styles = StyleSheet.create({
 
   periodRow: {
     flexDirection: 'row',
-    borderRadius: 14,
+    borderRadius: 28,
     padding: 4,
-    borderWidth: 1,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -425,18 +425,18 @@ const styles = StyleSheet.create({
   },
   periodTab: {
     paddingVertical: 10,
-    borderRadius: 11,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   periodTabActive: { backgroundColor: '#FFF' },
-  periodText: { fontSize: 13, fontWeight: '600' },
+  periodText: { fontSize: 16, fontWeight: '600' },
 
   summaryCard: {
     width: 150,
-    padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
+    padding: 22,
+    borderRadius: 26,
+    borderWidth: 1.5,
     gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -447,38 +447,38 @@ const styles = StyleSheet.create({
   summaryIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  summaryLabel: { fontSize: 11, fontWeight: '500' },
-  summaryAmount: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  summaryLabel: { fontSize: 12, fontWeight: '500' },
+  summaryAmount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
 
   sectionCard: {
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 28,
+    padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 1,
   },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 },
 
-  incomeExpenseRow: { flexDirection: 'row', gap: 16 },
+  incomeExpenseRow: { flexDirection: 'row', gap: 20 },
   ieLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
   ieBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden' },
   ieBar: { height: '100%', borderRadius: 9999, minWidth: 4 },
-  ieAmount: { fontSize: 14, fontWeight: '700', marginTop: 6 },
+  ieAmount: { fontSize: 16, fontWeight: '700', marginTop: 6 },
 
   catRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   catLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, width: 90 },
-  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catDot: { width: 8, height: 8, borderRadius: 8 },
   catName: { fontSize: 12, fontWeight: '600' },
   catRight: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   catBarOuter: { flex: 1, height: 6, borderRadius: 9999, overflow: 'hidden' },
@@ -486,15 +486,15 @@ const styles = StyleSheet.create({
   catAmt: { fontSize: 12, fontWeight: '700', width: 60, textAlign: 'right' },
 
   partnerRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  partnerName: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  partnerName: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   partnerBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden', width: '100%' },
   partnerBar: { height: '100%', borderRadius: 9999, minWidth: 4 },
-  partnerAmount: { fontSize: 15, fontWeight: '700', marginTop: 6 },
+  partnerAmount: { fontSize: 16, fontWeight: '700', marginTop: 6 },
 
   budgetCard: {
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
+    borderRadius: 28,
+    padding: 22,
+    borderWidth: 1.5,
     gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -504,27 +504,27 @@ const styles = StyleSheet.create({
   },
   budgetTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   budgetLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  budgetTitle: { fontSize: 15, fontWeight: '700' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  budgetTitle: { fontSize: 16, fontWeight: '700' },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   statusText: { fontSize: 12, fontWeight: '700' },
   budgetBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden' },
   budgetBarFill: { height: '100%', borderRadius: 9999, minWidth: 4 },
   budgetMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   budgetMetaText: { fontSize: 12, fontWeight: '500' },
-  budgetPct: { fontSize: 14, fontWeight: '800' },
+  budgetPct: { fontSize: 16, fontWeight: '800' },
 
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: 18,
-    borderWidth: 1,
+    paddingVertical: 20,
+    borderRadius: 26,
+    borderWidth: 1.5,
     marginTop: 4,
   },
-  exportText: { fontSize: 15, fontWeight: '600', color: '#F97316' },
+  exportText: { fontSize: 16, fontWeight: '600', color: '#F97316' },
 
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 14 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16 },
 });

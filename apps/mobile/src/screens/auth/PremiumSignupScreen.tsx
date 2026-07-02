@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,14 +20,136 @@ import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 import { AuthInput } from '../../components/ui/AuthInput';
 import { AuthButton } from '../../components/ui/AuthButton';
 import { SocialButton } from '../../components/ui/SocialButton';
+import { useTheme } from '../../theme';
+import { palette } from '../../theme/colors';
+
+function createStyles(colors: typeof palette.dark, isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    viewingArea: {
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 28,
+    },
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+      alignSelf: 'flex-start',
+    },
+    logoContainer: {
+      width: 64,
+      height: 64,
+      borderRadius: 20,
+      backgroundColor: colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+    },
+    logo: {
+      width: 36,
+      height: 36,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.text.primary,
+      textAlign: 'center',
+      letterSpacing: -0.5,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '400',
+      color: colors.text.secondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    interactionArea: {
+      flex: 1,
+      paddingHorizontal: 24,
+    },
+    formCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 4,
+    },
+    nameRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    nameField: {
+      flex: 1,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: colors.status.errorLight,
+      marginBottom: 16,
+    },
+    errorText: {
+      fontSize: 14,
+      fontWeight: '400',
+      color: colors.status.error,
+      flex: 1,
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 24,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.subtle,
+    },
+    dividerText: {
+      marginHorizontal: 16,
+      fontSize: 14,
+      fontWeight: '400',
+      color: colors.text.tertiary,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 24,
+    },
+    footerText: {
+      fontSize: 15,
+      fontWeight: '400',
+      color: colors.text.secondary,
+    },
+    footerLink: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text.link,
+    },
+  });
+}
 
 export function PremiumSignupScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { register, googleLogin, isAuthenticated } = useAuth();
+  const { register, googleLogin } = useAuth();
 
   const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
+  const { colors, isDark } = useTheme();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -47,6 +169,8 @@ export function PremiumSignupScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
@@ -168,30 +292,28 @@ export function PremiumSignupScreen() {
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Animated.View style={[styles.animatedView, { transform: [{ translateX: shakeAnim }] }]}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 24 }}
-          >
-            <View style={{ paddingTop: insets.top + 48, paddingHorizontal: 24 }}>
-              {/* Close */}
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 20 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateX: shakeAnim }] }}>
+            <View style={[styles.viewingArea, { paddingTop: insets.top + 40 }]}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-                <AntDesign name="close" size={20} color="#000000" />
+                <AntDesign name="close" size={20} color={colors.text.primary} />
               </TouchableOpacity>
-
-              {/* Logo */}
               <View style={styles.logoContainer}>
                 <Image source={logoSource} style={styles.logo} resizeMode="contain" />
               </View>
-
-              {/* Header */}
               <Text style={styles.title}>Create your account</Text>
               <Text style={styles.subtitle}>Join Dabbu and manage money smarter.</Text>
+            </View>
 
-              {/* Form */}
-              <View style={styles.form}>
-                {/* Name Row */}
+            <View style={styles.interactionArea}>
+              <View style={styles.formCard}>
                 <View style={styles.nameRow}>
                   <View style={styles.nameField}>
                     <AuthInput
@@ -222,9 +344,7 @@ export function PremiumSignupScreen() {
                   value={email}
                   onChangeText={(t) => {
                     setEmail(t);
-                    if (error) {
-                      setError('');
-                    }
+                    if (error) setError('');
                   }}
                   inputRef={emailRef}
                   keyboardType="email-address"
@@ -239,9 +359,7 @@ export function PremiumSignupScreen() {
                   value={phone}
                   onChangeText={(t) => {
                     setPhone(t);
-                    if (error) {
-                      setError('');
-                    }
+                    if (error) setError('');
                   }}
                   inputRef={phoneRef}
                   keyboardType="phone-pad"
@@ -256,9 +374,7 @@ export function PremiumSignupScreen() {
                   value={password}
                   onChangeText={(t) => {
                     setPassword(t);
-                    if (error) {
-                      setError('');
-                    }
+                    if (error) setError('');
                   }}
                   inputRef={passwordRef}
                   secureTextEntry
@@ -272,9 +388,7 @@ export function PremiumSignupScreen() {
                   value={confirmPassword}
                   onChangeText={(t) => {
                     setConfirmPassword(t);
-                    if (error) {
-                      setError('');
-                    }
+                    if (error) setError('');
                   }}
                   inputRef={confirmRef}
                   secureTextEntry
@@ -282,27 +396,23 @@ export function PremiumSignupScreen() {
                   onSubmitEditing={handleSignup}
                   error={fieldErrors.confirm}
                 />
+
+                {error ? (
+                  <View style={styles.errorBox}>
+                    <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                ) : null}
+
+                <AuthButton title="Create Account" onPress={handleSignup} loading={loading} />
               </View>
 
-              {/* Error */}
-              {error ? (
-                <View style={styles.errorBox}>
-                  <AntDesign name="exclamationcircle" size={14} color="#FF3B30" />
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              ) : null}
-
-              {/* Create Account Button */}
-              <AuthButton title="Create Account" onPress={handleSignup} loading={loading} />
-
-              {/* Divider */}
               <View style={styles.dividerContainer}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>or continue with</Text>
                 <View style={styles.dividerLine} />
               </View>
 
-              {/* Social */}
               <SocialButton
                 provider="google"
                 onPress={async () => {
@@ -316,7 +426,6 @@ export function PremiumSignupScreen() {
                 disabled={loading}
               />
 
-              {/* Footer */}
               <View style={styles.footer}>
                 <Text style={styles.footerText}>Already have an account? </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -324,112 +433,9 @@ export function PremiumSignupScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
-        </Animated.View>
+          </Animated.View>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  animatedView: {
-    flex: 1,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  logo: {
-    width: 36,
-    height: 36,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#8E8E93',
-    marginBottom: 32,
-  },
-  form: {
-    marginBottom: 20,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  nameField: {
-    flex: 1,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#FF3B3010',
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#FF3B30',
-    flex: 1,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E5EA',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#8E8E93',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  footerText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#8E8E93',
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-});

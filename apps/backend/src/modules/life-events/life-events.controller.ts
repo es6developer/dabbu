@@ -12,6 +12,8 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { LifeEventsService } from './life-events.service';
+import { CreateLifeEventDto } from './dto/create-life-event.dto';
+import { UpdateLifeEventDto } from './dto/update-life-event.dto';
 
 @ApiTags('Life Events')
 @ApiBearerAuth()
@@ -30,10 +32,10 @@ export class LifeEventsController {
   @Post()
   @ApiOperation({ summary: 'Create a new life event' })
   async create(
-    @Body() body: { eventType: string; title: string; description?: string; eventDate?: string; spaceId?: string; source?: string },
+    @Body() dto: CreateLifeEventDto,
     @CurrentUser('id') userId: string,
   ) {
-    const event = await this.service.create(body, userId);
+    const event = await this.service.create(dto, userId);
     return { data: event };
   }
 
@@ -41,10 +43,10 @@ export class LifeEventsController {
   @ApiOperation({ summary: 'Update a life event (confirm, dismiss, etc.)' })
   async update(
     @Param('id') id: string,
-    @Body() body: Partial<{ isConfirmed: boolean; isDismissed: boolean; title: string; description: string; eventDate: string }>,
+    @Body() dto: UpdateLifeEventDto,
     @CurrentUser('id') userId: string,
   ) {
-    const event = await this.service.update(id, body, userId);
+    const event = await this.service.update(id, dto, userId);
     return { data: event };
   }
 

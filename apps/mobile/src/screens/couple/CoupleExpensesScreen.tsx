@@ -210,7 +210,7 @@ export function CoupleExpensesScreen() {
                     groupId,
                     groupName: 'Couple',
                     returnTo: 'CoupleExpenses',
-                    type: 'wallet',
+                    type: 'expense',
                   },
                 })
               }
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  headerTitle: { color: '#FFF', fontSize: 19, fontWeight: '700' },
 
   tabSection: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg },
   segmentRow: { flexDirection: 'row', borderRadius: borderRadius.xl, padding: 3 },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: borderRadius.lg,
   },
-  segmentText: { fontSize: 13, fontWeight: '700' },
+  segmentText: { fontSize: 16, fontWeight: '700' },
 
   summaryCard: {
     borderRadius: borderRadius['4xl'],
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: borderRadius.md,
   },
-  countBadgeText: { fontSize: 11, fontWeight: '700', color: '#F97316' },
+  countBadgeText: { fontSize: 12, fontWeight: '700', color: '#F97316' },
   summaryAmount: {
     fontSize: 32,
     fontWeight: '800',
@@ -352,12 +352,12 @@ const styles = StyleSheet.create({
   },
   summarySub: { fontSize: 12, fontWeight: '500', color: 'rgba(93,56,181,0.6)' },
 
-  expenseList: { gap: spacing.lg, paddingTop: 16 },
+  expenseList: { gap: spacing.lg, paddingTop: 20 },
   expenseRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 26,
+    padding: 18,
     gap: spacing.md,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -366,17 +366,17 @@ const styles = StyleSheet.create({
   },
   catIconCircle: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   expenseInfo: { flex: 1, gap: 6 },
   expenseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: spacing.sm },
+  expenseDesc: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: spacing.sm },
   expenseAmount: { fontSize: 16, fontWeight: '800' },
   expenseBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  expenseDate: { fontSize: 11, fontWeight: '500' },
+  expenseDate: { fontSize: 12, fontWeight: '500' },
   expenseBadges: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: borderRadius.sm },
   categoryBadgeText: { fontSize: 10, fontWeight: '700' },
@@ -394,10 +394,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     alignItems: 'center',
   },
-  splitPct: { fontSize: 14, fontWeight: '800' },
+  splitPct: { fontSize: 16, fontWeight: '800' },
   splitLabel: { fontSize: 9, fontWeight: '500', marginTop: 1 },
 
   emptyWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: spacing.sm },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, fontWeight: '500' },
+  emptyDesc: { fontSize: 16, fontWeight: '500' },
 });

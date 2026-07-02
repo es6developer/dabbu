@@ -166,7 +166,7 @@ export function StreaksScreen() {
             <Text style={[styles.summaryStat, { color: theme.subtext }]}>Bills paid: {yearlySummary.billsPaid}</Text>
             <Text style={[styles.summaryStat, { color: theme.subtext }]}>Best streak: {yearlySummary.longestStreak} days</Text>
           </View>
-          <View style={{ borderTopWidth: 1, borderTopColor: theme.border, marginTop: 12, paddingTop: 12 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: theme.border, marginTop: 14, paddingTop: 14 }}>
             <Text style={[styles.viewFull, { color: theme.primary }]}>View full yearly report →</Text>
           </View>
         </TouchableOpacity>
@@ -178,26 +178,26 @@ export function StreaksScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  header: { paddingHorizontal: 24, paddingBottom: 20 },
   headerTitle: { fontSize: 28, fontWeight: '700' },
-  streakGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, gap: 8 },
-  streakCard: { width: '47%', borderRadius: 16, padding: 16, marginBottom: 8, marginHorizontal: 4, alignItems: 'center' },
-  streakIconWrap: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  streakGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 18, gap: 8 },
+  streakCard: { width: '47%', borderRadius: 30, padding: 22, marginBottom: 8, marginHorizontal: 4, alignItems: 'center' },
+  streakIconWrap: { width: 48, height: 52, borderRadius: 32, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   streakCount: { fontSize: 36, fontWeight: '800' },
   streakLabel: { fontSize: 12, fontWeight: '600', marginTop: 4, textAlign: 'center' },
-  streakLevel: { fontSize: 11, marginTop: 2 },
+  streakLevel: { fontSize: 12, marginTop: 2 },
   streakBest: { fontSize: 10, marginTop: 4 },
-  card: { marginHorizontal: 16, marginVertical: 8, borderRadius: 16, padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  card: { marginHorizontal: 20, marginVertical: 8, borderRadius: 30, padding: 24 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', marginBottom: 14 },
   engagementRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  engagementLabel: { fontSize: 14, marginRight: 8 },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  engagementLabel: { fontSize: 16, marginRight: 8 },
+  statusBadge: { paddingHorizontal: 18, paddingVertical: 4, borderRadius: 28 },
   statusText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  summaryGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  summaryGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   summaryItem: { alignItems: 'center' },
-  summaryValue: { fontSize: 18, fontWeight: '700' },
+  summaryValue: { fontSize: 19, fontWeight: '700' },
   summaryLabel: { fontSize: 12, marginTop: 2 },
-  summaryStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  summaryStat: { fontSize: 13 },
-  viewFull: { fontSize: 14, fontWeight: '600', textAlign: 'right' },
+  summaryStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  summaryStat: { fontSize: 16 },
+  viewFull: { fontSize: 16, fontWeight: '600', textAlign: 'right' },
 });

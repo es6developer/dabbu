@@ -407,7 +407,7 @@ export function GroupExpensesScreen() {
               >
                 <AntDesign name="left" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <View style={{ flex: 1, marginLeft: 12, justifyContent: 'center' }}>
+              <View style={{ flex: 1, marginLeft: 14, justifyContent: 'center' }}>
                 <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
                   {groupName}
                 </Text>
@@ -443,7 +443,7 @@ export function GroupExpensesScreen() {
                   {
                     backgroundColor: colors.bg.tertiary,
                     borderColor: colors.border.default,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 ]}
               >
@@ -463,7 +463,7 @@ export function GroupExpensesScreen() {
                   {
                     backgroundColor: colors.bg.tertiary,
                     borderColor: colors.border.default,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 ]}
               >
@@ -479,7 +479,7 @@ export function GroupExpensesScreen() {
                   {
                     backgroundColor: colors.bg.card,
                     borderColor: colors.border.default,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 ]}
               >
@@ -494,7 +494,7 @@ export function GroupExpensesScreen() {
                   {
                     backgroundColor: colors.bg.card,
                     borderColor: colors.border.default,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 ]}
               >
@@ -509,7 +509,7 @@ export function GroupExpensesScreen() {
                   {
                     backgroundColor: colors.bg.card,
                     borderColor: colors.border.default,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 ]}
               >
@@ -535,7 +535,7 @@ export function GroupExpensesScreen() {
             )}
 
             {categoryBreakdown.length > 0 && (
-              <View style={{ marginTop: 18, paddingHorizontal: 20 }}>
+              <View style={{ marginTop: 22, paddingHorizontal: 24 }}>
                 <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Spending Summary</Text>
                 <View style={{ marginTop: 8, gap: 8 }}>
                   {categoryBreakdown.slice(0, 5).map((cat: any, i: number) => {
@@ -550,14 +550,14 @@ export function GroupExpensesScreen() {
                           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                             <Text
                               style={{
-                                fontSize: 13,
+                                fontSize: 16,
                                 fontWeight: '500',
                                 color: colors.text.primary,
                               }}
                             >
                               {cat.category || cat.name}
                             </Text>
-                            <Text style={{ fontSize: 13, color: colors.text.secondary }}>
+                            <Text style={{ fontSize: 16, color: colors.text.secondary }}>
                               {fmt(cat.amount || 0)}
                             </Text>
                           </View>
@@ -577,7 +577,7 @@ export function GroupExpensesScreen() {
                         </View>
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             color: colors.text.tertiary,
                             width: 36,
                             textAlign: 'right',
@@ -643,8 +643,8 @@ export function GroupExpensesScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingHorizontal: 20,
-                paddingTop: 20,
+                paddingHorizontal: 24,
+                paddingTop: 24,
                 paddingBottom: 8,
               }}
             >
@@ -796,7 +796,7 @@ export function GroupExpensesScreen() {
               )}
 
               {/* Members */}
-              <Text style={[s.inputLabel, { color: colors.text.tertiary, marginTop: 24 }]}>
+              <Text style={[s.inputLabel, { color: colors.text.tertiary, marginTop: 28 }]}>
                 Members
               </Text>
               {members.map((m: any) => {
@@ -828,7 +828,7 @@ export function GroupExpensesScreen() {
               })}
 
               <TouchableOpacity
-                style={[s.primaryAction, { backgroundColor: colors.bg.tertiary, marginTop: 12 }]}
+                style={[s.primaryAction, { backgroundColor: colors.bg.tertiary, marginTop: 14 }]}
                 onPress={() =>
                   navigation.navigate('AddMember', {
                     groupId,
@@ -838,7 +838,7 @@ export function GroupExpensesScreen() {
                 }
               >
                 <AntDesign name="adduser" size={18} color={colors.text.primary} />
-                <Text style={[{ color: colors.text.primary, fontSize: 15, fontWeight: '600' }]}>
+                <Text style={[{ color: colors.text.primary, fontSize: 16, fontWeight: '600' }]}>
                   Add Member
                 </Text>
               </TouchableOpacity>
@@ -863,22 +863,22 @@ const s = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  groupName: { fontSize: 20, fontWeight: '700' },
+  groupName: { fontSize: 26, fontWeight: '700' },
   memberCount: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   actionBar: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   actionBtn: {
     flex: 1,
@@ -886,20 +886,20 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
   actionLabel: { color: '#FFF', fontSize: 12, fontWeight: '600' },
   grid: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   statCard: {
     flex: 1,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 30,
+    padding: 18,
   },
   statLabel: {
     fontSize: 10,
@@ -908,24 +908,24 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
   statVal: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     marginTop: 4,
   },
   budgetBar: {
     height: 8,
-    borderRadius: 4,
-    marginHorizontal: 20,
+    borderRadius: 8,
+    marginHorizontal: 24,
     overflow: 'hidden',
   },
   budgetFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 8,
   },
   memberSection: {
-    paddingHorizontal: 20,
-    marginTop: 18,
-    marginBottom: 12,
+    paddingHorizontal: 24,
+    marginTop: 22,
+    marginBottom: 14,
   },
   memberChip: {
     flexDirection: 'row',
@@ -933,12 +933,12 @@ const s = StyleSheet.create({
     gap: 6,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: 28,
   },
   memberDot: {
     width: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -947,10 +947,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginHorizontal: 20,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    marginHorizontal: 24,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
     marginBottom: 8,
   },
   expiredBannerText: {
@@ -959,65 +959,65 @@ const s = StyleSheet.create({
     flex: 1,
   },
   balanceCard: {
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 12,
+    marginHorizontal: 24,
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 14,
   },
   balanceLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 0.3 },
   balanceAmount: { fontSize: 34, fontWeight: '800', marginTop: 4, letterSpacing: -1 },
-  summaryRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  summaryRow: { flexDirection: 'row', gap: 14, marginTop: 20 },
   summaryItem: { flex: 1, gap: 2 },
   summaryLabel: { fontSize: 10, fontWeight: '500' },
   summaryValue: { fontSize: 16, fontWeight: '700' },
   debtsCard: {
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    marginHorizontal: 24,
+    borderRadius: 30,
+    padding: 22,
+    marginBottom: 14,
+    borderWidth: 1.5,
   },
-  debtsTitle: { fontSize: 14, fontWeight: '700', marginBottom: 10 },
+  debtsTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10 },
   debtRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 8,
   },
-  debtName: { flex: 1, fontSize: 13, fontWeight: '600' },
-  debtAmount: { fontSize: 13, fontWeight: '600' },
+  debtName: { flex: 1, fontSize: 16, fontWeight: '600' },
+  debtAmount: { fontSize: 16, fontWeight: '600' },
   actionsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  actionText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  actionText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   secTitle: {
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 8,
   },
   txCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     marginVertical: 3,
-    padding: 12,
-    borderRadius: 14,
+    padding: 18,
+    borderRadius: 28,
   },
   txInfo: { flex: 1 },
-  txDesc: { fontSize: 14, fontWeight: '600' },
-  txMeta: { fontSize: 11, marginTop: 1, fontWeight: '500' },
-  txAmount: { fontSize: 15, fontWeight: '700' },
+  txDesc: { fontSize: 16, fontWeight: '600' },
+  txMeta: { fontSize: 12, marginTop: 1, fontWeight: '500' },
+  txAmount: { fontSize: 16, fontWeight: '700' },
   txDate: { fontSize: 10, fontWeight: '500', marginTop: 1 },
-  emptyState: { alignItems: 'center', paddingTop: 40, gap: 12 },
+  emptyState: { alignItems: 'center', paddingTop: 44, gap: 14 },
   emptyTitle: { fontSize: 16, fontWeight: '600' },
-  emptyDesc: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingHorizontal: 40 },
+  emptyDesc: { fontSize: 16, color: '#9CA3AF', textAlign: 'center', paddingHorizontal: 44 },
   modalBackdrop: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -1031,7 +1031,7 @@ const s = StyleSheet.create({
   sheetHandle: {
     width: 36,
     height: 4,
-    borderRadius: 2,
+    borderRadius: 4,
     backgroundColor: '#D1D5DB',
     alignSelf: 'center',
     marginTop: 10,
@@ -1041,33 +1041,33 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    marginBottom: 20,
   },
-  sheetTitle: { fontSize: 18, fontWeight: '700' },
+  sheetTitle: { fontSize: 19, fontWeight: '700' },
   sheetClose: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inputLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 6,
   },
   input: {
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    fontSize: 16,
     fontWeight: '500',
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     marginBottom: 8,
   },
   primaryAction: {
@@ -1075,38 +1075,38 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
+    marginHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
     marginTop: 4,
   },
-  primaryActionText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  primaryActionText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  memberName: { fontSize: 14, fontWeight: '600' },
-  memberRole: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  memberName: { fontSize: 16, fontWeight: '600' },
+  memberRole: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   leaveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginHorizontal: 20,
-    marginTop: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
+    marginHorizontal: 24,
+    marginTop: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  leaveText: { fontSize: 15, fontWeight: '700' },
+  leaveText: { fontSize: 16, fontWeight: '700' },
   retryBtn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    marginTop: 20,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
 });

@@ -39,7 +39,7 @@ export const AppCard: React.FC<AppCardProps> = ({
     outlined: {
       backgroundColor: colors.bg.card,
       borderRadius: borderRadius['3xl'],
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: colors.border.subtle,
     },
     highlight: {
@@ -53,14 +53,14 @@ export const AppCard: React.FC<AppCardProps> = ({
       backgroundColor: colors.bg.card,
       borderRadius: borderRadius['4xl'],
       ...shadows.premium,
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: colors.accent.primary + '20',
     },
     glass: {
       backgroundColor: colors.bg.glass,
       borderRadius: borderRadius['4xl'],
       ...shadows.glass,
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: colors.border.subtle,
     },
     gradient: {

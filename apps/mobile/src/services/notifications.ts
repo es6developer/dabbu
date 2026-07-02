@@ -162,7 +162,7 @@ async function setupAndroidChannels(): Promise<void> {
       id: 'system',
       name: 'System Updates',
       description: 'App updates, account changes & security alerts',
-      importance: Notifications.AndroidImportance.LOW,
+      importance: Notifications.AndroidImportance.DEFAULT,
       color: ACCENT_GRAY,
       vibration: false,
     },
@@ -175,6 +175,8 @@ async function setupAndroidChannels(): Promise<void> {
         importance: ch.importance,
         vibrationPattern: ch.vibration ? [0, 200, 150, 200] : undefined,
         lightColor: ch.color,
+        bypassDnd: ch.importance === Notifications.AndroidImportance.HIGH,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
     } catch (_e) {
       void _e;
@@ -345,17 +347,36 @@ export function addNotificationReceivedListener(
   return Notifications.addNotificationReceivedListener(handler);
 }
 
+const NOTIF_TYPE_ICONS: Record<string, string> = {
+  expense: 'ic_expense',
+  shared_finance: 'ic_group',
+  group_expense: 'ic_group',
+  goal: 'ic_goal',
+  emi: 'ic_bill',
+  subscription: 'ic_subscription',
+  settlement: 'ic_settlement',
+  system: 'ic_system',
+  reminder: 'ic_reminder',
+  monthly_report: 'ic_report',
+  weekly_digest: 'ic_insight',
+  daily_digest: 'ic_insight',
+};
+
 export async function presentLocalNotification(
   title: string,
   body: string,
   data: Record<string, any> = {},
 ): Promise<string | undefined> {
   try {
+    const type = data?.type || 'system';
+    const icon = NOTIF_TYPE_ICONS[type] || undefined;
     const notificationId = await Notifications.presentNotificationAsync({
       title,
       body,
       data,
       sound: true,
+      ...(Platform.OS === 'android' && icon ? { icon } : {}),
+      ...(Platform.OS === 'android' ? { color: BRAND_COLOR } : {}),
     });
     return notificationId;
   } catch (e) {
@@ -371,12 +392,16 @@ export async function scheduleLocalNotification(
   data: Record<string, any> = {},
 ): Promise<string | undefined> {
   try {
+    const type = data?.type || 'system';
+    const icon = NOTIF_TYPE_ICONS[type] || undefined;
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
         data,
         sound: true,
+        ...(Platform.OS === 'android' && icon ? { icon } : {}),
+        ...(Platform.OS === 'android' ? { color: BRAND_COLOR } : {}),
       },
       trigger: {
         date,

@@ -118,7 +118,7 @@ export function FamilyLensDashboard() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
-          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
+          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 24 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TouchableOpacity
@@ -131,17 +131,17 @@ export function FamilyLensDashboard() {
               />
             </TouchableOpacity>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                 {greeting}
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {userName}
               </Text>
             </View>
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator size="large" color={colors.accent.primary} />
-            <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>
+            <Text style={{ marginTop: 14, fontSize: 16, color: colors.text.tertiary }}>
               Loading household finances...
             </Text>
           </View>
@@ -160,7 +160,7 @@ export function FamilyLensDashboard() {
           locations={[0, 0.3]}
           style={{ flex: 1 }}
         >
-          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -173,11 +173,11 @@ export function FamilyLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -213,8 +213,8 @@ export function FamilyLensDashboard() {
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              paddingHorizontal: 32,
-              gap: 12,
+              paddingHorizontal: 36,
+              gap: 14,
             }}
           >
             <View style={[styles.emptyIcon, { backgroundColor: colors.accent.primary + '15' }]}>
@@ -222,7 +222,7 @@ export function FamilyLensDashboard() {
             </View>
             <Text
               style={{
-                fontSize: 20,
+                fontSize: 26,
                 fontWeight: '800',
                 color: colors.text.primary,
                 textAlign: 'center',
@@ -232,10 +232,10 @@ export function FamilyLensDashboard() {
             </Text>
             <Text
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 color: colors.text.tertiary,
                 textAlign: 'center',
-                lineHeight: 20,
+                lineHeight: 24,
               }}
             >
               Set up a family workspace to manage household expenses, goals, bills, and allowances
@@ -275,7 +275,7 @@ export function FamilyLensDashboard() {
             />
           }
         >
-          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -288,11 +288,11 @@ export function FamilyLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -325,7 +325,7 @@ export function FamilyLensDashboard() {
           </View>
 
           {workspace && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 14 }}>
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate('FamilyWorkspace', { familyId: workspace.familyId })
@@ -346,10 +346,10 @@ export function FamilyLensDashboard() {
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                     {workspace.name}
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                     {workspace.description || 'Family workspace'}
                   </Text>
                 </View>
@@ -358,15 +358,15 @@ export function FamilyLensDashboard() {
             </View>
           )}
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={[styles.heroCard, { backgroundColor: colors.accent.primary }]}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
                 Household Income
               </Text>
               <Text style={{ fontSize: 32, fontWeight: '800', color: '#FFF', marginTop: 2 }}>
                 {fmt(d.familyIncome || 0)}
               </Text>
-              <View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }}>
+              <View style={{ flexDirection: 'row', marginTop: 20, gap: 14 }}>
                 <View style={styles.heroStat}>
                   <Text style={styles.heroStatLabel}>Household Expenses</Text>
                   <Text style={styles.heroStatValue}>{fmt(d.familyExpense || 0)}</Text>
@@ -379,9 +379,9 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Utility Bills
               </Text>
               <TouchableOpacity
@@ -407,10 +407,10 @@ export function FamilyLensDashboard() {
                       ]}
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.title}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                         {b.category || 'Utility'} · Due{' '}
                         {b.dueDate
                           ? new Date(b.dueDate).toLocaleDateString('en-IN', {
@@ -420,7 +420,7 @@ export function FamilyLensDashboard() {
                           : 'Soon'}
                       </Text>
                     </View>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                       {fmt(b.amount)}
                     </Text>
                   </View>
@@ -433,12 +433,12 @@ export function FamilyLensDashboard() {
                       {
                         backgroundColor: colors.bg.card,
                         alignItems: 'center',
-                        paddingVertical: 24,
+                        paddingVertical: 28,
                       },
                     ]}
                   >
                     <AntDesign name="filetext1" size={24} color={colors.text.tertiary} />
-                    <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                       No utility bills yet
                     </Text>
                     <TouchableOpacity
@@ -446,8 +446,8 @@ export function FamilyLensDashboard() {
                       style={{
                         marginTop: 10,
                         paddingVertical: 8,
-                        paddingHorizontal: 16,
-                        borderRadius: 10,
+                        paddingHorizontal: 24,
+                        borderRadius: 24,
                         backgroundColor: colors.accent.primary,
                       }}
                     >
@@ -460,9 +460,9 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Family Budget
               </Text>
             </View>
@@ -472,7 +472,7 @@ export function FamilyLensDashboard() {
                 .map((b: any, i: number) => (
                   <View key={b.id || i} style={[styles.card, { backgroundColor: colors.bg.card }]}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.category}
                       </Text>
                       <Text style={{ fontSize: 12, color: colors.text.secondary }}>
@@ -483,7 +483,7 @@ export function FamilyLensDashboard() {
                       style={{
                         height: 4,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         marginTop: 6,
                       }}
                     >
@@ -492,7 +492,7 @@ export function FamilyLensDashboard() {
                           width: `${Math.min(b.limit > 0 ? (b.spent / b.limit) * 100 : 0, 100)}%`,
                           height: 4,
                           backgroundColor: colors.accent.primary,
-                          borderRadius: 2,
+                          borderRadius: 4,
                         }}
                       />
                     </View>
@@ -502,11 +502,11 @@ export function FamilyLensDashboard() {
                 <View
                   style={[
                     styles.card,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="wallet" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No family budget set
                   </Text>
                   <TouchableOpacity
@@ -514,8 +514,8 @@ export function FamilyLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -528,9 +528,9 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Family Savings Goal
               </Text>
               <TouchableOpacity
@@ -547,7 +547,7 @@ export function FamilyLensDashboard() {
                 .map((g: any, i: number) => (
                   <View key={g.id || i} style={[styles.card, { backgroundColor: colors.bg.card }]}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {g.name}
                       </Text>
                       <Text style={{ fontSize: 12, color: colors.text.secondary }}>
@@ -558,7 +558,7 @@ export function FamilyLensDashboard() {
                       style={{
                         height: 4,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         marginTop: 6,
                       }}
                     >
@@ -567,7 +567,7 @@ export function FamilyLensDashboard() {
                           width: `${Math.min(g.progress || 0, 100)}%`,
                           height: 4,
                           backgroundColor: g.progress >= 100 ? '#22C55E' : colors.accent.primary,
-                          borderRadius: 2,
+                          borderRadius: 4,
                         }}
                       />
                     </View>
@@ -580,11 +580,11 @@ export function FamilyLensDashboard() {
                 <View
                   style={[
                     styles.card,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="flag" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No family goals yet
                   </Text>
                   <TouchableOpacity
@@ -592,8 +592,8 @@ export function FamilyLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -606,9 +606,9 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Family Reminders
               </Text>
             </View>
@@ -624,10 +624,10 @@ export function FamilyLensDashboard() {
                     color={r.completed ? '#22C55E' : '#F59E0B'}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                       {r.title}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       Due{' '}
                       {r.dueDate
                         ? new Date(r.dueDate).toLocaleDateString('en-IN', {
@@ -643,11 +643,11 @@ export function FamilyLensDashboard() {
                 <View
                   style={[
                     styles.card,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="bells" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No reminders
                   </Text>
                   <TouchableOpacity
@@ -655,8 +655,8 @@ export function FamilyLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -669,9 +669,9 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Shared-finance spaces
               </Text>
               <TouchableOpacity
@@ -689,15 +689,15 @@ export function FamilyLensDashboard() {
                     style={{
                       flex: 1,
                       backgroundColor: colors.bg.card,
-                      borderRadius: 14,
-                      padding: 14,
+                      borderRadius: 28,
+                      padding: 18,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: colors.accent.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.accent.primary }}>
                       {sharedGroups.length}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Total
                     </Text>
                   </View>
@@ -705,18 +705,18 @@ export function FamilyLensDashboard() {
                     style={{
                       flex: 1,
                       backgroundColor: colors.bg.card,
-                      borderRadius: 14,
-                      padding: 14,
+                      borderRadius: 28,
+                      padding: 18,
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: '#22C55E' }}>
                       {
                         sharedGroups.filter((g: any) => g.type === 'couple' || g.type === 'family')
                           .length
                       }
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Shared
                     </Text>
                   </View>
@@ -735,8 +735,8 @@ export function FamilyLensDashboard() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     backgroundColor: colors.bg.card,
-                    borderRadius: 14,
-                    padding: 14,
+                    borderRadius: 28,
+                    padding: 18,
                     gap: 10,
                   }}
                 >
@@ -744,7 +744,7 @@ export function FamilyLensDashboard() {
                     style={{
                       width: 8,
                       height: 8,
-                      borderRadius: 4,
+                      borderRadius: 8,
                       backgroundColor:
                         s.type === 'couple'
                           ? '#F43F5E'
@@ -754,10 +754,10 @@ export function FamilyLensDashboard() {
                     }}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                       {s.name}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       {s.memberCount || 0} members · {s.type}
                     </Text>
                   </View>
@@ -770,14 +770,14 @@ export function FamilyLensDashboard() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     backgroundColor: colors.bg.card,
-                    borderRadius: 14,
-                    padding: 24,
+                    borderRadius: 28,
+                    padding: 28,
                     justifyContent: 'center',
                   }}
                 >
                   <View style={{ alignItems: 'center' }}>
                     <AntDesign name="team" size={24} color={colors.text.tertiary} />
-                    <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                    <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                       No shared spaces yet
                     </Text>
                     <TouchableOpacity
@@ -787,8 +787,8 @@ export function FamilyLensDashboard() {
                       style={{
                         marginTop: 10,
                         paddingVertical: 8,
-                        paddingHorizontal: 16,
-                        borderRadius: 10,
+                        paddingHorizontal: 24,
+                        borderRadius: 24,
                         backgroundColor: colors.accent.primary,
                       }}
                     >
@@ -800,10 +800,10 @@ export function FamilyLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16, gap: 8 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20, gap: 8 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
                 marginBottom: 4,
@@ -816,7 +816,7 @@ export function FamilyLensDashboard() {
                 onPress={() =>
                   navigation.navigate('WalletTab', {
                     screen: 'AddExpense',
-                    params: { type: 'family' },
+                    params: { type: 'expense' },
                   })
                 }
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
@@ -880,28 +880,28 @@ export function FamilyLensDashboard() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCard: { borderRadius: 24, padding: 20 },
-  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 },
-  heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
-  heroStatValue: { fontSize: 18, fontWeight: '700', color: '#FFF', marginTop: 2 },
-  card: { borderRadius: 12, padding: 14 },
-  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, gap: 10 },
+  heroCard: { borderRadius: 32, padding: 24 },
+  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 28, padding: 18 },
+  heroStatLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+  heroStatValue: { fontSize: 19, fontWeight: '700', color: '#FFF', marginTop: 2 },
+  card: { borderRadius: 28, padding: 18 },
+  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
   reminderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 28,
+    padding: 18,
     gap: 10,
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 8, height: 8, borderRadius: 8 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -911,14 +911,14 @@ const styles = StyleSheet.create({
   workspaceCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
-    padding: 14,
-    gap: 12,
+    borderRadius: 30,
+    padding: 18,
+    gap: 14,
   },
   wsIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -933,18 +933,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: 28,
-    borderRadius: 16,
+    borderRadius: 30,
     marginTop: 8,
   },
-  ctaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  ctaText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   qaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  qaCard: { width: '48%', borderRadius: 18, padding: 16, alignItems: 'center', gap: 8 },
+  qaCard: { width: '48%', borderRadius: 26, padding: 22, alignItems: 'center', gap: 8 },
   qaIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

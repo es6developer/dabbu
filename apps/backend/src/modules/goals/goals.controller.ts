@@ -14,6 +14,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { GoalsService } from './goals.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { PremiumService } from '../premium/premium.service';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
 import { ContributeToGoalDto } from './dto/contribute-goal.dto';
@@ -23,13 +24,17 @@ import { ContributeToGoalDto } from './dto/contribute-goal.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('goals')
 export class GoalsController {
-  constructor(private readonly goalsService: GoalsService) {}
+  constructor(
+    private readonly goalsService: GoalsService,
+    private readonly premiumService: PremiumService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new financial goal' })
   async create(@CurrentUser('id') userId: string, @Body() dto: CreateGoalDto) {
     const goal = await this.goalsService.create(userId, dto);
+    await this.premiumService.incrementUsage(userId, 'goals');
     return { data: goal };
   }
 

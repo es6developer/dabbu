@@ -182,20 +182,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
   topSection: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 44,
   },
   iconRing: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    marginBottom: 24,
+    borderWidth: 1.5,
+    marginBottom: 28,
   },
   title: {
     fontSize: 26,
@@ -203,37 +203,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
   dotsSection: {
     alignItems: 'center',
-    gap: 20,
+    gap: 24,
   },
   dotsRow: {
     flexDirection: 'row',
-    gap: 20,
+    gap: 24,
   },
   dot: {
     width: 14,
     height: 14,
-    borderRadius: 7,
+    borderRadius: 20,
     borderWidth: 2,
   },
   progressBar: {
     width: 120,
     height: 3,
-    borderRadius: 2,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 2,
+    borderRadius: 4,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   keypadSection: {
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
   keyInner: {
     width: KEY_SIZE - 8,
     height: KEY_SIZE - 8,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   keyText: {
     fontSize: 26,
@@ -263,14 +263,14 @@ const styles = StyleSheet.create({
   },
   bottomSection: {
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   backText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   hintText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
 });

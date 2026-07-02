@@ -16,135 +16,102 @@ import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
-import { WebView } from 'react-native-webview';
+import RazorpayCheckout from 'react-native-razorpay';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { usePremium } from '../../store/PremiumContext';
-import { PlanTier } from '../../config/entitlements';
-
 import { alertService } from '../../components/ui';
+
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 64) / 3;
 
-const TIER_PLANS: {
-  tier: PlanTier;
-  label: string;
-  monthly: string;
-  yearly: string;
-  badge: string | null;
-  savings: string | null;
-}[] = [
-  { tier: 'FREE', label: 'Free', monthly: '₹0', yearly: '₹0', badge: null, savings: null },
+const PLANS = [
   {
-    tier: 'PREMIUM',
+    id: 'premium_monthly',
+    code: 'PREMIUM_MONTHLY',
     label: 'Premium',
-    monthly: '₹99/mo',
-    yearly: '₹999/yr',
-    badge: 'POPULAR',
-    savings: 'Save 16%',
+    price: '₹99',
+    period: '/month',
+    color: '#FFD700',
+    features: [
+      'Net Worth Tracking',
+      'Financial Health Score',
+      'AI Money Coach',
+      'Advanced Reports',
+      'PDF & Excel Export',
+      'Custom Categories',
+      'Investment Tracker',
+      'Document Vault',
+      'Bill Predictions',
+      'Emergency Fund Tracker',
+      'Priority Support',
+    ],
   },
   {
-    tier: 'FAMILY',
+    id: 'family_monthly',
+    code: 'FAMILY_MONTHLY',
     label: 'Family',
-    monthly: '₹199/mo',
-    yearly: '₹1,999/yr',
-    badge: 'RECOMMENDED',
+    price: '₹199',
+    period: '/month',
+    color: '#C084FC',
+    badge: 'BEST VALUE',
+    features: [
+      'Everything in Premium',
+      'Family Dashboard',
+      'Family Calendar',
+      'Family AI Advisor',
+      'Shared Document Vault',
+      'Up to 6 Members',
+    ],
+  },
+];
+
+const PLANS_YEARLY = [
+  {
+    id: 'premium_yearly',
+    code: 'PREMIUM_YEARLY',
+    label: 'Premium',
+    price: '₹999',
+    period: '/year',
+    color: '#FFD700',
+    savings: 'Save 16%',
+    features: [
+      'Net Worth Tracking',
+      'Financial Health Score',
+      'AI Money Coach',
+      'Advanced Reports',
+      'PDF & Excel Export',
+      'Custom Categories',
+      'Investment Tracker',
+      'Document Vault',
+      'Bill Predictions',
+      'Emergency Fund Tracker',
+      'Priority Support',
+    ],
+  },
+  {
+    id: 'family_yearly',
+    code: 'FAMILY_YEARLY',
+    label: 'Family',
+    price: '₹1,999',
+    period: '/year',
+    color: '#C084FC',
+    badge: 'BEST VALUE',
     savings: 'Save 17%',
+    features: [
+      'Everything in Premium',
+      'Family Dashboard',
+      'Family Calendar',
+      'Family AI Advisor',
+      'Shared Document Vault',
+      'Up to 6 Members',
+    ],
   },
 ];
-
-const FEATURE_LIST: { key: string; free: boolean; premium: boolean; family: boolean }[] = [
-  { key: 'Personal Dashboard', free: true, premium: true, family: true },
-  { key: 'Manual Expense Tracking', free: true, premium: true, family: true },
-  { key: 'Couple Dashboard', free: true, premium: true, family: true },
-  { key: 'Basic AI Insights', free: true, premium: true, family: true },
-  { key: 'UPI Settlements', free: true, premium: true, family: true },
-  { key: 'Net Worth Tracking', free: false, premium: true, family: true },
-  { key: 'Financial Health Score', free: false, premium: true, family: true },
-  { key: 'AI Coach', free: false, premium: true, family: true },
-  { key: 'Advanced Reports', free: false, premium: true, family: true },
-  { key: 'PDF & Excel Export', free: false, premium: true, family: true },
-  { key: 'Custom Categories', free: false, premium: true, family: true },
-  { key: 'Investment Tracker', free: false, premium: true, family: true },
-  { key: 'Document Vault', free: false, premium: true, family: true },
-  { key: 'Bill Predictions', free: false, premium: true, family: true },
-  { key: 'Emergency Fund Tracker', free: false, premium: true, family: true },
-  { key: 'Priority Support', free: false, premium: true, family: true },
-  { key: 'Family Dashboard', free: false, premium: false, family: true },
-  { key: 'Family Calendar', free: false, premium: false, family: true },
-  { key: 'Family AI Advisor', free: false, premium: false, family: true },
-  { key: 'Shared Document Vault', free: false, premium: false, family: true },
-  { key: 'Up to 6 Members', free: false, premium: false, family: true },
-];
-
-const TESTIMONIALS = [
-  {
-    name: 'Priya S.',
-    text: 'Premium completely changed how I manage money. The AI coach is like having a personal finance advisor!',
-    plan: 'Premium',
-  },
-  {
-    name: 'Rahul M.',
-    text: 'Family plan is a game changer. My wife and I finally have a shared view of our finances.',
-    plan: 'Family',
-  },
-  {
-    name: 'Ankit K.',
-    text: 'The net worth tracker and health score give me clarity I never had before. Worth every rupee!',
-    plan: 'Premium',
-  },
-];
-
-const FAQS = [
-  {
-    q: 'Can I switch plans anytime?',
-    a: 'Yes! You can upgrade, downgrade, or cancel anytime. Upgrades take effect immediately, downgrades at period end.',
-  },
-  {
-    q: 'What payment methods are accepted?',
-    a: 'We support UPI, Credit/Debit Cards, Net Banking, and Wallets through Razorpay.',
-  },
-  {
-    q: 'Is my data secure?',
-    a: 'Absolutely. We use bank-grade encryption and never share your financial data with third parties.',
-  },
-  {
-    q: 'Can I cancel anytime?',
-    a: 'Yes, you can cancel anytime. Your premium features remain active until the end of your billing period.',
-  },
-  {
-    q: 'How does the family plan work?',
-    a: 'You can invite up to 5 family members (total 6). Each member gets their own login with shared family features.',
-  },
-];
-
-function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void }) {
-  return (
-    <View style={StyleSheet.absoluteFill}>
-      <WebView
-        source={{ uri: url }}
-        onNavigationStateChange={(navState) => {
-          if (
-            navState.url.includes('success') ||
-            navState.url.includes('callback') ||
-            navState.url.includes('/subscriptions/') ||
-            navState.url.includes('razorpay.com/payments/')
-          ) {
-            onClose();
-          }
-        }}
-      />
-      <TouchableOpacity style={styles.checkoutCloseBtn} onPress={onClose} activeOpacity={0.7}>
-        <AntDesign name="close" size={22} color="#FFF" />
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 function ProcessingOverlay() {
   return (
     <View style={[StyleSheet.absoluteFill, styles.processingOverlay]}>
       <View style={styles.processingCard}>
-        <ActivityIndicator size="large" color="#F5A623" />
+        <ActivityIndicator size="large" color="#FFD700" />
         <Text style={styles.processingTitle}>Processing Payment</Text>
         <Text style={styles.processingText}>Please wait while we confirm your subscription...</Text>
       </View>
@@ -154,45 +121,30 @@ function ProcessingOverlay() {
 
 export function PremiumScreen() {
   const navigation = useNavigation<any>();
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { trackFeature } = useAnalytics();
-  const { isPremium, subscription, refresh } = usePremium();
+  const { isPremium, refresh } = usePremium();
   const tabBarHeight = useBottomTabBarHeight();
 
-  const [selectedPlan, setSelectedPlan] = useState(1);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
-  const [serverPlans, setServerPlans] = useState<any[] | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const heroScale = useRef(new Animated.Value(0.8)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+
+  const activePlans = billingCycle === 'monthly' ? PLANS : PLANS_YEARLY;
+  const selectedPlan = activePlans[selectedPlanIndex];
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-      Animated.spring(heroScale, { toValue: 1, friction: 6, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
     loadCurrentSubscription();
-    api
-      .get<any[]>('/premium/plans')
-      .then((plans) => {
-        if (Array.isArray(plans) && plans.length > 0) {
-          setServerPlans(plans);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      if (pollRef.current) {
-        clearTimeout(pollRef.current);
-      }
-    };
   }, []);
 
   const loadCurrentSubscription = useCallback(async () => {
@@ -201,10 +153,6 @@ export function PremiumScreen() {
       setCurrentSub(sub);
       if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
         setProcessing(false);
-        if (pollRef.current) {
-          clearTimeout(pollRef.current);
-          pollRef.current = null;
-        }
       }
     } catch {
       /* ignore */
@@ -213,89 +161,60 @@ export function PremiumScreen() {
     }
   }, []);
 
-  const verifyPayment = useCallback(async (): Promise<boolean> => {
-    try {
-      const result: any = await api.post('/premium/verify');
-      return result?.verified === true;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  const waitForActivation = useCallback(() => {
-    setProcessing(true);
-    let attempts = 0;
-    const maxAttempts = 20;
-    const tick = async () => {
-      attempts++;
-      const activated = await verifyPayment();
-      if (activated) {
-        const sub = await api.get<any>('/premium/current').catch(() => null);
-        if (sub) {
-          setCurrentSub(sub);
-        }
-        setProcessing(false);
-        if (pollRef.current) {
-          clearTimeout(pollRef.current);
-          pollRef.current = null;
-        }
-        refresh();
-        alertService.alert('Welcome to Premium!', 'Your subscription is now active.');
-        return;
-      }
-      if (attempts >= maxAttempts) {
-        setProcessing(false);
-        if (pollRef.current) {
-          clearTimeout(pollRef.current);
-          pollRef.current = null;
-        }
-        const sub = await api.get<any>('/premium/current').catch(() => null);
-        if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
-          setCurrentSub(sub);
-          refresh();
-          alertService.alert('Welcome to Premium!', 'Your subscription is now active.');
-        } else {
-          alertService.alert(
-            'Still processing',
-            'Your payment was received but activation is taking longer than expected.',
-          );
-          loadCurrentSubscription();
-        }
-        return;
-      }
-      pollRef.current = setTimeout(tick, 2000) as any;
-    };
-    tick();
-  }, [verifyPayment, loadCurrentSubscription, refresh]);
-
-  const handleWebViewClose = useCallback(() => {
-    setCheckoutUrl(null);
-    waitForActivation();
-  }, [waitForActivation]);
-
   const handleSubscribe = async () => {
-    if (selectedPlan === 0) {
-      navigation.navigate('HomeTab');
-      return;
-    }
-    const actualPlanCode =
-      selectedPlan === 1
-        ? billingCycle === 'yearly'
-          ? 'PREMIUM_YEARLY'
-          : 'PREMIUM_MONTHLY'
-        : billingCycle === 'yearly'
-          ? 'FAMILY_YEARLY'
-          : 'FAMILY_MONTHLY';
-
-    trackFeature('Premium', actualPlanCode);
+    trackFeature('Premium', selectedPlan.code);
     setSubscribing(true);
     try {
-      const result: any = await api.post('/premium/subscribe', { planCode: actualPlanCode });
-      if (result?.checkoutUrl) {
-        setCheckoutUrl(result.checkoutUrl);
-      } else {
-        alertService.alert('Error', 'Failed to initiate payment. Please try again.');
+      const result: any = await api.post('/premium/create-order', { planCode: selectedPlan.code });
+      if (!result?.orderId) {
+        alertService.alert('Error', 'Failed to create order. Please try again.');
+        setSubscribing(false);
+        return;
       }
+
+      const options = {
+        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '',
+        amount: result.amount,
+        currency: result.currency || 'INR',
+        name: 'Dabbu',
+        description: `${selectedPlan.label} Subscription`,
+        order_id: result.orderId,
+        prefill: {
+          contact: '',
+          email: '',
+        },
+        theme: {
+          color: '#FFD700',
+        },
+      };
+
+      RazorpayCheckout.open(options)
+        .then(async (data: any) => {
+          setProcessing(true);
+          try {
+            const verifyResult: any = await api.post('/premium/verify', {
+              razorpayOrderId: data.razorpay_order_id,
+              razorpayPaymentId: data.razorpay_payment_id,
+              razorpaySignature: data.razorpay_signature,
+            });
+            if (verifyResult?.verified) {
+              await refresh();
+              await loadCurrentSubscription();
+              alertService.alert('Welcome to Premium!', 'Your subscription is now active.');
+            } else {
+              alertService.alert('Verification Failed', 'Payment was made but verification failed. Contact support.');
+            }
+          } catch {
+            alertService.alert('Error', 'Payment succeeded but verification failed. Contact support.');
+          } finally {
+            setProcessing(false);
+          }
+        })
+        .catch((error: any) => {
+          if (error?.code !== 0) {
+            alertService.alert('Payment Failed', error?.description || 'Payment was cancelled or failed.');
+          }
+        });
     } catch (e: any) {
       alertService.alert('Error', e?.message || 'Subscription failed. Please try again.');
     } finally {
@@ -305,13 +224,14 @@ export function PremiumScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.bg.primary }]}>
+      <View style={[styles.loadingContainer, { backgroundColor: '#000' }]}>
         <ListSkeleton />
       </View>
     );
   }
 
-  if (isPremium) {
+  // Active premium subscription management
+  if (isPremium && currentSub?.plan?.code !== 'FREE') {
     const endDate = currentSub?.currentPeriodEnd
       ? new Date(currentSub.currentPeriodEnd).toLocaleDateString('en-IN', {
           day: 'numeric',
@@ -319,55 +239,62 @@ export function PremiumScreen() {
           year: 'numeric',
         })
       : '';
+
     return (
-      <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
-        <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
-          <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
-            <View style={styles.premiumBadgeLarge}>
-              <AntDesign name="star" size={24} color="#FFD700" />
-              <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        >
+          <View style={[styles.activeHeader, { paddingTop: insets.top + 16 }]}>
+            <View style={styles.activeBadge}>
+              <AntDesign name="star" size={20} color="#FFD700" />
+              <Text style={styles.activeBadgeText}>DABBU {currentSub?.plan?.name?.toUpperCase() || 'PREMIUM'}</Text>
             </View>
-            <Text style={styles.activeTitle}>You're on {currentSub?.plan?.name || 'Premium'}</Text>
+            <Text style={styles.activeTitle}>You're all set</Text>
+            <Text style={styles.activeSubtitle}>Enjoying premium features</Text>
           </View>
-          <View style={styles.activeDetails}>
-            <View style={styles.detailCard}>
-              <AntDesign name="calendar" size={20} color="#FFD700" />
-              <View>
-                <Text style={styles.detailLabel}>Current Period Ends</Text>
-                <Text style={styles.detailValue}>{endDate}</Text>
+
+          <View style={styles.activeCards}>
+            <View style={styles.activeCard}>
+              <AntDesign name="calendar" size={18} color="#FFD700" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.activeCardLabel}>Renews on</Text>
+                <Text style={styles.activeCardValue}>{endDate}</Text>
               </View>
             </View>
-            <View style={styles.detailCard}>
-              <AntDesign name="creditcard" size={20} color="#FFD700" />
-              <View>
-                <Text style={styles.detailLabel}>Plan</Text>
-                <Text style={styles.detailValue}>{currentSub?.plan?.name || 'Premium'}</Text>
+            <View style={styles.activeCard}>
+              <AntDesign name="creditcard" size={18} color="#FFD700" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.activeCardLabel}>Current Plan</Text>
+                <Text style={styles.activeCardValue}>{currentSub?.plan?.name || 'Premium'}</Text>
               </View>
             </View>
-            {currentSub?.cancelAtPeriodEnd && (
-              <View style={styles.detailCard}>
-                <AntDesign name="exclamationcircle" size={20} color="#FF5050" />
-                <View>
-                  <Text style={[styles.detailLabel, { color: '#FF5050' }]}>
-                    Cancellation Scheduled
-                  </Text>
-                  <Text style={styles.detailValue}>Ends on {endDate}</Text>
-                </View>
-              </View>
-            )}
+          </View>
+
+          {currentSub?.cancelAtPeriodEnd && (
+            <View style={styles.cancelNotice}>
+              <AntDesign name="exclamationcircle" size={16} color="#FF5050" />
+              <Text style={styles.cancelNoticeText}>
+                Your subscription will end on {endDate}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.activeActions}>
             <TouchableOpacity
-              style={styles.billingBtn}
+              style={styles.activeActionBtn}
               onPress={() => navigation.navigate('BillingHistory')}
             >
-              <AntDesign name="filetext1" size={18} color="#FFFFFF" />
-              <Text style={styles.billingBtnText}> Billing History</Text>
+              <AntDesign name="filetext1" size={16} color="#FFF" />
+              <Text style={styles.activeActionText}>Billing History</Text>
             </TouchableOpacity>
-            {!currentSub?.cancelAtPeriodEnd && currentSub?.plan?.code !== 'FREE' && (
+            {!currentSub?.cancelAtPeriodEnd && (
               <TouchableOpacity
-                style={styles.cancelBtn}
+                style={[styles.activeActionBtn, styles.cancelActionBtn]}
                 onPress={() => navigation.navigate('Cancellation')}
               >
-                <Text style={styles.cancelBtnText}>Cancel Subscription</Text>
+                <Text style={styles.cancelActionText}>Cancel Subscription</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -377,230 +304,121 @@ export function PremiumScreen() {
     );
   }
 
+  // Plan selection screen (free users or edge case)
   return (
-    <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-        {/* Hero Section */}
-        <Animated.View
-          style={[styles.heroSection, { opacity: fadeAnim, transform: [{ scale: heroScale }] }]}
-        >
-          <View style={[styles.heroGradient, { paddingTop: insets.top + 20 }]}>
-            <View style={styles.premiumBadgeSmall}>
-              <AntDesign name="star" size={14} color="#FFD700" />
-              <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
-            </View>
-            <Text style={styles.heroTitle}>Take Control of</Text>
-            <Text style={styles.heroTitleAccent}>Your Financial Future</Text>
-            <Text style={styles.heroSubtitle}>
-              From basic tracking to AI-powered financial intelligence. Choose the plan that fits
-              your life.
-            </Text>
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + tabBarHeight + 100 }}
+      >
+        {/* Hero */}
+        <Animated.View style={[styles.hero, { opacity: fadeAnim, paddingTop: insets.top + 20 }]}>
+          <View style={styles.heroPill}>
+            <AntDesign name="star" size={12} color="#FFD700" />
+            <Text style={styles.heroPillText}>DABBU PREMIUM</Text>
           </View>
+          <Text style={styles.heroTitle}>Unlock your{'\n'}financial power</Text>
+          <Text style={styles.heroSubtitle}>
+            Go beyond basic tracking. Get AI insights, investment tracking, and family features.
+          </Text>
         </Animated.View>
 
-        {/* Billing Cycle Toggle */}
-        <View style={styles.billingToggle}>
-          <TouchableOpacity
-            style={[styles.billingOption, billingCycle === 'monthly' && styles.billingOptionActive]}
-            onPress={() => setBillingCycle('monthly')}
-          >
-            <Text
-              style={[
-                styles.billingOptionText,
-                billingCycle === 'monthly' && styles.billingOptionTextActive,
-              ]}
+        {/* Billing Toggle */}
+        <View style={styles.toggleWrap}>
+          <View style={styles.toggle}>
+            <TouchableOpacity
+              style={[styles.toggleBtn, billingCycle === 'monthly' && styles.toggleBtnActive]}
+              onPress={() => setBillingCycle('monthly')}
             >
-              Monthly
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.billingOption, billingCycle === 'yearly' && styles.billingOptionActive]}
-            onPress={() => setBillingCycle('yearly')}
-          >
-            <Text
-              style={[
-                styles.billingOptionText,
-                billingCycle === 'yearly' && styles.billingOptionTextActive,
-              ]}
+              <Text style={[styles.toggleText, billingCycle === 'monthly' && styles.toggleTextActive]}>
+                Monthly
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleBtn, billingCycle === 'yearly' && styles.toggleBtnActive]}
+              onPress={() => setBillingCycle('yearly')}
             >
-              Yearly
-            </Text>
-            <View style={styles.saveBadge}>
-              <Text style={styles.saveBadgeText}>Save ~16%</Text>
-            </View>
-          </TouchableOpacity>
+              <Text style={[styles.toggleText, billingCycle === 'yearly' && styles.toggleTextActive]}>
+                Yearly
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Pricing Cards */}
-        <Animated.View
-          style={[
-            styles.plansSection,
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-          ]}
-        >
-          <View style={styles.plansRow}>
-            {TIER_PLANS.map((plan, index) => {
-              const isSelected = selectedPlan === index;
-              const price = billingCycle === 'monthly' ? plan.monthly : plan.yearly;
-              return (
-                <TouchableOpacity
-                  key={plan.tier}
-                  onPress={() => setSelectedPlan(index)}
-                  activeOpacity={0.8}
-                  style={styles.planCardWrap}
-                >
-                  <View
-                    style={[
-                      styles.planCard,
-                      isSelected && styles.planCardSelected,
-                      plan.tier === 'PREMIUM' && isSelected && { borderColor: '#FFD700' },
-                      plan.tier === 'FAMILY' && isSelected && { borderColor: '#C084FC' },
-                    ]}
-                  >
-                    {plan.badge && (
-                      <View
-                        style={[
-                          styles.planBadge,
-                          plan.tier === 'FAMILY' && { backgroundColor: '#C084FC' },
-                        ]}
-                      >
-                        <Text style={styles.planBadgeText}>{plan.badge}</Text>
-                      </View>
-                    )}
-                    <Text
-                      style={[
-                        styles.planLabel,
-                        plan.tier === 'PREMIUM' && { color: '#FFD700' },
-                        plan.tier === 'FAMILY' && { color: '#C084FC' },
-                      ]}
-                    >
-                      {plan.label}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.planPrice,
-                        plan.tier === 'PREMIUM' && { color: '#FFD700' },
-                        plan.tier === 'FAMILY' && { color: '#C084FC' },
-                      ]}
-                    >
-                      {price}
-                    </Text>
-                    {plan.savings && billingCycle === 'yearly' && (
-                      <View style={styles.savingsPill}>
-                        <Text style={styles.savingsPillText}>{plan.savings}</Text>
-                      </View>
-                    )}
-                    {isSelected && (
-                      <View style={styles.selectedDot}>
-                        <AntDesign
-                          name="checkcircle"
-                          size={18}
-                          color={plan.tier === 'FAMILY' ? '#C084FC' : '#FFD700'}
-                        />
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        {/* Comparison Table */}
-        <Animated.View style={[styles.comparisonSection, { opacity: fadeAnim }]}>
-          <Text style={styles.sectionTitle}>Compare Plans</Text>
-          <View style={styles.comparisonTable}>
-            {FEATURE_LIST.map((feat, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.comparisonRow,
-                  i < FEATURE_LIST.length - 1 && {
-                    borderBottomWidth: StyleSheet.hairlineWidth,
-                    borderBottomColor: 'rgba(255,255,255,0.08)',
-                  },
-                ]}
+        {/* Plan Cards */}
+        <Animated.View style={[styles.plansWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          {activePlans.map((plan, index) => {
+            const isSelected = selectedPlanIndex === index;
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                activeOpacity={0.85}
+                onPress={() => setSelectedPlanIndex(index)}
+                style={[styles.planCard, isSelected && { borderColor: plan.color }]}
               >
-                <Text style={styles.comparisonFeature}>{feat.key}</Text>
-                <View style={styles.comparisonChecks}>
-                  <Text
-                    style={[
-                      styles.checkMark,
-                      feat.free ? styles.checkActive : styles.checkInactive,
-                    ]}
-                  >
-                    {feat.free ? '✓' : '—'}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.checkMark,
-                      feat.premium ? styles.checkActive : styles.checkInactive,
-                    ]}
-                  >
-                    {feat.premium ? '✓' : '—'}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.checkMark,
-                      feat.family ? styles.checkActive : styles.checkInactive,
-                    ]}
-                  >
-                    {feat.family ? '✓' : '—'}
-                  </Text>
+                {plan.badge && (
+                  <View style={[styles.planBadge, { backgroundColor: plan.color }]}>
+                    <Text style={styles.planBadgeText}>{plan.badge}</Text>
+                  </View>
+                )}
+                <View style={styles.planHeader}>
+                  <View>
+                    <Text style={[styles.planLabel, { color: plan.color }]}>{plan.label}</Text>
+                    <View style={styles.planPriceRow}>
+                      <Text style={[styles.planPrice, { color: '#FFF' }]}>{plan.price}</Text>
+                      <Text style={styles.planPeriod}>{plan.period}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.planRadio, isSelected && { borderColor: plan.color, backgroundColor: plan.color + '20' }]}>
+                    {isSelected && <View style={[styles.planRadioDot, { backgroundColor: plan.color }]} />}
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+                {plan.savings && (
+                  <View style={styles.savingsTag}>
+                    <Text style={styles.savingsTagText}>{plan.savings}</Text>
+                  </View>
+                )}
+                <View style={styles.planDivider} />
+                <View style={styles.planFeatures}>
+                  {plan.features.map((feat, fi) => (
+                    <View key={fi} style={styles.planFeatureRow}>
+                      <AntDesign name="check" size={14} color={plan.color} />
+                      <Text style={styles.planFeatureText}>{feat}</Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </Animated.View>
 
-        {/* Testimonials */}
-        <View style={styles.testimonialsSection}>
-          <Text style={styles.sectionTitle}>Loved by Users</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.testimonialsScroll}
-          >
-            {TESTIMONIALS.map((t, i) => (
-              <View key={i} style={styles.testimonialCard}>
-                <Text style={styles.testimonialQuote}>"{t.text}"</Text>
-                <View style={styles.testimonialAuthor}>
-                  <View style={styles.testimonialAvatar}>
-                    <Text style={styles.testimonialAvatarText}>{t.name[0]}</Text>
-                  </View>
-                  <View>
-                    <Text style={styles.testimonialName}>{t.name}</Text>
-                    <Text style={styles.testimonialPlan}>{t.plan} User</Text>
-                  </View>
-                </View>
+        {/* What you get */}
+        <View style={styles.sectionWrap}>
+          <Text style={styles.sectionTitle}>Why upgrade?</Text>
+          {[
+            { icon: 'bulb1', title: 'AI Money Coach', desc: 'Get personalized financial advice powered by AI' },
+            { icon: 'barschart', title: 'Investment Tracker', desc: 'Track SIPs, stocks, FDs and watch your wealth grow' },
+            { icon: 'Safety', title: 'Health Score', desc: 'Know your financial health with a single score' },
+            { icon: 'download', title: 'Export Reports', desc: 'Download PDF & Excel reports for tax and analysis' },
+          ].map((item, i) => (
+            <View key={i} style={styles.benefitRow}>
+              <View style={styles.benefitIcon}>
+                <AntDesign name={item.icon as any} size={20} color="#FFD700" />
               </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* FAQ */}
-        <View style={styles.faqSection}>
-          <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
-          {FAQS.map((faq, i) => (
-            <View key={i} style={styles.faqCard}>
-              <Text style={styles.faqQuestion}>{faq.q}</Text>
-              <Text style={styles.faqAnswer}>{faq.a}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.benefitTitle}>{item.title}</Text>
+                <Text style={styles.benefitDesc}>{item.desc}</Text>
+              </View>
             </View>
           ))}
         </View>
-
-        <View style={{ height: 160 }} />
       </ScrollView>
 
       {/* Sticky CTA */}
-      <Animated.View
-        style={[
-          styles.stickyCta,
-          { paddingBottom: insets.bottom + tabBarHeight + 16, opacity: fadeAnim },
-        ]}
-      >
+      <View style={[styles.stickyCta, { paddingBottom: insets.bottom + tabBarHeight + 12 }]}>
         <TouchableOpacity
-          style={[styles.upgradeBtn, (subscribing || processing) && styles.upgradeBtnDisabled]}
+          style={[styles.ctaBtn, (subscribing || processing) && { opacity: 0.6 }]}
           onPress={handleSubscribe}
           disabled={subscribing || processing}
           activeOpacity={0.85}
@@ -608,20 +426,14 @@ export function PremiumScreen() {
           {subscribing || processing ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
-            <>
-              <AntDesign name="star" size={18} color="#000" style={{ marginRight: 8 }} />
-              <Text style={styles.upgradeText}>
-                {selectedPlan === 0
-                  ? 'Get Started Free'
-                  : `Start ${TIER_PLANS[selectedPlan].label} • ${billingCycle === 'monthly' ? 'Free trial' : 'Best value'}`}
-              </Text>
-            </>
+            <Text style={styles.ctaText}>
+              Start {selectedPlan.label} — {selectedPlan.price}{selectedPlan.period}
+            </Text>
           )}
         </TouchableOpacity>
-        <Text style={styles.guaranteeText}>Cancel anytime • No questions asked</Text>
-      </Animated.View>
+        <Text style={styles.ctaSubtext}>Cancel anytime · No questions asked</Text>
+      </View>
 
-      {checkoutUrl && <CheckoutOverlay url={checkoutUrl} onClose={handleWebViewClose} />}
       {processing && <ProcessingOverlay />}
     </View>
   );
@@ -630,253 +442,223 @@ export function PremiumScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  heroSection: { width },
-  heroGradient: { paddingHorizontal: 24, paddingBottom: 20, alignItems: 'center' },
-  premiumBadgeSmall: {
+
+  // Hero
+  hero: { paddingHorizontal: 28, paddingBottom: 32, alignItems: 'center' },
+  heroPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,215,0,0.15)',
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,215,0,0.12)',
+    paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 16,
+    marginBottom: 20,
     gap: 6,
   },
-  premiumBadgeSmallText: { color: '#FFD700', fontSize: 12, fontWeight: '800', letterSpacing: 2 },
-  premiumBadgeLarge: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  premiumBadgeText: { color: '#FFD700', fontSize: 14, fontWeight: '800', letterSpacing: 3 },
-  heroTitle: { fontSize: 32, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
-  heroTitleAccent: { fontSize: 32, fontWeight: '800', color: '#FFD700', textAlign: 'center' },
-  heroSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+  heroPillText: { color: '#FFD700', fontSize: 11, fontWeight: '800', letterSpacing: 1.5 },
+  heroTitle: {
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#FFF',
     textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 20,
-    paddingHorizontal: 20,
+    lineHeight: 40,
+    marginBottom: 12,
   },
-  billingToggle: {
+  heroSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 12,
+  },
+
+  // Toggle
+  toggleWrap: { paddingHorizontal: 48, marginBottom: 24 },
+  toggle: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginHorizontal: 48,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    padding: 3,
   },
-  billingOption: {
+  toggleBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    alignItems: 'center',
+    borderRadius: 12,
   },
-  billingOptionActive: { backgroundColor: 'rgba(255,215,0,0.2)' },
-  billingOptionText: { color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: '600' },
-  billingOptionTextActive: { color: '#FFD700' },
-  saveBadge: {
-    backgroundColor: '#00A86B',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  saveBadgeText: { color: '#FFF', fontSize: 9, fontWeight: '700' },
-  plansSection: { paddingHorizontal: 16, marginBottom: 24 },
-  plansRow: { flexDirection: 'row', gap: 12 },
-  planCardWrap: { width: CARD_WIDTH },
+  toggleBtnActive: { backgroundColor: 'rgba(255,215,0,0.15)' },
+  toggleText: { color: 'rgba(255,255,255,0.4)', fontSize: 15, fontWeight: '600' },
+  toggleTextActive: { color: '#FFD700' },
+
+  // Plans
+  plansWrap: { paddingHorizontal: 20, gap: 14 },
   planCard: {
-    borderRadius: 16,
-    padding: 16,
-    paddingTop: 24,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    position: 'relative',
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.08)',
-  },
-  planCardSelected: {
-    backgroundColor: 'rgba(255,215,0,0.06)',
-    borderWidth: 1.5,
-    borderColor: '#FFD700',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    padding: 22,
+    position: 'relative',
   },
   planBadge: {
     position: 'absolute',
-    top: -8,
-    right: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: '#FFD700',
+    top: -1,
+    right: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
-  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '800' },
-  planLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: 4 },
-  planPrice: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
-  savingsPill: {
-    marginTop: 6,
-    backgroundColor: 'rgba(0,168,107,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  savingsPillText: { color: '#00A86B', fontSize: 10, fontWeight: '700' },
-  selectedDot: { position: 'absolute', top: 10, right: 10 },
-  comparisonSection: { paddingHorizontal: 16, marginBottom: 24 },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  comparisonTable: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-  },
-  comparisonRow: {
+  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  planHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  planLabel: { fontSize: 14, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+  planPriceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
+  planPrice: { fontSize: 32, fontWeight: '900' },
+  planPeriod: { fontSize: 15, color: 'rgba(255,255,255,0.4)', fontWeight: '500' },
+  planRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    marginTop: 4,
   },
-  comparisonFeature: { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.8)' },
-  comparisonChecks: { flexDirection: 'row', gap: 16, width: 120, justifyContent: 'flex-end' },
-  checkMark: { width: 30, textAlign: 'center', fontSize: 16, fontWeight: '700' },
-  checkActive: { color: '#00A86B' },
-  checkInactive: { color: 'rgba(255,255,255,0.2)' },
-  testimonialsSection: { paddingLeft: 16, marginBottom: 24 },
-  testimonialsScroll: { paddingRight: 16, gap: 12 },
-  testimonialCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16,
-    padding: 20,
-    width: width * 0.75,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+  planRadioDot: { width: 10, height: 10, borderRadius: 6 },
+  savingsTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0,168,107,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 10,
   },
-  testimonialQuote: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 20,
-    marginBottom: 16,
+  savingsTagText: { color: '#00A86B', fontSize: 11, fontWeight: '700' },
+  planDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginVertical: 16,
   },
-  testimonialAuthor: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  testimonialAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,215,0,0.2)',
+  planFeatures: { gap: 10 },
+  planFeatureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  planFeatureText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '500', flex: 1 },
+
+  // Benefits section
+  sectionWrap: { paddingHorizontal: 24, marginTop: 36, gap: 14 },
+  sectionTitle: { fontSize: 22, fontWeight: '800', color: '#FFF', marginBottom: 4 },
+  benefitRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  benefitIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,215,0,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  testimonialAvatarText: { color: '#FFD700', fontSize: 14, fontWeight: '700' },
-  testimonialName: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
-  testimonialPlan: { color: 'rgba(255,255,255,0.4)', fontSize: 11 },
-  faqSection: { paddingHorizontal: 16, marginBottom: 24 },
-  faqCard: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  faqQuestion: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 6 },
-  faqAnswer: { color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 18 },
+  benefitTitle: { fontSize: 15, fontWeight: '700', color: '#FFF', marginBottom: 2 },
+  benefitDesc: { fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 18 },
+
+  // Sticky CTA
   stickyCta: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    backgroundColor: '#0A0A1A',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    backdropFilter: 'blur(20px)',
   },
-  upgradeBtn: {
-    height: 54,
-    borderRadius: 16,
+  ctaBtn: {
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFD700',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    backgroundColor: '#FFD700',
   },
-  upgradeBtnDisabled: { opacity: 0.7 },
-  upgradeText: { color: '#000', fontSize: 17, fontWeight: '800', letterSpacing: 0.5 },
-  guaranteeText: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
+  ctaText: { color: '#000', fontSize: 17, fontWeight: '800', letterSpacing: 0.3 },
+  ctaSubtext: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
   },
-  activeHeader: { paddingHorizontal: 24, paddingBottom: 40, alignItems: 'center' },
-  activeTitle: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginTop: 8 },
-  activeDetails: { padding: 20, gap: 12 },
-  detailCard: {
+
+  // Active subscription
+  activeHeader: { paddingHorizontal: 28, paddingBottom: 32, alignItems: 'center' },
+  activeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255,215,0,0.12)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 16,
+    gap: 6,
   },
-  detailLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  detailValue: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  cancelBtn: {
-    backgroundColor: 'rgba(255,50,50,0.15)',
-    borderRadius: 12,
-    padding: 14,
+  activeBadgeText: { color: '#FFD700', fontSize: 11, fontWeight: '800', letterSpacing: 1.5 },
+  activeTitle: { fontSize: 28, fontWeight: '900', color: '#FFF', marginBottom: 4 },
+  activeSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.4)' },
+  activeCards: { paddingHorizontal: 20, gap: 10 },
+  activeCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 18,
+    padding: 18,
   },
-  cancelBtnText: { color: '#FF5050', fontSize: 14, fontWeight: '700' },
-  billingBtn: {
-    borderRadius: 12,
+  activeCardLabel: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
+  activeCardValue: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  cancelNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 20,
+    marginTop: 12,
+    backgroundColor: 'rgba(255,80,80,0.1)',
+    borderRadius: 14,
     padding: 14,
+  },
+  cancelNoticeText: { color: '#FF5050', fontSize: 13, fontWeight: '600', flex: 1 },
+  activeActions: { paddingHorizontal: 20, marginTop: 16, gap: 10 },
+  activeActionBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    padding: 16,
   },
-  billingBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  activeActionText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+  cancelActionBtn: { backgroundColor: 'rgba(255,50,50,0.1)' },
+  cancelActionText: { color: '#FF5050', fontSize: 15, fontWeight: '600' },
+
+  // Overlays
   processingOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   processingCard: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 32,
+    backgroundColor: '#111',
+    borderRadius: 24,
+    padding: 36,
     alignItems: 'center',
     gap: 16,
     marginHorizontal: 40,
   },
-  processingTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
+  processingTitle: { fontSize: 18, fontWeight: '800', color: '#FFF', textAlign: 'center' },
   processingText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
     lineHeight: 20,
-  },
-  checkoutCloseBtn: {
-    position: 'absolute',
-    top: 60,
-    right: 20,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
   },
 });

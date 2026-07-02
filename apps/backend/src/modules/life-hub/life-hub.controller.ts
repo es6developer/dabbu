@@ -1,6 +1,8 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { FeatureGuard } from '../premium/guards/feature.guard';
+import { RequiresPremium } from '../premium/guards/requires-premium.decorator';
 import { LifeHubService } from './life-hub.service';
 
 @ApiTags('Life Hub')
@@ -128,6 +130,8 @@ export class LifeHubController {
   }
 
   @Get('investment')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('investment_tracker')
   @ApiOperation({ summary: 'Investment planner' })
   @ApiQuery({ name: 'age', type: Number })
   @ApiQuery({ name: 'monthlyIncome', type: Number })
@@ -150,6 +154,8 @@ export class LifeHubController {
   }
 
   @Get('retirement')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('investment_tracker')
   @ApiOperation({ summary: 'Retirement planner' })
   @ApiQuery({ name: 'age', type: Number })
   @ApiQuery({ name: 'monthlyExpense', type: Number })

@@ -166,7 +166,7 @@ export function CoupleFinance({ navigation }: any) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 40,
+          paddingBottom: 44,
           paddingTop: insets.top + 16,
         }}
         refreshControl={
@@ -193,7 +193,7 @@ export function CoupleFinance({ navigation }: any) {
 
         {error ? (
           <View style={styles.errorBox}>
-            <Text style={{ color: colors.status.error, fontSize: 14 }}>{error}</Text>
+            <Text style={{ color: colors.status.error, fontSize: 16 }}>{error}</Text>
           </View>
         ) : loading ? (
           <View style={styles.grid}>
@@ -423,8 +423,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 34,
@@ -434,24 +434,24 @@ const styles = StyleSheet.create({
   settingsBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorBox: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 8,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: CARD_GAP,
   },
   card: {
     width: CARD_WIDTH,
-    borderRadius: 20,
-    padding: 14,
+    borderRadius: 28,
+    padding: 18,
     borderLeftWidth: 3.5,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
@@ -462,17 +462,17 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: -0.1,
   },
   amountLabel: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardListItemText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     flex: 1,
     marginRight: 4,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   owesText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     marginTop: -4,
   },
@@ -510,8 +510,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     marginTop: 4,
   },
   settleBtnText: {
@@ -531,15 +531,15 @@ const styles = StyleSheet.create({
   progressTrack: {
     flex: 1,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   progressBar: {
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
   },
   contributionPct: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     width: 32,
     textAlign: 'right',
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   payerDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
   },
   pieIndicator: {
     flexDirection: 'row',
@@ -562,13 +562,13 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 6,
     paddingHorizontal: 8,
-    borderRadius: 10,
+    borderRadius: 24,
     marginTop: 4,
   },
   pieDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
   },
   pieLabel: {
     fontSize: 10,
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   skeletonCard: {
     width: CARD_WIDTH,
     height: 160,
-    borderRadius: 20,
+    borderRadius: 28,
     overflow: 'hidden',
     flexDirection: 'row',
   },
@@ -588,16 +588,16 @@ const styles = StyleSheet.create({
   },
   skelBody: {
     flex: 1,
-    padding: 14,
+    padding: 18,
     gap: 10,
   },
   skelCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
   },
   skelLine: {
     height: 10,
-    borderRadius: 5,
+    borderRadius: 10,
   },
 });

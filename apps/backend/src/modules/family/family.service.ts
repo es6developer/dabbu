@@ -235,6 +235,27 @@ export class FamilyService {
     return member;
   }
 
+  async cancelInvitation(userId: string, inviteId: string) {
+    const member = await this.prisma.familyMember.findUnique({
+      where: { id: inviteId },
+      include: { family: true },
+    });
+    if (!member) {
+      throw new NotFoundException('Invitation not found');
+    }
+    if (member.userId !== userId && member.role !== 'owner') {
+      const requester = await this.prisma.familyMember.findFirst({
+        where: { familyId: member.familyId, userId, role: 'owner' },
+      });
+      if (!requester) {
+        throw new ForbiddenException('Not authorized to cancel this invitation');
+      }
+    }
+    await this.prisma.familyMember.delete({ where: { id: inviteId } });
+    this.logger.log(`Invitation ${inviteId} cancelled for family ${member.family.name}`);
+    return { success: true };
+  }
+
   async regenerateCode(familyId: string, userId: string) {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {

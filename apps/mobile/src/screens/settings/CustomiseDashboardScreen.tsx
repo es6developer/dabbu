@@ -143,7 +143,7 @@ export function CustomiseDashboardScreen() {
              name="menufold"
             size={20}
             color={colors.text.tertiary}
-            style={{ marginRight: 12 }}
+            style={{ marginRight: 14 }}
           />
           <View style={[styles.widgetIcon, { backgroundColor: colors.bg.tertiary }]}>
             <AntDesign name={meta.icon as any} size={20} color={colors.accent.primary} />
@@ -192,7 +192,7 @@ export function CustomiseDashboardScreen() {
         onDragEnd={({ data }) => setWidgets(data)}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 20, gap: spacing.lg }}
+        contentContainerStyle={{ padding: 24, gap: spacing.lg }}
       />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
@@ -218,37 +218,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingBottom: 8,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { fontSize: 20, fontWeight: '800' },
-  subtitle: { fontSize: 13, textAlign: 'center', paddingHorizontal: 24, marginBottom: 8 },
+  title: { fontSize: 26, fontWeight: '800' },
+  subtitle: { fontSize: 16, textAlign: 'center', paddingHorizontal: 28, marginBottom: 8 },
   widgetItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
   widgetIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  widgetLabel: { fontSize: 15, fontWeight: '700' },
-  widgetDesc: { fontSize: 11, marginTop: 2 },
+  widgetLabel: { fontSize: 16, fontWeight: '700' },
+  widgetDesc: { fontSize: 12, marginTop: 2 },
   eyeBtn: { padding: 8 },
-  footer: { paddingHorizontal: 20, paddingTop: 12 },
-  saveBtn: { height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  footer: { paddingHorizontal: 24, paddingTop: 14 },
+  saveBtn: { height: 54, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   saveText: { fontSize: 16, fontWeight: '700' },
 });

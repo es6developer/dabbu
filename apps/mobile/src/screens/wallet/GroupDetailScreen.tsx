@@ -47,6 +47,34 @@ const ICON_COLORS: Record<string, string> = {
   shoppingcart: '#F97316',
 };
 
+const CATEGORY_NORMALIZE: Record<string, string> = {
+  food: 'Food & Dining',
+  'food & dining': 'Food & Dining',
+  groceries: 'Groceries',
+  grocery: 'Groceries',
+  transport: 'Transport',
+  transportation: 'Transport',
+  shopping: 'Shopping',
+  'bills & utilities': 'Bills & Utilities',
+  bills: 'Bills & Utilities',
+  utilities: 'Bills & Utilities',
+  entertainment: 'Entertainment',
+  'health & fitness': 'Health & Fitness',
+  health: 'Health & Fitness',
+  fitness: 'Health & Fitness',
+  education: 'Education',
+  travel: 'Travel',
+  rent: 'Rent',
+  insurance: 'Insurance',
+  other: 'Other',
+};
+
+function normalizeCategory(cat: string): string {
+  if (!cat) return 'Other';
+  const lower = cat.toLowerCase().trim();
+  return CATEGORY_NORMALIZE[lower] || cat;
+}
+
 const EXPENSE_ICONS: Record<string, React.ComponentProps<typeof AntDesign>['name']> = {
   'Food & Dining': 'rest',
   Groceries: 'shoppingcart',
@@ -166,14 +194,15 @@ export function GroupDetailScreen() {
   const categoryBreakdown = useMemo(() => {
     if (categories.length > 0) {
       return categories.map((c) => ({
-        category: c.name,
+        category: normalizeCategory(c.name),
         amount: c.total,
         percentage: c.percentage,
       }));
     }
     const map = new Map<string, { amount: number }>();
     for (const t of expenseTxns) {
-      const cat = t.category?.name || (typeof t.category === 'string' ? t.category : 'Other');
+      const raw = t.category?.name || (typeof t.category === 'string' ? t.category : 'Other');
+      const cat = normalizeCategory(raw);
       const prev = map.get(cat) || { amount: 0 };
       map.set(cat, { amount: prev.amount + Number(t.amount || 0) });
     }
@@ -392,7 +421,7 @@ export function GroupDetailScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: '700',
                     color:
                       monthlySpending > lastMonthSpending
@@ -424,7 +453,7 @@ export function GroupDetailScreen() {
                 style={{
                   width: 4,
                   height: 14,
-                  borderRadius: 2,
+                  borderRadius: 4,
                   backgroundColor: colors.accent.primary,
                 }}
               />
@@ -542,7 +571,7 @@ export function GroupDetailScreen() {
               style={{
                 width: 4,
                 height: 14,
-                borderRadius: 2,
+                borderRadius: 4,
                 backgroundColor: colors.accent.primary,
               }}
             />
@@ -593,7 +622,7 @@ export function GroupDetailScreen() {
             style={{
               width: 4,
               height: 14,
-              borderRadius: 2,
+              borderRadius: 4,
               backgroundColor: colors.accent.primary,
             }}
           />
@@ -701,7 +730,7 @@ const s = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.xs,
@@ -714,13 +743,13 @@ const s = StyleSheet.create({
   },
   heroIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroName: { fontSize: 17, fontWeight: '800' },
-  heroMeta: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  heroName: { fontSize: 19, fontWeight: '800' },
+  heroMeta: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   actionBtn: {
     flex: 1,
@@ -730,42 +759,42 @@ const s = StyleSheet.create({
     gap: 6,
     paddingVertical: spacing.md,
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   actionIconBg: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionLabel: { fontSize: 12, fontWeight: '700' },
-  summaryCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.lg, gap: 4 },
+  summaryCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing.lg, gap: 4 },
   summaryIcon: {
     width: 28,
     height: 28,
-    borderRadius: 9,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   summaryLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
-  summaryValue: { fontSize: 15, fontWeight: '700' },
+  summaryValue: { fontSize: 16, fontWeight: '700' },
   monthCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
   monthIcon: {
     width: 30,
     height: 30,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   monthLabel: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
   monthValue: { fontSize: 16, fontWeight: '700' },
-  countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
   countText: { fontSize: 10, fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row',
@@ -774,29 +803,29 @@ const s = StyleSheet.create({
     marginBottom: spacing.sm,
     marginTop: spacing.xs,
   },
-  sectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+  sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
   membersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   memberChip: { alignItems: 'center', gap: 3, width: 56 },
   memberAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberInitial: { fontSize: 13, fontWeight: '700' },
+  memberInitial: { fontSize: 16, fontWeight: '700' },
   memberChipName: { fontSize: 9, fontWeight: '600', textAlign: 'center' },
   emptyBox: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing['2xl'],
     alignItems: 'center',
     gap: spacing.sm,
   },
-  emptyText: { fontSize: 13, fontWeight: '500', textAlign: 'center' },
+  emptyText: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
   txnCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.xs,
   },
@@ -804,34 +833,34 @@ const s = StyleSheet.create({
   txnIconBg: {
     width: 34,
     height: 34,
-    borderRadius: 11,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  txnDesc: { fontSize: 13, fontWeight: '600' },
-  catBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
+  txnDesc: { fontSize: 16, fontWeight: '600' },
+  catBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 8 },
   catBadgeText: { fontSize: 8, fontWeight: '700' },
   txnDate: { fontSize: 10, fontWeight: '500' },
-  txnAmount: { fontSize: 14, fontWeight: '700' },
+  txnAmount: { fontSize: 16, fontWeight: '700' },
   catCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
   catDivider: { height: 1, marginVertical: spacing.sm },
-  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catDot: { width: 8, height: 8, borderRadius: 8 },
   catName: { fontSize: 12, fontWeight: '600' },
   catAmount: { fontSize: 12, fontWeight: '600' },
-  catBarBg: { height: 4, borderRadius: 2, backgroundColor: 'rgba(128,128,128,0.12)' },
-  catBarFill: { height: 4, borderRadius: 2 },
-  catPercent: { fontSize: 11, fontWeight: '600', minWidth: 32, textAlign: 'right' },
+  catBarBg: { height: 4, borderRadius: 4, backgroundColor: 'rgba(128,128,128,0.12)' },
+  catBarFill: { height: 4, borderRadius: 4 },
+  catPercent: { fontSize: 12, fontWeight: '600', minWidth: 32, textAlign: 'right' },
   insightCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  insightTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  insightTitle: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   insightLine: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });

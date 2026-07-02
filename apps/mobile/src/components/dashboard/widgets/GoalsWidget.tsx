@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   goalTop: { flexDirection: 'row', justifyContent: 'space-between' },
   goalName: { fontSize: 13, fontWeight: '500' },
   goalPercent: { fontSize: 11, fontWeight: '600' },
-  progressBg: { height: 5, borderRadius: 2.5, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 2.5 },
+  progressBg: { height: 5, borderRadius: 8.5, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 8.5 },
   empty: { fontSize: 14, fontWeight: '500' },
 });

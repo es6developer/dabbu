@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, marginBottom: 10 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   item: { width: '47%', gap: 2, marginBottom: 2 },
-  itemDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 2 },
+  itemDot: { width: 8, height: 8, borderRadius: 14, marginBottom: 2 },
   label: { fontSize: 11, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
   value: { fontSize: 15, fontWeight: '700' },
 });

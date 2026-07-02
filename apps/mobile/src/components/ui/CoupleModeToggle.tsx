@@ -111,32 +111,32 @@ export function CoupleModeToggle({ onToggle }: Props) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 16,
-    borderWidth: 1,
+    marginHorizontal: 20,
+    marginBottom: 14,
+    borderRadius: 32,
+    borderWidth: 1.5,
     overflow: 'hidden',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 18,
+    gap: 14,
   },
   iconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textWrap: { flex: 1 },
   label: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   subLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     marginTop: 1,
   },

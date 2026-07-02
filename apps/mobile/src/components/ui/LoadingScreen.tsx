@@ -21,14 +21,14 @@ export function LoadingScreen({ skeleton }: LoadingScreenProps) {
         <Skeleton
           width={width * 0.7}
           height={14}
-          borderRadius={7}
+          borderRadius={14}
           style={{ alignSelf: 'center' }}
         />
         <View style={{ height: 8 }} />
         <Skeleton
           width={width * 0.4}
           height={14}
-          borderRadius={7}
+          borderRadius={14}
           style={{ alignSelf: 'center' }}
         />
       </View>

@@ -141,7 +141,7 @@ export function SettlementScreen() {
         setAccessToken(accessToken);
       }
       const settlementId = settlement.settlementId || settlement.id;
-      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'wallet' });
+        await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'cash' });
       setCompletedSettlementIds((prev) => new Set(prev).add(settlementId));
       showToast(`${fmt(settlement.amount || 0)} settled in cash`);
       await loadData(true);
@@ -172,7 +172,7 @@ export function SettlementScreen() {
         const settlementId = s.settlementId || s.id;
         try {
           await api.post(`/shared-finance/settlements/${settlementId}/complete`, {
-            method: 'wallet',
+            method: 'cash',
           });
           setCompletedSettlementIds((prev) => new Set(prev).add(settlementId));
           settled++;
@@ -207,7 +207,7 @@ export function SettlementScreen() {
             />
           }
         >
-          <View style={[s.header, { paddingTop: insets.top + 12, paddingHorizontal: 20 }]}>
+          <View style={[s.header, { paddingTop: insets.top + 12, paddingHorizontal: 24 }]}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={[s.headerBtn, { backgroundColor: colors.bg.tertiary }]}
@@ -221,7 +221,7 @@ export function SettlementScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[s.sectionRow, { paddingHorizontal: 20 }]}
+            contentContainerStyle={[s.sectionRow, { paddingHorizontal: 24 }]}
           >
             {[
               { key: 'pending' as const, label: 'Pending', icon: 'swap' },
@@ -426,7 +426,7 @@ export function SettlementScreen() {
         </ScrollView>
 
         {activeSection === 'pending' && visibleSettlements.length > 0 && (
-          <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20 }}>
+          <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 24 }}>
             <TouchableOpacity
               style={[s.batchBtn, { backgroundColor: colors.accent.primary }]}
               onPress={handleBatchSettle}
@@ -461,20 +461,20 @@ const s = StyleSheet.create({
   headerBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
 
-  sectionRow: { gap: 8, marginBottom: 20 },
+  sectionRow: { gap: 8, marginBottom: 24 },
   sectionChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 26,
   },
   sectionChipText: { fontSize: 12, fontWeight: '700' },
   batchBtn: {
@@ -482,25 +482,25 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
+    marginHorizontal: 24,
+    marginBottom: 20,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
-  batchBtnText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
-  settlementsList: { paddingHorizontal: 20, gap: 12, marginBottom: 24 },
-  settlementCard: { borderRadius: 20, padding: 18, gap: 14 },
+  batchBtnText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  settlementsList: { paddingHorizontal: 24, gap: 14, marginBottom: 28 },
+  settlementCard: { borderRadius: 28, padding: 22, gap: 16 },
   settlementFlow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   settlementParty: { alignItems: 'center', gap: 6, flex: 1 },
   partyAvatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   partyInit: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  partyName: { fontSize: 11, textAlign: 'center' },
+  partyName: { fontSize: 12, textAlign: 'center' },
   flowCenter: { alignItems: 'center', gap: 4, paddingHorizontal: 8 },
   flowAmount: { fontSize: 16, fontWeight: '800' },
   actionRow: { flexDirection: 'row', gap: 8 },
@@ -510,51 +510,51 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
-  payNowBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  payNowBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   cashBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
-  cashBtnText: { fontSize: 14, fontWeight: '700' },
+  cashBtnText: { fontSize: 16, fontWeight: '700' },
   emptyCard: {
-    marginHorizontal: 20,
-    borderRadius: 18,
+    marginHorizontal: 24,
+    borderRadius: 26,
     padding: 28,
     alignItems: 'center',
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center' },
-  historyList: { paddingHorizontal: 20, gap: 8 },
+  emptyDesc: { fontSize: 16, textAlign: 'center' },
+  historyList: { paddingHorizontal: 24, gap: 8 },
   historyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 30,
+    padding: 18,
     marginBottom: 8,
   },
-  historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
   historyIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  historyTitle: { fontSize: 14, fontWeight: '600' },
-  historyMeta: { fontSize: 11, marginTop: 2 },
+  historyTitle: { fontSize: 16, fontWeight: '600' },
+  historyMeta: { fontSize: 12, marginTop: 2 },
   historyRight: { alignItems: 'flex-end', gap: 4 },
-  historyAmount: { fontSize: 15, fontWeight: '700' },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  historyAmount: { fontSize: 16, fontWeight: '700' },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   statusText: { fontSize: 10, fontWeight: '700' },
 });

@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useLensStore } from '../../store/lensStore';
 import { downloadAndShareFile } from '../../utils/exportFile';
@@ -58,7 +58,7 @@ export function PersonalLensDashboard() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
-  const { user, accessToken } = useAuth();
+  const { user } = useAuth();
   const activeLens = useLensStore((s) => s.activeLens);
 
   const [dashboard, setDashboard] = useState<any>(null);
@@ -176,9 +176,6 @@ export function PersonalLensDashboard() {
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     setExporting(format);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
       await downloadAndShareFile(
         '/reports/export',
         {
@@ -219,7 +216,7 @@ export function PersonalLensDashboard() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
-          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
+          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 24 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TouchableOpacity
@@ -232,17 +229,17 @@ export function PersonalLensDashboard() {
               />
             </TouchableOpacity>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                 {greeting}
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {userName}
               </Text>
             </View>
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator size="large" color={colors.brand.primary} />
-            <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>
+            <Text style={{ marginTop: 14, fontSize: 16, color: colors.text.tertiary }}>
               Loading your finances...
             </Text>
           </View>
@@ -272,7 +269,7 @@ export function PersonalLensDashboard() {
           }
         >
           {/* ── Header ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -285,11 +282,11 @@ export function PersonalLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -328,7 +325,7 @@ export function PersonalLensDashboard() {
           </View>
 
           {/* ── Balance Hero ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <LinearGradient
               colors={[colors.brand.primary, colors.brand.hover]}
               start={{ x: 0, y: 0 }}
@@ -357,7 +354,7 @@ export function PersonalLensDashboard() {
               >
                 {fmt(balance)}
               </Text>
-              <View style={{ flexDirection: 'row', marginTop: 16, gap: 10 }}>
+              <View style={{ flexDirection: 'row', marginTop: 20, gap: 10 }}>
                 {[
                   { label: 'Income', value: income, color: colors.status.success },
                   { label: 'Expense', value: expense, color: colors.status.error },
@@ -368,8 +365,8 @@ export function PersonalLensDashboard() {
                     style={{
                       flex: 1,
                       backgroundColor: 'rgba(255,255,255,0.12)',
-                      borderRadius: 14,
-                      padding: 12,
+                      borderRadius: 28,
+                      padding: 18,
                     }}
                   >
                     <Text
@@ -392,10 +389,10 @@ export function PersonalLensDashboard() {
               {income > 0 && (
                 <View
                   style={{
-                    marginTop: 12,
+                    marginTop: 14,
                     backgroundColor: 'rgba(255,255,255,0.12)',
-                    borderRadius: 10,
-                    padding: 12,
+                    borderRadius: 24,
+                    padding: 18,
                   }}
                 >
                   <View
@@ -405,22 +402,22 @@ export function PersonalLensDashboard() {
                       marginBottom: 6,
                     }}
                   >
-                    <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
+                    <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
                       Savings Rate
                     </Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF' }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>
                       {savingsRate}%
                     </Text>
                   </View>
                   <View
-                    style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3 }}
+                    style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 6 }}
                   >
                     <View
                       style={{
                         width: `${Math.min(savingsRate, 100)}%`,
                         height: 5,
                         backgroundColor: '#FFF',
-                        borderRadius: 3,
+                        borderRadius: 6,
                       }}
                     />
                   </View>
@@ -431,13 +428,13 @@ export function PersonalLensDashboard() {
 
           {/* ── Monthly Trend Chart ── */}
           {monthlyTrend.length > 1 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
               <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   Monthly Trend
                 </Text>
               </View>
-              <View style={[styles.card, { backgroundColor: colors.bg.card, padding: 16 }]}>
+              <View style={[styles.card, { backgroundColor: colors.bg.card, padding: 22 }]}>
                 <LineChart
                   data={{
                     labels: monthlyTrend.map((m) => {
@@ -490,14 +487,14 @@ export function PersonalLensDashboard() {
                     },
                   }}
                   bezier
-                  style={{ borderRadius: 12 }}
+                  style={{ borderRadius: 28 }}
                 />
               </View>
             </View>
           )}
 
           {/* ── Net Worth Card ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <TouchableOpacity
               onPress={() => navigation.navigate('HomeTab', { screen: 'NetWorth' })}
               activeOpacity={0.8}
@@ -510,7 +507,7 @@ export function PersonalLensDashboard() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                     Net Worth
                   </Text>
                   <AntDesign name="right" size={14} color={colors.text.tertiary} />
@@ -525,16 +522,16 @@ export function PersonalLensDashboard() {
                 >
                   {fmtShort(netWorth)}
                 </Text>
-                <View style={{ flexDirection: 'row', marginTop: 8, gap: 12 }}>
+                <View style={{ flexDirection: 'row', marginTop: 8, gap: 14 }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Assets</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Assets</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                       {fmt(d.netWorth?.assets || 0)}
                     </Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>Liabilities</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#EF4444' }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Liabilities</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#EF4444' }}>
                       {fmt(d.netWorth?.liabilities || 0)}
                     </Text>
                   </View>
@@ -545,9 +542,9 @@ export function PersonalLensDashboard() {
 
           {/* ── Category Breakdown ── */}
           {categoryData.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
               <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   Spending by Category
                 </Text>
               </View>
@@ -557,12 +554,12 @@ export function PersonalLensDashboard() {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         >
                           {c.name}
                         </Text>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         >
                           {fmt(c.amount || 0)}
                         </Text>
@@ -575,7 +572,7 @@ export function PersonalLensDashboard() {
                             flex: 1,
                             height: 6,
                             backgroundColor: colors.border.subtle,
-                            borderRadius: 3,
+                            borderRadius: 6,
                             overflow: 'hidden',
                           }}
                         >
@@ -584,7 +581,7 @@ export function PersonalLensDashboard() {
                               width: `${Math.min(c.percentage || 0, 100)}%`,
                               height: 6,
                               backgroundColor: c.color || colors.accent.primary,
-                              borderRadius: 3,
+                              borderRadius: 6,
                             }}
                           />
                         </View>
@@ -608,9 +605,9 @@ export function PersonalLensDashboard() {
           )}
 
           {/* ── Budget Progress ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Budget Progress
               </Text>
               <TouchableOpacity
@@ -629,12 +626,12 @@ export function PersonalLensDashboard() {
                 >
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.name}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: '600',
                           color: b.progress > 80 ? '#EF4444' : colors.text.secondary,
                         }}
@@ -646,7 +643,7 @@ export function PersonalLensDashboard() {
                       style={{
                         height: 5,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 3,
+                        borderRadius: 6,
                         marginTop: 6,
                         overflow: 'hidden',
                       }}
@@ -657,7 +654,7 @@ export function PersonalLensDashboard() {
                           height: 5,
                           backgroundColor:
                             b.progress > 80 ? '#EF4444' : b.progress > 60 ? '#F59E0B' : '#22C55E',
-                          borderRadius: 3,
+                          borderRadius: 6,
                         }}
                       />
                     </View>
@@ -667,7 +664,7 @@ export function PersonalLensDashboard() {
               {(!d.budgets || d.budgets.length === 0) && (
                 <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
                   <AntDesign name="wallet" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No budgets set
                   </Text>
                   <TouchableOpacity
@@ -675,8 +672,8 @@ export function PersonalLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.brand.primary,
                     }}
                   >
@@ -690,9 +687,9 @@ export function PersonalLensDashboard() {
           </View>
 
           {/* ── Shared-finance spaces ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Shared-finance spaces
               </Text>
               <TouchableOpacity
@@ -709,22 +706,22 @@ export function PersonalLensDashboard() {
                   <View style={{ flexDirection: 'row', gap: 10 }}>
                     <View style={[styles.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                       <Text
-                        style={{ fontSize: 24, fontWeight: '800', color: colors.brand.primary }}
+                        style={{ fontSize: 26, fontWeight: '800', color: colors.brand.primary }}
                       >
                         {spacesData.length}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                         Total
                       </Text>
                     </View>
                     <View style={[styles.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
-                      <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                      <Text style={{ fontSize: 26, fontWeight: '800', color: '#22C55E' }}>
                         {
                           spacesData.filter((s: any) => s.type === 'couple' || s.type === 'family')
                             .length
                         }
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                         Shared
                       </Text>
                     </View>
@@ -748,11 +745,11 @@ export function PersonalLensDashboard() {
                       />
                       <View style={{ flex: 1 }}>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         >
                           {s.name}
                         </Text>
-                        <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                        <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                           {s.type} · {s.memberCount || s._count?.members || 0} members
                         </Text>
                       </View>
@@ -764,11 +761,11 @@ export function PersonalLensDashboard() {
                 <View
                   style={[
                     styles.spaceRow,
-                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 24 },
+                    { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 28 },
                   ]}
                 >
                   <AntDesign name="team" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No shared spaces yet
                   </Text>
                   <TouchableOpacity
@@ -778,8 +775,8 @@ export function PersonalLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -792,9 +789,9 @@ export function PersonalLensDashboard() {
 
           {/* ── Upcoming Reminders ── */}
           {reminders.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
               <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   Upcoming Reminders
                 </Text>
               </View>
@@ -811,11 +808,11 @@ export function PersonalLensDashboard() {
                       ]}
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {r.title || r.name}
                       </Text>
                       {r.dueDate && (
-                        <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                        <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                           Due{' '}
                           {new Date(r.dueDate).toLocaleDateString('en-IN', {
                             day: 'numeric',
@@ -832,13 +829,13 @@ export function PersonalLensDashboard() {
           )}
 
           {/* ── Quick Actions ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               Quick Actions
@@ -893,20 +890,20 @@ export function PersonalLensDashboard() {
           </View>
 
           {/* ── Export Reports ── */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 28 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               Export Reports
             </Text>
             <View style={[styles.exportCard, { backgroundColor: colors.bg.card }]}>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }}
               >
                 <View
                   style={[styles.exportIconBox, { backgroundColor: colors.brand.primary + '12' }]}
@@ -914,10 +911,10 @@ export function PersonalLensDashboard() {
                   <AntDesign name="filetext1" size={20} color={colors.brand.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                     Monthly Report
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 1 }}>
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 1 }}>
                     {new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                   </Text>
                 </View>
@@ -974,9 +971,9 @@ export function PersonalLensDashboard() {
 
           {/* ── Upcoming Bills ── */}
           {d.bills?.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
               <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   Upcoming Bills
                 </Text>
                 <TouchableOpacity
@@ -1000,10 +997,10 @@ export function PersonalLensDashboard() {
                       ]}
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.name}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                         {b.category} · Due{' '}
                         {b.dueDate
                           ? new Date(b.dueDate).toLocaleDateString('en-IN', {
@@ -1013,7 +1010,7 @@ export function PersonalLensDashboard() {
                           : 'Soon'}
                       </Text>
                     </View>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                       {fmt(b.amount)}
                     </Text>
                   </View>
@@ -1024,9 +1021,9 @@ export function PersonalLensDashboard() {
 
           {/* ── Goals ── */}
           {d.goals?.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
               <View style={styles.sectionHeader}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   Goal Progress
                 </Text>
                 <TouchableOpacity
@@ -1044,7 +1041,7 @@ export function PersonalLensDashboard() {
                     style={[styles.goalRow, { backgroundColor: colors.bg.card }]}
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {g.name}
                       </Text>
                       <Text
@@ -1057,7 +1054,7 @@ export function PersonalLensDashboard() {
                       style={{
                         height: 5,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 3,
+                        borderRadius: 6,
                         marginTop: 6,
                         overflow: 'hidden',
                       }}
@@ -1072,7 +1069,7 @@ export function PersonalLensDashboard() {
                               : g.progress >= 50
                                 ? '#F59E0B'
                                 : colors.brand.primary,
-                          borderRadius: 3,
+                          borderRadius: 6,
                         }}
                       />
                     </View>
@@ -1101,19 +1098,19 @@ export function PersonalLensDashboard() {
                   fontSize: 16,
                   fontWeight: '600',
                   color: colors.text.tertiary,
-                  marginTop: 12,
+                  marginTop: 14,
                 }}
               >
                 No financial data yet
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: 16,
                   color: colors.text.tertiary,
                   textAlign: 'center',
                   marginTop: 6,
                   lineHeight: 18,
-                  paddingHorizontal: 40,
+                  paddingHorizontal: 44,
                 }}
               >
                 Start by adding a transaction or creating a budget to see your analytics here.
@@ -1129,16 +1126,16 @@ export function PersonalLensDashboard() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  balanceCard: { borderRadius: 24, padding: 20 },
-  card: { borderRadius: 20, padding: 18 },
+  balanceCard: { borderRadius: 32, padding: 24 },
+  card: { borderRadius: 28, padding: 22 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1146,11 +1143,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  budgetRow: { borderRadius: 14, padding: 14 },
-  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, gap: 10 },
-  billDot: { width: 8, height: 8, borderRadius: 4 },
-  goalRow: { borderRadius: 14, padding: 14 },
-  emptyCard: { borderRadius: 14, padding: 24, alignItems: 'center' },
+  budgetRow: { borderRadius: 28, padding: 18 },
+  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
+  billDot: { width: 8, height: 8, borderRadius: 8 },
+  goalRow: { borderRadius: 28, padding: 18 },
+  emptyCard: { borderRadius: 28, padding: 28, alignItems: 'center' },
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 48 },
 
   catRow: {
@@ -1159,34 +1156,34 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(128,128,128,0.08)',
   },
 
-  statCard: { borderRadius: 16, padding: 16, alignItems: 'center' },
-  spaceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, gap: 10 },
-  spaceDot: { width: 8, height: 8, borderRadius: 4 },
+  statCard: { borderRadius: 30, padding: 22, alignItems: 'center' },
+  spaceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
+  spaceDot: { width: 8, height: 8, borderRadius: 8 },
   reminderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 28,
+    padding: 18,
     gap: 10,
   },
-  reminderDot: { width: 8, height: 8, borderRadius: 4 },
+  reminderDot: { width: 8, height: 8, borderRadius: 8 },
 
   qaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  qaCard: { width: '48%', borderRadius: 18, padding: 16, alignItems: 'center', gap: 8 },
+  qaCard: { width: '48%', borderRadius: 26, padding: 22, alignItems: 'center', gap: 8 },
   qaIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   qaLabel: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
 
-  exportCard: { borderRadius: 20, padding: 18 },
+  exportCard: { borderRadius: 28, padding: 22 },
   exportIconBox: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1196,7 +1193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
 });

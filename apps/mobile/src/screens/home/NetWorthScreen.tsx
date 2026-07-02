@@ -18,6 +18,7 @@ import { api, setAccessToken } from '../../services/api';
 import { onDataRefresh } from '../../services/dataRefresh';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 const ASSET_CATEGORIES = [
   { key: 'bank', label: 'Bank Balance', icon: 'wallet' },
@@ -189,6 +190,7 @@ export function NetWorthScreen() {
   }
 
   return (
+    <PremiumGate featureKey="net_worth">
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -204,7 +206,7 @@ export function NetWorthScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ padding: 24, paddingBottom: 44 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -259,7 +261,7 @@ export function NetWorthScreen() {
             </View>
           </View>
 
-          <Text style={[styles.sectionTitle, { color: colors.text.primary, marginTop: 24 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary, marginTop: 28 }]}>
             Assets
           </Text>
           {ASSET_CATEGORIES.map((cat) => (
@@ -292,7 +294,7 @@ export function NetWorthScreen() {
             </View>
           ))}
 
-          <Text style={[styles.sectionTitle, { color: colors.text.primary, marginTop: 24 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary, marginTop: 28 }]}>
             Liabilities
           </Text>
           {LIABILITY_CATEGORIES.map((cat) => (
@@ -327,6 +329,7 @@ export function NetWorthScreen() {
         </ScrollView>
       )}
     </View>
+    </PremiumGate>
   );
 }
 
@@ -336,49 +339,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 8,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
   netWorthCard: {
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 24,
+    borderRadius: 32,
+    borderWidth: 1.5,
+    padding: 28,
     alignItems: 'center',
   },
-  netWorthLabel: { fontSize: 13, fontWeight: '600', marginBottom: 4 },
+  netWorthLabel: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
   netWorthValue: { fontSize: 40, fontWeight: '800', letterSpacing: -1.5 },
-  divider: { height: 1, width: '100%', marginVertical: 18 },
+  divider: { height: 1, width: '100%', marginVertical: 22 },
   breakdownRow: { flexDirection: 'row', width: '100%' },
   breakdownItem: { flex: 1, alignItems: 'center', gap: 4 },
-  breakdownLabel: { fontSize: 11, fontWeight: '600' },
-  breakdownValue: { fontSize: 18, fontWeight: '800' },
-  breakdownDivider: { width: 1, marginHorizontal: 16 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 12 },
+  breakdownLabel: { fontSize: 12, fontWeight: '600' },
+  breakdownValue: { fontSize: 19, fontWeight: '800' },
+  breakdownDivider: { width: 1, marginHorizontal: 20 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', marginBottom: 14 },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 18,
     marginBottom: 8,
   },
   inputRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  inputLabel: { fontSize: 14, fontWeight: '600' },
+  inputLabel: { fontSize: 16, fontWeight: '600' },
   input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderRadius: 24,
+    paddingHorizontal: 18,
     paddingVertical: 8,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     width: 120,
     textAlign: 'right',

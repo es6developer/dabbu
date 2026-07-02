@@ -30,13 +30,13 @@ export function CoupleTimelineWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
-  levelBadge: { backgroundColor: '#A78BFA20', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
-  levelText: { fontSize: 11, fontWeight: '700', color: '#A78BFA' },
+  card: { borderRadius: 32, padding: 24 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
+  levelBadge: { backgroundColor: '#A78BFA20', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 28 },
+  levelText: { fontSize: 12, fontWeight: '700', color: '#A78BFA' },
   eventRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#27272A' },
-  eventDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
-  eventDesc: { fontSize: 13, color: '#F9FAFB' },
-  eventDate: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  eventDot: { width: 8, height: 8, borderRadius: 20, marginTop: 5 },
+  eventDesc: { fontSize: 16, color: '#F9FAFB' },
+  eventDate: { fontSize: 12, color: '#6B7280', marginTop: 2 },
 });

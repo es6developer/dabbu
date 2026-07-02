@@ -27,8 +27,7 @@ export function FormChip({ label, selected, icon, color, onPress, size = 'md' }:
         styles.chip,
         isSmall && styles.chipSm,
         {
-          backgroundColor: selected ? `${chipColor}1A` : colors.bg.card,
-          borderColor: selected ? chipColor : colors.border.subtle,
+          backgroundColor: selected ? chipColor : colors.bg.tertiary,
         },
       ]}
     >
@@ -36,14 +35,14 @@ export function FormChip({ label, selected, icon, color, onPress, size = 'md' }:
         <AntDesign
           name={icon as any}
           size={isSmall ? 12 : 14}
-          color={selected ? chipColor : colors.text.tertiary}
+          color={selected ? '#FFF' : colors.text.tertiary}
         />
       ) : null}
       <Text
         style={[
           styles.chipText,
           isSmall && styles.chipTextSm,
-          { color: selected ? chipColor : colors.text.secondary },
+          { color: selected ? '#FFF' : colors.text.secondary },
           selected && { fontWeight: '700' },
         ]}
       >
@@ -56,10 +55,9 @@ export function FormChip({ label, selected, icon, color, onPress, size = 'md' }:
 const styles = StyleSheet.create({
   chip: {
     minHeight: 38,
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
     paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
+    borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -70,7 +68,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   chipTextSm: {

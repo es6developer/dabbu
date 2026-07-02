@@ -3,6 +3,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { SupportService } from './support.service';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { SubmitFeedbackDto } from './dto/submit-feedback.dto';
 
 @ApiTags('Support')
 @Controller()
@@ -16,14 +18,14 @@ export class SupportController {
   @ApiOperation({ summary: 'Create a support ticket' })
   async createTicket(
     @CurrentUser('id') userId: string,
-    @Body() body: { subject: string; message: string; category: string; priority?: string },
+    @Body() dto: CreateTicketDto,
   ) {
     return this.supportService.createTicket({
       userId,
-      subject: body.subject,
-      message: body.message,
-      category: body.category,
-      priority: body.priority,
+      subject: dto.subject,
+      message: dto.message,
+      category: dto.category,
+      priority: dto.priority,
     });
   }
 
@@ -50,9 +52,9 @@ export class SupportController {
   @ApiOperation({ summary: 'Submit feedback or bug report' })
   async submitFeedback(
     @CurrentUser('id') userId: string,
-    @Body() body: { type: 'feedback' | 'bug_report' | 'feature_request'; message: string; rating?: number },
+    @Body() dto: SubmitFeedbackDto,
   ) {
-    return this.supportService.submitFeedback({ userId, ...body });
+    return this.supportService.submitFeedback({ userId, ...dto });
   }
 
   @Get('support/faq')

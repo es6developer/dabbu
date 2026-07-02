@@ -200,7 +200,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Select a preset cartoon avatar' })
   async selectPresetAvatar(@CurrentUser('id') userId: string, @Body() dto: SelectPresetAvatarDto) {
-    const result = await this.authService.selectPresetAvatar(userId, dto.seed);
+    const result = dto.seed
+      ? await this.authService.selectPresetAvatar(userId, dto.seed)
+      : await this.authService.selectPresetAvatarByIndex(userId, dto.avatarIndex ?? 0);
     return { data: result };
   }
 

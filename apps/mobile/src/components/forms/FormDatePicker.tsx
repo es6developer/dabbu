@@ -115,7 +115,7 @@ export function FormDatePicker({ label, value, onChange, optional, required }: F
                 <TouchableOpacity
                   key={day}
                   onPress={() => handleSelect(day)}
-                  style={[styles.dayCell, isSel && { backgroundColor: colors.accent.primary, borderRadius: 12 }]}
+                  style={[styles.dayCell, isSel && { backgroundColor: colors.accent.primary, borderRadius: 28 }]}
                 >
                   <Text style={[
                     styles.dayText,
@@ -137,7 +137,7 @@ export function FormDatePicker({ label, value, onChange, optional, required }: F
 const styles = StyleSheet.create({
   fieldBlock: { marginBottom: 0 },
   label: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -145,27 +145,27 @@ const styles = StyleSheet.create({
   },
   dateShell: {
     minHeight: 50,
-    borderRadius: 14,
+    borderRadius: 30,
     borderWidth: 1.5,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
   },
   icon: { marginRight: 10 },
-  dateText: { fontSize: 15, fontWeight: '600', flex: 1 },
-  todayBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  dateText: { fontSize: 16, fontWeight: '600', flex: 1 },
+  todayBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 28 },
   todayBadgeText: { fontSize: 10, fontWeight: '700' },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  navBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  monthTitle: { fontSize: 17, fontWeight: '700' },
+  navBtn: { width: 36, height: 36, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  monthTitle: { fontSize: 18, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', marginBottom: 8 },
-  weekday: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  weekday: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1.3, alignItems: 'center', justifyContent: 'center' },
-  dayText: { fontSize: 15, fontWeight: '600' },
+  dayText: { fontSize: 16, fontWeight: '600' },
 });

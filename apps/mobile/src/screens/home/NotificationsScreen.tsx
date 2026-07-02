@@ -153,13 +153,15 @@ export function NotificationsScreen() {
           <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
-        <View style={{ minWidth: 90, alignItems: 'flex-end' }}>
-          {unreadCount > 0 && (
+        <View style={{ minWidth: 100, alignItems: 'flex-end' }}>
+          {unreadCount > 0 ? (
             <TouchableOpacity onPress={handleMarkAllRead}>
               <Text style={[styles.markAllBtn, { color: colors.accent.primary }]}>
                 Mark all read
               </Text>
             </TouchableOpacity>
+          ) : (
+            <View style={{ height: 20 }} />
           )}
         </View>
       </View>
@@ -223,28 +225,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingHorizontal: 24,
+    paddingBottom: 14,
   },
-  headerTitle: { fontSize: 20, fontWeight: '700' },
-  markAllBtn: { fontSize: 14, fontWeight: '600' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  emptyText: { fontSize: 15 },
-  list: { paddingHorizontal: 20, paddingTop: 8 },
+  headerTitle: { fontSize: 26, fontWeight: '700' },
+  markAllBtn: { fontSize: 16, fontWeight: '600' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14 },
+  emptyText: { fontSize: 16 },
+  list: { paddingHorizontal: 24, paddingTop: 8 },
   notifCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: 22,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderLeftWidth: 3,
     marginBottom: 10,
   },
   notifContent: { flex: 1 },
-  notifTitle: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  notifMessage: { fontSize: 13, lineHeight: 18, marginBottom: 6 },
-  notifTime: { fontSize: 11 },
+  notifTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  notifMessage: { fontSize: 16, lineHeight: 18, marginBottom: 6 },
+  notifTime: { fontSize: 12 },
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
   actionText: { fontSize: 12, fontWeight: '700' },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 10 },
+  unreadDot: { width: 8, height: 8, borderRadius: 8, marginLeft: 10 },
 });

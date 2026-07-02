@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   TouchableWithoutFeedback,
   Image,
   StyleSheet,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +20,135 @@ import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 import { AuthInput } from '../../components/ui/AuthInput';
 import { AuthButton } from '../../components/ui/AuthButton';
 import { SocialButton } from '../../components/ui/SocialButton';
+import { useTheme } from '../../theme';
+import { palette } from '../../theme/colors';
+
+const { height: SCREEN_H } = Dimensions.get('window');
+
+function createStyles(colors: typeof palette.dark, isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    viewingArea: {
+      alignItems: 'center',
+      paddingTop: 40,
+      paddingBottom: 32,
+      paddingHorizontal: 24,
+    },
+    logoContainer: {
+      width: 64,
+      height: 64,
+      borderRadius: 20,
+      backgroundColor: colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+    },
+    logo: {
+      width: 36,
+      height: 36,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.text.primary,
+      textAlign: 'center',
+      letterSpacing: -0.5,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '400',
+      color: colors.text.secondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    interactionArea: {
+      flex: 1,
+      paddingHorizontal: 24,
+    },
+    formCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 24,
+      padding: 24,
+      marginBottom: 16,
+    },
+    forgotButton: {
+      alignSelf: 'flex-end',
+      marginTop: 4,
+      marginBottom: 16,
+    },
+    forgotText: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.text.link,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: colors.status.errorLight,
+      marginBottom: 16,
+    },
+    errorText: {
+      fontSize: 14,
+      fontWeight: '400',
+      color: colors.status.error,
+      flex: 1,
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 24,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.subtle,
+    },
+    dividerText: {
+      marginHorizontal: 16,
+      fontSize: 14,
+      fontWeight: '400',
+      color: colors.text.tertiary,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 24,
+    },
+    footerText: {
+      fontSize: 15,
+      fontWeight: '400',
+      color: colors.text.secondary,
+    },
+    footerLink: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text.link,
+    },
+    securityBadge: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 16,
+    },
+    securityText: {
+      fontSize: 12,
+      fontWeight: '400',
+      color: colors.text.tertiary,
+    },
+  });
+}
 
 export function PremiumLoginScreen() {
   const navigation = useNavigation<any>();
@@ -25,6 +156,7 @@ export function PremiumLoginScreen() {
   const { login, googleLogin } = useAuth();
   const logoSource = useLastLensLogo();
   const { response, promptAsync } = useGoogleAuth();
+  const { colors, isDark } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +165,8 @@ export function PremiumLoginScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
@@ -114,231 +248,133 @@ export function PremiumLoginScreen() {
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              paddingTop: insets.top + 48,
-              paddingBottom: insets.bottom + 24,
-              opacity: fadeAnim,
-              transform: [{ translateX: shakeAnim }],
-            },
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 20 },
           ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          </View>
-
-          {/* Header */}
-          <Text style={styles.title}>Sign in to Dabbu</Text>
-          <Text style={styles.subtitle}>Manage your finances, effortlessly.</Text>
-
-          {/* Form */}
-          <View style={styles.form}>
-            <AuthInput
-              placeholder="Email"
-              value={email}
-              onChangeText={(t) => {
-                setEmail(t);
-                if (error) {
-                  setError('');
-                }
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              returnKeyType="next"
-              testID="login-email"
-            />
-
-            <AuthInput
-              placeholder="Password"
-              value={password}
-              onChangeText={(t) => {
-                setPassword(t);
-                if (error) {
-                  setError('');
-                }
-              }}
-              secureTextEntry
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
-              testID="login-password"
-            />
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ForgotPassword')}
-              style={styles.forgotButton}
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateX: shakeAnim }] }}>
+            <View
+              style={[
+                styles.viewingArea,
+                { paddingTop: insets.top + 40 },
+              ]}
             >
-              <Text style={styles.forgotText}>Forgot password?</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Error */}
-          {error ? (
-            <View style={styles.errorBox}>
-              <AntDesign name="exclamationcircle" size={14} color="#FF3B30" />
-              <Text style={styles.errorText}>{error}</Text>
+              <View style={styles.logoContainer}>
+                <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+              </View>
+              <Text style={styles.title}>Sign in to Dabbu</Text>
+              <Text style={styles.subtitle}>Manage your finances, effortlessly.</Text>
             </View>
-          ) : null}
 
-          {/* Sign In Button */}
-          <AuthButton
-            title="Continue"
-            onPress={handleLogin}
-            loading={loading}
-            testID="login-button"
-          />
+            <View style={styles.interactionArea}>
+              <View style={styles.formCard}>
+                <AuthInput
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    if (error) setError('');
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  returnKeyType="next"
+                  testID="login-email"
+                />
 
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
+                <AuthInput
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    if (error) setError('');
+                  }}
+                  secureTextEntry
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                  testID="login-password"
+                />
 
-          {/* Social */}
-          <View style={styles.socialSection}>
-            <SocialButton
-              provider="google"
-              onPress={async () => {
-                try {
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ForgotPassword')}
+                  style={styles.forgotButton}
+                >
+                  <Text style={styles.forgotText}>Forgot password?</Text>
+                </TouchableOpacity>
+
+                {error ? (
+                  <View style={styles.errorBox}>
+                    <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                ) : null}
+
+                <AuthButton
+                  title="Continue"
+                  onPress={handleLogin}
+                  loading={loading}
+                  testID="login-button"
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setEmail('demo@dabbu.app');
+                  setPassword('TestPass123!');
                   setError('');
-                  await promptAsync();
-                } catch (e: any) {
-                  setError(e?.message || 'Google sign-in could not be started');
-                }
-              }}
-              disabled={loading}
-            />
-          </View>
+                }}
+                style={{ paddingVertical: 12 }}
+                activeOpacity={0.6}
+              >
+                <Text
+                  style={{
+                    textAlign: 'center',
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: colors.text.secondary,
+                  }}
+                >
+                  Try with Demo Account
+                </Text>
+              </TouchableOpacity>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.footerLink}>Sign up</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
-          <View style={styles.securityBadge}>
-            <AntDesign name="lock" size={12} color="#8E8E93" />
-            <Text style={styles.securityText}>256-bit encrypted connection</Text>
-          </View>
-        </Animated.View>
+              <SocialButton
+                provider="google"
+                onPress={async () => {
+                  try {
+                    setError('');
+                    await promptAsync();
+                  } catch (e: any) {
+                    setError(e?.message || 'Google sign-in could not be started');
+                  }
+                }}
+                disabled={loading}
+              />
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                  <Text style={styles.footerLink}>Sign up</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.securityBadge}>
+                <AntDesign name="lock" size={12} color={colors.text.tertiary} />
+                <Text style={styles.securityText}>256-bit encrypted connection</Text>
+              </View>
+            </View>
+          </Animated.View>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  logo: {
-    width: 36,
-    height: 36,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#8E8E93',
-    marginBottom: 32,
-  },
-  form: {
-    marginBottom: 20,
-  },
-  forgotButton: {
-    alignSelf: 'flex-end',
-    marginTop: 4,
-  },
-  forgotText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007AFF',
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#FF3B3010',
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#FF3B30',
-    flex: 1,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E5EA',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#8E8E93',
-  },
-  socialSection: {
-    marginBottom: 24,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  footerText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#8E8E93',
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  securityBadge: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 20,
-  },
-  securityText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#8E8E93',
-  },
-});

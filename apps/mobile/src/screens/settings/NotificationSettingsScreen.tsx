@@ -200,7 +200,7 @@ export function NotificationSettingsScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const prefs = await api.get<Preferences>('/user/preferences');
+      const prefs = await api.get<Preferences>('/preferences');
       setToggles(mapBackendToToggles(prefs));
     } catch {
       setToggles(getDefaultToggles());
@@ -224,7 +224,7 @@ export function NotificationSettingsScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        await api.patch('/user/preferences', body);
+        await api.patch('/preferences', body);
         showToast('Preferences saved');
       } catch {
         setToggles(toggles);
@@ -245,12 +245,12 @@ export function NotificationSettingsScreen() {
         
         style={StyleSheet.absoluteFill}
       />
-      <View style={{ padding: spacing.lg, paddingTop: insets.top + 60, gap: 20 }}>
+      <View style={{ padding: spacing.lg, paddingTop: insets.top + 60, gap: 24 }}>
           <Skeleton width={160} height={22} />
-          <Skeleton width="100%" height={90} borderRadius={16} />
-          <Skeleton width="100%" height={90} borderRadius={16} />
-          <Skeleton width="100%" height={90} borderRadius={16} />
-          <Skeleton width="100%" height={60} borderRadius={16} />
+          <Skeleton width="100%" height={90} borderRadius={24} />
+          <Skeleton width="100%" height={90} borderRadius={24} />
+          <Skeleton width="100%" height={90} borderRadius={24} />
+          <Skeleton width="100%" height={60} borderRadius={24} />
         </View>
       </BaseScreen>
     );
@@ -364,21 +364,21 @@ export function NotificationSettingsScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginTop: 8,
     marginBottom: 8,
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 32,
+    padding: 24,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   headerIconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -396,21 +396,21 @@ const styles = StyleSheet.create({
   },
   headerMetric: {
     color: 'rgba(255,255,255,0.86)',
-    fontSize: 13,
+    fontSize: 16,
     lineHeight: 19,
-    marginTop: 24,
+    marginTop: 28,
   },
   savingBadge: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   section: {
-    marginBottom: 16,
-    paddingHorizontal: 16,
+    marginBottom: 20,
+    paddingHorizontal: 24,
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -423,23 +423,23 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   sectionCard: {
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 30,
+    borderWidth: 1.5,
     overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 13,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
   },
   rowIcon: {
     width: 30,
     height: 30,
-    borderRadius: 9,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   rowContent: {
     flex: 1,
@@ -447,11 +447,11 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     ...typographyStyles.body,
-    fontSize: 14,
+    fontSize: 16,
   },
   rowDesc: {
     ...typographyStyles.footnote,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 1,
   },
 });

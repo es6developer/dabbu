@@ -4,6 +4,10 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { SpacesService } from './spaces.service';
 import { SpacesMigrationService } from './spaces-migration.service';
+import { CreateSpaceDto } from './dto/create-space.dto';
+import { UpdateSpaceDto } from './dto/update-space.dto';
+import { AddMemberDto } from './dto/add-member.dto';
+import { MigrateDto } from './dto/migrate.dto';
 
 @ApiTags('Spaces')
 @ApiBearerAuth()
@@ -25,10 +29,10 @@ export class SpacesController {
   @Post()
   @ApiOperation({ summary: 'Create a new space' })
   async create(
-    @Body() body: { name: string; type: string; icon?: string; coverColor?: string },
+    @Body() dto: CreateSpaceDto,
     @CurrentUser('id') userId: string,
   ) {
-    const space = await this.spacesService.create(body, userId);
+    const space = await this.spacesService.create(dto, userId);
     return { data: space };
   }
 
@@ -50,10 +54,10 @@ export class SpacesController {
   @ApiOperation({ summary: 'Add a member to the space' })
   async addMember(
     @Param('id') id: string,
-    @Body() body: { userId: string; role?: string },
+    @Body() dto: AddMemberDto,
     @CurrentUser('id') userId: string,
   ) {
-    const member = await this.spacesService.addMember(id, body.userId, userId, body.role);
+    const member = await this.spacesService.addMember(id, dto.userId, userId, dto.role);
     return { data: member };
   }
 
@@ -72,10 +76,10 @@ export class SpacesController {
   @ApiOperation({ summary: 'Update space (name, icon, coverColor)' })
   async update(
     @Param('id') id: string,
-    @Body() body: { name?: string; icon?: string; coverColor?: string },
+    @Body() dto: UpdateSpaceDto,
     @CurrentUser('id') userId: string,
   ) {
-    const space = await this.spacesService.update(id, userId, body);
+    const space = await this.spacesService.update(id, userId, dto);
     return { data: space };
   }
 
@@ -124,10 +128,10 @@ export class SpacesController {
   @Post('migrate')
   @ApiOperation({ summary: 'Migrate legacy couple/family data to spaces' })
   async migrate(
-    @Body() body: { target?: 'couple' | 'family' | 'all' },
+    @Body() dto: MigrateDto,
     @CurrentUser('id') userId: string,
   ) {
-    const target = body.target || 'all';
+    const target = dto.target || 'all';
     let result: unknown;
     if (target === 'couple') {
       result = await this.spacesMigrationService.migrateCoupleToSpace(userId);

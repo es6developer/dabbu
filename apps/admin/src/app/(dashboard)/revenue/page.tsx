@@ -80,7 +80,7 @@ export default function RevenuePage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`} />
-                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }} />
+                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: '#fff' }} />
                 <Area type="monotone" dataKey="mrr" stroke="#6366f1" fill="url(#mrrGradient)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
@@ -95,7 +95,7 @@ export default function RevenuePage() {
                 <Pie data={planRevenue} cx="50%" cy="50%" innerRadius={80} outerRadius={140} paddingAngle={4} dataKey="value">
                   {planRevenue.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }} />
+                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: '#fff' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>

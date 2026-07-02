@@ -151,26 +151,26 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   charCount: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   inputShell: {
     minHeight: 50,
-    borderRadius: 14,
+    borderRadius: 28,
     borderWidth: 1.5,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
   inputShellMultiline: {
-    minHeight: 104,
+    minHeight: 100,
     alignItems: 'flex-start',
-    paddingTop: 14,
+    paddingTop: 16,
   },
   inputIcon: {
     marginRight: 10,
@@ -178,17 +178,17 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     paddingVertical: 12,
   },
   inputMultiline: {
-    minHeight: 80,
+    minHeight: 68,
     paddingTop: 0,
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     marginTop: 6,
     marginLeft: 2,
   },

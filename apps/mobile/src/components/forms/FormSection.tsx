@@ -13,7 +13,7 @@ export function FormSection({ title, children, spacing = 'md' }: FormSectionProp
   const gap = spacing === 'sm' ? 6 : spacing === 'lg' ? 16 : 10;
 
   return (
-    <View style={{ marginBottom: 10 }}>
+    <View style={{ marginBottom: 8 }}>
       {title && (
         <View style={styles.sectionHeader}>
           <Text
@@ -22,7 +22,7 @@ export function FormSection({ title, children, spacing = 'md' }: FormSectionProp
               {
                 color: colors.text.tertiary,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 0.8,
               },
             ]}
           >
@@ -35,7 +35,7 @@ export function FormSection({ title, children, spacing = 'md' }: FormSectionProp
           styles.sectionCard,
           {
             backgroundColor: colors.bg.card,
-            borderColor: colors.border.default,
+            borderColor: colors.border.subtle,
             gap,
           },
         ]}
@@ -52,8 +52,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   sectionCard: {
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 28,
     padding: 16,
   },
 });

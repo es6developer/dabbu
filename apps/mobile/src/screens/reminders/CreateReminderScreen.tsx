@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import {
@@ -53,7 +53,6 @@ const DAYS_OF_WEEK = [
 export function CreateReminderScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  const { accessToken } = useAuth();
   const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -73,7 +72,6 @@ export function CreateReminderScreen() {
     if (!title.trim()) { setError('Title is required'); return; }
     setError('');
     setSaving(true);
-    if (accessToken) setAccessToken(accessToken);
     try {
       const data: any = {
         title: title.trim(),

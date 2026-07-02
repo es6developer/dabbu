@@ -1,8 +1,11 @@
-import { Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Request, Response } from 'express';
 
-@Catch()
+/**
+ * @deprecated AllExceptionsFilter in common/filters now handles Sentry reporting.
+ * This class is kept for reference only and is not registered as a global filter.
+ */
 export class SentryFilter extends BaseExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -29,16 +32,6 @@ export class SentryFilter extends BaseExceptionFilter {
     };
 
     response.status(status).json(errorResponse);
-
-    // Log server errors
-    if (status >= 500) {
-      console.error('Unhandled exception:', {
-        message: exception instanceof Error ? exception.message : 'Unknown error',
-        stack: exception instanceof Error ? exception.stack : undefined,
-        path: request.url,
-        method: request.method,
-      });
-    }
   }
 
   private getErrorCode(status: number): string {

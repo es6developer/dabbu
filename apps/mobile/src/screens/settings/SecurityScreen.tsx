@@ -232,10 +232,10 @@ export function SecurityScreen() {
           ]}
         >
           <Skeleton width={120} height={16} />
-          <Skeleton width="100%" height={80} borderRadius={16} />
-          <Skeleton width="100%" height={60} borderRadius={16} />
-          <Skeleton width="100%" height={60} borderRadius={16} />
-          <Skeleton width="85%" height={60} borderRadius={16} />
+          <Skeleton width="100%" height={80} borderRadius={24} />
+          <Skeleton width="100%" height={60} borderRadius={24} />
+          <Skeleton width="100%" height={60} borderRadius={24} />
+          <Skeleton width="85%" height={60} borderRadius={24} />
         </View>
       </PageContainer>
     );
@@ -629,33 +629,41 @@ const styles = StyleSheet.create({
   content: { padding: spacing.xl, paddingBottom: 120 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 28, fontWeight: '700', marginBottom: spacing['2xl'] },
-  card: { borderRadius: borderRadius['2xl'], padding: spacing.xl, borderWidth: 1, marginBottom: spacing.xl },
+  card: { borderRadius: borderRadius['2xl'], padding: spacing.xl, borderWidth: 1.5, marginBottom: spacing.xl },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: spacing.lg, paddingBottom: spacing.md },
-  logoutAllText: { fontSize: 13, fontWeight: '600', marginBottom: spacing.lg },
+  logoutAllText: { fontSize: 16, fontWeight: '600', marginBottom: spacing.lg },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 18,
     borderBottomWidth: 1,
   },
   settingInfo: { flex: 1, marginRight: spacing.md },
-  settingLabel: { fontSize: 15, fontWeight: '500', marginBottom: 2 },
+  settingLabel: { fontSize: 16, fontWeight: '500', marginBottom: 2 },
   settingDesc: { fontSize: 12 },
   setupBtn: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: borderRadius.md },
-  setupBtnText: { fontSize: 13, fontWeight: '600' },
+  setupBtnText: { fontSize: 16, fontWeight: '600' },
   pinForm: { marginTop: spacing.md, gap: spacing.md },
   input: {
+    borderRadius: 30,
+    borderWidth: 1.5,
+    padding: 18,
     fontSize: 16,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
+    fontWeight: '500',
   },
-  pinSaveBtn: { paddingVertical: 14, borderRadius: borderRadius.xl, alignItems: 'center' },
-  pinSaveBtnText: { fontSize: 15, fontWeight: '600' },
-  emptyText: { fontSize: 14, fontStyle: 'italic' },
+  input2: {
+    fontSize: 16,
+    fontWeight: '500',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
+  },
+  pinSaveBtn: { paddingVertical: 18, borderRadius: borderRadius['3xl'], alignItems: 'center' },
+  pinSaveBtnText: { fontSize: 16, fontWeight: '600' },
+  emptyText: { fontSize: 16, fontStyle: 'italic' },
   sessionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -664,20 +672,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   sessionInfo: { flex: 1 },
-  sessionDevice: { fontSize: 14, fontWeight: '500', marginBottom: 2 },
-  sessionMeta: { fontSize: 11 },
+  sessionDevice: { fontSize: 16, fontWeight: '500', marginBottom: 2 },
+  sessionMeta: { fontSize: 12 },
   revokeBtn: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: borderRadius.md },
   revokeBtnText: { fontSize: 12, fontWeight: '600' },
-  currentSession: { fontSize: 11, fontWeight: '600' },
+  currentSession: { fontSize: 12, fontWeight: '600' },
   activityRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  activityDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6, marginRight: spacing.md },
+  activityDot: { width: 8, height: 8, borderRadius: 8, marginTop: 6, marginRight: spacing.md },
   activityInfo: { flex: 1 },
-  activityAction: { fontSize: 14, marginBottom: 2 },
-  activityMeta: { fontSize: 11 },
-  activityDate: { fontSize: 11, marginLeft: spacing.sm },
+  activityAction: { fontSize: 16, marginBottom: 2 },
+  activityMeta: { fontSize: 12 },
+  activityDate: { fontSize: 12, marginLeft: spacing.sm },
 });

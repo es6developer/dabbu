@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
-type AmountType = 'wallet' | 'arrowdown';
+type AmountType = 'expense' | 'income' | 'wallet' | 'arrowdown';
 
 interface FormAmountFieldProps {
   value: string;
@@ -37,15 +37,15 @@ export function FormAmountField({
   const [focused, setFocused] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const isExpense = type !== 'arrowdown';
+  const isExpense = type === undefined || type === 'expense' || type === 'wallet';
   const hasValue = value.length > 0;
   const fieldState = error ? 'error' : focused ? 'focused' : hasValue ? 'filled' : 'idle';
 
   const accentColor = fieldState === 'error'
     ? colors.status.error
-    : type === 'arrowdown'
-      ? colors.status.success
-      : colors.accent.primary;
+    : isExpense
+      ? colors.accent.primary
+      : colors.status.success;
 
   const handleTypeChange = useCallback((t: AmountType) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -80,7 +80,7 @@ export function FormAmountField({
 
       {type !== undefined && onTypeChange ? (
         <View style={[styles.toggleRow, { backgroundColor: colors.bg.tertiary }]}>
-          {(['wallet', 'arrowdown'] as const).map((t) => (
+          {(['expense', 'income'] as const).map((t) => (
             <TouchableOpacity
               key={t}
               activeOpacity={0.8}
@@ -90,7 +90,7 @@ export function FormAmountField({
                 {
                   backgroundColor:
                     type === t
-                      ? t === 'arrowdown'
+                      ? t === 'income'
                         ? colors.status.success
                         : colors.accent.primary
                       : 'transparent',
@@ -98,7 +98,7 @@ export function FormAmountField({
               ]}
             >
               <AntDesign
-                name={(t === 'wallet' ? 'shoppingcart' : 'caretup') as any}
+                name={(t === 'expense' ? 'shoppingcart' : 'caretup') as any}
                 size={13}
                 color={type === t ? '#FFF' : colors.text.secondary}
               />
@@ -108,7 +108,7 @@ export function FormAmountField({
                   { color: type === t ? '#FFF' : colors.text.secondary },
                 ]}
               >
-                {t === 'wallet' ? 'Expense' : 'Income'}
+                {t === 'expense' ? 'Expense' : 'Income'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -156,7 +156,7 @@ export function FormAmountField({
         )}
         {!hasValue && type !== undefined && (
           <Text style={[styles.hint, { color: colors.text.tertiary }]}>
-            {isExpense ? 'How much did you spend?' : 'How much did you receive?'}
+            {isExpense !== false ? 'How much did you spend?' : 'How much did you receive?'}
           </Text>
         )}
       </TouchableOpacity>
@@ -188,15 +188,15 @@ export function FormAmountField({
                 style={[
                   styles.quickChip,
                   {
-                    backgroundColor: selected ? `${chipAccent}18` : colors.bg.card,
-                    borderColor: selected ? chipAccent : colors.border.subtle,
+                    backgroundColor: selected ? chipAccent : colors.bg.tertiary,
+                    borderWidth: 0,
                   },
                 ]}
               >
                 <Text
                   style={[
                     styles.quickChipText,
-                    { color: selected ? chipAccent : colors.text.secondary },
+                    { color: selected ? '#FFF' : colors.text.secondary },
                   ]}
                 >
                   {symbol}{val}
@@ -216,13 +216,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   toggleRow: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 26,
     padding: 3,
   },
   toggleBtn: {
@@ -231,14 +231,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 9,
+    borderRadius: 26,
   },
-  toggleText: { fontSize: 12, fontWeight: '700' },
+  toggleText: { fontSize: 11, fontWeight: '700' },
   amountCard: {
-    borderRadius: 18,
+    borderRadius: 28,
     borderWidth: 1.5,
-    padding: 18,
+    padding: 20,
     alignItems: 'center',
     gap: 6,
   },
@@ -249,22 +249,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   symbol: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     marginTop: 1,
   },
   input: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '800',
     letterSpacing: -1,
     textAlign: 'center',
     minWidth: 80,
     paddingVertical: 0,
-    height: 40,
-    lineHeight: 40,
+    height: 36,
+    lineHeight: 36,
   },
   amountPreview: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
   },
   hint: {
@@ -274,9 +274,9 @@ const styles = StyleSheet.create({
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    padding: 10,
-    borderRadius: 10,
+    gap: 8,
+    padding: 8,
+    borderRadius: 28,
   },
   errorText: {
     fontSize: 12,
@@ -288,13 +288,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   quickChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
   quickChipText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
   },
 });

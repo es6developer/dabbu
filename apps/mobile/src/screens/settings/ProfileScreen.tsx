@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
@@ -68,8 +68,7 @@ export function ProfileScreen() {
   async function loadProfile() {
     setLoading(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
-      const res = await api.get<any>('/users/profile');
+      const res = await api.get<any>('/auth/profile');
       const data = res?.data || res;
       if (data) {
         const origFirstName = data.firstName || '';
@@ -123,7 +122,6 @@ export function ProfileScreen() {
     if (!firstName.trim()) { setError('First name is required'); return; }
     setError('');
     setSaving(true);
-    if (accessToken) setAccessToken(accessToken);
     try {
       const cleanedPhone = phone.trim().replace(/[^0-9]/g, '');
       await api.patch('/users/profile', {
@@ -159,7 +157,7 @@ export function ProfileScreen() {
           ) : (
             <>
               {/* Avatar Card */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 24 }}>
                 <View style={[s.avatarCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                   <LinearGradient
                     colors={isDark ? [colors.accent.primary + '10', colors.accent.primary + '04'] : [colors.accent.primary + '08', colors.accent.primary + '02']}
@@ -168,7 +166,7 @@ export function ProfileScreen() {
                   />
                   <View style={{ alignItems: 'center' }}>
                     <TouchableOpacity
-                      style={{ position: 'relative', marginBottom: 12 }}
+                      style={{ position: 'relative', marginBottom: 14 }}
                       activeOpacity={0.8}
                       onPress={() => navigation.navigate('AvatarPicker')}
                     >
@@ -186,7 +184,7 @@ export function ProfileScreen() {
               </View>
 
               {/* Dashboard Lens Selection */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 24 }}>
                 <View style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                   <LinearGradient
                     colors={isDark ? [colors.accent.primary + '06', 'transparent'] : [colors.accent.primary + '04', 'transparent']}
@@ -250,7 +248,7 @@ export function ProfileScreen() {
               </View>
 
               {/* Privacy & Security */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 24 }}>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('PrivacySettings')}
                   style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
@@ -261,7 +259,7 @@ export function ProfileScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: borderRadius['2xl'] }}
                   />
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                     <View style={[s.lensIcon, { backgroundColor: colors.accent.primary + '12' }]}>
                       <AntDesign name="Safety" size={20} color={colors.accent.primary} />
                     </View>
@@ -275,7 +273,7 @@ export function ProfileScreen() {
               </View>
 
               {/* Personal Info */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 24 }}>
                 <View style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                   <Text style={[s.sectionLabel, { color: colors.text.tertiary }]}>Personal Information</Text>
 
@@ -343,7 +341,7 @@ export function ProfileScreen() {
                     {upiError ? (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                         <AntDesign name="exclamationcircle" size={12} color={colors.status.error} />
-                        <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>{upiError}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>{upiError}</Text>
                       </View>
                     ) : (
                       <Text style={[s.hintText, { color: colors.text.tertiary, marginTop: 6 }]}>Set your UPI ID so group members can pay you directly.</Text>
@@ -353,7 +351,7 @@ export function ProfileScreen() {
               </View>
 
               {/* Save Button */}
-              <View style={{ marginHorizontal: spacing['2xl'], marginTop: 8, marginBottom: 16 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginTop: 8, marginBottom: 20 }}>
                 <TouchableOpacity
                   style={[s.saveBtn, { backgroundColor: colors.accent.primary, opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1 }]}
                   onPress={handleSaveProfile} disabled={saving || loading || !hasChanges || !!upiError} activeOpacity={0.85}
@@ -374,9 +372,9 @@ export function ProfileScreen() {
       </KeyboardAvoidingView>
       {isSwitching && (
         <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
-          <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 32, alignItems: 'center', gap: 16, ...shadows.lg }}>
+          <View style={{ backgroundColor: colors.bg.card, borderRadius: 28, padding: 36, alignItems: 'center', gap: 20, ...shadows.lg }}>
             <ActivityIndicator size="large" color={colors.accent.primary} />
-            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.secondary }}>Switching lens...</Text>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary }}>Switching lens...</Text>
           </View>
         </View>
       )}
@@ -386,27 +384,27 @@ export function ProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  avatarCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing['2xl'], alignItems: 'center', ...shadows.md, overflow: 'hidden' },
+  avatarCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing['2xl'], alignItems: 'center', ...shadows.md, overflow: 'hidden' },
   editAvatarOuter: { width: 88, height: 88, borderRadius: 44, borderWidth: 2, alignItems: 'center', justifyContent: 'center', ...shadows.sm },
-  editAvatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5, borderColor: 'transparent' },
-  fullName: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
-  emailText: { fontSize: 13, fontWeight: '500' },
-  sectionCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
-  sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4, paddingLeft: 2 },
-  sectionDesc: { fontSize: 13, fontWeight: '500', marginBottom: 14, paddingLeft: 2, lineHeight: 18 },
+  editAvatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5, borderColor: 'transparent' },
+  fullName: { fontSize: 26, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
+  emailText: { fontSize: 16, fontWeight: '500' },
+  sectionCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
+  sectionLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4, paddingLeft: 2 },
+  sectionDesc: { fontSize: 16, fontWeight: '500', marginBottom: 16, paddingLeft: 2, lineHeight: 18 },
   lensCard: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: borderRadius['2xl'], borderWidth: 1.5, ...shadows.sm, overflow: 'hidden' },
-  lensIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  lensTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  lensIcon: { width: 44, height: 52, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  lensTitle: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   lensDesc: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
-  checkCircle: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  uncheckCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 2 },
-  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 12, marginBottom: 16 },
-  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-  fieldGroup: { marginBottom: 16 },
-  fieldLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
-  input: { fontSize: 16, fontWeight: '500', paddingHorizontal: 16, paddingVertical: 15, borderRadius: borderRadius.md, borderWidth: 1 },
-  hintText: { fontSize: 11, fontWeight: '500', lineHeight: 16, marginTop: 6 },
+  checkCircle: { width: 24, height: 24, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  uncheckCircle: { width: 24, height: 24, borderRadius: 28, borderWidth: 2 },
+  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 18, borderRadius: 28, marginBottom: 20 },
+  errorText: { fontSize: 16, fontWeight: '600', flex: 1 },
+  fieldGroup: { marginBottom: 20 },
+  fieldLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8, marginTop: 4 },
+  input: { fontSize: 16, fontWeight: '500', paddingHorizontal: 24, paddingVertical: 18, borderRadius: borderRadius['3xl'], borderWidth: 1.5 },
+  hintText: { fontSize: 12, fontWeight: '500', lineHeight: 16, marginTop: 6 },
   inputIcon: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
-  saveBtn: { borderRadius: 16, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, ...shadows.md },
+  saveBtn: { borderRadius: 30, paddingVertical: 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, ...shadows.md },
   saveText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

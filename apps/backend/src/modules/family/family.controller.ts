@@ -63,6 +63,15 @@ export class FamilyController {
     return this.familyService.joinByCode(user.id, code);
   }
 
+  @Delete('invitations/:inviteId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel a pending invitation' })
+  async cancelInvitation(
+    @CurrentUser() user: JwtPayload, @Param('inviteId') inviteId: string,
+  ) {
+    return this.familyService.cancelInvitation(user.id, inviteId);
+  }
+
   @Post(':id/regenerate-code')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Regenerate invite code' })

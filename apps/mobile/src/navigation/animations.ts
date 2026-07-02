@@ -3,11 +3,10 @@ import { Theme } from '../theme';
 import { Platform } from 'react-native';
 
 /**
- * Apple-native spring-driven screen transitions.
- * - iOS: slide_from_right with 350ms (slightly faster than default for snappier feel)
- * - Android: slide_from_right for iOS-consistent feel
- * - gesture back enabled for native iOS-like swipe
- * - 350ms for a responsive premium feel
+ * One UI 8.5-inspired screen transitions.
+ * - slide_from_right for horizontal push (native iOS-like)
+ * - 350ms for responsive premium feel
+ * - cross-fade on replace for smoother context switches
  */
 export function iosTransitionOptions(theme: Theme): NativeStackNavigationOptions {
   const { colors, typography } = theme;

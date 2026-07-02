@@ -33,14 +33,14 @@ export function GoalsWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 16 },
-  goalRow: { marginBottom: 14 },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 20 },
+  goalRow: { marginBottom: 16 },
   goalInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  goalName: { fontSize: 14, color: '#F9FAFB', fontWeight: '600', flex: 1 },
+  goalName: { fontSize: 16, color: '#F9FAFB', fontWeight: '600', flex: 1 },
   goalAmount: { fontSize: 12, color: '#6B7280' },
   progressWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  progressBar: { flex: 1, height: 6, borderRadius: 3, backgroundColor: '#27272A' },
-  progressFill: { height: 6, borderRadius: 3 },
+  progressBar: { flex: 1, height: 6, borderRadius: 12, backgroundColor: '#27272A' },
+  progressFill: { height: 6, borderRadius: 12 },
   progressText: { fontSize: 12, fontWeight: '700', width: 36, textAlign: 'right' },
 });

@@ -6,6 +6,8 @@ import { IsString, IsBoolean, IsNotEmpty } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CoupleService } from './couple.service';
+import { CreateCouplePlannerDto } from './dto/create-couple-planner.dto';
+import { ContributeToPlannerDto } from './dto/contribute-to-planner.dto';
 
 class SendRequestDto { @IsString() @IsNotEmpty() phone: string; }
 class ToggleModeDto { @IsBoolean() @IsNotEmpty() isCoupleMode: boolean; }
@@ -91,14 +93,14 @@ export class CoupleController {
 
   @Post('planners/:type')
   @ApiOperation({ summary: 'Create a planner' })
-  async createPlanner(@CurrentUser('id') userId: string, @Param('type') type: string, @Body() body: any) {
-    return this.coupleService.createPlanner(userId, type, body);
+  async createPlanner(@CurrentUser('id') userId: string, @Param('type') type: string, @Body() dto: CreateCouplePlannerDto) {
+    return this.coupleService.createPlanner(userId, type, dto);
   }
 
   @Post('planners/:id/contribute')
   @ApiOperation({ summary: 'Contribute to a planner' })
-  async contributeToPlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: any) {
-    return this.coupleService.contributeToPlanner(userId, id, body);
+  async contributeToPlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() dto: ContributeToPlannerDto) {
+    return this.coupleService.contributeToPlanner(userId, id, dto);
   }
 
   @Get('planner/:type')

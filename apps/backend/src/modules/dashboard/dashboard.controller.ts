@@ -8,14 +8,11 @@ import { PersonalDashboardService } from './personal-dashboard.service';
 import { CoupleDashboardService } from './couple-dashboard.service';
 import { FamilyDashboardService } from './family-dashboard.service';
 import { LensDashboardService } from './lens-dashboard.service';
+import { ToggleWidgetDto } from './dto/toggle-widget.dto';
+import { TrackEventDto } from './dto/track-event.dto';
 
 class ReorderWidgetsDto {
   @IsString({ each: true }) widgetTypes: string[];
-}
-
-class ToggleWidgetDto {
-  @IsString() @IsNotEmpty() widgetType: string;
-  @IsOptional() @IsString() scope?: string;
 }
 
 @ApiTags('Dashboard')
@@ -158,6 +155,7 @@ export class DashboardController {
 
   @Post('widgets/toggle')
   @ApiOperation({ summary: 'Toggle a widget on/off' })
+  /** @deprecated Use `PUT /user/preferences/dashboard` instead. This endpoint is no longer called by mobile. */
   async toggleWidget(
     @CurrentUser('id') userId: string,
     @Body() dto: ToggleWidgetDto,
@@ -175,8 +173,8 @@ export class DashboardController {
 
   @Post('track')
   @ApiOperation({ summary: 'Track widget or feature usage' })
-  async trackFeature(@CurrentUser('id') userId: string, @Body() body: { feature: string; label?: string }) {
-    await this.dashboardService.trackFeature(userId, body.feature, body.label);
+  async trackFeature(@CurrentUser('id') userId: string, @Body() dto: TrackEventDto) {
+    await this.dashboardService.trackFeature(userId, dto.feature, dto.label);
     return { success: true };
   }
 }

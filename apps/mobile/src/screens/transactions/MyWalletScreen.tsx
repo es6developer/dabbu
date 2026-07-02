@@ -191,8 +191,8 @@ export function MyWalletScreen() {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
     return {
-      income: m.filter((t) => t.type === 'arrowdown').reduce((s, t) => s + Number(t.amount), 0),
-      expense: m.filter((t) => t.type === 'wallet').reduce((s, t) => s + Number(t.amount), 0),
+      income: m.filter((t) => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0),
+      expense: m.filter((t) => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0),
       count: m.length,
     };
   }, [transactions]);
@@ -204,10 +204,10 @@ export function MyWalletScreen() {
         return !isNaN(d.getTime()) && d.getMonth() + 1 === month && d.getFullYear() === year;
       });
       const totalIncome = monthly
-        .filter((t) => t.type === 'arrowdown')
+        .filter((t) => t.type === 'income')
         .reduce((s, t) => s + Number(t.amount || 0), 0);
       const totalExpense = monthly
-        .filter((t) => t.type === 'wallet')
+        .filter((t) => t.type === 'expense')
         .reduce((s, t) => s + Number(t.amount || 0), 0);
       const catMap: Record<string, number> = {};
       monthly.forEach((t) => {
@@ -271,7 +271,7 @@ export function MyWalletScreen() {
       <View style={[st.wrapper, { backgroundColor: colors.bg.primary }]}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.sm }}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={{ color: colors.text.tertiary, fontSize: 14, fontWeight: '500' }}>
+          <Text style={{ color: colors.text.tertiary, fontSize: 16, fontWeight: '500' }}>
             Loading wallet...
           </Text>
         </View>
@@ -349,7 +349,7 @@ export function MyWalletScreen() {
             <View style={st.addRow}>
               <TouchableOpacity
                 style={[st.addBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'wallet' } })}
+                onPress={() => navigation.navigate('AddExpense', { type: 'expense' })}
                 activeOpacity={0.85}
               >
                 <Text style={st.addBtnText}>+ Add Expense</Text>
@@ -359,12 +359,12 @@ export function MyWalletScreen() {
                   st.addBtn,
                   {
                     backgroundColor: colors.bg.secondary,
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                     borderColor: colors.border.subtle,
                   },
                 ]}
                 onPress={() =>
-                  navigation.navigate('AddExpense', { prefill: { type: 'arrowdown' } })
+                  navigation.navigate('AddExpense', { type: 'income' })
                 }
                 activeOpacity={0.85}
               >
@@ -443,7 +443,7 @@ export function MyWalletScreen() {
           </Text>
         )}
         renderItem={({ item }: any) => {
-          const isExpense = item.type === 'wallet';
+          const isExpense = item.type === 'expense';
           return (
             <TouchableOpacity
               style={[st.txCard, { backgroundColor: colors.bg.tertiary }]}
@@ -503,7 +503,7 @@ export function MyWalletScreen() {
               backgroundColor: colors.bg.primary,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              padding: 24,
+              padding: 28,
               maxHeight: '85%',
             }}
           >
@@ -512,10 +512,10 @@ export function MyWalletScreen() {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 20,
+                marginBottom: 24,
               }}
             >
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 19, fontWeight: '700', color: colors.text.primary }}>
                 Monthly Report
               </Text>
               <TouchableOpacity onPress={() => setReportOpen(false)}>
@@ -523,7 +523,7 @@ export function MyWalletScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
               <TouchableOpacity
                 onPress={() => {
                   const m = reportMonth - 1;
@@ -534,7 +534,7 @@ export function MyWalletScreen() {
                     setReportMonth(m);
                   }
                 }}
-                style={{ padding: 8, borderRadius: 10, backgroundColor: colors.bg.tertiary }}
+                style={{ padding: 8, borderRadius: 24, backgroundColor: colors.bg.tertiary }}
               >
                 <AntDesign name="left" size={16} color={colors.text.primary} />
               </TouchableOpacity>
@@ -569,7 +569,7 @@ export function MyWalletScreen() {
                     setReportMonth(m);
                   }
                 }}
-                style={{ padding: 8, borderRadius: 10, backgroundColor: colors.bg.tertiary }}
+                style={{ padding: 8, borderRadius: 24, backgroundColor: colors.bg.tertiary }}
               >
                 <AntDesign name="right" size={16} color={colors.text.primary} />
               </TouchableOpacity>
@@ -578,19 +578,19 @@ export function MyWalletScreen() {
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
               {reportData ? (
                 <>
-                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
                     <View
                       style={{
                         flex: 1,
                         alignItems: 'center',
-                        padding: 14,
+                        padding: 18,
                         backgroundColor: `${colors.status.success}10`,
-                        borderRadius: 14,
+                        borderRadius: 28,
                       }}
                     >
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: '600',
                           color: colors.text.tertiary,
                           marginBottom: 4,
@@ -599,7 +599,7 @@ export function MyWalletScreen() {
                         Income
                       </Text>
                       <Text
-                        style={{ fontSize: 18, fontWeight: '800', color: colors.status.success }}
+                        style={{ fontSize: 19, fontWeight: '800', color: colors.status.success }}
                       >
                         {fmt(reportData.totalIncome || 0)}
                       </Text>
@@ -608,14 +608,14 @@ export function MyWalletScreen() {
                       style={{
                         flex: 1,
                         alignItems: 'center',
-                        padding: 14,
+                        padding: 18,
                         backgroundColor: `${colors.status.error}10`,
-                        borderRadius: 14,
+                        borderRadius: 28,
                       }}
                     >
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: '600',
                           color: colors.text.tertiary,
                           marginBottom: 4,
@@ -623,7 +623,7 @@ export function MyWalletScreen() {
                       >
                         Expense
                       </Text>
-                      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error }}>
+                      <Text style={{ fontSize: 19, fontWeight: '800', color: colors.status.error }}>
                         {fmt(reportData.totalExpense || 0)}
                       </Text>
                     </View>
@@ -631,14 +631,14 @@ export function MyWalletScreen() {
                       style={{
                         flex: 1,
                         alignItems: 'center',
-                        padding: 14,
+                        padding: 18,
                         backgroundColor: `${colors.bg.tertiary}`,
-                        borderRadius: 14,
+                        borderRadius: 28,
                       }}
                     >
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: '600',
                           color: colors.text.tertiary,
                           marginBottom: 4,
@@ -646,7 +646,7 @@ export function MyWalletScreen() {
                       >
                         Net
                       </Text>
-                      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text.primary }}>
                         {fmt(reportData.balance || 0)}
                       </Text>
                     </View>
@@ -654,7 +654,7 @@ export function MyWalletScreen() {
 
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.tertiary,
                       marginBottom: 4,
@@ -664,10 +664,10 @@ export function MyWalletScreen() {
                   </Text>
 
                   {reportData.categories?.length > 0 && (
-                    <View style={{ marginTop: 12, marginBottom: 16 }}>
+                    <View style={{ marginTop: 14, marginBottom: 20 }}>
                       <Text
                         style={{
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: '700',
                           color: colors.text.primary,
                           marginBottom: 8,
@@ -686,11 +686,11 @@ export function MyWalletScreen() {
                             borderTopColor: colors.border.subtle,
                           }}
                         >
-                          <Text style={{ fontSize: 13, color: colors.text.secondary }}>
+                          <Text style={{ fontSize: 16, color: colors.text.secondary }}>
                             {c.name}
                           </Text>
                           <Text
-                            style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}
+                            style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}
                           >
                             {fmt(c.amount)}
                           </Text>
@@ -699,7 +699,7 @@ export function MyWalletScreen() {
                     </View>
                   )}
 
-                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 20 }}>
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 24 }}>
                     <TouchableOpacity
                       style={{
                         flex: 1,
@@ -707,8 +707,8 @@ export function MyWalletScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 6,
-                        paddingVertical: 12,
-                        borderRadius: 14,
+                        paddingVertical: 18,
+                        borderRadius: 28,
                         backgroundColor: '#FF4D4F',
                       }}
                       onPress={() => handleExport('file1')}
@@ -719,7 +719,7 @@ export function MyWalletScreen() {
                       ) : (
                         <AntDesign name="filetext1" size={16} color="#FFF" />
                       )}
-                      <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>PDF</Text>
+                      <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>PDF</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{
@@ -728,8 +728,8 @@ export function MyWalletScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 6,
-                        paddingVertical: 12,
-                        borderRadius: 14,
+                        paddingVertical: 18,
+                        borderRadius: 28,
                         backgroundColor: '#34C759',
                       }}
                       onPress={() => handleExport('excel')}
@@ -740,7 +740,7 @@ export function MyWalletScreen() {
                       ) : (
                         <AntDesign name="copy1" size={16} color="#FFF" />
                       )}
-                      <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Excel</Text>
+                      <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>Excel</Text>
                     </TouchableOpacity>
                   </View>
                 </>
@@ -762,20 +762,20 @@ const st = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.md,
   },
-  greeting: { fontSize: 13, fontWeight: '500' },
-  headerTitle: { fontSize: 24, fontWeight: '700', marginTop: spacing.xs },
+  greeting: { fontSize: 16, fontWeight: '500' },
+  headerTitle: { fontSize: 26, fontWeight: '700', marginTop: spacing.xs },
   balanceCard: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing['2xl'],
     borderRadius: borderRadius['3xl'],
     marginBottom: spacing.lg,
   },
-  balanceLabel: { fontSize: 13, fontWeight: '600', letterSpacing: 0.3 },
+  balanceLabel: { fontSize: 16, fontWeight: '600', letterSpacing: 0.3 },
   balanceAmount: { fontSize: 34, fontWeight: '800', marginTop: spacing.sm, letterSpacing: -1 },
   balanceRow: { flexDirection: 'row', marginTop: spacing['2xl'], gap: spacing['3xl'] },
   balanceItem: { gap: spacing.xs },
   balanceItemLabel: { fontSize: 12, fontWeight: '500' },
-  balanceItemValue: { fontSize: 18, fontWeight: '700' },
+  balanceItemValue: { fontSize: 19, fontWeight: '700' },
   addRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   addBtn: {
     flex: 1,
@@ -784,13 +784,13 @@ const st = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius['2xl'],
   },
-  addBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  addBtnSecondaryText: { fontSize: 15, fontWeight: '600' },
+  addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  addBtnSecondaryText: { fontSize: 16, fontWeight: '600' },
   reportCard: { borderRadius: borderRadius['2xl'], padding: spacing.xl, marginBottom: spacing.lg },
-  reportTitle: { fontSize: 15, fontWeight: '700', marginBottom: spacing.md },
+  reportTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.md },
   reportRow: { flexDirection: 'row', gap: spacing.sm },
   reportItem: { flex: 1, gap: spacing.xs },
-  reportLabel: { fontSize: 11, fontWeight: '500' },
+  reportLabel: { fontSize: 12, fontWeight: '500' },
   reportValue: { fontSize: 16, fontWeight: '700' },
   searchBox: {
     flexDirection: 'row',
@@ -801,7 +801,7 @@ const st = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '500' },
+  searchInput: { flex: 1, fontSize: 16, fontWeight: '500' },
   sectionHeader: {
     fontSize: 12,
     fontWeight: '700',
@@ -826,11 +826,11 @@ const st = StyleSheet.create({
     justifyContent: 'center',
   },
   txInfo: { flex: 1 },
-  txDesc: { fontSize: 15, fontWeight: '600' },
-  txCat: { fontSize: 11, marginTop: spacing.xs, fontWeight: '500' },
-  txAmount: { fontSize: 15, fontWeight: '700' },
+  txDesc: { fontSize: 16, fontWeight: '600' },
+  txCat: { fontSize: 12, marginTop: spacing.xs, fontWeight: '500' },
+  txAmount: { fontSize: 16, fontWeight: '700' },
   empty: { alignItems: 'center', paddingTop: 60, gap: spacing.sm },
-  emptyTitle: { fontSize: 17, fontWeight: '600' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: spacing['4xl'] },
+  emptyTitle: { fontSize: 19, fontWeight: '600' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: spacing['4xl'] },
   emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
 });

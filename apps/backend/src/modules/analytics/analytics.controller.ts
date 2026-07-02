@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { FeatureGuard } from '../premium/guards/feature.guard';
+import { RequiresPremium } from '../premium/guards/requires-premium.decorator';
 import {
   AnalyticsQueryDto,
   DashboardQueryDto,
@@ -35,7 +37,8 @@ export class AnalyticsController {
 
   @Get('spending-trend')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get spending trend over time' })
   async getSpendingTrend(
     @CurrentUser('id') userId: string,
@@ -47,7 +50,8 @@ export class AnalyticsController {
 
   @Get('category-breakdown')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get category breakdown with percentages' })
   async getCategoryBreakdown(
     @CurrentUser('id') userId: string,
@@ -59,7 +63,8 @@ export class AnalyticsController {
 
   @Get('cash-flow')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get income vs expense over time' })
   async getCashFlow(
     @CurrentUser('id') userId: string,
@@ -71,7 +76,8 @@ export class AnalyticsController {
 
   @Get('net-worth')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('net_worth')
   @ApiOperation({ summary: 'Get net worth over time' })
   async getNetWorth(
     @CurrentUser('id') userId: string,
@@ -83,7 +89,8 @@ export class AnalyticsController {
 
   @Get('budgets')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get budget performance analytics' })
   async getBudgetAnalytics(
     @CurrentUser('id') userId: string,
@@ -95,7 +102,8 @@ export class AnalyticsController {
 
   @Get('insights')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get smart spending insights' })
   async getInsights(@CurrentUser('id') userId: string) {
     const data = await this.analyticsService.getInsights(userId);
@@ -106,7 +114,8 @@ export class AnalyticsController {
 
   @Get('reports/expense')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get expense report' })
   async getExpenseReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
     return { data: await this.analyticsService.getExpenseReport(userId, query) };
@@ -114,7 +123,8 @@ export class AnalyticsController {
 
   @Get('reports/income')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get income report' })
   async getIncomeReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
     return { data: await this.analyticsService.getIncomeReport(userId, query) };
@@ -122,7 +132,8 @@ export class AnalyticsController {
 
   @Get('reports/savings')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get savings report' })
   async getSavingsReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
     return { data: await this.analyticsService.getSavingsReport(userId, query) };
@@ -130,7 +141,8 @@ export class AnalyticsController {
 
   @Get('reports/member')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get member report' })
   async getMemberReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
     return { data: await this.analyticsService.getMemberReport(userId, query) };
@@ -138,7 +150,8 @@ export class AnalyticsController {
 
   @Get('reports/group/:groupId')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Get group report' })
   async getGroupReport(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
     return { data: await this.analyticsService.getGroupReport(userId, groupId) };
@@ -148,7 +161,8 @@ export class AnalyticsController {
 
   @Post('export/pdf')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('export_pdf')
   @ApiOperation({ summary: 'Export report as PDF' })
   async exportPdf(
     @CurrentUser('id') userId: string,
@@ -163,7 +177,8 @@ export class AnalyticsController {
 
   @Post('export/excel')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('export_excel')
   @ApiOperation({ summary: 'Export report as Excel' })
   async exportExcel(
     @CurrentUser('id') userId: string,

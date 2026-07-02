@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 export function HealthScoreScreen() {
   const insets = useSafeAreaInsets();
@@ -52,6 +53,7 @@ export function HealthScoreScreen() {
   const componentKeys = Object.keys(COMPONENT_META);
 
   return (
+    <PremiumGate featureKey="health_score">
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -120,6 +122,7 @@ export function HealthScoreScreen() {
         )}
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
   },
-  headerTitle: { fontSize: 17, fontWeight: '600' },
+  headerTitle: { fontSize: 19, fontWeight: '600' },
   scrollContent: { padding: spacing.xl, paddingBottom: 100 },
   scoreCard: {
     borderRadius: borderRadius['3xl'],
@@ -149,10 +152,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scoreValue: { fontSize: 42, fontWeight: '800', letterSpacing: -2 },
-  changeText: { fontSize: 13, fontWeight: '500', marginTop: spacing.md },
+  changeText: { fontSize: 16, fontWeight: '500', marginTop: spacing.md },
   levelBadge: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, borderRadius: borderRadius.full, marginTop: spacing.md },
-  levelText: { fontSize: 14, fontWeight: '700' },
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: spacing.md, letterSpacing: 0.3 },
+  levelText: { fontSize: 16, fontWeight: '700' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.md, letterSpacing: 0.3 },
   componentRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -163,14 +166,14 @@ const styles = StyleSheet.create({
   },
   compLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
   compInfo: { flex: 1 },
-  compLabel: { fontSize: 14, fontWeight: '600' },
-  compDesc: { fontSize: 11, marginTop: 1 },
+  compLabel: { fontSize: 16, fontWeight: '600' },
+  compDesc: { fontSize: 12, marginTop: 1 },
   compRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
-  compBar: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  compBarFill: { height: '100%', borderRadius: 3 },
-  compScore: { fontSize: 14, fontWeight: '700', width: 28, textAlign: 'right' },
-  noDataText: { fontSize: 13, fontWeight: '500', marginTop: spacing.lg, textAlign: 'center' },
+  compBar: { flex: 1, height: 6, borderRadius: 6, overflow: 'hidden' },
+  compBarFill: { height: '100%', borderRadius: 6 },
+  compScore: { fontSize: 16, fontWeight: '700', width: 28, textAlign: 'right' },
+  noDataText: { fontSize: 16, fontWeight: '500', marginTop: spacing.lg, textAlign: 'center' },
   noDataContainer: { alignItems: 'center', paddingVertical: spacing['2xl'], gap: spacing.md },
-  noDataTitle: { fontSize: 18, fontWeight: '700' },
-  noDataDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: spacing.xl },
+  noDataTitle: { fontSize: 19, fontWeight: '700' },
+  noDataDesc: { fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: spacing.xl },
 });

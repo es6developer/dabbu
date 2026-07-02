@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   primaryBtnWrap: {
-    borderRadius: 16,
+    borderRadius: 28,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     }),
   },
   primaryBtn: {
-    minHeight: 52,
+    minHeight: 50,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -112,8 +112,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   secondaryBtn: {
-    minHeight: 44,
-    borderRadius: 14,
+    minHeight: 42,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

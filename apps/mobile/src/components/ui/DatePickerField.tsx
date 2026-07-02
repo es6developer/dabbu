@@ -189,24 +189,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   label: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: 18,
+    borderRadius: borderRadius['3xl'],
+    borderWidth: 1.5,
   },
   icon: {
     marginRight: 10,
   },
   text: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
   },
   modalBackdrop: {
     flex: 1,
@@ -226,6 +226,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  iosTitle: { fontSize: 15, fontWeight: '700' },
-  iosAction: { fontSize: 15, fontWeight: '700' },
+  iosTitle: { fontSize: 16, fontWeight: '700' },
+  iosAction: { fontSize: 16, fontWeight: '700' },
 });

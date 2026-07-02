@@ -139,7 +139,7 @@ export function CoupleIncomeScreen() {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -151,7 +151,7 @@ export function CoupleIncomeScreen() {
           />
         }
       >
-        <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 14 }}>
           <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
             <Text style={styles.summaryTotalLabel}>Total Monthly Income</Text>
             <Text style={styles.summaryTotalAmount}>{fmt(totalIncome)}</Text>
@@ -177,11 +177,11 @@ export function CoupleIncomeScreen() {
 
         <UpgradeBanner message="Premium analytics, reports & AI insights for couple finance" />
 
-        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
           <TouchableOpacity
             style={styles.addBtn}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('CoupleTransactionForm', { prefill: { groupId: groupInfo?.id, type: 'arrowdown' } })}
+            onPress={() => navigation.navigate('CoupleTransactionForm', { prefill: { groupId: groupInfo?.id, type: 'income' } })}
           >
             <AntDesign  name="pluscircleo" size={20} color="#FFF" />
             <Text style={styles.addBtnText}>Add Income</Text>
@@ -191,7 +191,7 @@ export function CoupleIncomeScreen() {
         {incomes.length === 0 ? (
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
             <AntDesign  name="wallet" size={52} color={colors.text.tertiary} />
-            <Text style={[styles.emptyText, { color: colors.text.secondary, marginTop: 12 }]}>
+            <Text style={[styles.emptyText, { color: colors.text.secondary, marginTop: 14 }]}>
               No income entries yet
             </Text>
             <Text style={[styles.emptySubtext, { color: colors.text.tertiary }]}>
@@ -199,7 +199,7 @@ export function CoupleIncomeScreen() {
             </Text>
           </View>
         ) : (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: spacing.lg }}>
+          <View style={{ paddingHorizontal: 24, marginTop: 24, gap: spacing.lg }}>
             {incomes.map((item) => {
               const cat = item.category;
               const iconName = cat?.icon || (item.categoryId ? 'wallet' : 'wallet');
@@ -261,20 +261,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 8,
   },
   headerBack: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
 
   summaryCard: {
-    borderRadius: 24,
+    borderRadius: 32,
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -289,18 +289,18 @@ const styles = StyleSheet.create({
     color: '#F97316',
     letterSpacing: -1,
     marginTop: 4,
-    marginBottom: 18,
+    marginBottom: 22,
   },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
-  summaryDot: { width: 8, height: 8, borderRadius: 4 },
-  summaryPartnerLabel: { fontSize: 11, fontWeight: '600', color: '#F97316', marginTop: 2 },
+  summaryDot: { width: 8, height: 8, borderRadius: 8 },
+  summaryPartnerLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', marginTop: 2 },
   summaryPartnerAmount: { fontSize: 16, fontWeight: '800', color: '#F97316' },
   summaryDivider: {
     width: 1,
     height: 36,
     backgroundColor: 'rgba(93,56,181,0.15)',
-    marginHorizontal: 12,
+    marginHorizontal: 14,
   },
 
   addBtn: {
@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#F97316',
-    paddingVertical: 16,
-    borderRadius: 18,
+    paddingVertical: 20,
+    borderRadius: 26,
     shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -322,9 +322,9 @@ const styles = StyleSheet.create({
   incomeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 20,
-    gap: 14,
+    padding: 22,
+    borderRadius: 28,
+    gap: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -333,20 +333,20 @@ const styles = StyleSheet.create({
   },
   incomeIconWrap: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   incomeInfo: { flex: 1, gap: 2 },
-  incomeSource: { fontSize: 15, fontWeight: '700' },
-  incomeCategoryLabel: { fontSize: 11, fontWeight: '600', marginTop: 1 },
-  incomeDate: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  incomeSource: { fontSize: 16, fontWeight: '700' },
+  incomeCategoryLabel: { fontSize: 12, fontWeight: '600', marginTop: 1 },
+  incomeDate: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   incomeRight: { alignItems: 'flex-end', gap: 6 },
   incomeAmount: { fontSize: 16, fontWeight: '800' },
-  partnerChip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
+  partnerChip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
   partnerChipText: { fontSize: 10, fontWeight: '700' },
 
-  emptyText: { fontSize: 17, fontWeight: '700' },
-  emptySubtext: { fontSize: 13, marginTop: 4 },
+  emptyText: { fontSize: 19, fontWeight: '700' },
+  emptySubtext: { fontSize: 16, marginTop: 4 },
 });

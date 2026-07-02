@@ -29,11 +29,11 @@ export function NetWorthWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
   value: { fontSize: 32, fontWeight: '800', marginTop: 4 },
   changeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  change: { fontSize: 13, fontWeight: '600' },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#27272A' },
+  change: { fontSize: 16, fontWeight: '600' },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#27272A' },
   meta: { fontSize: 12, color: '#6B7280' },
 });

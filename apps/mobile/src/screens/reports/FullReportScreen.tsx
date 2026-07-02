@@ -17,6 +17,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useSilentRefresh } from '../../hooks/useSilentRefresh';
 import { onDataRefresh } from '../../services/dataRefresh';
 import { useLens } from '../../hooks/useLens';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -237,6 +238,7 @@ export function FullReportScreen() {
   }
 
   return (
+    <PremiumGate featureKey="advanced_reports">
     <View
       style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
     >
@@ -534,6 +536,7 @@ export function FullReportScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 
@@ -568,107 +571,107 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
-  headerTitle: { fontSize: 24, fontWeight: '700' },
+  headerTitle: { fontSize: 26, fontWeight: '700' },
   headerActions: { flexDirection: 'row', gap: 8 },
   exportBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   filterTab: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 28,
   },
-  filterText: { fontSize: 13, fontWeight: '600' },
+  filterText: { fontSize: 16, fontWeight: '600' },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 12, marginTop: 4 },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 44 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14, marginTop: 4 },
   summaryRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   summaryCard: {
     flex: 1,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: 28,
+    padding: 18,
     alignItems: 'center',
     gap: 4,
   },
   summaryIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   summaryValue: { fontSize: 16, fontWeight: '800' },
-  summaryLabel: { fontSize: 11, fontWeight: '500' },
+  summaryLabel: { fontSize: 12, fontWeight: '500' },
   card: {
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+    borderRadius: 30,
+    padding: 22,
+    marginBottom: 20,
   },
-  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 },
   chartRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   chartCol: { alignItems: 'center', flex: 1, gap: 4 },
   barGroup: { flexDirection: 'row', gap: 2, alignItems: 'flex-end' },
-  bar: { borderRadius: 4 },
+  bar: { borderRadius: 8 },
   monthLabel: { fontSize: 9, fontWeight: '500' },
   catRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   catInfo: { width: 100 },
-  catName: { fontSize: 13, fontWeight: '600' },
-  catAmount: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  catName: { fontSize: 16, fontWeight: '600' },
+  catAmount: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   catBarBg: {
     flex: 1,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
-  catBarFill: { height: '100%', borderRadius: 4 },
-  catPct: { width: 36, fontSize: 11, fontWeight: '600', textAlign: 'right' },
-  aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  catBarFill: { height: '100%', borderRadius: 8 },
+  catPct: { width: 36, fontSize: 12, fontWeight: '600', textAlign: 'right' },
+  aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   insightRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
-  insightDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
-  insightText: { fontSize: 13, flex: 1, lineHeight: 18 },
+  insightDot: { width: 6, height: 6, borderRadius: 6, marginTop: 6 },
+  insightText: { fontSize: 16, flex: 1, lineHeight: 18 },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
+    gap: 14,
+    marginBottom: 16,
   },
   memberAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     backgroundColor: '#6366F1',
     alignItems: 'center',
     justifyContent: 'center',
   },
   memberInitial: { fontSize: 16, fontWeight: '700' },
   memberInfo: { flex: 1 },
-  memberName: { fontSize: 14, fontWeight: '600' },
-  memberRole: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  memberName: { fontSize: 16, fontWeight: '600' },
+  memberRole: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   memberFinance: { alignItems: 'flex-end' },
   memberIncome: { fontSize: 12, fontWeight: '600' },
-  memberExpense: { fontSize: 11, fontWeight: '500' },
+  memberExpense: { fontSize: 12, fontWeight: '500' },
 });

@@ -43,7 +43,7 @@ export const palettes = { dark: darkPalette, light: lightPalette } as const sati
 export type ThemeMode = 'dark' | 'light';
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
-export const radii = { sm: 8, md: 12, lg: 14, xl: 16, xxl: 20, full: 9999 } as const;
+export const radii = { sm: 14, md: 18, lg: 20, xl: 24, xxl: 28, full: 9999 } as const;
 
 export const typography = StyleSheet.create({
   h1: { fontSize: 36, fontWeight: '700', color: 'var(--dabbu-text)' as any, letterSpacing: -0.5 },

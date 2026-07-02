@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
   item: { flex: 1, gap: 2 },
   label: { fontSize: 11, fontWeight: '500' },
   value: { fontSize: 15, fontWeight: '700' },
-  progressBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
+  progressBg: { height: 6, borderRadius: 12, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 12 },
 });

@@ -152,7 +152,7 @@ export function FamilyHubScreen() {
                   {
                     paddingHorizontal: 6,
                     paddingVertical: 1,
-                    borderRadius: 6,
+                    borderRadius: 12,
                     backgroundColor: cat.color + '20',
                   },
                 ]}
@@ -193,7 +193,7 @@ export function FamilyHubScreen() {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: 6 }}>
           {visibleMembers.map((m: any, i: number) => {
             const name = m.user?.firstName || m.user?.email || 'M';
             const color = HUB_CATEGORIES[i % HUB_CATEGORIES.length].color;
@@ -216,7 +216,7 @@ export function FamilyHubScreen() {
                 { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
               ]}
             >
-              <Text style={[styles.avatarText, { color: colors.text.tertiary, fontSize: 11 }]}>
+              <Text style={[styles.avatarText, { color: colors.text.tertiary, fontSize: 12 }]}>
                 +{overflow}
               </Text>
             </View>
@@ -377,12 +377,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  greeting: { fontSize: 13, fontWeight: '500', letterSpacing: 0.3 },
+  greeting: { fontSize: 16, fontWeight: '500', letterSpacing: 0.3 },
   title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5, marginTop: 2 },
   createBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     gap: spacing.sm,
   },
-  coupleText: { flex: 1, fontSize: 14, fontWeight: '600' },
+  coupleText: { flex: 1, fontSize: 16, fontWeight: '600' },
   filterRow: { marginTop: spacing.md, marginHorizontal: -spacing.xl },
   filterContent: { paddingHorizontal: spacing.xl, gap: spacing.sm },
   filterChip: {
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
   },
-  filterText: { fontSize: 13, fontWeight: '500' },
+  filterText: { fontSize: 16, fontWeight: '500' },
   list: { flex: 1 },
   listContent: { padding: spacing.xl, paddingTop: spacing.sm, gap: spacing.md, paddingBottom: 100 },
   groupCard: {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   groupIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -428,11 +428,11 @@ const styles = StyleSheet.create({
   groupMeta: { fontSize: 12, marginTop: 2 },
   groupBalance: { alignItems: 'flex-end' },
   balanceAmount: { fontSize: 16, fontWeight: '700' },
-  balanceLabel: { fontSize: 11, marginTop: 1 },
+  balanceLabel: { fontSize: 12, marginTop: 1 },
   avatar: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  skeletonLine: { height: 14, borderRadius: 7 },
+  skeletonLine: { height: 14, borderRadius: 20 },
   emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: spacing.xl },
   emptyIcon: {
     width: 80,
@@ -462,8 +462,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: spacing.sm },
-  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: spacing['2xl'] },
+  emptyTitle: { fontSize: 26, fontWeight: '700', marginBottom: spacing.sm },
+  emptyDesc: { fontSize: 16, textAlign: 'center', lineHeight: 24, marginBottom: spacing['2xl'] },
   emptyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -472,5 +472,5 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     gap: spacing.sm,
   },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+  emptyBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
 });

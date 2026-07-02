@@ -59,7 +59,7 @@ export default function ChurnPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
-                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }} />
+                <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: '#fff' }} />
                 <Bar dataKey="active" name="Active" fill="#22c55e" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="inactive" name="Inactive" fill="#ef4444" radius={[6, 6, 0, 0]} />
               </BarChart>

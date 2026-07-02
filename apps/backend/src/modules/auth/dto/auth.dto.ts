@@ -5,6 +5,7 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
+  IsNumber,
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -206,10 +207,16 @@ export class DemoLoginDto {
 }
 
 export class SelectPresetAvatarDto {
-  @ApiProperty({ description: 'Preset seed identifier (e.g. "dabbu-sunny")' })
+  @ApiPropertyOptional({ description: 'Preset seed identifier (e.g. "dabbu-sunny")' })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  seed: string;
+  seed?: string;
+
+  @ApiPropertyOptional({ description: 'Avatar index (0-based, alternative to seed)' })
+  @IsOptional()
+  @IsNumber()
+  avatarIndex?: number;
 }
 
 export class SetupLockDto {

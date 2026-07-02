@@ -95,9 +95,9 @@ function SkeletonCard() {
         <View style={[styles.skeleAvatar, { backgroundColor: colors.skeleton.base }]} />
         <View style={[styles.skeleLine, { width: 110, height: 12, backgroundColor: colors.skeleton.base }]} />
       </View>
-      <View style={[styles.skeleLine, { width: '75%', height: 14, marginTop: 14, backgroundColor: colors.skeleton.base }]} />
+      <View style={[styles.skeleLine, { width: '75%', height: 14, marginTop: 16, backgroundColor: colors.skeleton.base }]} />
       <View style={[styles.skeleLine, { width: '55%', height: 12, marginTop: 8, backgroundColor: colors.skeleton.base }]} />
-      <View style={[styles.skeleLine, { width: 70, height: 10, marginTop: 14, backgroundColor: colors.skeleton.base }]} />
+      <View style={[styles.skeleLine, { width: 70, height: 10, marginTop: 16, backgroundColor: colors.skeleton.base }]} />
     </View>
   );
 }
@@ -250,34 +250,34 @@ const styles = StyleSheet.create({
   avatar: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
   },
   userName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     flexShrink: 1,
   },
   eventIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   eventTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.2,
     marginBottom: spacing.xs,
   },
   eventDesc: {
-    fontSize: 13,
+    fontSize: 16,
     lineHeight: 18,
     marginBottom: spacing.xs,
   },
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   eventTime: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
   },
 
@@ -304,10 +304,10 @@ const styles = StyleSheet.create({
   skeleAvatar: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: 26,
   },
   skeleLine: {
-    borderRadius: 4,
+    borderRadius: 8,
   },
 
   // Empty
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
   },
   emptyDesc: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     lineHeight: 18,
   },

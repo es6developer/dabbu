@@ -55,7 +55,7 @@ export function UpgradeBanner({
       style={{
         transform: [{ translateY: slideAnim }],
         opacity: opacityAnim,
-        marginHorizontal: 16,
+        marginHorizontal: 20,
         marginVertical: 8,
       }}
     >
@@ -88,8 +88,8 @@ export function UpgradeBanner({
 
 const styles = StyleSheet.create({
   containerGradient: {
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 28,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -98,15 +98,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
+    marginRight: 14,
   },
   iconWrap: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   textWrap: {
     flex: 1,
@@ -124,15 +124,15 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#FF6B00',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 28,
     minWidth: 84,
     alignItems: 'center',
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
   },
 });

@@ -65,7 +65,7 @@ export function SupportScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}>
+      <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 40 }}>
         {activeTab === 'faq' && (
           <View>
             {faqs.map((faq: any) => (
@@ -122,14 +122,13 @@ export function SupportScreen() {
                 <TouchableOpacity
                   key={cat}
                   style={[styles.categoryChip, {
-                    backgroundColor: category === cat ? theme.primary + '20' : theme.border,
-                    borderColor: category === cat ? theme.primary : 'transparent',
+                    backgroundColor: category === cat ? theme.primary : theme.border,
                   }]}
                   onPress={() => setCategory(cat)}
                 >
                   <Text style={{
-                    color: category === cat ? theme.primary : theme.subtext,
-                    fontSize: 13,
+                    color: category === cat ? '#FFF' : theme.subtext,
+                    fontSize: 16,
                     fontWeight: '600',
                     textTransform: 'capitalize',
                   }}>{cat}</Text>
@@ -176,30 +175,30 @@ export function SupportScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },
-  header: { paddingHorizontal: 20, paddingBottom: 0 },
-  headerTitle: { fontSize: 28, fontWeight: '700', marginBottom: 16 },
+  header: { paddingHorizontal: 24, paddingBottom: 0 },
+  headerTitle: { fontSize: 28, fontWeight: '700', marginBottom: 20 },
   tabs: { flexDirection: 'row', gap: 4, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  tab: { paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontSize: 14, fontWeight: '600' },
-  faqCard: { borderRadius: 12, padding: 16, marginBottom: 8 },
+  tab: { paddingVertical: 18, paddingHorizontal: 24, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabText: { fontSize: 16, fontWeight: '600' },
+  faqCard: { borderRadius: 28, padding: 22, marginBottom: 8 },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  faqQuestion: { fontSize: 15, fontWeight: '600', flex: 1 },
-  faqAnswer: { fontSize: 14, lineHeight: 20, marginTop: 12 },
-  ticketCard: { borderRadius: 12, padding: 16, marginBottom: 8 },
+  faqQuestion: { fontSize: 16, fontWeight: '600', flex: 1 },
+  faqAnswer: { fontSize: 16, lineHeight: 24, marginTop: 14 },
+  ticketCard: { borderRadius: 28, padding: 22, marginBottom: 8 },
   ticketHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ticketSubject: { fontSize: 15, fontWeight: '600', flex: 1 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
-  statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  ticketSubject: { fontSize: 16, fontWeight: '600', flex: 1 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 24 },
+  statusText: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   ticketCategory: { fontSize: 12, marginTop: 4 },
-  ticketMsg: { fontSize: 14, marginTop: 8, lineHeight: 20 },
-  formCard: { borderRadius: 16, padding: 20 },
-  formTitle: { fontSize: 18, fontWeight: '700', marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12, textTransform: 'uppercase' },
+  ticketMsg: { fontSize: 16, marginTop: 8, lineHeight: 24 },
+  formCard: { borderRadius: 30, padding: 24 },
+  formTitle: { fontSize: 19, fontWeight: '700', marginBottom: 24 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
   categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  input: { borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 15 },
+  categoryChip: { paddingHorizontal: 24, paddingVertical: 8, borderRadius: 28 },
+  input: { borderWidth: 1.5, borderRadius: 30, padding: 18, fontSize: 16, fontWeight: '500' },
   textArea: { minHeight: 120 },
-  submitBtn: { paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginTop: 24 },
+  submitBtn: { paddingVertical: 20, borderRadius: 28, alignItems: 'center', marginTop: 28 },
   submitText: { color: 'white', fontSize: 16, fontWeight: '700' },
-  emptyText: { fontSize: 16, marginTop: 16 },
+  emptyText: { fontSize: 16, marginTop: 20 },
 });

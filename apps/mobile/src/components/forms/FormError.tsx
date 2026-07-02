@@ -19,13 +19,13 @@ const styles = StyleSheet.create({
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 16,
+    padding: 14,
+    borderRadius: 30,
+    marginBottom: 20,
     gap: 8,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     flex: 1,
     fontWeight: '600',
   },

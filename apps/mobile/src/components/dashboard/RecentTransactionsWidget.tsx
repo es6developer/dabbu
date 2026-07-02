@@ -33,11 +33,11 @@ export function RecentTransactionsWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14 },
   txnRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#27272A' },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  txnDesc: { fontSize: 14, color: '#F9FAFB' },
-  txnDate: { fontSize: 11, color: '#6B7280', marginTop: 2 },
-  txnAmount: { fontSize: 15, fontWeight: '700' },
+  dot: { width: 8, height: 8, borderRadius: 20 },
+  txnDesc: { fontSize: 16, color: '#F9FAFB' },
+  txnDate: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  txnAmount: { fontSize: 16, fontWeight: '700' },
 });

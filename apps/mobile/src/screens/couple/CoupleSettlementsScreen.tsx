@@ -141,7 +141,7 @@ export function CoupleSettlementsScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -157,7 +157,7 @@ export function CoupleSettlementsScreen() {
           style={{
             paddingTop: insets.top + 12,
             paddingBottom: 28,
-            paddingHorizontal: 20,
+            paddingHorizontal: 24,
             backgroundColor: colors.accent.primary,
           }}
         >
@@ -170,7 +170,7 @@ export function CoupleSettlementsScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: -16, gap: 20 }}>
           {bal && (
             <View style={[styles.balanceCard, { backgroundColor: '#FFEBB4' }]}>
               <Text style={styles.balanceEyebrow}>Balance Summary</Text>
@@ -409,15 +409,15 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 34,
     height: 34,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  headerTitle: { color: '#FFF', fontSize: 19, fontWeight: '700' },
 
   balanceCard: {
-    borderRadius: 24,
+    borderRadius: 32,
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -426,19 +426,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   balanceEyebrow: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#F97316',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   balanceRow: { flexDirection: 'row', alignItems: 'flex-start' },
   balanceSide: { flex: 1, alignItems: 'center' },
   balanceLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', marginBottom: 4 },
   balanceAmount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-  balanceTag: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, marginTop: 4 },
-  balanceTagText: { fontSize: 11, fontWeight: '700' },
+  balanceTag: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, marginTop: 4 },
+  balanceTagText: { fontSize: 12, fontWeight: '700' },
   balanceDivider: {
     width: 1,
     backgroundColor: 'rgba(93,56,181,0.15)',
@@ -449,38 +449,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 16,
-    paddingTop: 14,
+    marginTop: 20,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: 'rgba(93,56,181,0.12)',
   },
-  netLabel: { fontSize: 13, fontWeight: '600', color: '#F97316' },
-  netAmount: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  netLabel: { fontSize: 16, fontWeight: '600', color: '#F97316' },
+  netAmount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
 
   settleBtn: {
     backgroundColor: '#F97316',
-    marginTop: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
+    marginTop: 20,
+    paddingVertical: 18,
+    borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  settleBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  settleBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   settlePending: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginTop: 16,
-    paddingVertical: 12,
+    marginTop: 20,
+    paddingVertical: 18,
   },
-  settlePendingText: { fontSize: 13, fontWeight: '600', color: '#F97316' },
+  settlePendingText: { fontSize: 16, fontWeight: '600', color: '#F97316' },
 
   sectionCard: {
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 28,
+    padding: 22,
     gap: 10,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -495,30 +495,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 18,
     borderTopWidth: 1,
-    gap: 12,
+    gap: 14,
   },
   outstandingLeft: { flex: 1 },
-  outstandingDesc: { fontSize: 14, fontWeight: '600' },
+  outstandingDesc: { fontSize: 16, fontWeight: '600' },
   outstandingPaidBy: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   outstandingRight: { alignItems: 'flex-end' },
   outstandingAmt: { fontSize: 16, fontWeight: '700' },
   shareRow: { marginTop: 2 },
-  shareText: { fontSize: 11, fontWeight: '500' },
+  shareText: { fontSize: 12, fontWeight: '500' },
 
-  settlementItem: { paddingVertical: 12, borderTopWidth: 1, gap: 8 },
+  settlementItem: { paddingVertical: 18, borderTopWidth: 1, gap: 8 },
   settlementTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   settlementLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusDot: { width: 8, height: 8, borderRadius: 8 },
   settlementDate: { fontSize: 12, fontWeight: '500' },
-  settlementParties: { fontSize: 13, fontWeight: '600', marginTop: 1 },
+  settlementParties: { fontSize: 16, fontWeight: '600', marginTop: 1 },
   settlementAmt: { fontSize: 16, fontWeight: '700' },
-  settlementBottom: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 18 },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  statusBadgeText: { fontSize: 11, fontWeight: '700' },
-  methodText: { fontSize: 11, fontWeight: '500' },
+  settlementBottom: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 22 },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
+  statusBadgeText: { fontSize: 12, fontWeight: '700' },
+  methodText: { fontSize: 12, fontWeight: '500' },
 
-  errorCard: { borderRadius: 20, padding: 32, alignItems: 'center', gap: 12 },
-  errorText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
+  errorCard: { borderRadius: 28, padding: 36, alignItems: 'center', gap: 14 },
+  errorText: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
 });

@@ -371,7 +371,7 @@ export function BillScannerScreen() {
               >
                 <ActivityIndicator color={colors.accent.primary} size="large" />
                 <Text
-                  style={[styles.scanningText, { color: colors.text.secondary, marginTop: 16 }]}
+                  style={[styles.scanningText, { color: colors.text.secondary, marginTop: 20 }]}
                 >
                   {elapsed > 15
                     ? 'Still analyzing... taking longer than expected'
@@ -419,7 +419,7 @@ export function BillScannerScreen() {
                   </Text>
                 </View>
 
-                <View style={{ gap: 12 }}>
+                <View style={{ gap: 14 }}>
                   <View>
                     <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Amount</Text>
                     <TextInput
@@ -496,20 +496,19 @@ export function BillScannerScreen() {
                             style={[
                               styles.categoryChip,
                               {
-                                backgroundColor: selected ? `${cat.color}22` : colors.bg.tertiary,
-                                borderColor: selected ? cat.color : colors.border.subtle,
+                                backgroundColor: selected ? cat.color : colors.bg.tertiary,
                               },
                             ]}
                           >
                             <AntDesign
                               name={cat.icon as any}
                               size={14}
-                              color={selected ? cat.color : colors.text.tertiary}
+                              color={selected ? '#FFF' : colors.text.tertiary}
                             />
                             <Text
                               style={[
                                 styles.categoryChipText,
-                                { color: selected ? cat.color : colors.text.secondary },
+                                { color: selected ? '#FFF' : colors.text.secondary },
                               ]}
                             >
                               {cat.name}
@@ -549,7 +548,7 @@ export function BillScannerScreen() {
                     <View
                       style={[
                         styles.resultDivider,
-                        { backgroundColor: colors.border.subtle, marginVertical: 14 },
+                        { backgroundColor: colors.border.subtle, marginVertical: 16 },
                       ]}
                     />
                     <Text
@@ -566,11 +565,11 @@ export function BillScannerScreen() {
                           paddingVertical: 3,
                         }}
                       >
-                        <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                        <Text style={{ fontSize: 16, color: colors.text.secondary, flex: 1 }}>
                           {item.name}
                         </Text>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}
                         >
                           {item.quantity ? `x${item.quantity} ` : ''}₹{item.price.toFixed(2)}
                         </Text>
@@ -582,13 +581,13 @@ export function BillScannerScreen() {
 
               {billData.confidence > 0 && (
                 <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 }}
                 >
                   <View
                     style={{
                       flex: 1,
                       height: 4,
-                      borderRadius: 2,
+                      borderRadius: 4,
                       backgroundColor: colors.border.subtle,
                     }}
                   >
@@ -596,7 +595,7 @@ export function BillScannerScreen() {
                       style={{
                         width: `${Math.round(billData.confidence * 100)}%`,
                         height: 4,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         backgroundColor:
                           billData.confidence > 0.7
                             ? colors.status.success
@@ -606,7 +605,7 @@ export function BillScannerScreen() {
                       }}
                     />
                   </View>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                     {Math.round(billData.confidence * 100)}% confidence
                   </Text>
                 </View>
@@ -634,12 +633,11 @@ export function BillScannerScreen() {
                   activeOpacity={0.8}
                   onPress={() =>
                     navigation.navigate('AddExpense', {
-                      prefill: {
-                        amount: parseFloat(editAmount) || 0,
-                        description: editMerchant || editDescription || '',
-                        categoryName: editCategory || 'Other',
-                        date: editDate || new Date().toISOString().split('T')[0],
-                      },
+                      type: 'expense',
+                      amount: String(parseFloat(editAmount) || 0),
+                      description: editMerchant || editDescription || '',
+                      category: editCategory || 'Other',
+                      date: editDate || new Date().toISOString().split('T')[0],
                     })
                   }
                 >
@@ -654,7 +652,7 @@ export function BillScannerScreen() {
                     styles.actionBtn,
                     {
                       backgroundColor: 'transparent',
-                      borderWidth: 1,
+                      borderWidth: 1.5,
                       borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
                     },
                   ]}
@@ -688,7 +686,7 @@ export function BillScannerScreen() {
                 <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>
                   {errorMessage}
                 </Text>
-                <View style={{ gap: 12, width: '100%', marginTop: 8 }}>
+                <View style={{ gap: 14, width: '100%', marginTop: 8 }}>
                   <View style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}>
                     <TouchableOpacity
                       style={styles.actionBtnInner}
@@ -704,7 +702,7 @@ export function BillScannerScreen() {
                       styles.actionBtn,
                       {
                         backgroundColor: 'transparent',
-                        borderWidth: 1,
+                        borderWidth: 1.5,
                         borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)',
                       },
                     ]}
@@ -727,11 +725,11 @@ export function BillScannerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 120, alignItems: 'center' },
+  content: { padding: 28, paddingBottom: 120, alignItems: 'center' },
   centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: 24,
     width: '100%',
   },
   iconWrap: {
@@ -740,86 +738,86 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
     marginTop: 10,
   },
   title: { fontSize: 28, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
   desc: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-    paddingHorizontal: 16,
+    lineHeight: 24,
+    marginBottom: 28,
+    paddingHorizontal: 24,
     fontWeight: '500',
   },
   frameContainer: { marginBottom: 28 },
   actionBtn: {
-    borderRadius: 16,
+    borderRadius: 30,
     width: '100%',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   actionBtnInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 28,
     justifyContent: 'center',
   },
-  secondaryBtn: { borderWidth: 1 },
+  secondaryBtn: { borderWidth: 1.5 },
   actionBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   viewBillsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
+    borderRadius: 28,
     marginTop: 8,
   },
-  viewBillsText: { fontSize: 14, fontWeight: '700' },
-  preview: { width: '100%', height: 200, borderRadius: 16, marginBottom: 16 },
+  viewBillsText: { fontSize: 16, fontWeight: '700' },
+  preview: { width: '100%', height: 200, borderRadius: 30, marginBottom: 20 },
   scanningCard: {
     width: '100%',
     alignItems: 'center',
-    padding: 32,
-    borderRadius: 20,
-    borderWidth: 1,
+    padding: 36,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  scanningText: { fontSize: 15, fontWeight: '600' },
-  elapsedText: { fontSize: 13, marginTop: 4, fontWeight: '500' },
+  scanningText: { fontSize: 16, fontWeight: '600' },
+  elapsedText: { fontSize: 16, marginTop: 4, fontWeight: '500' },
   cancelBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginTop: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    marginTop: 20,
   },
-  cancelBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  cancelBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   errorCard: {
     width: '100%',
     alignItems: 'center',
-    padding: 32,
-    borderRadius: 20,
-    borderWidth: 1,
+    padding: 36,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
-  errorDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, fontWeight: '500' },
+  errorTitle: { fontSize: 26, fontWeight: '800', marginTop: 20, marginBottom: 8 },
+  errorDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: 36, fontWeight: '500' },
   resultCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 18,
-    marginBottom: 16,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 22,
+    marginBottom: 20,
     width: '100%',
   },
   resultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   resultTitle: { fontSize: 16, fontWeight: '700' },
   resultRow: {
@@ -828,23 +826,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
   },
-  resultLabel: { fontSize: 13, fontWeight: '600' },
-  resultValue: { fontSize: 15, fontWeight: '700' },
+  resultLabel: { fontSize: 16, fontWeight: '600' },
+  resultValue: { fontSize: 16, fontWeight: '700' },
   resultDivider: { height: 1, marginVertical: 0 },
   categoryBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 20,
   },
   categoryBadgeText: { fontSize: 12, fontWeight: '700' },
   rawTextCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 16,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    padding: 18,
+    marginBottom: 20,
   },
   rawTextLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -853,10 +851,10 @@ const styles = StyleSheet.create({
   rawTextContent: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
   fieldLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.3, textTransform: 'uppercase' },
   fieldInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     fontSize: 16,
     fontWeight: '600',
     marginTop: 6,
@@ -864,16 +862,15 @@ const styles = StyleSheet.create({
   fieldInputMultiline: {
     minHeight: 56,
     textAlignVertical: 'top',
-    paddingTop: 12,
+    paddingTop: 14,
   },
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 28,
     marginRight: 8,
   },
   categoryChipText: { fontSize: 12, fontWeight: '700' },

@@ -61,14 +61,14 @@ function StatCard({
       style={{
         flex: 1,
         backgroundColor: colors.bg.card,
-        borderRadius: 14,
-        padding: 12,
+        borderRadius: 28,
+        padding: 18,
         alignItems: 'center',
         gap: 6,
       }}
     >
       <AntDesign name={icon as any} size={16} color={color} />
-      <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text.primary }}>{value}</Text>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text.primary }}>{value}</Text>
       <Text style={{ fontSize: 10, color: colors.text.tertiary }}>{label}</Text>
     </View>
   );
@@ -233,9 +233,9 @@ export function SharedCirclesScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14 }}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={{ color: colors.text.tertiary, fontSize: 14 }}>Loading groups...</Text>
+          <Text style={{ color: colors.text.tertiary, fontSize: 16 }}>Loading groups...</Text>
         </View>
       </View>
     );
@@ -267,7 +267,7 @@ export function SharedCirclesScreen() {
 
       {/* Stats Row */}
       {groups.length > 0 && (
-        <View style={{ paddingHorizontal: H_PADDING, marginTop: 20 }}>
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 24 }}>
           <View style={s.statsRow}>
             <StatCard
               icon="team"
@@ -293,7 +293,7 @@ export function SharedCirclesScreen() {
 
       {/* Plan Info */}
       {planInfo.tier === 'free' && groups.length > 0 && (
-        <View style={{ paddingHorizontal: H_PADDING, marginTop: 14 }}>
+        <View style={{ paddingHorizontal: H_PADDING, marginTop: 16 }}>
           <View
             style={[
               s.planBar,
@@ -376,19 +376,19 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  greeting: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
+  greeting: { fontSize: 16, fontWeight: '500', marginBottom: 2 },
   title: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
   iconBtn: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addBtn: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -400,45 +400,45 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  planBarLeft: { flex: 1, marginRight: 12, gap: 6 },
+  planBarLeft: { flex: 1, marginRight: 14, gap: 6 },
   planBarOuter: {
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   planBarFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 6,
   },
-  planText: { fontSize: 11, fontWeight: '600' },
+  planText: { fontSize: 12, fontWeight: '600' },
   card: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 30,
+    padding: 22,
+    marginBottom: 14,
+    borderWidth: 1.5,
   },
   cardTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   iconWrap: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 17, fontWeight: '700' },
+  cardName: { fontSize: 19, fontWeight: '700' },
   cardMeta: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   balance: { fontSize: 16, fontWeight: '700' },
   balanceLabel: { fontSize: 10, fontWeight: '500', marginTop: 1 },
-  memberRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14 },
   avatarWrap: {
     borderRadius: 999,
     borderWidth: 2,
@@ -447,27 +447,27 @@ const s = StyleSheet.create({
   overflowBadge: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -8,
   },
   overflowText: { fontSize: 9, fontWeight: '700' },
-  emptyState: { alignItems: 'center', paddingTop: 40, gap: 12 },
+  emptyState: { alignItems: 'center', paddingTop: 44, gap: 14 },
   emptyIcon: {
     width: 88,
     height: 88,
-    borderRadius: 24,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: 44, lineHeight: 18 },
   emptyCta: {
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    borderRadius: 28,
     marginTop: 4,
   },
-  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  emptyCtaText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

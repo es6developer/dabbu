@@ -23,6 +23,7 @@ import { TransactionsService } from './transactions.service';
 import { BillScannerService } from './services/bill-scanner.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { PremiumService } from '../premium/premium.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
 
 @ApiTags('Transactions')
@@ -33,6 +34,7 @@ export class TransactionsController {
   constructor(
     private readonly transactionsService: TransactionsService,
     private readonly billScanner: BillScannerService,
+    private readonly premiumService: PremiumService,
   ) {}
 
   @Post()
@@ -40,6 +42,7 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Create a new transaction (income/expense)' })
   async create(@CurrentUser('id') userId: string, @Body() dto: CreateTransactionDto) {
     const tx = await this.transactionsService.create(userId, dto);
+    await this.premiumService.incrementUsage(userId, 'transactions');
     return { data: tx };
   }
 

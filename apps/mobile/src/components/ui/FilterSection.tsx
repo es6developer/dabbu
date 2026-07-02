@@ -23,19 +23,14 @@ export function FilterSection({ options, selected, onSelect }: FilterSectionProp
           key={f.key}
           style={[
             styles.chip,
-            { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
-            selected === f.key && {
-              backgroundColor: colors.accent.primary,
-              borderColor: colors.accent.primary,
-            },
+            { backgroundColor: selected === f.key ? colors.accent.primary : colors.bg.tertiary },
           ]}
           onPress={() => onSelect(f.key)}
         >
           <Text
             style={[
               styles.chipText,
-              { color: colors.text.tertiary },
-              selected === f.key && { color: '#FFFFFF' },
+              { color: selected === f.key ? '#FFF' : colors.text.secondary },
             ]}
           >
             {f.label}
@@ -49,17 +44,16 @@ export function FilterSection({ options, selected, onSelect }: FilterSectionProp
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    gap: 8,
+    paddingVertical: 8,
   },
   chip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 22,
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 28,
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
 });

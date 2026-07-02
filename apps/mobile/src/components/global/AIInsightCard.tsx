@@ -91,16 +91,16 @@ export function AIInsightCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 32,
+    padding: 20,
     borderLeftWidth: 3,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  row: { flexDirection: 'row', gap: 12 },
+  row: { flexDirection: 'row', gap: 14 },
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -116,9 +116,9 @@ const styles = StyleSheet.create({
   dismissBtn: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  skeletonLine: { height: 12, borderRadius: 6 },
+  skeletonLine: { height: 12, borderRadius: 28 },
 });

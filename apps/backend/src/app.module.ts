@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import * as Joi from 'joi';
 import isRedisAvailable from './common/redis.util';
 
 // Config
@@ -98,6 +99,16 @@ import { LensModule } from './modules/lens/lens.module';
         expoConfig,
       ],
       envFilePath: ['.env', '.env.local'],
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'staging', 'test').required(),
+        PORT: Joi.number().default(4000),
+        API_PORT: Joi.number().default(4000),
+        DATABASE_URL: Joi.string().required(),
+        JWT_SECRET: Joi.string().min(32).required(),
+        JWT_REFRESH_SECRET: Joi.string().min(32).required(),
+        REDIS_URL: Joi.string().required(),
+        ENCRYPTION_KEY: Joi.string().min(32).required(),
+      }),
     }),
 
     // ─── Rate Limiting ──────────────────────────────

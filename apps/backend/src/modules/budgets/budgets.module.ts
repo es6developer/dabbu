@@ -4,9 +4,10 @@ import { BudgetsService } from './budgets.service';
 import { BudgetsRepository } from './budgets.repository';
 import { BudgetSchedulerService } from './budget-scheduler.service';
 import { NotificationModule } from '../notification/notification.module';
+import { PremiumModule } from '../premium/premium.module';
 
 @Module({
-  imports: [NotificationModule],
+  imports: [NotificationModule, PremiumModule],
   controllers: [BudgetsController],
   providers: [BudgetsService, BudgetsRepository, BudgetSchedulerService],
   exports: [BudgetsService],

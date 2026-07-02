@@ -89,13 +89,13 @@ export function CreateGroupScreen() {
           {/* Name Card */}
           <View style={[s.card, { backgroundColor: colors.bg.card, ...shadows.md }]}>
             <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Group Name</Text>
-            <TextInput
-              style={[s.input, { color: colors.text.primary }]}
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. House Expenses"
-              placeholderTextColor={colors.text.tertiary}
-            />
+              <TextInput
+                style={[s.input, { color: colors.text.primary, borderColor: colors.border.default }]}
+                value={name}
+                onChangeText={setName}
+                placeholder="e.g. House Expenses"
+                placeholderTextColor={colors.text.tertiary}
+              />
           </View>
 
           {/* 2-Column Grid */}
@@ -103,7 +103,7 @@ export function CreateGroupScreen() {
             <View style={s.gridLeft}>
               <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Description</Text>
               <TextInput
-                style={[s.input, { color: colors.text.primary }]}
+                style={[s.input, { color: colors.text.primary, borderColor: colors.border.default }]}
                 value={description}
                 onChangeText={setDescription}
                 placeholder="What's it for?"
@@ -120,7 +120,7 @@ export function CreateGroupScreen() {
               >
                 <Text style={[s.budgetSign, { color: colors.text.tertiary }]}>₹</Text>
                 <TextInput
-                  style={[s.budgetInput, { color: colors.text.primary }]}
+                  style={[s.budgetInput, { color: colors.text.primary, borderColor: colors.border.default }]}
                   value={monthlyBudget}
                   onChangeText={(t) => setMonthlyBudget(t.replace(/[^0-9]/g, ''))}
                   placeholder="0"
@@ -144,19 +144,17 @@ export function CreateGroupScreen() {
                     style={[
                       s.chip,
                       {
-                        backgroundColor: active ? item.color + '15' : colors.bg.card,
-                        borderColor: active ? item.color : colors.border.subtle,
-                        borderWidth: 1,
+                        backgroundColor: active ? item.color : colors.bg.tertiary,
                       },
                     ]}
                   >
                     <AntDesign
                       name={item.icon as any}
                       size={16}
-                      color={active ? item.color : colors.text.tertiary}
+                      color={active ? '#FFF' : colors.text.tertiary}
                     />
                     <Text
-                      style={[s.chipText, { color: active ? item.color : colors.text.secondary }]}
+                      style={[s.chipText, { color: active ? '#FFF' : colors.text.secondary }]}
                     >
                       {item.label}
                     </Text>
@@ -207,58 +205,58 @@ const s = StyleSheet.create({
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 12,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 28,
     marginBottom: spacing.md,
   },
-  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-  card: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md },
+  errorText: { fontSize: 16, fontWeight: '600', flex: 1 },
+  card: { borderRadius: borderRadius['3xl'], padding: spacing.xl, marginBottom: spacing.xl },
   fieldLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  input: { fontSize: 15, fontWeight: '500', padding: 0 },
-  grid2: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  input: { fontSize: 16, fontWeight: '500', paddingVertical: 18, paddingHorizontal: 24, borderWidth: 1.5, borderRadius: 30 },
+  grid2: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.xl },
   gridLeft: { flex: 1 },
   gridRight: { flex: 1 },
   budgetRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
-  budgetSign: { fontSize: 16, fontWeight: '700', marginRight: 4 },
-  budgetInput: { flex: 1, fontSize: 15, fontWeight: '600', padding: 0 },
+  budgetSign: { fontSize: 19, fontWeight: '700', marginRight: 6 },
+  budgetInput: { flex: 1, fontSize: 16, fontWeight: '600', padding: 0, borderWidth: 1.5, borderRadius: 30 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 28,
   },
-  chipText: { fontSize: 11, fontWeight: '600' },
-  saveBtn: { borderRadius: borderRadius['2xl'], overflow: 'hidden', marginTop: spacing['2xl'] },
+  chipText: { fontSize: 12, fontWeight: '600' },
+  saveBtn: { borderRadius: borderRadius['3xl'], overflow: 'hidden', marginTop: spacing['3xl'] },
   saveGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   saveText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

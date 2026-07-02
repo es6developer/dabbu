@@ -8,12 +8,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
-
 import { alertService } from "../../components/ui";
+
+const PADDING = 20;
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'team' },
   { key: 'percentage', label: '% Split', icon: 'piechart' },
@@ -50,7 +50,7 @@ export function SharedExpenseFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken, user: currentUser } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { groupId, expenseId, edit } = route.params || {};
@@ -253,7 +253,12 @@ export function SharedExpenseFormScreen() {
         date: expenseDate ? new Date(expenseDate).toISOString() : undefined,
       };
       if (edit && expenseId) {
-        await api.patch(`/shared-finance/expenses/${expenseId}`, basePayload);
+        await api.patch(`/shared-finance/expenses/${expenseId}`, {
+          ...basePayload,
+          paidBy,
+          splitType,
+          splits: splitType !== 'equal' ? splits : undefined,
+        });
         showToast('Expense updated');
       } else {
         await api.post(`/shared-finance/groups/${groupId}/expenses`, {
@@ -303,8 +308,11 @@ export function SharedExpenseFormScreen() {
       style={[s.root, { backgroundColor: colors.bg.primary }]}
     >
       {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+      <View style={[s.header, { paddingTop: insets.top + 6 }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[s.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,15,0.05)' }]}
+        >
           <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[s.headerTitle, { color: colors.text.primary }]}>
@@ -315,7 +323,7 @@ export function SharedExpenseFormScreen() {
             <AntDesign name="delete" size={18} color={colors.status.error} />
           </TouchableOpacity>
         ) : (
-          <View style={{ width: 40 }} />
+          <View style={{ width: 38 }} />
         )}
       </View>
 
@@ -328,12 +336,12 @@ export function SharedExpenseFormScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: PADDING, paddingTop: 14, paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
       >
         {/* Amount Card */}
-        <View style={[s.amountCard, { backgroundColor: colors.bg.card, ...shadows.md }]}>
+        <View style={[s.amountCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
           <View style={s.amountRow}>
             <Text style={[s.currencySign, { color: colors.text.primary }]}>₹</Text>
             <TextInput
@@ -352,7 +360,7 @@ export function SharedExpenseFormScreen() {
           </View>
           <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
           <View style={s.descRow}>
-            <AntDesign name="edit" size={16} color={colors.text.tertiary} />
+            <AntDesign name="edit" size={15} color={colors.text.tertiary} />
             <TextInput
               style={[s.descInput, { color: colors.text.primary }]}
               value={description}
@@ -369,7 +377,7 @@ export function SharedExpenseFormScreen() {
           onPress={() => setShowCategoryPicker(!showCategoryPicker)}
           style={[
             s.fieldRow,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: showCategoryPicker ? spacing.xs : spacing.sm },
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: showCategoryPicker ? 4 : 16 },
           ]}
         >
           <AntDesign
@@ -380,10 +388,10 @@ export function SharedExpenseFormScreen() {
           <Text style={[s.fieldValue, { color: colors.text.primary, flex: 1 }]}>
             {category}
           </Text>
-          <AntDesign name={showCategoryPicker ? 'up' : 'down'} size={12} color={colors.text.tertiary} />
+          <AntDesign name={showCategoryPicker ? 'up' : 'down'} size={11} color={colors.text.tertiary} />
         </TouchableOpacity>
         {showCategoryPicker && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: spacing.sm }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
             {EXPENSE_CATEGORIES.map((cat) => {
               const active = category === cat.name;
               return (
@@ -396,19 +404,17 @@ export function SharedExpenseFormScreen() {
                   style={[
                     s.chip,
                     {
-                      backgroundColor: active ? cat.color + '18' : colors.bg.card,
-                      borderColor: active ? cat.color : colors.border.subtle,
-                      borderWidth: 1,
+                      backgroundColor: active ? cat.color : colors.bg.tertiary,
                     },
                   ]}
                 >
                   <AntDesign
                     name={(cat.icon || 'appstore1') as any}
                     size={13}
-                    color={active ? cat.color : colors.text.tertiary}
+                    color={active ? '#FFF' : colors.text.tertiary}
                   />
                   <Text
-                    style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
+                    style={[s.chipText, { color: active ? '#FFF' : colors.text.secondary }]}
                   >
                     {cat.name}
                   </Text>
@@ -424,14 +430,14 @@ export function SharedExpenseFormScreen() {
           onPress={() => setShowDatePicker(true)}
           style={[
             s.fieldRow,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: spacing.sm },
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, marginBottom: 16 },
           ]}
         >
           <AntDesign name="calendar" size={15} color={colors.accent.primary} />
           <Text style={[s.fieldValue, { color: colors.text.primary }]}>
             {fmtDate(expenseDate)}
           </Text>
-          <AntDesign name="down" size={12} color={colors.text.tertiary} />
+          <AntDesign name="down" size={11} color={colors.text.tertiary} />
         </TouchableOpacity>
         {showDatePicker && (
           <DateTimePicker
@@ -450,7 +456,7 @@ export function SharedExpenseFormScreen() {
 
         {/* Split */}
         <Text style={[s.label, { color: colors.text.tertiary }]}>Split</Text>
-        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: spacing.sm }}>
+        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           {SPLIT_TYPES.map((st) => {
             const active = splitType === st.key;
             return (
@@ -464,21 +470,19 @@ export function SharedExpenseFormScreen() {
                 style={[
                   s.chip,
                   {
-                    backgroundColor: active ? colors.accent.primary + '18' : colors.bg.card,
-                    borderColor: active ? colors.accent.primary : colors.border.subtle,
-                    borderWidth: 1,
+                    backgroundColor: active ? colors.accent.primary : colors.bg.tertiary,
                   },
                 ]}
               >
                 <AntDesign
                   name={st.icon as any}
                   size={13}
-                  color={active ? colors.accent.primary : colors.text.tertiary}
+                  color={active ? '#FFF' : colors.text.tertiary}
                 />
                 <Text
                   style={[
                     s.chipText,
-                    { color: active ? colors.accent.primary : colors.text.secondary },
+                    { color: active ? '#FFF' : colors.text.secondary },
                   ]}
                 >
                   {st.label}
@@ -490,7 +494,7 @@ export function SharedExpenseFormScreen() {
 
         {/* Paid By */}
         <Text style={[s.label, { color: colors.text.tertiary }]}>Paid by</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {members.map((m: any, idx: number) => {
               const selected = paidBy === m.userId;
@@ -506,18 +510,17 @@ export function SharedExpenseFormScreen() {
                   style={[
                     s.payerChip,
                     {
-                      borderColor: selected ? color : colors.border.subtle,
-                      backgroundColor: selected ? color + '15' : colors.bg.card,
+                      backgroundColor: selected ? color : colors.bg.tertiary,
                     },
                   ]}
                 >
                   <Avatar
                     uri={m.user?.avatarUrl}
                     name={name}
-                    size={20}
+                    size={18}
                   />
                   <Text
-                    style={[s.payerName, { color: selected ? color : colors.text.secondary }]}
+                    style={[s.payerName, { color: selected ? '#FFF' : colors.text.secondary }]}
                     numberOfLines={1}
                   >
                     {isMe(m.userId) ? 'You' : name}
@@ -553,7 +556,7 @@ export function SharedExpenseFormScreen() {
                   <Avatar
                     uri={m.user?.avatarUrl}
                     name={mName}
-                    size={28}
+                    size={24}
                   />
                   <Text style={[s.splitName, { color: colors.text.primary }]}>
                     {isMe(m.userId) ? 'You' : mName}
@@ -605,11 +608,11 @@ export function SharedExpenseFormScreen() {
               <View
                 style={[
                   s.balanceBadge,
-                  {                   backgroundColor: balanceOk ? colors.status.success + '15' : colors.status.error + '15' },
+                  { backgroundColor: balanceOk ? colors.status.success + '15' : colors.status.error + '15' },
                 ]}
               >
                 <Text
-                  style={[s.balanceText, { color: balanceOk ? '#10B981' : colors.status.error }]}
+                  style={[s.balanceText, { color: balanceOk ? colors.status.success : colors.status.error }]}
                 >
                   {balanceOk ? 'Balanced' : `₹${Math.round(diff)}`}
                 </Text>
@@ -668,81 +671,80 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: PADDING,
+    paddingBottom: 4,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   errorBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: spacing.md,
-    marginHorizontal: spacing.xl,
-    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: PADDING,
+    borderRadius: 28,
+    marginTop: 8,
   },
-  errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
-  amountCard: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md },
+  errorText: { fontSize: 15, fontWeight: '600', flex: 1 },
+  amountCard: { borderRadius: 28, padding: 18, marginBottom: 16, borderWidth: 1.5 },
   amountRow: { flexDirection: 'row', alignItems: 'center' },
-  currencySign: { fontSize: 28, fontWeight: '700', marginRight: 6 },
+  currencySign: { fontSize: 28, fontWeight: '700', marginRight: 8 },
   amountInput: { flex: 1, fontSize: 28, fontWeight: '700', padding: 0 },
-  divider: { height: 1, marginVertical: spacing.sm },
+  divider: { height: 1, marginVertical: 12 },
   descRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  descInput: { flex: 1, fontSize: 14, fontWeight: '500', padding: 0 },
+  descInput: { flex: 1, fontSize: 16, fontWeight: '500', padding: 0 },
   label: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 28,
   },
-  chipText: { fontSize: 11, fontWeight: '600' },
+  chipText: { fontSize: 12, fontWeight: '600' },
   payerChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 28,
   },
-  payerName: { fontSize: 11, fontWeight: '600', maxWidth: 50 },
+  payerName: { fontSize: 12, fontWeight: '600', maxWidth: 60 },
   fieldRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  fieldValue: { fontSize: 13, fontWeight: '600', flex: 1 },
+  fieldValue: { fontSize: 16, fontWeight: '600', flex: 1 },
   splitSection: {
-    borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: 28,
+    padding: 16,
+    marginBottom: 16,
   },
   splitSectionTitle: {
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    marginBottom: spacing.xs,
+    letterSpacing: 0.6,
+    marginBottom: 8,
   },
   splitRow: {
     flexDirection: 'row',
@@ -751,38 +753,38 @@ const s = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  splitName: { flex: 1, fontSize: 13, fontWeight: '600' },
+  splitName: { flex: 1, fontSize: 15, fontWeight: '600' },
   splitInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     minWidth: 70,
   },
-  splitPrefix: { fontSize: 13, fontWeight: '600' },
-  splitInput: { fontSize: 13, fontWeight: '700', padding: 0, minWidth: 40, textAlign: 'right' },
+  splitPrefix: { fontSize: 15, fontWeight: '600' },
+  splitInput: { fontSize: 15, fontWeight: '700', padding: 0, minWidth: 36, textAlign: 'right' },
   previewCard: {
-    borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 16,
+    marginBottom: 16,
   },
-  previewTitle: { fontSize: 13, fontWeight: '700' },
-  balanceBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  balanceText: { fontSize: 10, fontWeight: '700' },
-  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
-  previewName: { fontSize: 12, fontWeight: '500', maxWidth: 100 },
-  previewDetail: { fontSize: 10, fontWeight: '600' },
-  previewValue: { fontSize: 13, fontWeight: '700' },
-  saveBtn: { borderRadius: borderRadius['2xl'], overflow: 'hidden' },
+  previewTitle: { fontSize: 16, fontWeight: '700' },
+  balanceBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
+  balanceText: { fontSize: 11, fontWeight: '700' },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  previewName: { fontSize: 15, fontWeight: '500', maxWidth: 120 },
+  previewDetail: { fontSize: 11, fontWeight: '600' },
+  previewValue: { fontSize: 15, fontWeight: '700' },
+  saveBtn: { borderRadius: 28, overflow: 'hidden' },
   saveGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
-  saveText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '800' },
 });

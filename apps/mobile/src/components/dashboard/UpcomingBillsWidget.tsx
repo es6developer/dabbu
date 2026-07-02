@@ -27,10 +27,10 @@ export function UpcomingBillsWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 14 },
   billRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#27272A' },
-  billName: { fontSize: 14, color: '#F9FAFB', fontWeight: '500' },
+  billName: { fontSize: 16, color: '#F9FAFB', fontWeight: '500' },
   billDate: { fontSize: 12, color: '#6B7280', marginTop: 2 },
   billAmount: { fontSize: 16, fontWeight: '700' },
 });

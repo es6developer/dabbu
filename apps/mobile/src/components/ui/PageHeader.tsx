@@ -35,7 +35,7 @@ export function PageHeader({ title, subtitle, rightAction, style, gradient, noPa
         colors={isDark ? [colors.accent.primary + '1A', 'transparent'] : [colors.accent.primary + '0F', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={{ paddingHorizontal: noPadding ? 0 : spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['2xl'] }}
+        style={{ paddingHorizontal: noPadding ? 0 : spacing['2xl'], paddingTop: spacing.md, paddingBottom: spacing['2xl'] }}
       >
         {headerContent}
       </LinearGradient>
@@ -43,7 +43,7 @@ export function PageHeader({ title, subtitle, rightAction, style, gradient, noPa
   }
 
   return (
-    <View style={{ paddingHorizontal: noPadding ? 0 : spacing.xl }}>
+    <View style={{ paddingHorizontal: noPadding ? 0 : spacing['2xl'] }}>
       {headerContent}
     </View>
   );
@@ -60,18 +60,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eyebrow: {
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 4,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   action: {
-    marginLeft: spacing.md,
+    marginLeft: spacing.lg,
   },
 });

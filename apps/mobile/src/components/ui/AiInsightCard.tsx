@@ -211,9 +211,9 @@ export function AiInsightCard({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
+    borderRadius: 28,
+    padding: 22,
+    borderWidth: 1.5,
     gap: 4,
   },
   header: {
@@ -226,11 +226,11 @@ const styles = StyleSheet.create({
   iconBadge: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 15, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700' },
   headerSub: { fontSize: 10, fontWeight: '500', marginTop: 1 },
   aiBadge: {
     flexDirection: 'row',
@@ -238,10 +238,10 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 30,
   },
   aiBadgeText: { fontSize: 9, fontWeight: '800' },
-  summary: { fontSize: 13, fontWeight: '400', lineHeight: 19, marginBottom: 10 },
+  summary: { fontSize: 16, fontWeight: '400', lineHeight: 19, marginBottom: 10 },
   block: { marginTop: 10 },
   blockHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   blockTitle: { fontSize: 12, fontWeight: '700' },
@@ -249,10 +249,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    paddingLeft: 20,
+    paddingLeft: 24,
     paddingVertical: 3,
   },
-  blockDot: { width: 5, height: 5, borderRadius: 3, marginTop: 6 },
+  blockDot: { width: 5, height: 5, borderRadius: 12, marginTop: 6 },
   blockText: { fontSize: 12, fontWeight: '400', flex: 1, lineHeight: 17 },
   pill: {
     flexDirection: 'row',
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
   pillText: { fontSize: 10, fontWeight: '600' },
   reloadBtn: {
@@ -273,6 +273,6 @@ const styles = StyleSheet.create({
   },
   reloadText: { fontSize: 10, fontWeight: '500' },
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  loadingDot: { width: 32, height: 32, borderRadius: 10 },
-  loadingLine: { height: 12, borderRadius: 6 },
+  loadingDot: { width: 32, height: 32, borderRadius: 28 },
+  loadingLine: { height: 12, borderRadius: 28 },
 });

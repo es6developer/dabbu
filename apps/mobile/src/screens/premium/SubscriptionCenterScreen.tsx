@@ -118,10 +118,10 @@ export function SubscriptionCenterScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
         <View style={{ padding: spacing['2xl'], gap: spacing.lg }}>
-          <Skeleton height={180} borderRadius={20} />
-          <Skeleton height={80} borderRadius={16} />
-          <Skeleton height={80} borderRadius={16} />
-          <Skeleton height={120} borderRadius={16} />
+          <Skeleton height={180} borderRadius={28} />
+          <Skeleton height={80} borderRadius={24} />
+          <Skeleton height={80} borderRadius={24} />
+          <Skeleton height={120} borderRadius={24} />
         </View>
       </View>
     );
@@ -359,8 +359,8 @@ export function SubscriptionCenterScreen() {
             </View>
             {billingLoading ? (
               <View style={{ gap: spacing.sm }}>
-                <Skeleton height={52} borderRadius={12} />
-                <Skeleton height={52} borderRadius={12} />
+                <Skeleton height={52} borderRadius={20} />
+                <Skeleton height={52} borderRadius={20} />
               </View>
             ) : billingHistory.length === 0 ? (
               <View style={[styles.emptyBilling, { backgroundColor: colors.bg.card }]}>
@@ -494,78 +494,78 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg, paddingBottom: spacing.sm,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600' },
-  scrollContent: { paddingTop: spacing.md, paddingBottom: 40 },
-  planCard: { borderRadius: 24, padding: spacing['2xl'], gap: spacing.md },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 19, fontWeight: '600' },
+  scrollContent: { paddingTop: spacing.md, paddingBottom: 44 },
+  planCard: { borderRadius: 32, padding: spacing['2xl'], gap: spacing.md },
   planCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   planInfo: { gap: spacing.sm },
-  planName: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  planName: { fontSize: 26, fontWeight: '800', color: '#FFFFFF' },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: 999, gap: 5,
   },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  priceTag: { flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: 12 },
-  priceValue: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  statusDot: { width: 6, height: 6, borderRadius: 6 },
+  statusText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  priceTag: { flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: 28 },
+  priceValue: { fontSize: 26, fontWeight: '800', color: '#FFFFFF' },
   pricePeriod: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
   planCardBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  planDate: { fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
+  planDate: { fontSize: 16, color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
   daysBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignSelf: 'flex-start',
+    paddingHorizontal: 18, paddingVertical: 6, borderRadius: 28, alignSelf: 'flex-start',
   },
   daysText: { color: '#FFD700', fontSize: 12, fontWeight: '600' },
   planWarning: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    padding: spacing.md, borderRadius: 12,
+    padding: spacing.md, borderRadius: 28,
   },
   planWarningText: { fontSize: 12, fontWeight: '500', flex: 1 },
-  retryBtn: { borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 },
-  retryBtnText: { color: '#000', fontSize: 15, fontWeight: '700' },
-  usageCard: { borderRadius: 16, padding: spacing.lg, gap: spacing.sm },
+  retryBtn: { borderRadius: 28, padding: 18, alignItems: 'center', marginTop: 8 },
+  retryBtnText: { color: '#000', fontSize: 16, fontWeight: '700' },
+  usageCard: { borderRadius: 30, padding: spacing.lg, gap: spacing.sm },
   usageHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   usageLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  usageIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  usageLabel: { fontSize: 14, fontWeight: '600' },
-  usageCount: { fontSize: 13, fontWeight: '600' },
+  usageIcon: { width: 30, height: 30, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  usageLabel: { fontSize: 16, fontWeight: '600' },
+  usageCount: { fontSize: 16, fontWeight: '600' },
   usageBarContainer: { gap: 4 },
-  progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
-  usageRemaining: { fontSize: 11, fontWeight: '500' },
+  progressBar: { height: 6, borderRadius: 6, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 6 },
+  usageRemaining: { fontSize: 12, fontWeight: '500' },
   upgradePrompt: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,215,0,0.1)',
+    gap: 6, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,215,0,0.1)',
   },
   upgradePromptText: { color: '#FFD700', fontSize: 12, fontWeight: '600' },
   section: { gap: spacing.sm },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { fontSize: 17, fontWeight: '700' },
-  seeAll: { fontSize: 13, fontWeight: '600' },
-  featureCard: { borderRadius: 16, overflow: 'hidden' },
+  sectionTitle: { fontSize: 19, fontWeight: '700' },
+  seeAll: { fontSize: 16, fontWeight: '600' },
+  featureCard: { borderRadius: 30, overflow: 'hidden' },
   featureRow: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.md,
   },
-  featureIcon: { width: 28, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  featureLabel: { flex: 1, fontSize: 14, fontWeight: '500' },
-  billingList: { borderRadius: 16, overflow: 'hidden' },
+  featureIcon: { width: 28, height: 28, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  featureLabel: { flex: 1, fontSize: 16, fontWeight: '500' },
+  billingList: { borderRadius: 30, overflow: 'hidden' },
   billingRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: spacing.md, paddingHorizontal: spacing.lg,
   },
-  billingAmount: { fontSize: 15, fontWeight: '700' },
+  billingAmount: { fontSize: 16, fontWeight: '700' },
   billingDate: { fontSize: 12, marginTop: 2 },
-  billingStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: 8 },
-  billingStatusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  billingStatus: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: 20 },
+  billingStatusText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   emptyBilling: {
     alignItems: 'center', justifyContent: 'center',
-    paddingVertical: spacing['3xl'], borderRadius: 16, gap: spacing.sm,
+    paddingVertical: spacing['3xl'], borderRadius: 30, gap: spacing.sm,
   },
-  emptyBillingText: { fontSize: 13, fontWeight: '500' },
+  emptyBillingText: { fontSize: 16, fontWeight: '500' },
   actionBtn: {
     flexDirection: 'row', alignItems: 'center', padding: spacing.lg,
-    borderRadius: 12, borderWidth: 1, gap: spacing.md,
+    borderRadius: 28, borderWidth: 1.5, gap: spacing.md,
   },
-  actionBtnText: { flex: 1, fontSize: 15, fontWeight: '600' },
+  actionBtnText: { flex: 1, fontSize: 16, fontWeight: '600' },
 });

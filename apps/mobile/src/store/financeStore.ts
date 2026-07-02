@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api, setAccessToken } from '../services/api';
+import { api } from '../services/api';
 
 interface AggregatedDashboard {
   netWorth: { assets: number; liabilities: number; netWorth: number } | null;
@@ -25,7 +25,6 @@ export const useFinanceStore = create<FinanceStore>((set) => ({
   error: null,
 
   fetchDashboard: async (accessToken, lens) => {
-    if (accessToken) setAccessToken(accessToken);
     set({ loading: true, error: null });
     try {
       const params = lens ? `?lens=${lens}` : '';

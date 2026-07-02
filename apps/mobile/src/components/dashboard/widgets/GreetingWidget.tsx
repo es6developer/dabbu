@@ -56,15 +56,15 @@ export function GreetingWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: { gap: 14 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   greeting: { fontSize: 14, fontWeight: '500' },
   name: { fontSize: 24, fontWeight: '800', marginTop: 2, letterSpacing: -0.5 },
-  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 44, height: 44, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   balanceRow: { gap: 2 },
   balanceLabel: { fontSize: 12, fontWeight: '500' },
   balance: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
-  changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 30 },
   changeText: { fontSize: 11, fontWeight: '700' },
 });

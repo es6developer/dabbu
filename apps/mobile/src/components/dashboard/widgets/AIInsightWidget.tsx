@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   container: { gap: 8 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 14, fontWeight: '700' },
-  iconWrap: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  iconWrap: { width: 28, height: 28, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   insightTitle: { fontSize: 13, fontWeight: '700' },
   text: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
   empty: { fontSize: 14, fontWeight: '500' },

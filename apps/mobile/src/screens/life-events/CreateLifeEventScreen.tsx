@@ -90,7 +90,7 @@ export function CreateLifeEventScreen({ navigation }: any) {
 
         <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Title</Text>
         <TextInput
-          style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary }]}
+          style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.default }]}
           value={title}
           onChangeText={setTitle}
           placeholder="e.g. Planning our wedding"
@@ -99,7 +99,7 @@ export function CreateLifeEventScreen({ navigation }: any) {
 
         <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Description (optional)</Text>
         <TextInput
-          style={[styles.input, styles.textArea, { backgroundColor: colors.bg.card, color: colors.text.primary }]}
+          style={[styles.input, styles.textArea, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.default }]}
           value={description}
           onChangeText={setDescription}
           placeholder="Any details about this life event..."
@@ -132,27 +132,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingHorizontal: 28,
+    paddingBottom: 14,
   },
-  title: { fontSize: 20, fontWeight: '800' },
-  content: { padding: 16, paddingBottom: 100 },
-  sectionLabel: { fontSize: 14, fontWeight: '600', marginBottom: 12 },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '800' },
+  content: { padding: 28, paddingBottom: 100 },
+  sectionLabel: { fontSize: 16, fontWeight: '600', marginBottom: 16 },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 32 },
   typeItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
-  typeEmoji: { fontSize: 16 },
-  typeLabel: { fontSize: 13, fontWeight: '600' },
-  fieldLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 4 },
-  input: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, fontSize: 15, fontWeight: '500' },
-  textArea: { minHeight: 80, textAlignVertical: 'top' },
-  submitBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 24 },
-  submitText: { fontSize: 16, fontWeight: '700' },
+  typeEmoji: { fontSize: 19 },
+  typeLabel: { fontSize: 16, fontWeight: '600' },
+  fieldLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
+  input: { paddingHorizontal: 24, paddingVertical: 18, borderRadius: 28, fontSize: 16, fontWeight: '500', borderWidth: 1.5 },
+  textArea: { minHeight: 100, textAlignVertical: 'top' },
+  submitBtn: { paddingVertical: 18, borderRadius: 30, alignItems: 'center', marginTop: 32 },
+  submitText: { fontSize: 19, fontWeight: '700' },
 });

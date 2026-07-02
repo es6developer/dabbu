@@ -19,6 +19,8 @@ import { Response } from 'express';
 import * as multer from 'multer';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { FeatureGuard } from '../premium/guards/feature.guard';
+import { RequiresPremium } from '../premium/guards/requires-premium.decorator';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
@@ -32,6 +34,8 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post('upload')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: multer.memoryStorage(),
@@ -50,6 +54,8 @@ export class DocumentsController {
   }
 
   @Get()
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'List all documents' })
   async findAll(
     @CurrentUser('id') userId: string,
@@ -60,18 +66,24 @@ export class DocumentsController {
   }
 
   @Get('categories')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Get documents grouped by category with counts' })
   async getCategories(@CurrentUser('id') userId: string) {
     return this.documentsService.getCategories(userId);
   }
 
   @Get('expiring-soon')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Get documents expiring within 30 days' })
   async getExpiringSoon(@CurrentUser('id') userId: string) {
     return { data: await this.documentsService.getExpiringSoon(userId) };
   }
 
   @Get(':id')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Get document details' })
   async findOne(@CurrentUser('id') userId: string, @Param('id') id: string) {
     const doc = await this.documentsService.findOne(userId, id);
@@ -79,6 +91,8 @@ export class DocumentsController {
   }
 
   @Get(':id/download')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Download decrypted document' })
   async download(
     @CurrentUser('id') userId: string,
@@ -96,6 +110,8 @@ export class DocumentsController {
   }
 
   @Patch(':id')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Update document metadata' })
   async update(
     @CurrentUser('id') userId: string,
@@ -107,6 +123,8 @@ export class DocumentsController {
   }
 
   @Delete(':id')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('document_vault')
   @ApiOperation({ summary: 'Soft delete a document' })
   async remove(@CurrentUser('id') userId: string, @Param('id') id: string) {
     return this.documentsService.remove(userId, id);

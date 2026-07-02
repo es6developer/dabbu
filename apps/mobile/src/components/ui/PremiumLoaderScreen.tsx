@@ -86,7 +86,7 @@ export function PremiumLoaderScreen({
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  content: { alignItems: 'center', paddingHorizontal: 40 },
+  content: { alignItems: 'center', paddingHorizontal: 44 },
   iconWrap: {
     width: 88,
     height: 88,
@@ -96,13 +96,13 @@ const s = StyleSheet.create({
     marginBottom: 28,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   tip: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 8,
@@ -111,16 +111,16 @@ const s = StyleSheet.create({
   barTrack: {
     width: '100%',
     height: 6,
-    borderRadius: 3,
+    borderRadius: 12,
     marginTop: 36,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 12,
   },
   pct: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
     marginTop: 10,
     fontVariant: ['tabular-nums'],

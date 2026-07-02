@@ -106,9 +106,9 @@ export function CoupleHealthWidget({ data, onPress }: { data: any; onPress?: () 
 const styles = StyleSheet.create({
   card: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.xl, ...shadows.md, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  iconBox: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  iconBox: { width: 36, height: 36, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 15, fontWeight: '700', flex: 1 },
-  scoreRow: { flexDirection: 'row', gap: 16, alignItems: 'center', marginBottom: 10 },
+  scoreRow: { flexDirection: 'row', gap: 20, alignItems: 'center', marginBottom: 10 },
   scoreCircle: {
     width: 74, height: 74, borderRadius: 37, borderWidth: 3,
     alignItems: 'center', justifyContent: 'center',
@@ -118,16 +118,16 @@ const styles = StyleSheet.create({
   scoreMeta: { flex: 1, gap: 8 },
   metaBox: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 8, borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 8, borderRadius: 28,
   },
   metaLbl: { fontSize: 11, fontWeight: '500', flex: 1 },
   metaVal: { fontSize: 13, fontWeight: '800' },
   divider: { height: 1, marginBottom: 10 },
   categoriesContainer: { gap: 8 },
   catRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  catIcon: { width: 24, height: 24, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  catIcon: { width: 24, height: 24, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   catLabel: { fontSize: 11, fontWeight: '500', width: 65 },
-  catBarBg: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  catBarFill: { height: '100%', borderRadius: 3 },
+  catBarBg: { flex: 1, height: 6, borderRadius: 12, overflow: 'hidden' },
+  catBarFill: { height: '100%', borderRadius: 12 },
   catValue: { fontSize: 11, fontWeight: '700', width: 36, textAlign: 'right' },
 });

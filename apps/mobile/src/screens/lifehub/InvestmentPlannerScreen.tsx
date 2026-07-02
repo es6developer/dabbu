@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 const RISK_OPTIONS = ['Low', 'Medium', 'High'] as const;
 const HORIZON_OPTIONS = [1, 5, 10, 20] as const;
@@ -47,11 +48,12 @@ export function InvestmentPlannerScreen({ navigation }: any) {
   };
 
   return (
+    <PremiumGate featureKey="investment_tracker">
     <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <View
         style={{
           paddingTop: insets.top + 12,
-          paddingHorizontal: 20,
+          paddingHorizontal: 24,
           paddingBottom: 8,
           flexDirection: 'row',
           alignItems: 'center',
@@ -62,7 +64,7 @@ export function InvestmentPlannerScreen({ navigation }: any) {
           style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
+            borderRadius: 28,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -70,23 +72,23 @@ export function InvestmentPlannerScreen({ navigation }: any) {
           <AntDesign name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text
-          style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginLeft: 8 }}
+          style={{ fontSize: 19, fontWeight: '700', color: colors.text.primary, marginLeft: 8 }}
         >
           Investment Planner
         </Text>
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 24 }} showsVerticalScrollIndicator={false}>
         <View
           style={{
             backgroundColor: colors.bg.card,
-            borderRadius: 20,
-            padding: 20,
-            marginBottom: 16,
+            borderRadius: 28,
+            padding: 24,
+            marginBottom: 20,
           }}
         >
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 16,
               fontWeight: '600',
               color: colors.text.tertiary,
               marginBottom: 6,
@@ -97,12 +99,14 @@ export function InvestmentPlannerScreen({ navigation }: any) {
           <TextInput
             style={{
               backgroundColor: colors.bg.tertiary,
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
+              borderRadius: 28,
+              paddingHorizontal: 24,
+              paddingVertical: 18,
               fontSize: 16,
               fontWeight: '600',
               color: colors.text.primary,
+              borderWidth: 1.5,
+              borderColor: colors.border.default,
             }}
             value={monthlyInvestment}
             onChangeText={setMonthlyInvestment}
@@ -113,11 +117,11 @@ export function InvestmentPlannerScreen({ navigation }: any) {
 
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 16,
               fontWeight: '600',
               color: colors.text.tertiary,
               marginBottom: 6,
-              marginTop: 16,
+              marginTop: 20,
             }}
           >
             Risk Level
@@ -131,13 +135,13 @@ export function InvestmentPlannerScreen({ navigation }: any) {
                   flex: 1,
                   backgroundColor: riskLevel === r ? colors.accent.primary : colors.bg.tertiary,
                   paddingVertical: 10,
-                  borderRadius: 10,
+                  borderRadius: 24,
                   alignItems: 'center',
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: '600',
                     color: riskLevel === r ? '#fff' : colors.text.primary,
                   }}
@@ -150,11 +154,11 @@ export function InvestmentPlannerScreen({ navigation }: any) {
 
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 16,
               fontWeight: '600',
               color: colors.text.tertiary,
               marginBottom: 6,
-              marginTop: 16,
+              marginTop: 20,
             }}
           >
             Investment Horizon
@@ -168,13 +172,13 @@ export function InvestmentPlannerScreen({ navigation }: any) {
                   flex: 1,
                   backgroundColor: horizon === h ? colors.accent.primary : colors.bg.tertiary,
                   paddingVertical: 10,
-                  borderRadius: 10,
+                  borderRadius: 24,
                   alignItems: 'center',
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: '600',
                     color: horizon === h ? '#fff' : colors.text.primary,
                   }}
@@ -189,10 +193,10 @@ export function InvestmentPlannerScreen({ navigation }: any) {
             onPress={calculate}
             style={{
               backgroundColor: colors.accent.primary,
-              borderRadius: 14,
-              paddingVertical: 14,
+              borderRadius: 28,
+              paddingVertical: 18,
               alignItems: 'center',
-              marginTop: 20,
+              marginTop: 24,
             }}
           >
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Calculate</Text>
@@ -200,38 +204,38 @@ export function InvestmentPlannerScreen({ navigation }: any) {
         </View>
 
         {result && (
-          <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 20 }}>
+          <View style={{ backgroundColor: colors.bg.card, borderRadius: 28, padding: 24 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
-                marginBottom: 16,
+                marginBottom: 20,
               }}
             >
               Projected Returns
             </Text>
-            <View style={{ marginBottom: 12 }}>
+            <View style={{ marginBottom: 14 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Total Investment</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {fmt(result.totalInvestment)}
               </Text>
             </View>
-            <View style={{ marginBottom: 12 }}>
+            <View style={{ marginBottom: 14 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Estimated Returns</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.status.success }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.status.success }}>
                 {fmt(result.estimatedReturns)}
               </Text>
             </View>
-            <View style={{ marginBottom: 12 }}>
+            <View style={{ marginBottom: 14 }}>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>CAGR</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.accent.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.accent.primary }}>
                 {result.cagr ? result.cagr.toFixed(1) + '%' : '-'}
               </Text>
             </View>
             <View>
               <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Total Value</Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {fmt(result.totalValue)}
               </Text>
             </View>
@@ -244,15 +248,16 @@ export function InvestmentPlannerScreen({ navigation }: any) {
           }
           style={{
             backgroundColor: colors.accent.primary,
-            borderRadius: 14,
-            paddingVertical: 14,
+            borderRadius: 28,
+            paddingVertical: 18,
             alignItems: 'center',
-            marginTop: 20,
+            marginTop: 24,
           }}
         >
           <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Add Investment</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }

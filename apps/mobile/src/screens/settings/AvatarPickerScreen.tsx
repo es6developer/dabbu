@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { api } from '../../services/api';
+import { useToast } from '../../store/ToastContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { getAllAvatarXmls } from '../../assets/avatars';
 import { spacing, borderRadius, shadows } from '../../theme/design';
@@ -21,6 +23,7 @@ export function AvatarPickerScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, completeProfileSetup } = useAuth();
+  const { showToast } = useToast();
 
   const s = useMemo(() => StyleSheet.create({
     root: { flex: 1 },
@@ -28,51 +31,51 @@ export function AvatarPickerScreen() {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 24,
+      marginBottom: 28,
     },
     backBtn: {
       width: 40,
       height: 40,
-      borderRadius: 12,
+      borderRadius: 28,
       alignItems: 'center',
       justifyContent: 'center',
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: 19,
       fontWeight: '700',
     },
     previewSection: {
       alignItems: 'center',
-      marginBottom: 24,
+      marginBottom: 28,
     },
     previewName: {
-      fontSize: 18,
+      fontSize: 19,
       fontWeight: '700',
-      marginTop: 12,
+      marginTop: 14,
     },
     sectionLabel: {
-      fontSize: 13,
+      fontSize: 16,
       fontWeight: '700',
       letterSpacing: 0.5,
       textTransform: 'uppercase',
-      marginBottom: 12,
+      marginBottom: 14,
     },
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 12,
-      paddingBottom: 40,
+      gap: 14,
+      paddingBottom: 44,
     },
     presetItem: {
       width: '47%',
       alignItems: 'center',
-      padding: 16,
+      padding: 22,
       borderRadius: borderRadius.xl,
       borderWidth: 2,
       ...shadows.sm,
     },
     presetName: {
-      fontSize: 13,
+      fontSize: 16,
       fontWeight: '600',
       marginTop: 8,
     },
@@ -82,7 +85,7 @@ export function AvatarPickerScreen() {
       right: -4,
       width: 24,
       height: 24,
-      borderRadius: 12,
+      borderRadius: 28,
       backgroundColor: colors.accent.primary,
       alignItems: 'center',
       justifyContent: 'center',
@@ -104,16 +107,21 @@ export function AvatarPickerScreen() {
   });
 
   const selectAvatar = useCallback(
-    (index: number) => {
+    async (index: number) => {
       setSelectedIndex(index);
       if (user) {
         completeProfileSetup({ avatarUrl: `local:${index}` });
+      }
+      try {
+        await api.post('/auth/avatar/select', { avatarIndex: index });
+      } catch {
+        showToast('Avatar saved locally, but sync to server failed');
       }
       alertService.alert('Avatar Updated', `You selected "${AVATAR_NAMES[index]}"!`, [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     },
-    [user, completeProfileSetup, navigation],
+    [user, completeProfileSetup, navigation, showToast],
   );
 
   return (
@@ -141,7 +149,7 @@ export function AvatarPickerScreen() {
           </Text>
         </View>
 
-        <View style={{ flex: 1, marginTop: 24 }}>
+        <View style={{ flex: 1, marginTop: 28 }}>
           <Text style={[s.sectionLabel, { color: colors.text.secondary }]}>
             Choose from Avatars
           </Text>

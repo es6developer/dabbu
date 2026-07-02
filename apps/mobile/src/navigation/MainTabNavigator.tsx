@@ -250,7 +250,7 @@ export function MainTabNavigator() {
         icon: 'addusergroup',
         color: '#F43F5E',
         onPress: () =>
-          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'shared' } }),
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'expense' } }),
       },
       add_personal_expense: {
         label: 'Personal Expense',
@@ -263,7 +263,7 @@ export function MainTabNavigator() {
         icon: 'addusergroup',
         color: '#059669',
         onPress: () =>
-          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'expense' } }),
       },
       add_any_expense: {
         label: 'Add Expense',
@@ -275,7 +275,7 @@ export function MainTabNavigator() {
         label: 'Create Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList', params: { openCreate: true } }),
       },
       create_budget: {
         label: 'Create Budget',
@@ -333,7 +333,7 @@ export function MainTabNavigator() {
         label: 'Add Goal',
         icon: 'flag',
         color: '#F59E0B',
-        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList' }),
+        onPress: () => navigation.navigate('HomeTab', { screen: 'GoalsList', params: { openCreate: true } }),
       },
       create_budget: {
         label: 'Create Budget',
@@ -354,7 +354,7 @@ export function MainTabNavigator() {
         onPress: () =>
           navigation.navigate('WalletTab', {
             screen: 'AddExpense',
-            params: { type: 'shared_income' },
+            params: { type: 'income' },
           }),
       },
       contribute_goal: {
@@ -374,7 +374,7 @@ export function MainTabNavigator() {
         icon: 'minuscircle',
         color: '#059669',
         onPress: () =>
-          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'family' } }),
+          navigation.navigate('WalletTab', { screen: 'AddExpense', params: { type: 'expense' } }),
       },
       record_allowance: {
         label: 'Allowance',
@@ -516,6 +516,12 @@ function IOSTabBar({
   const insets = useSafeAreaInsets();
   const keyboardAnim = useRef(new Animated.Value(0)).current;
 
+  const tabLayouts = useRef<Record<string, { x: number; width: number }>>({});
+  const bubbleLeft = useRef(new Animated.Value(0)).current;
+  const bubbleWidth = useRef(new Animated.Value(0)).current;
+  const firstMeasureRef = useRef(false);
+  const prevTabIndex = useRef(state.index);
+
   useEffect(() => {
     Animated.spring(keyboardAnim, {
       toValue: keyboardVisible ? 1 : 0,
@@ -524,6 +530,33 @@ function IOSTabBar({
       friction: 12,
     }).start();
   }, [keyboardVisible, keyboardAnim]);
+
+  const visibleRouteNames = useMemo(() => (visibleTabs || []).map((t: any) => t.name), [visibleTabs]);
+  const visibleRoutes = useMemo(
+    () => state.routes.filter((r: any) => visibleRouteNames.includes(r.name)),
+    [state.routes, visibleRouteNames],
+  );
+
+  useEffect(() => {
+    if (prevTabIndex.current === state.index) return;
+    prevTabIndex.current = state.index;
+    const activeRoute = state.routes[state.index];
+    if (activeRoute && tabLayouts.current[activeRoute.name]) {
+      const { x, width } = tabLayouts.current[activeRoute.name];
+      Animated.spring(bubbleLeft, {
+        toValue: x,
+        tension: 200,
+        friction: 22,
+        useNativeDriver: false,
+      }).start();
+      Animated.spring(bubbleWidth, {
+        toValue: width,
+        tension: 200,
+        friction: 22,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [state.index, visibleRouteNames]);
 
   if (!bottomBarVisible) {
     return null;
@@ -570,13 +603,11 @@ function IOSTabBar({
       }
     };
 
-    const accentColor = colors.accent.primary;
     const iconColor = isFocused ? '#FFFFFF' : colors.text.tertiary;
-    const pillBg = isFocused ? accentColor : 'transparent';
     const labelColor = isFocused ? '#FFFFFF' : colors.text.tertiary;
 
     const icon = options.tabBarIcon
-      ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 18 })
+      ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 20 })
       : null;
 
     return (
@@ -585,19 +616,20 @@ function IOSTabBar({
         activeOpacity={0.7}
         style={tabStyles.tabOuter}
         onPress={onPress}
+        onLayout={(e) => {
+          const { x, width } = e.nativeEvent.layout;
+          tabLayouts.current[route.name] = { x, width };
+          if (!firstMeasureRef.current) {
+            firstMeasureRef.current = true;
+            bubbleLeft.setValue(x);
+            bubbleWidth.setValue(width);
+          }
+        }}
       >
         <Animated.View
           style={[
             tabStyles.tabPill,
-            {
-              backgroundColor: pillBg,
-              transform: [{ scale: scaleAnims[route.name] }],
-              shadowColor: isFocused ? accentColor : 'transparent',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: isFocused ? 0.35 : 0,
-              shadowRadius: 6,
-              elevation: isFocused ? 3 : 0,
-            },
+            { transform: [{ scale: scaleAnims[route.name] }] },
           ]}
         >
           {icon}
@@ -611,9 +643,6 @@ function IOSTabBar({
       </TouchableOpacity>
     );
   }
-
-  const visibleRouteNames = (visibleTabs || []).map((t: any) => t.name);
-  const visibleRoutes = state.routes.filter((r: any) => visibleRouteNames.includes(r.name));
 
   const fabRotation = fabRotate.interpolate({
     inputRange: [0, 1],
@@ -638,7 +667,18 @@ function IOSTabBar({
       ]}
     >
       <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-      <View style={tabStyles.pillsRow}>
+      <View style={[tabStyles.pillsRow, { paddingHorizontal: Math.max(insets.left, insets.right, 14) }]}>
+        <Animated.View
+          style={[
+            tabStyles.bubble,
+            {
+              backgroundColor: colors.accent.primary,
+              shadowColor: '#000',
+              left: bubbleLeft,
+              width: bubbleWidth,
+            },
+          ]}
+        />
         {visibleRoutes.map((route: any) => renderTab(route))}
         {showCenterButton && (
           <TouchableOpacity
@@ -703,7 +743,7 @@ const tabStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     gap: 6,
   },
   tabOuter: {
@@ -711,18 +751,29 @@ const tabStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabPill: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    height: 44,
-    borderRadius: 22,
-    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 36,
+    gap: 2,
+    minWidth: 56,
   },
   pillLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
+  },
+  bubble: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    borderRadius: 36,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 3,
   },
   fabOuter: {
     alignItems: 'center',
@@ -731,7 +782,7 @@ const tabStyles = StyleSheet.create({
   fabPill: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },

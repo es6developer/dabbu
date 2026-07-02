@@ -68,11 +68,11 @@ export function CreateFamilyWorkspaceScreen() {
       <View
         style={{
           paddingTop: insets.top + 12,
-          paddingHorizontal: 24,
+          paddingHorizontal: 28,
           paddingBottom: 8,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 14,
+          gap: 16,
         }}
       >
         <TouchableOpacity
@@ -80,7 +80,7 @@ export function CreateFamilyWorkspaceScreen() {
           style={{
             width: 36,
             height: 36,
-            borderRadius: 12,
+            borderRadius: 28,
             backgroundColor: colors.bg.card,
             alignItems: 'center',
             justifyContent: 'center',
@@ -88,45 +88,47 @@ export function CreateFamilyWorkspaceScreen() {
         >
           <AntDesign name="arrowleft" size={18} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
+        <Text style={{ fontSize: 19, fontWeight: '700', color: colors.text.primary }}>
           Family Workspace
         </Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={{ padding: 24, gap: 24 }}
+        contentContainerStyle={{ padding: 28, gap: 28 }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={{ alignItems: 'center', gap: 4 }}>
           <View
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
+              width: 80,
+              height: 80,
+              borderRadius: 40,
               backgroundColor: coverColor + '20',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AntDesign name="team" size={32} color={coverColor} />
+            <AntDesign name="team" size={36} color={coverColor} />
           </View>
           <Text
-            style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, marginTop: 4 }}
+            style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary, marginTop: 4 }}
           >
             Create Workspace
           </Text>
-          <Text style={{ fontSize: 13, color: colors.text.tertiary, textAlign: 'center' }}>
+          <Text style={{ fontSize: 16, color: colors.text.tertiary, textAlign: 'center', lineHeight: 24 }}>
             Set up your family workspace to manage expenses, bills, goals and more together.
           </Text>
         </View>
 
-        <View>
+        <View style={{ backgroundColor: colors.bg.card, borderRadius: 28, padding: 24 }}>
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
+              fontSize: 12,
+              fontWeight: '700',
               color: colors.text.secondary,
-              marginBottom: 6,
+              marginBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
             }}
           >
             Workspace Name
@@ -138,22 +140,26 @@ export function CreateFamilyWorkspaceScreen() {
             placeholderTextColor={colors.text.tertiary}
             style={{
               backgroundColor: colors.bg.card,
-              paddingHorizontal: 18,
-              paddingVertical: 16,
-              borderRadius: 16,
+              paddingHorizontal: 24,
+              paddingVertical: 18,
+              borderRadius: 28,
               fontSize: 16,
               color: colors.text.primary,
+              borderWidth: 1.5,
+              borderColor: colors.border.default,
             }}
           />
         </View>
 
-        <View>
+        <View style={{ backgroundColor: colors.bg.card, borderRadius: 28, padding: 24 }}>
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
+              fontSize: 12,
+              fontWeight: '700',
               color: colors.text.secondary,
-              marginBottom: 6,
+              marginBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
             }}
           >
             Description (optional)
@@ -167,37 +173,41 @@ export function CreateFamilyWorkspaceScreen() {
             numberOfLines={3}
             style={{
               backgroundColor: colors.bg.card,
-              paddingHorizontal: 18,
-              paddingVertical: 16,
-              borderRadius: 16,
+              paddingHorizontal: 24,
+              paddingVertical: 18,
+              borderRadius: 28,
               fontSize: 16,
               color: colors.text.primary,
-              minHeight: 80,
+              minHeight: 100,
               textAlignVertical: 'top',
+              borderWidth: 1.5,
+              borderColor: colors.border.default,
             }}
           />
         </View>
 
-        <View>
+        <View style={{ backgroundColor: colors.bg.card, borderRadius: 28, padding: 24 }}>
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
+              fontSize: 12,
+              fontWeight: '700',
               color: colors.text.secondary,
-              marginBottom: 8,
+              marginBottom: 12,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
             }}
           >
             Cover Color
           </Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
             {COLORS.map((c) => (
               <TouchableOpacity
                 key={c}
                 onPress={() => setCoverColor(c)}
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 28,
                   backgroundColor: c,
                   borderWidth: coverColor === c ? 3 : 0,
                   borderColor: coverColor === c ? colors.text.primary : 'transparent',
@@ -212,16 +222,16 @@ export function CreateFamilyWorkspaceScreen() {
           disabled={saving || !name.trim()}
           style={{
             backgroundColor: saving || !name.trim() ? colors.text.tertiary : colors.accent.primary,
-            paddingVertical: 16,
-            borderRadius: 16,
+            paddingVertical: 18,
+            borderRadius: 30,
             alignItems: 'center',
-            marginTop: 12,
+            marginTop: 4,
           }}
         >
           {saving ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>Create Workspace</Text>
+            <Text style={{ color: '#FFF', fontSize: 19, fontWeight: '700' }}>Create Workspace</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

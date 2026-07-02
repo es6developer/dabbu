@@ -40,52 +40,57 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const translateY = useRef(new Animated.Value(120)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    translateY.setValue(-100);
-    Animated.timing(translateY, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    translateY.setValue(120);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.spring(translateY, {
+        toValue: 0,
+        friction: 10,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
-  const bgMap = {
-    error: '#1F1415',
-    success: '#141F17',
-    info: '#1F1610',
-  };
-  const borderMap = {
-    error: 'rgba(255, 69, 69, 0.2)',
-    success: 'rgba(52, 199, 89, 0.2)',
-    info: 'rgba(20, 184, 166, 0.2)',
-  };
-  const colorMap = {
-    error: '#FF4545',
-    success: '#34C759',
-    info: '#14B8A6',
-  };
   const iconMap: Record<string, string> = {
     error: 'closecircle',
     success: 'checkcircle',
     info: 'infocirlceo',
   };
 
+  const accentMap = {
+    error: '#FF453A',
+    success: '#30D158',
+    info: '#5E5CE6',
+  };
+
+  const accent = accentMap[type];
+
   return (
     <Animated.View
       style={[
         styles.container,
         {
-          backgroundColor: bgMap[type],
-          borderColor: borderMap[type],
-          top: insets.top + 8,
+          bottom: insets.bottom + 80,
+          opacity,
           transform: [{ translateY }],
+          shadowColor: accent,
         },
       ]}
     >
-      <AntDesign name={iconMap[type] as any} size={18} color={colorMap[type]} style={styles.icon} />
-      <Text style={[styles.text, { color: colorMap[type] }]}>{message}</Text>
+      <View style={[styles.iconWrap, { backgroundColor: `${accent}20` }]}>
+        <AntDesign name={iconMap[type] as any} size={16} color={accent} />
+      </View>
+      <Text style={styles.text}>{message}</Text>
     </Animated.View>
   );
 }
@@ -93,23 +98,32 @@ function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 16,
+    backgroundColor: '#1C1C1E',
     zIndex: 9999,
     elevation: 10,
+    gap: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
-  icon: {
-    marginRight: 10,
+  iconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
+    color: '#FFFFFF',
     flex: 1,
   },
 });

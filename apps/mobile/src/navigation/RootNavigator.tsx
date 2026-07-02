@@ -84,12 +84,22 @@ export function RootNavigator(): React.ReactElement | null {
     validationDone.current = true;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
+    const fallbackTimer = setTimeout(() => {
+      if (isLocked) {
+        setPhase('lock');
+      } else if (isNewUser) {
+        setPhase('setup');
+      } else {
+        setPhase('app');
+      }
+    }, 15000);
     fetch(`${API_URL}/auth/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
       signal: controller.signal,
     })
       .then((res) => {
         clearTimeout(timer);
+        clearTimeout(fallbackTimer);
         if (res.ok) {
           if (isLocked) {
             setPhase('lock');
@@ -99,6 +109,7 @@ export function RootNavigator(): React.ReactElement | null {
             setPhase('app');
           }
         } else if (res.status === 401) {
+          clearTimeout(fallbackTimer);
           showToast('Session expired. Please login again.', 'error');
           logout();
           setPhase('auth');
@@ -114,6 +125,7 @@ export function RootNavigator(): React.ReactElement | null {
       })
       .catch(() => {
         clearTimeout(timer);
+        clearTimeout(fallbackTimer);
         if (isLocked) {
           setPhase('lock');
         } else if (isNewUser) {
@@ -124,6 +136,7 @@ export function RootNavigator(): React.ReactElement | null {
       });
     return () => {
       clearTimeout(timer);
+      clearTimeout(fallbackTimer);
       controller.abort();
     };
   }, [phase, accessToken]);
@@ -185,7 +198,7 @@ const splashStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0F0A1A',
-    gap: 16,
+    gap: 20,
   },
   text: {
     color: 'rgba(255,255,255,0.6)',

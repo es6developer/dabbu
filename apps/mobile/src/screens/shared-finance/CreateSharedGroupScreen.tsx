@@ -89,13 +89,13 @@ export function CreateSharedGroupScreen() {
         description: description.trim(),
         currency: 'INR',
         upiId: type === 'sports' ? upiId.trim() || undefined : undefined,
-      });
+      }, undefined, 30000);
       const newGroupId = res?.id || res?._id;
       if (type === 'couple' && newGroupId && partnerPhone.trim()) {
         try {
           await api.post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
             phone: partnerPhone.trim(),
-          });
+          }, undefined, 30000);
         } catch (addErr: any) {
           setSaving(false);
           if (addErr?.name === 'AbortError' || addErr?.message?.includes('aborted')) {
@@ -202,7 +202,7 @@ export function CreateSharedGroupScreen() {
             }
           />
           {upiStatus === 'invalid' && (
-            <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 2 }}>
+            <Text style={{ fontSize: 12, color: '#FF4D4F', marginTop: 2 }}>
               Enter a valid UPI ID (e.g. user@paytm)
             </Text>
           )}

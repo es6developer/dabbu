@@ -285,6 +285,8 @@ model User {
   @@index([isActive])
   @@index([deletedAt])
   @@index([firstName(100), lastName(100)])
+  @@index([status])
+  @@index([isLocked])
   @@fulltext([firstName, lastName, email])
   @@map("users")
 }
@@ -686,6 +688,9 @@ model Account {
   investments  Investment[]
 
   @@index([userId, isActive])
+  @@index([userId, isDeleted])
+  @@index([userId, type])
+  @@index([userId, isArchived])
   @@map("accounts")
 }
 

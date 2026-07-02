@@ -570,6 +570,10 @@ export class PremiumService {
     return this.usageEngine.checkUsage(this.prisma, userId, featureKey, planCode);
   }
 
+  async incrementUsage(userId: string, featureKey: string): Promise<void> {
+    await this.usageEngine.incrementUsage(this.prisma, userId, featureKey);
+  }
+
   async validateFeature(userId: string, featureKey: string) {
     const sub = await this.prisma.subscription.findUnique({
       where: { userId },
@@ -1293,5 +1297,87 @@ export class PremiumService {
       case 'yearly': end.setFullYear(end.getFullYear() + count); break;
     }
     return end;
+  }
+
+  async createOrderForPlan(userId: string, planCode: string) {
+    const config = this.PLAN_CONFIGS[planCode];
+    if (!config) {
+      throw new BadRequestException(`No pricing configuration for plan: ${planCode}`);
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const plan = await this.getPlanByCode(planCode);
+    const now = new Date();
+    const periodEnd = this.calculatePeriodEnd(now, config.interval, config.intervalCount);
+
+    const sub = await this.prisma.subscription.upsert({
+      where: { userId },
+      create: {
+        userId,
+        planId: plan.id,
+        status: 'incomplete',
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+      },
+      update: {
+        planId: plan.id,
+        status: 'incomplete',
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        cancelledAt: null,
+        cancelAtPeriodEnd: false,
+      },
+    });
+
+    const order = await this.razorpayService.createOrder({
+      amount: config.amountPaise,
+      receipt: `sub_${sub.id}`,
+      notes: { userId, subscriptionId: sub.id, planCode },
+    });
+
+    await this.prisma.subscription.update({
+      where: { id: sub.id },
+      data: { razorpayOrderId: order.id },
+    });
+
+    return {
+      orderId: order.id,
+      amount: config.amountPaise,
+      currency: 'INR',
+      planCode,
+      subscriptionId: sub.id,
+    };
+  }
+
+  async verifyOrderPayment(userId: string, orderId: string, paymentId: string, signature: string) {
+    const valid = this.razorpayService.verifyPaymentSignature(orderId, paymentId, signature);
+    if (!valid) {
+      return { verified: false, message: 'Invalid payment signature' };
+    }
+
+    const sub = await this.prisma.subscription.findFirst({
+      where: { userId, razorpayOrderId: orderId },
+    });
+    if (sub && sub.status !== 'active') {
+      await this.prisma.subscription.update({
+        where: { id: sub.id },
+        data: { status: 'active' },
+      });
+
+      const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
+      const plan = sub.planId ? await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } }) : null;
+      if (user && plan) {
+        const amount = `₹${(plan.price || 0).toLocaleString('en-IN')}`;
+        const renewalDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const nextBillingDate = this.calculatePeriodEnd(new Date(), plan.interval, plan.intervalCount).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        this.emailService.sendPremiumRenewedEmail?.(user.email, user.firstName, renewalDate, nextBillingDate, amount).catch(() => {});
+      }
+
+      await this.trackEvent(userId, 'subscription_activated', { orderId, paymentId, planId: sub.planId });
+    }
+
+    return { verified: true, message: 'Payment verified and subscription activated' };
   }
 }

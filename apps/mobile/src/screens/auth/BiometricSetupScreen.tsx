@@ -52,7 +52,7 @@ export function BiometricSetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 44 },
   iconWrap: {
     width: 108,
     height: 108,
@@ -61,15 +61,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 28,
   },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 14, textAlign: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 48, lineHeight: 24 },
   button: {
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 20,
+    borderRadius: 28,
     alignItems: 'center',
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  buttonText: { fontSize: 17, fontWeight: '600' },
+  buttonText: { fontSize: 19, fontWeight: '600' },
   skip: { fontSize: 16 },
 });

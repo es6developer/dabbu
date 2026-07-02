@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
@@ -22,6 +22,19 @@ const CONTACT_OPTIONS = [
 
 export function ContactUsScreen() {
   const { colors } = useTheme();
+
+  async function handleOpenUrl(url: string) {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Not Available', `Cannot open ${url} on this device.`);
+      }
+    } catch {
+      Alert.alert('Error', 'Unable to open this link. Please try again later.');
+    }
+  }
 
   return (
     <ScrollView
@@ -47,7 +60,7 @@ export function ContactUsScreen() {
             { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
           ]}
           activeOpacity={0.7}
-          onPress={() => Linking.openURL(opt.action)}
+          onPress={() => handleOpenUrl(opt.action)}
         >
           <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
             <AntDesign name={opt.icon as any} size={22} color={colors.accent.primary} />
@@ -77,46 +90,46 @@ export function ContactUsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 120 },
-  hero: { alignItems: 'center', marginBottom: 32 },
+  content: { padding: 28, paddingBottom: 120 },
+  hero: { alignItems: 'center', marginBottom: 36 },
   heroIcon: {
     width: 80,
     height: 80,
-    borderRadius: 24,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  subtitle: { fontSize: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 16 },
+  subtitle: { fontSize: 16 },
+  sectionTitle: { fontSize: 19, fontWeight: '600', marginBottom: 20 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 14,
+    padding: 22,
+    borderRadius: 28,
     marginBottom: 8,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   iconWrap: {
     width: 44,
-    height: 44,
-    borderRadius: 12,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   info: { flex: 1 },
-  label: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
-  value: { fontSize: 13 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 2 },
+  value: { fontSize: 16 },
   responseCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: 14,
-    marginTop: 24,
-    borderWidth: 1,
+    gap: 14,
+    padding: 22,
+    borderRadius: 28,
+    marginTop: 28,
+    borderWidth: 1.5,
   },
-  responseText: { flex: 1, fontSize: 13, lineHeight: 18 },
+  responseText: { flex: 1, fontSize: 16, lineHeight: 18 },
 });

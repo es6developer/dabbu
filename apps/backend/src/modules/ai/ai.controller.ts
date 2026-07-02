@@ -4,7 +4,8 @@ import { Response } from 'express';
 import { AiService } from './ai.service';
 import { AiInsightsQueryDto } from './dto/ai-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PremiumGuard } from '../premium/guards/premium.guard';
+import { FeatureGuard } from '../premium/guards/feature.guard';
+import { RequiresPremium } from '../premium/guards/requires-premium.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('AI')
@@ -20,6 +21,8 @@ export class AiController {
   }
 
   @Get('insights')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getInsights(@CurrentUser('id') userId: string, @Query() query: AiInsightsQueryDto) {
     const section = query.section || 'dashboard';
     const context = { userId, section, narrative: query.narrative || undefined };
@@ -28,6 +31,8 @@ export class AiController {
   }
 
   @Post('narrative')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getNarrative(
     @CurrentUser('id') userId: string,
     @Body() body: { section: string; context: Record<string, any> },
@@ -40,18 +45,24 @@ export class AiController {
   }
 
   @Post('chat')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('ai_coach')
   async chat(@CurrentUser('id') userId: string, @Body() body: { prompt: string }) {
     const result = await this.aiService.processChat(userId, body.prompt);
     return { data: result };
   }
 
   @Get('groups/:groupId/insights')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getGroupInsights(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
     const narrative = await this.aiService.generateGroupNarrative(groupId, userId);
     return { data: narrative };
   }
 
   @Get('groups/:groupId/split-insights')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getSplitInsights(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
     const narrative = await this.aiService.generateSplitNarrative(groupId, userId);
     return { data: narrative };
@@ -62,66 +73,88 @@ export class AiController {
   // ═══════════════════════════════════════════════════════════
 
   @Get('dna')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getFinancialDna(@CurrentUser('id') userId: string) {
     const dna = await this.aiService.getLatestDna(userId);
     return { data: dna };
   }
 
   @Post('dna/compute')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async computeFinancialDna(@CurrentUser('id') userId: string) {
     const dna = await this.aiService.computeFinancialDna(userId);
     return { data: dna };
   }
 
   @Get('predictions')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getPredictions(@CurrentUser('id') userId: string) {
     const predictions = await this.aiService.predictEndOfMonth(userId);
     return { data: predictions };
   }
 
   @Get('anomalies')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getAnomalies(@CurrentUser('id') userId: string) {
     const anomalies = await this.aiService.detectAnomalies(userId);
     return { data: anomalies };
   }
 
   @Get('savings-opportunities')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getSavingsOpportunities(@CurrentUser('id') userId: string) {
     const opportunities = await this.aiService.findSavingsOpportunities(userId);
     return { data: opportunities };
   }
 
   @Get('health-score')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('health_score')
   async getHealthScore(@CurrentUser('id') userId: string) {
     const score = await this.aiService.computeHealthScore(userId);
     return { data: score };
   }
 
   @Get('dashboard')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getSmartDashboard(@CurrentUser('id') userId: string) {
     const dashboard = await this.aiService.generateSmartDashboard(userId);
     return { data: dashboard };
   }
 
   @Get('life-events')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getLifeEvents(@CurrentUser('id') userId: string) {
     const events = await this.aiService.detectLifeEvents(userId);
     return { data: events };
   }
 
   @Get('milestones')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getMilestones(@CurrentUser('id') userId: string) {
     const milestones = await this.aiService.checkMilestones(userId);
     return { data: milestones };
   }
 
   @Get('goals/:goalId/prediction')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getGoalPrediction(@CurrentUser('id') userId: string, @Param('goalId') goalId: string) {
     const prediction = await this.aiService.predictGoalCompletion(userId, goalId);
     return { data: prediction };
   }
 
   @Get('goals/rebalance')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getGoalRebalancing(@CurrentUser('id') userId: string) {
     const result = await this.aiService.suggestGoalRebalancing(userId);
     return { data: result };
@@ -147,30 +180,40 @@ export class AiController {
   }
 
   @Get('groups/:groupId/settlements/optimize')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async optimizeSettlements(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
     const result = await this.aiService.optimizeSettlements(groupId);
     return { data: result };
   }
 
   @Post('compute/all')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async computeAll(@CurrentUser('id') userId: string) {
     const result = await this.aiService.computeAllForUser(userId);
     return { data: result };
   }
 
   @Post('compute/daily')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async computeDaily(@CurrentUser('id') userId: string) {
     const result = await this.aiService.computeDailyForUser(userId);
     return { data: result };
   }
 
   @Post('compute/weekly')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async computeWeekly(@CurrentUser('id') userId: string) {
     const result = await this.aiService.computeWeeklyForUser(userId);
     return { data: result };
   }
 
   @Post('compute/monthly')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async computeMonthly(@CurrentUser('id') userId: string) {
     const result = await this.aiService.computeMonthlyForUser(userId);
     return { data: result };
@@ -185,7 +228,8 @@ export class AiController {
   // ═══════════════════════════════════════════════════════════
 
   @Post('ocr/analyze')
-  @UseGuards(PremiumGuard)
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async analyzeReceipt(
     @CurrentUser('id') userId: string,
     @Body() body: { rawText: string; merchantHint?: string },
@@ -194,15 +238,17 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Get('investments/health')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('investment_tracker')
   async getInvestmentHealth(@CurrentUser('id') userId: string) {
     const result = await this.aiService.analyzeInvestmentHealth(userId);
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Post('retirement/project')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async projectRetirement(
     @CurrentUser('id') userId: string,
     @Body()
@@ -219,8 +265,9 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Post('family/wealth-forecast')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('family_wealth')
   async forecastWealth(
     @CurrentUser('id') userId: string,
     @Body()
@@ -237,8 +284,9 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Post('tax/estimate')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async calculateTax(
     @CurrentUser('id') userId: string,
     @Body()
@@ -258,8 +306,9 @@ export class AiController {
   // COUPLE & FAMILY INTELLIGENCE (premium)
   // ═══════════════════════════════════════════════════════════
 
-  @UseGuards(PremiumGuard)
   @Get('couple/intelligence')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @ApiOperation({ summary: 'Get couple compatibility score and intelligence (premium)' })
   @ApiQuery({ name: 'groupId', required: true })
   async getCoupleIntelligence(
@@ -270,8 +319,9 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Get('family/intelligence')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('family_ai_advisor')
   @ApiOperation({ summary: 'Get family intelligence dashboard (premium)' })
   @ApiQuery({ name: 'familyId', required: true })
   async getFamilyIntelligence(
@@ -282,15 +332,17 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Get('monthly-review')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   async getMonthlyReview(@CurrentUser('id') userId: string) {
     const result = await this.aiService.generateMonthlyReview(userId);
     return { data: result };
   }
 
-  @UseGuards(PremiumGuard)
   @Post('export')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @ApiOperation({ summary: 'Export AI monthly review as PDF' })
   async exportPdf(@CurrentUser('id') userId: string, @Res() res: Response) {
     const review = await this.aiService.generateMonthlyReview(userId);
@@ -413,7 +465,8 @@ export class AiController {
   // V3 — CONTEXTUAL AI ENDPOINTS
   // ═══════════════════════════════════════════════════════════
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @Post('contextual/insight')
   async getContextualInsight(
     @CurrentUser('id') userId: string,
@@ -423,7 +476,8 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @Post('contextual/forecast')
   async getContextualForecast(
     @CurrentUser('id') userId: string,
@@ -433,7 +487,8 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @Post('contextual/rebalance')
   async getContextualRebalance(
     @CurrentUser('id') userId: string,
@@ -443,7 +498,8 @@ export class AiController {
     return { data: result };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, FeatureGuard)
+  @RequiresPremium('advanced_ai_insights')
   @Post('contextual/categorize')
   async getContextualCategorize(
     @CurrentUser('id') userId: string,

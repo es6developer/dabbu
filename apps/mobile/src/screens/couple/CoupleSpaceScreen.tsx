@@ -217,29 +217,29 @@ export function CoupleSpaceScreen() {
           <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Couple Space</Text>
           <View style={{ width: 24 }} />
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36 }}>
           <AntDesign name="hearto" size={48} color={colors.text.tertiary} />
           <Text
-            style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}
+            style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 14 }}
           >
             Not Connected
           </Text>
           <Text
-            style={{ fontSize: 13, color: colors.text.tertiary, textAlign: 'center', marginTop: 4 }}
+            style={{ fontSize: 16, color: colors.text.tertiary, textAlign: 'center', marginTop: 4 }}
           >
             Connect with your partner to see shared finances
           </Text>
           <TouchableOpacity
             onPress={() => (navigation as any).navigate('ProfileTab', { screen: 'AddPartner' })}
             style={{
-              marginTop: 20,
+              marginTop: 24,
               backgroundColor: colors.accent.primary,
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 14,
+              paddingHorizontal: 28,
+              paddingVertical: 18,
+              borderRadius: 28,
             }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Connect Partner</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>Connect Partner</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -283,7 +283,7 @@ export function CoupleSpaceScreen() {
         </View>
 
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ padding: 24, paddingBottom: 44 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -300,10 +300,10 @@ export function CoupleSpaceScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
               <Avatar name={user?.firstName} size={52} colors={colors} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+                <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                   You
                 </Text>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
@@ -312,7 +312,7 @@ export function CoupleSpaceScreen() {
               </View>
               <AntDesign name="hearto" size={20} color="#FF6B9D" />
               <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+                <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                   Partner
                 </Text>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
@@ -343,14 +343,14 @@ export function CoupleSpaceScreen() {
             ]}
           >
             <Text style={[styles.cardTitle, { color: colors.text.primary }]}>This Month</Text>
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 14, marginTop: 10 }}>
               <View style={[styles.statBox, { backgroundColor: colors.bg.tertiary }]}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                   You Spent
                 </Text>
                 <Text
                   style={{
-                    fontSize: 18,
+                    fontSize: 19,
                     fontWeight: '800',
                     color: colors.status.error,
                     marginTop: 2,
@@ -360,12 +360,12 @@ export function CoupleSpaceScreen() {
                 </Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: colors.bg.tertiary }]}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                   Partner Spent
                 </Text>
                 <Text
                   style={{
-                    fontSize: 18,
+                    fontSize: 19,
                     fontWeight: '800',
                     color: colors.status.warning,
                     marginTop: 2,
@@ -375,12 +375,12 @@ export function CoupleSpaceScreen() {
                 </Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: colors.accent.primary + '10' }]}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                   Total
                 </Text>
                 <Text
                   style={{
-                    fontSize: 18,
+                    fontSize: 19,
                     fontWeight: '800',
                     color: colors.accent.primary,
                     marginTop: 2,
@@ -403,28 +403,28 @@ export function CoupleSpaceScreen() {
               <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
                 Shared Finance (This Month)
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
+              <View style={{ flexDirection: 'row', gap: 14, marginTop: 10 }}>
                 <View style={[styles.statBox, { backgroundColor: '#DC262615' }]}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                     Shared Expenses
                   </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#DC2626', marginTop: 2 }}>
+                  <Text style={{ fontSize: 19, fontWeight: '800', color: '#DC2626', marginTop: 2 }}>
                     {fmtShort(sharedMonthlyExpenses)}
                   </Text>
                 </View>
                 <View style={[styles.statBox, { backgroundColor: '#16A34A15' }]}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                     Shared Income
                   </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#16A34A', marginTop: 2 }}>
+                  <Text style={{ fontSize: 19, fontWeight: '800', color: '#16A34A', marginTop: 2 }}>
                     {fmtShort(sharedMonthlyIncome)}
                   </Text>
                 </View>
                 <View style={[styles.statBox, { backgroundColor: '#2563EB15' }]}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                     Net
                   </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#2563EB', marginTop: 2 }}>
+                  <Text style={{ fontSize: 19, fontWeight: '800', color: '#2563EB', marginTop: 2 }}>
                     {fmtShort(sharedMonthlyIncome - sharedMonthlyExpenses)}
                   </Text>
                 </View>
@@ -433,15 +433,15 @@ export function CoupleSpaceScreen() {
               {recentExpenses?.length > 0 && (
                 <View
                   style={{
-                    marginTop: 12,
-                    paddingTop: 12,
+                    marginTop: 14,
+                    paddingTop: 14,
                     borderTopWidth: 1,
                     borderTopColor: colors.border.subtle,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 6,
@@ -459,12 +459,12 @@ export function CoupleSpaceScreen() {
                       }}
                     >
                       <Text
-                        style={{ fontSize: 13, color: colors.text.primary, flex: 1 }}
+                        style={{ fontSize: 16, color: colors.text.primary, flex: 1 }}
                         numberOfLines={1}
                       >
                         {e.description}
                       </Text>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#DC2626' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: '#DC2626' }}>
                         {fmt(e.amount)}
                       </Text>
                     </View>
@@ -474,15 +474,15 @@ export function CoupleSpaceScreen() {
               {recentIncomes?.length > 0 && (
                 <View
                   style={{
-                    marginTop: 12,
-                    paddingTop: 12,
+                    marginTop: 14,
+                    paddingTop: 14,
                     borderTopWidth: 1,
                     borderTopColor: colors.border.subtle,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 6,
@@ -500,12 +500,12 @@ export function CoupleSpaceScreen() {
                       }}
                     >
                       <Text
-                        style={{ fontSize: 13, color: colors.text.primary, flex: 1 }}
+                        style={{ fontSize: 16, color: colors.text.primary, flex: 1 }}
                         numberOfLines={1}
                       >
                         {i.source || i.type}
                       </Text>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#16A34A' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: '#16A34A' }}>
                         {fmt(i.amount)}
                       </Text>
                     </View>
@@ -527,7 +527,7 @@ export function CoupleSpaceScreen() {
               <View
                 style={{
                   height: 8,
-                  borderRadius: 4,
+                  borderRadius: 8,
                   backgroundColor: colors.bg.tertiary,
                   marginTop: 10,
                   overflow: 'hidden',
@@ -538,7 +538,7 @@ export function CoupleSpaceScreen() {
                     width: `${Math.min((goalsProgress / goalsTarget) * 100, 100)}%`,
                     height: '100%',
                     backgroundColor: colors.status.success,
-                    borderRadius: 4,
+                    borderRadius: 8,
                   }}
                 />
               </View>
@@ -590,11 +590,11 @@ export function CoupleSpaceScreen() {
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <AntDesign name="filetext1" size={16} color={colors.text.tertiary} />
-                    <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.primary }}>
                       {bill.name}
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.warning }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.status.warning }}>
                     {fmt(bill.amount)}
                   </Text>
                 </View>
@@ -621,12 +621,12 @@ export function CoupleSpaceScreen() {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}
                 >
                   <View style={[styles.statBox, { backgroundColor: colors.bg.tertiary, flex: 0 }]}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>
                       Compatibility
                     </Text>
                     <Text
                       style={{
-                        fontSize: 22,
+                        fontSize: 26,
                         fontWeight: '800',
                         color:
                           aiIntelligence.compatibilityScore >= 70
@@ -661,12 +661,12 @@ export function CoupleSpaceScreen() {
                 <View
                   style={{
                     marginTop: 10,
-                    padding: 12,
-                    borderRadius: 12,
+                    padding: 18,
+                    borderRadius: 28,
                     backgroundColor: colors.bg.tertiary,
                   }}
                 >
-                  <Text style={{ fontSize: 13, color: colors.text.secondary, lineHeight: 18 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.secondary, lineHeight: 18 }}>
                     {aiIntelligence.insight}
                   </Text>
                 </View>
@@ -692,7 +692,7 @@ export function CoupleSpaceScreen() {
                 screen: 'Couple',
                 params: {
                   screen: 'CoupleTransactionForm',
-                  params: { prefill: { groupId: data.groupId, type: 'wallet' as const } },
+                  params: { prefill: { groupId: data.groupId, type: 'expense' as const } },
                 },
               },
               {
@@ -702,7 +702,7 @@ export function CoupleSpaceScreen() {
                 screen: 'Couple',
                 params: {
                   screen: 'CoupleTransactionForm',
-                  params: { prefill: { groupId: data.groupId, type: 'arrowdown' as const } },
+                  params: { prefill: { groupId: data.groupId, type: 'income' as const } },
                 },
               },
               {
@@ -742,10 +742,10 @@ export function CoupleSpaceScreen() {
                   width: '31%',
                   alignItems: 'center',
                   gap: 6,
-                  paddingVertical: 14,
-                  borderRadius: 16,
+                  paddingVertical: 18,
+                  borderRadius: 30,
                   backgroundColor: colors.bg.card,
-                  borderWidth: 1,
+                  borderWidth: 1.5,
                   borderColor: colors.border.subtle,
                 }}
               >
@@ -753,7 +753,7 @@ export function CoupleSpaceScreen() {
                   style={{
                     width: 40,
                     height: 40,
-                    borderRadius: 12,
+                    borderRadius: 28,
                     backgroundColor: action.color + '15',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -763,7 +763,7 @@ export function CoupleSpaceScreen() {
                 </View>
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: '600',
                     color: colors.text.secondary,
                     textAlign: 'center',
@@ -786,34 +786,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 8,
   },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
   partnerCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 24,
+    marginBottom: 20,
   },
   card: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    padding: 22,
+    marginBottom: 20,
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   statBox: {
     flex: 1,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: 28,
+    padding: 18,
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     marginBottom: 10,
   },

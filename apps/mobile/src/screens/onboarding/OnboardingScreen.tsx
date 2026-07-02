@@ -97,20 +97,20 @@ function PillInput({
   });
   const labelFontSize = labelAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [15, 11],
+    outputRange: [16, 12],
   });
 
   return (
-    <View style={{ position: 'relative', height: 58, marginBottom: 14 }}>
+    <View style={{ position: 'relative', height: 58, marginBottom: 20 }}>
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           backgroundColor: colors.bg.secondary,
-          borderRadius: borderRadius['2xl'],
+          borderRadius: borderRadius['3xl'],
           borderWidth: 1.5,
-          borderColor: focused ? colors.accent.primary : colors.border.subtle,
-          paddingHorizontal: spacing.lg,
+          borderColor: focused ? colors.accent.primary : colors.border.default,
+          paddingHorizontal: spacing.xl,
           height: 58,
           ...shadows.sm,
         }}
@@ -126,11 +126,11 @@ function PillInput({
           ref={inputRef}
           style={{
             flex: 1,
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: '500',
             color: colors.text.primary,
             paddingTop: 8,
-            marginLeft: icon ? 10 : 0,
+            marginLeft: icon ? 12 : 0,
           }}
           value={value}
           onChangeText={onChangeText}
@@ -181,7 +181,7 @@ function ChipSelector({
   colors: any;
 }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
       {options.map((o) => {
         const sel = selected === o;
         return (
@@ -189,20 +189,17 @@ function ChipSelector({
             key={o}
             onPress={() => onSelect(o)}
             style={{
-              paddingHorizontal: 16,
+              paddingHorizontal: 24,
               paddingVertical: 10,
-              borderRadius: borderRadius['2xl'],
-              backgroundColor: sel ? colors.accent.primary : colors.bg.secondary,
-              borderWidth: 1,
-              borderColor: sel ? colors.accent.primary : colors.border.subtle,
-              ...shadows.sm,
+              borderRadius: 28,
+              backgroundColor: sel ? colors.accent.primary : colors.bg.tertiary,
             }}
           >
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: '600',
-                color: sel ? colors.text.inverse : colors.text.primary,
+                color: sel ? '#FFF' : colors.text.secondary,
               }}
             >
               {o}
@@ -226,7 +223,7 @@ function MultiChipSelector({
   colors: any;
 }) {
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
       {options.map((o) => {
         const sel = selected.includes(o);
         return (
@@ -234,20 +231,17 @@ function MultiChipSelector({
             key={o}
             onPress={() => onToggle(o)}
             style={{
-              paddingHorizontal: 16,
+              paddingHorizontal: 24,
               paddingVertical: 10,
-              borderRadius: borderRadius['2xl'],
-              backgroundColor: sel ? colors.accent.primary : colors.bg.secondary,
-              borderWidth: 1,
-              borderColor: sel ? colors.accent.primary : colors.border.subtle,
-              ...shadows.sm,
+              borderRadius: 28,
+              backgroundColor: sel ? colors.accent.primary : colors.bg.tertiary,
             }}
           >
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: '600',
-                color: sel ? colors.text.inverse : colors.text.primary,
+                color: sel ? '#FFF' : colors.text.secondary,
               }}
             >
               {o}
@@ -278,10 +272,10 @@ function Stepper({
         justifyContent: 'center',
         backgroundColor: colors.bg.secondary,
         borderRadius: borderRadius['2xl'],
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: colors.border.subtle,
         paddingVertical: 8,
-        marginBottom: 16,
+        marginBottom: 20,
         ...shadows.sm,
       }}
     >
@@ -293,10 +287,10 @@ function Stepper({
       </TouchableOpacity>
       <Text
         style={{
-          fontSize: 24,
+          fontSize: 26,
           fontWeight: '700',
           color: colors.text.primary,
-          marginHorizontal: 24,
+          marginHorizontal: 28,
           minWidth: 40,
           textAlign: 'center',
         }}
@@ -314,7 +308,7 @@ function Stepper({
 }
 
 function SectionDivider({ colors }: { colors: any }) {
-  return <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 20 }} />;
+  return <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 24 }} />;
 }
 
 function SectionTitle({
@@ -327,7 +321,7 @@ function SectionTitle({
   colors: any;
 }) {
   return (
-    <View style={{ marginBottom: 12 }}>
+    <View style={{ marginBottom: 14 }}>
       <Text
         style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.2 }}
       >
@@ -336,7 +330,7 @@ function SectionTitle({
       {subtitle ? (
         <Text
           style={{
-            fontSize: 13,
+            fontSize: 16,
             fontWeight: '500',
             color: colors.text.tertiary,
             marginTop: 2,
@@ -484,11 +478,11 @@ export function OnboardingScreen({ route, onComplete }: any) {
             style={{
               width: 40,
               height: 40,
-              borderRadius: 20,
+              borderRadius: 28,
               backgroundColor: colors.bg.secondary,
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 1,
+              borderWidth: 1.5,
               borderColor: colors.border.subtle,
             }}
           >
@@ -503,7 +497,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
             style={{
               width: 8,
               height: 8,
-              borderRadius: 4,
+              borderRadius: 8,
               backgroundColor: step === 'lens' ? colors.accent.primary : colors.border.subtle,
             }}
           />
@@ -511,13 +505,13 @@ export function OnboardingScreen({ route, onComplete }: any) {
             style={{
               width: 8,
               height: 8,
-              borderRadius: 4,
+              borderRadius: 8,
               backgroundColor: step === 'setup' ? colors.accent.primary : colors.border.subtle,
             }}
           />
         </View>
         <TouchableOpacity onPress={handleSkip} style={{ paddingVertical: 8 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
         </TouchableOpacity>
       </View>
 
@@ -539,12 +533,12 @@ export function OnboardingScreen({ route, onComplete }: any) {
             </Text>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '500',
                 color: colors.text.tertiary,
                 textAlign: 'center',
-                marginBottom: 32,
-                lineHeight: 22,
+                marginBottom: 36,
+                lineHeight: 24,
               }}
             >
               Choose your lens so we can tailor the experience for you
@@ -557,7 +551,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                     key={opt.id}
                     activeOpacity={0.8}
                     onPress={() => setSelectedLens(opt.id)}
-                    style={{ width: '50%', paddingHorizontal: 6, marginBottom: 12 }}
+                    style={{ width: '50%', paddingHorizontal: 6, marginBottom: 14 }}
                   >
                     <View
                       style={{
@@ -565,7 +559,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                           ? colors.accent.primary + '12'
                           : colors.bg.secondary,
                         borderRadius: borderRadius['2xl'],
-                        padding: 16,
+                        padding: 22,
                         borderWidth: 2,
                         borderColor: isSelected ? colors.accent.primary : colors.border.subtle,
                         minHeight: 170,
@@ -577,14 +571,14 @@ export function OnboardingScreen({ route, onComplete }: any) {
                       <View
                         style={{
                           width: 48,
-                          height: 48,
-                          borderRadius: 24,
+                          height: 52,
+                          borderRadius: 32,
                           backgroundColor: isSelected
                             ? colors.accent.primary + '20'
                             : colors.border.subtle + '60',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          marginBottom: 12,
+                          marginBottom: 14,
                         }}
                       >
                         <AntDesign
@@ -595,7 +589,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                       </View>
                       <Text
                         style={{
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: '700',
                           color: colors.text.primary,
                           textAlign: 'center',
@@ -623,7 +617,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                             right: 8,
                             width: 22,
                             height: 22,
-                            borderRadius: 11,
+                            borderRadius: 24,
                             backgroundColor: colors.accent.primary,
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -649,7 +643,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                  paddingVertical: 16,
+                  paddingVertical: 20,
                   borderRadius: borderRadius['2xl'],
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -657,7 +651,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   ...shadows.md,
                 }}
               >
-                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                <Text style={{ color: colors.text.inverse, fontSize: 19, fontWeight: '700' }}>
                   Continue
                 </Text>
               </LinearGradient>
@@ -674,7 +668,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <ScrollView
-              contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 32 }}
+              contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 36 }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
@@ -691,11 +685,11 @@ export function OnboardingScreen({ route, onComplete }: any) {
               </Text>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: '500',
                   color: colors.text.tertiary,
-                  marginBottom: 24,
-                  lineHeight: 22,
+                  marginBottom: 28,
+                  lineHeight: 24,
                 }}
               >
                 {selectedOption?.title}
@@ -726,7 +720,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 8,
@@ -754,7 +748,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 8,
@@ -785,7 +779,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 8,
@@ -813,7 +807,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 8,
@@ -837,7 +831,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: '600',
                       color: colors.text.secondary,
                       marginBottom: 8,
@@ -869,7 +863,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                  paddingVertical: 16,
+                  paddingVertical: 20,
                   borderRadius: borderRadius['2xl'],
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -877,7 +871,7 @@ export function OnboardingScreen({ route, onComplete }: any) {
                   ...shadows.md,
                 }}
               >
-                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                <Text style={{ color: colors.text.inverse, fontSize: 19, fontWeight: '700' }}>
                   {submitting ? 'Setting up...' : 'Get Started'}
                 </Text>
               </LinearGradient>

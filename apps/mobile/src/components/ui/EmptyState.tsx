@@ -69,7 +69,7 @@ export function EmptyState({
       {message && (
         <Text
           style={{
-            fontSize: 13,
+            fontSize: 16,
             textAlign: 'center',
             lineHeight: 18,
             color: colors.text.tertiary,
@@ -93,7 +93,7 @@ export function EmptyState({
           accessibilityRole="button"
           accessibilityLabel={actionLabel}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>{actionLabel}</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>{actionLabel}</Text>
         </TouchableOpacity>
       )}
     </View>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Image,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -16,15 +17,154 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { useLastLensLogo } from '../../hooks/useLastLensLogo';
 import { AuthButton } from '../../components/ui/AuthButton';
+import { useTheme } from '../../theme';
+import { palette } from '../../theme/colors';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
+
+function createStyles(colors: typeof palette.dark, isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    viewingArea: {
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 32,
+    },
+    backButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+      alignSelf: 'flex-start',
+    },
+    logoContainer: {
+      width: 64,
+      height: 64,
+      borderRadius: 20,
+      backgroundColor: colors.bg.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+    },
+    logo: {
+      width: 36,
+      height: 36,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.text.primary,
+      textAlign: 'center',
+      letterSpacing: -0.5,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 16,
+      fontWeight: '400',
+      color: colors.text.secondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    emailHighlight: {
+      color: colors.text.link,
+      fontWeight: '500',
+    },
+    interactionArea: {
+      flex: 1,
+      paddingHorizontal: 24,
+    },
+    formCard: {
+      backgroundColor: colors.bg.secondary,
+      borderRadius: 24,
+      padding: 24,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: colors.status.errorLight,
+      marginBottom: 20,
+      width: '100%',
+    },
+    errorText: {
+      fontSize: 14,
+      fontWeight: '400',
+      color: colors.status.error,
+      flex: 1,
+    },
+    otpContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 10,
+      marginBottom: 28,
+    },
+    otpBox: {
+      width: 48,
+      height: 56,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderColor: colors.border.default,
+      backgroundColor: colors.bg.tertiary,
+      textAlign: 'center',
+      fontSize: 24,
+      fontWeight: '600',
+      color: colors.text.primary,
+    },
+    otpBoxFilled: {
+      borderColor: colors.accent.primary,
+      backgroundColor: colors.bg.highlight,
+    },
+    otpBoxError: {
+      borderColor: colors.status.error,
+    },
+    resendContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingTop: 20,
+    },
+    resendLabel: {
+      color: colors.text.secondary,
+      fontSize: 15,
+      fontWeight: '400',
+    },
+    resendLink: {
+      color: colors.text.link,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    resendLinkDisabled: {
+      color: colors.text.tertiary,
+    },
+    timerText: {
+      textAlign: 'center',
+      color: colors.text.tertiary,
+      fontSize: 14,
+      marginTop: 8,
+      paddingBottom: 8,
+    },
+  });
+}
 
 export function PremiumOtpScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const logoSource = useLastLensLogo();
+  const { colors, isDark } = useTheme();
   const email = route.params?.email || '';
   const purpose = route.params?.purpose || 'login';
 
@@ -37,6 +177,8 @@ export function PremiumOtpScreen() {
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
@@ -182,199 +324,92 @@ export function PremiumOtpScreen() {
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              paddingTop: insets.top + 48,
-              paddingBottom: insets.bottom + 24,
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 20 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View
+            style={{
               opacity: fadeAnim,
               transform: [{ translateX: shakeAnim }],
-            },
-          ]}
-        >
-          {/* Back */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <AntDesign name="arrowleft" size={20} color="#000000" />
-          </TouchableOpacity>
-
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          </View>
-
-          {/* Header */}
-          <Text style={styles.title}>Verification code</Text>
-          <Text style={styles.subtitle}>
-            Enter the 6-digit code sent to <Text style={styles.emailHighlight}>{email}</Text>
-          </Text>
-
-          {/* Error */}
-          {error ? (
-            <View style={styles.errorBox}>
-              <AntDesign name="exclamationcircle" size={14} color="#FF3B30" />
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-
-          {/* OTP Boxes */}
-          <View style={styles.otpContainer}>
-            {otp.map((digit, i) => {
-              const isFilled = digit.length > 0;
-              return (
-                <TextInput
-                  key={i}
-                  ref={(r) => {
-                    inputRefs.current[i] = r;
-                  }}
-                  style={[
-                    styles.otpBox,
-                    isFilled && styles.otpBoxFilled,
-                    error ? styles.otpBoxError : null,
-                  ]}
-                  value={digit}
-                  onChangeText={(t) => handleChange(t, i)}
-                  onKeyPress={(e) => handleKeyPress(e, i)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  selectTextOnFocus
-                />
-              );
-            })}
-          </View>
-
-          {/* Verify Button */}
-          <AuthButton title="Verify & Continue" onPress={() => handleVerify()} loading={loading} />
-
-          {/* Resend */}
-          <View style={styles.resendContainer}>
-            <Text style={styles.resendLabel}>Didn't receive it? </Text>
-            <TouchableOpacity onPress={handleResend} disabled={!canResend}>
-              <Text style={[styles.resendLink, !canResend && styles.resendLinkDisabled]}>
-                Send Again
+            }}
+          >
+            <View style={[styles.viewingArea, { paddingTop: insets.top + 40 }]}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+              <View style={styles.logoContainer}>
+                <Image source={logoSource} style={styles.logo} resizeMode="contain" />
+              </View>
+              <Text style={styles.title}>Verification code</Text>
+              <Text style={styles.subtitle}>
+                Enter the 6-digit code sent to{' '}
+                <Text style={styles.emailHighlight}>{email}</Text>
               </Text>
-            </TouchableOpacity>
-          </View>
-          {!canResend && (
-            <Text style={styles.timerText}>Resend in 00:{timer < 10 ? `0${timer}` : timer}</Text>
-          )}
-        </Animated.View>
+            </View>
+
+            <View style={styles.interactionArea}>
+              <View style={styles.formCard}>
+                {error ? (
+                  <View style={styles.errorBox}>
+                    <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.otpContainer}>
+                  {otp.map((digit, i) => {
+                    const isFilled = digit.length > 0;
+                    return (
+                      <TextInput
+                        key={i}
+                        ref={(r) => {
+                          inputRefs.current[i] = r;
+                        }}
+                        style={[
+                          styles.otpBox,
+                          isFilled && styles.otpBoxFilled,
+                          error ? styles.otpBoxError : null,
+                        ]}
+                        value={digit}
+                        onChangeText={(t) => handleChange(t, i)}
+                        onKeyPress={(e) => handleKeyPress(e, i)}
+                        keyboardType="number-pad"
+                        maxLength={1}
+                        selectTextOnFocus
+                      />
+                    );
+                  })}
+                </View>
+
+                <AuthButton
+                  title="Verify & Continue"
+                  onPress={() => handleVerify()}
+                  loading={loading}
+                />
+              </View>
+
+              <View style={styles.resendContainer}>
+                <Text style={styles.resendLabel}>Didn't receive it? </Text>
+                <TouchableOpacity onPress={handleResend} disabled={!canResend}>
+                  <Text style={[styles.resendLink, !canResend && styles.resendLinkDisabled]}>
+                    Send Again
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {!canResend && (
+                <Text style={styles.timerText}>
+                  Resend in 00:{timer < 10 ? `0${timer}` : timer}
+                </Text>
+              )}
+            </View>
+          </Animated.View>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  logo: {
-    width: 36,
-    height: 36,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#8E8E93',
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-  emailHighlight: {
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#FF3B3010',
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#FF3B30',
-    flex: 1,
-  },
-  otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 28,
-  },
-  otpBox: {
-    width: 48,
-    height: 56,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#F2F2F7',
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  otpBoxFilled: {
-    borderColor: '#007AFF',
-    backgroundColor: '#007AFF10',
-  },
-  otpBoxError: {
-    borderColor: '#FF3B30',
-  },
-  resendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  resendLabel: {
-    color: '#8E8E93',
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  resendLink: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  resendLinkDisabled: {
-    color: '#C7C7CC',
-  },
-  timerText: {
-    textAlign: 'center',
-    color: '#8E8E93',
-    fontSize: 13,
-    marginTop: 8,
-  },
-});

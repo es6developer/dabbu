@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,51 +20,56 @@ interface QuickActionSheetProps {
   onClose: () => void;
 }
 
-const CARD_WIDTH = Math.min(SCREEN_W - 64, 340);
-
 export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheetProps) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [rendered, setRendered] = useState(visible);
 
-  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const dropAnims = useRef<Animated.Value[]>([]);
+  if (dropAnims.current.length !== actions.length) {
+    dropAnims.current = actions.map(() => new Animated.Value(0));
+  }
 
   useEffect(() => {
     let mounted = true;
     if (visible) {
       setRendered(true);
-      scaleAnim.setValue(0.85);
-      const anim = Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, friction: 7, tension: 60, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
-      ]);
-      animRef.current = anim;
-      anim.start();
+      dropAnims.current.forEach((a) => a.setValue(0));
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+      Animated.stagger(
+        50,
+        dropAnims.current.map((a) =>
+          Animated.spring(a, {
+            toValue: 1,
+            friction: 9,
+            tension: 100,
+            useNativeDriver: true,
+          }),
+        ),
+      ).start();
     } else {
-      const anim = Animated.parallel([
-        Animated.timing(scaleAnim, { toValue: 0.85, duration: 120, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }),
-      ]);
-      animRef.current = anim;
-      anim.start(() => {
-        if (mounted) {
-          setRendered(false);
-        }
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+        ...dropAnims.current.map((a) =>
+          Animated.timing(a, { toValue: 0, duration: 100, useNativeDriver: true }),
+        ),
+      ]).start(() => {
+        if (mounted) setRendered(false);
       });
     }
-    return () => {
-      mounted = false;
-      animRef.current?.stop();
-    };
+    return () => { mounted = false; };
   }, [visible]);
 
-  if (!rendered) {
-    return null;
-  }
+  const handlePress = useCallback((action: ActionItem) => {
+    onClose();
+    action.onPress();
+  }, [onClose]);
 
-  const tabBarHeight = Platform.OS === 'ios' ? 82 + insets.bottom : 64;
+  if (!rendered) return null;
+
+  const tabBarHeight = Platform.OS === 'ios' ? 68 + insets.bottom : 56;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -72,40 +77,41 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
 
-      <Animated.View
-        style={[
-          s.card,
-          {
-            backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-            transform: [{ scale: scaleAnim }],
-            shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.12)',
-            bottom: tabBarHeight + 12,
-          },
-        ]}
-      >
-        <View style={s.grid}>
-          {actions.map((action, i) => (
-            <TouchableOpacity
+      <View style={[s.dropArea, { bottom: tabBarHeight + 8 }]} pointerEvents="box-none">
+        {actions.map((action, i) => {
+          const translateY = dropAnims.current[i]?.interpolate({
+            inputRange: [0, 1],
+            outputRange: [40, 0],
+          });
+          const opacity = dropAnims.current[i]?.interpolate({
+            inputRange: [0, 0.3, 1],
+            outputRange: [0, 0, 1],
+          });
+          return (
+            <Animated.View
               key={i}
-              style={s.item}
-              activeOpacity={0.7}
-              onPress={() => {
-                onClose();
-                action.onPress();
-              }}
+              style={[
+                s.dropItem,
+                {
+                  opacity,
+                  transform: [{ translateY: translateY ?? 40 }],
+                },
+              ]}
             >
-              <Animated.View
-                style={[s.bubble, { backgroundColor: (action.color || '#636366') + '18' }]}
+              <TouchableOpacity
+                style={[s.pill, { backgroundColor: action.color || colors.accent.primary }]}
+                activeOpacity={0.85}
+                onPress={() => handlePress(action)}
               >
-                <AntDesign name={action.icon as any} size={24} color={action.color || '#1C1C1E'} />
-              </Animated.View>
-              <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
-                {action.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </Animated.View>
+                <AntDesign name={action.icon as any} size={20} color="#FFF" />
+                <Text style={[s.pillLabel, { color: '#FFF' }]}>
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -113,49 +119,36 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
 const s = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  card: {
+  dropArea: {
     position: 'absolute',
-    left: 32,
-    right: 32,
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  dropItem: {
+    width: '100%',
     alignItems: 'center',
   },
-  grid: {
+  pill: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  item: {
     alignItems: 'center',
-    gap: 6,
-    width: (CARD_WIDTH - 44) / 3,
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 28,
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  bubble: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
+  pillLabel: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

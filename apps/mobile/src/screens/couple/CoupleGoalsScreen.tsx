@@ -88,17 +88,17 @@ function SkeletonGoalCard() {
   const { colors } = useTheme();
   return (
     <View style={[styles.goalCard, { backgroundColor: colors.bg.card }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Skeleton width={40} height={40} borderRadius={12} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <Skeleton width={40} height={40} borderRadius={20} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Skeleton width="70%" height={14} borderRadius={6} />
-          <Skeleton width="50%" height={11} borderRadius={5} />
+          <Skeleton width="70%" height={14} borderRadius={12} />
+          <Skeleton width="50%" height={11} borderRadius={10} />
         </View>
       </View>
-      <Skeleton width="100%" height={6} borderRadius={3} />
+      <Skeleton width="100%" height={6} borderRadius={6} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Skeleton width="35%" height={20} borderRadius={6} />
-        <Skeleton width={50} height={18} borderRadius={9} />
+        <Skeleton width="35%" height={20} borderRadius={12} />
+        <Skeleton width={50} height={18} borderRadius={16} />
       </View>
     </View>
   );
@@ -106,18 +106,18 @@ function SkeletonGoalCard() {
 
 function GoalsSkeleton() {
   return (
-    <View style={{ paddingHorizontal: spacing.xl, gap: 12, paddingTop: spacing.lg }}>
-      <Skeleton width={120} height={16} borderRadius={8} />
+    <View style={{ paddingHorizontal: spacing.xl, gap: 14, paddingTop: spacing.lg }}>
+      <Skeleton width={120} height={16} borderRadius={16} />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 10 }}
       >
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} width={CARD_WIDTH} height={100} borderRadius={20} />
+          <Skeleton key={i} width={CARD_WIDTH} height={100} borderRadius={28} />
         ))}
       </ScrollView>
-      <Skeleton width={100} height={16} borderRadius={8} style={{ marginTop: 8 }} />
+      <Skeleton width={100} height={16} borderRadius={16} style={{ marginTop: 8 }} />
       <SkeletonGoalCard />
       <SkeletonGoalCard />
     </View>
@@ -294,7 +294,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                     {activeGoals.length}
                   </Text>
                 </View>
-                <View style={{ paddingHorizontal: spacing.xl, gap: 12 }}>
+                <View style={{ paddingHorizontal: spacing.xl, gap: 14 }}>
                   {activeGoals.map((goal: any, idx: number) => {
                     const target = Number(goal.targetAmount || goal.target || 0);
                     const saved = Number(goal.savedAmount || goal.currentAmount || 0);
@@ -432,7 +432,7 @@ export function CoupleGoalsScreen({ navigation: nav }: any) {
                             { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                           ]}
                         >
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                             <View
                               style={[
                                 styles.completedIcon,
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   headerBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -511,15 +511,15 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
   },
   sectionCount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   seeAll: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -528,23 +528,23 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     padding: spacing.lg,
     borderRadius: borderRadius['3xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     gap: 10,
   },
   templateIcon: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   templateLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   templateCta: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
   },
@@ -558,23 +558,23 @@ const styles = StyleSheet.create({
   goalCard: {
     borderRadius: borderRadius['3xl'],
     padding: spacing.lg,
-    borderWidth: 1,
-    gap: 12,
+    borderWidth: 1.5,
+    gap: 14,
   },
   goalTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   goalIcon: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   goalName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   goalTarget: {
@@ -595,13 +595,13 @@ const styles = StyleSheet.create({
   /* Progress Bar */
   progressTrack: {
     height: 6,
-    borderRadius: 3,
+    borderRadius: 6,
     backgroundColor: 'rgba(128,128,128,0.12)',
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 6,
   },
 
   /* Stats */
@@ -611,11 +611,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   goalSaved: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
   },
   goalSavedLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     marginTop: 1,
   },
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   forecastText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
   },
 
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
   },
   aiText: {
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 16,
     flex: 1,
   },
@@ -650,18 +650,18 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   completedCountText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   completedCard: {
     borderRadius: borderRadius['2xl'],
     padding: spacing.lg,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   completedIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -683,29 +683,29 @@ const styles = StyleSheet.create({
     marginBottom: spacing['2xl'],
   },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   emptyDesc: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 24,
     marginBottom: spacing['2xl'],
   },
   emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
     borderRadius: borderRadius['2xl'],
   },
   emptyCtaText: {
     color: '#FFF',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
 

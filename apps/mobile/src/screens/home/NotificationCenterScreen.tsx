@@ -11,9 +11,10 @@ import {
   navigateToNotification,
 } from '../../services/notification-routing';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme, typography as typographyStyles } from '../../theme';
+import { useTheme, spacing, borderRadius as radii } from '../../theme';
 
 import { alertService } from '../../components/ui';
+
 interface NotificationItem {
   id: string;
   title: string;
@@ -30,7 +31,7 @@ interface NotificationItem {
 
 type FilterKey = 'all' | 'overdue' | 'upcoming' | 'paid' | 'bill' | 'reload1';
 
-const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+const FILTER_ITEMS: { key: FilterKey; label: string; icon: string }[] = [
   { key: 'all', label: 'All', icon: 'bells' },
   { key: 'overdue', label: 'Overdue', icon: 'exclamationcircle' },
   { key: 'upcoming', label: 'Upcoming', icon: 'calendar' },
@@ -39,8 +40,47 @@ const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
   { key: 'reload1', label: 'Subscriptions', icon: 'retweet' },
 ];
 
+const NOTIFICATION_ICONS: Record<string, string> = {
+  bill: 'filetext1',
+  bill_reminder: 'filetext1',
+  emi_reminder: 'filetext1',
+  emi_overdue: 'filetext1',
+  subscription_reminder: 'retweet',
+  subscription_renewal: 'retweet',
+  payment: 'creditcard',
+  payment_sent: 'creditcard',
+  settlement_request: 'swap',
+  settlement_complete: 'swap',
+  goal: 'flag',
+  goal_created: 'flag',
+  goal_milestone: 'flag',
+  goal_complete: 'flag',
+  goal_behind: 'flag',
+  group_expense: 'addusergroup',
+  group_invite: 'team',
+  member_added: 'team',
+  ai_insight: 'bulb1',
+  daily_digest: 'bulb1',
+  weekly_digest: 'bulb1',
+  monthly_report: 'barschart',
+  task: 'check',
+};
+
+const NOTIFICATION_COLORS: Record<string, string> = {
+  bill: '#F43F5E',
+  emi: '#F43F5E',
+  subscription: '#8B5CF6',
+  payment: '#10B981',
+  settlement: '#22C55E',
+  goal: '#F59E0B',
+  group: '#3B82F6',
+  insight: '#7C3AED',
+  system: '#6B7280',
+  reminder: '#F97316',
+};
+
 export function NotificationCenterScreen() {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -158,6 +198,16 @@ export function NotificationCenterScreen() {
     });
   };
 
+  const getIcon = (item: NotificationItem): string => {
+    const key = item.category || item.type || '';
+    return NOTIFICATION_ICONS[key] || 'bells';
+  };
+
+  const getAccentColor = (item: NotificationItem): string => {
+    const key = item.category || item.type || '';
+    return NOTIFICATION_COLORS[key] || colors.text.tertiary;
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
@@ -171,193 +221,148 @@ export function NotificationCenterScreen() {
     }
   };
 
-  const getCategoryIcon = (category?: string, type?: string): string => {
-    const key = category || type || '';
-    switch (key) {
-      case 'bill':
-      case 'bill_reminder':
-      case 'emi_reminder':
-      case 'emi_overdue':
-        return 'filetext1';
-      case 'reload1':
-      case 'subscription_reminder':
-      case 'subscription_renewal':
-        return 'retweet';
-      case 'payment':
-      case 'payment_sent':
-      case 'settlement_request':
-      case 'settlement_complete':
-        return 'creditcard';
-      case 'task':
-        return 'check';
-      case 'goal':
-      case 'goal_created':
-      case 'goal_milestone':
-      case 'goal_complete':
-      case 'goal_behind':
-        return 'Trophy';
-      case 'group_expense':
-      case 'group_invite':
-      case 'member_added':
-        return 'team';
-      case 'ai_insight':
-      case 'daily_digest':
-      case 'weekly_digest':
-      case 'monthly_report':
-        return 'bulb1';
-      default:
-        return 'bells';
-    }
-  };
-
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const mins = Math.floor(diffMs / 60000);
-    if (mins < 1) {
-      return 'Just now';
-    }
-    if (mins < 60) {
-      return `${mins}m ago`;
-    }
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) {
-      return `${hours}h ago`;
-    }
+    if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
-    if (days < 7) {
-      return `${days}d ago`;
-    }
+    if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
   const renderItem = ({ item }: { item: NotificationItem }) => {
     const isUnread = !item.isRead;
     const priorityColor = getPriorityColor(item.priority);
+    const icon = getIcon(item);
+    const accent = getAccentColor(item);
 
     return (
       <TouchableOpacity
         style={[
-          styles.card,
+          s.card,
           {
-            backgroundColor: isUnread ? colors.accent.primary + '08' : colors.bg.card,
-            borderColor: colors.border.subtle,
-            borderLeftColor: isUnread ? priorityColor : 'transparent',
+            backgroundColor: isUnread ? colors.accent.primary + '06' : colors.bg.card,
+            borderColor: isUnread ? accent + '25' : colors.border.subtle,
           },
         ]}
         onPress={() => handlePress(item)}
         onLongPress={() => handleDelete(item.id)}
         activeOpacity={0.7}
       >
-        <View style={styles.cardHeader}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: item.overdue ? '#FF3B3020' : priorityColor + '20' },
-            ]}
-          >
-            <AntDesign
-              name={getCategoryIcon(item.category, item.type) as any}
-              size={18}
-              color={item.overdue ? '#FF3B30' : priorityColor}
-            />
+        <View style={s.cardRow}>
+          <View style={[s.iconWrap, { backgroundColor: accent + '16' }]}>
+            <AntDesign name={icon as any} size={20} color={accent} />
           </View>
-          <View style={styles.cardContent}>
-            <View style={styles.titleRow}>
-              <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>
+
+          <View style={s.cardContent}>
+            <View style={s.titleRow}>
+              <Text style={[s.title, { color: colors.text.primary }]} numberOfLines={1}>
                 {item.title}
               </Text>
               {item.overdue && (
-                <View style={[styles.badge, { backgroundColor: '#FF3B3020' }]}>
-                  <Text style={[styles.badgeText, { color: '#FF3B30' }]}>OVERDUE</Text>
+                <View style={[s.overdueBadge, { backgroundColor: '#FF3B3018' }]}>
+                  <Text style={[s.overdueText, { color: '#FF3B30' }]}>OVERDUE</Text>
                 </View>
               )}
+              {isUnread && (
+                <View style={[s.unreadBadge, { backgroundColor: accent }]} />
+              )}
             </View>
-            <Text style={[styles.message, { color: colors.text.secondary }]} numberOfLines={2}>
+
+            <Text style={[s.message, { color: colors.text.secondary }]} numberOfLines={2}>
               {item.message}
             </Text>
-            <View style={styles.metaRow}>
-              <Text style={[styles.time, { color: colors.text.tertiary }]}>
+
+            <View style={s.metaRow}>
+              <Text style={[s.time, { color: colors.text.tertiary }]}>
                 {formatTime(item.createdAt)}
               </Text>
               {item.priority === 'urgent' && (
-                <View style={[styles.priorityDot, { backgroundColor: '#FF3B30' }]} />
+                <View style={[s.priorityDot, { backgroundColor: '#FF3B30' }]} />
               )}
             </View>
+
+            <View style={s.actionsRow}>
+              <TouchableOpacity
+                style={[s.primaryAction, { backgroundColor: accent }]}
+                onPress={() => handlePress(item)}
+              >
+                <Text style={s.primaryActionText}>
+                  {getNotificationActionLabel({
+                    ...(item.data || {}),
+                    type: item.type,
+                    actionUrl: item.actionUrl,
+                  })}
+                </Text>
+                <AntDesign name="arrowright" size={13} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              {!item.isRead && (
+                <TouchableOpacity
+                  style={[s.secondaryAction, { backgroundColor: colors.bg.tertiary }]}
+                  onPress={() => handleMarkRead(item.id)}
+                >
+                  <AntDesign name="check" size={13} color={colors.status.success} />
+                  <Text style={[s.actionLabel, { color: colors.status.success }]}>Read</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[s.secondaryAction, { backgroundColor: colors.bg.tertiary }]}
+                onPress={() => handleDelete(item.id)}
+              >
+                <AntDesign name="delete" size={13} color={colors.status.error} />
+              </TouchableOpacity>
+            </View>
           </View>
-          {isUnread && <View style={[styles.unreadDot, { backgroundColor: priorityColor }]} />}
-        </View>
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.primaryActionBtn, { backgroundColor: colors.accent.primary }]}
-            onPress={() => handlePress(item)}
-          >
-            <Text style={styles.primaryActionText}>
-              {getNotificationActionLabel({
-                ...(item.data || {}),
-                type: item.type,
-                actionUrl: item.actionUrl,
-              })}
-            </Text>
-            <AntDesign name="arrowright" size={14} color="#FFFFFF" />
-          </TouchableOpacity>
-          {!item.isRead && (
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
-              onPress={() => handleMarkRead(item.id)}
-            >
-              <AntDesign name="check" size={14} color={colors.status.success} />
-              <Text style={[styles.actionText, { color: colors.status.success }]}>Read</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
-            onPress={() => handleDelete(item.id)}
-          >
-            <AntDesign name="delete" size={14} color={colors.status.error} />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <AntDesign name="left" size={24} color={colors.text.primary} />
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      {/* Header */}
+      <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <AntDesign name="left" size={22} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
-        <View style={styles.headerRight}>
+        <Text style={[s.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
+        <View style={s.headerRight}>
           {unreadCount > 0 && (
             <>
-              <TouchableOpacity onPress={handleMarkAllRead} style={styles.markAllBtn}>
-                <Text style={[styles.markAllText, { color: colors.accent.primary }]}>
+              <TouchableOpacity onPress={handleMarkAllRead} style={s.markAllBtn}>
+                <Text style={[s.markAllText, { color: colors.accent.primary }]}>
                   Mark all read
                 </Text>
               </TouchableOpacity>
-              <View style={[styles.countBadge, { backgroundColor: colors.accent.primary }]}>
-                <Text style={styles.countText}>{unreadCount}</Text>
+              <View style={[s.countBadge, { backgroundColor: colors.accent.primary }]}>
+                <Text style={s.countText}>{unreadCount}</Text>
               </View>
             </>
           )}
         </View>
       </View>
 
-      <View style={styles.filterRow}>
+      {/* Filter chips row */}
+      <View style={s.filterRow}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={FILTERS}
+          data={FILTER_ITEMS}
           keyExtractor={(f) => f.key}
-          contentContainerStyle={styles.filterList}
+          contentContainerStyle={s.filterList}
           renderItem={({ item: f }) => {
             const isActive = activeFilter === f.key;
             return (
               <TouchableOpacity
                 style={[
-                  styles.filterChip,
+                  s.filterChip,
                   { backgroundColor: isActive ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setActiveFilter(f.key)}
@@ -369,7 +374,7 @@ export function NotificationCenterScreen() {
                 />
                 <Text
                   style={[
-                    styles.filterLabel,
+                    s.filterLabel,
                     { color: isActive ? '#FFFFFF' : colors.text.secondary },
                   ]}
                 >
@@ -378,22 +383,21 @@ export function NotificationCenterScreen() {
               </TouchableOpacity>
             );
           }}
-          windowSize={10}
-          maxToRenderPerBatch={10}
         />
       </View>
 
+      {/* List */}
       {loading ? (
         <ListSkeleton count={5} />
       ) : notifications.length === 0 ? (
-        <View style={styles.center}>
-          <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-            <AntDesign name="bells" size={40} color={colors.text.tertiary} />
+        <View style={s.emptyState}>
+          <View style={[s.emptyIconBg, { backgroundColor: colors.bg.tertiary }]}>
+            <AntDesign name="bells" size={36} color={colors.text.tertiary} />
           </View>
-          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+          <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
             {activeFilter === 'all' ? 'No notifications yet' : 'No matching notifications'}
           </Text>
-          <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>
+          <Text style={[s.emptySub, { color: colors.text.tertiary }]}>
             {activeFilter === 'all' ? "You're all caught up!" : 'Try a different filter'}
           </Text>
         </View>
@@ -402,7 +406,7 @@ export function NotificationCenterScreen() {
           data={notifications}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={s.list}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -410,101 +414,121 @@ export function NotificationCenterScreen() {
               tintColor={colors.accent.primary}
             />
           }
-          ListFooterComponent={<View style={{ height: insets.bottom + 100 }} />}
-          windowSize={10}
-          maxToRenderPerBatch={10}
+          ListFooterComponent={<View style={{ height: insets.bottom + 120 }} />}
         />
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const s = StyleSheet.create({
+  root: { flex: 1 },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
   },
-  headerTitle: { ...typographyStyles.screenTitle, flex: 1, marginLeft: 12 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    flex: 1,
+    marginLeft: 10,
+  },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   markAllBtn: { paddingHorizontal: 4 },
-  markAllText: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
+  markAllText: { fontSize: 16, fontWeight: '600' },
   countBadge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
   },
-  countText: { color: '#FFFFFF', ...typographyStyles.caption1, fontFamily: 'Inter-Bold' },
-  filterRow: { marginBottom: 8 },
-  filterList: { paddingHorizontal: 20, gap: 8 },
+  countText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+
+  filterRow: { marginBottom: 12 },
+  filterList: { paddingHorizontal: 24, gap: 10 },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 28,
+    gap: 7,
   },
-  filterLabel: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon: {
+  filterLabel: { fontSize: 16, fontWeight: '600' },
+
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 44 },
+  emptyIconBg: {
     width: 80,
     height: 80,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
-  emptyTitle: { ...typographyStyles.sectionHeader, marginBottom: 8 },
-  emptySub: { ...typographyStyles.body, textAlign: 'center' },
-  list: { paddingHorizontal: 16, paddingTop: 8 },
-  card: { borderRadius: 12, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
-  iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+  emptyTitle: { fontSize: 19, fontWeight: '600', marginBottom: 6 },
+  emptySub: { fontSize: 16, fontWeight: '400', textAlign: 'center' },
+
+  list: { paddingHorizontal: 24, paddingTop: 4 },
+
+  card: {
+    borderRadius: 28,
+    borderWidth: 1.5,
+    marginBottom: 12,
+    padding: 18,
+  },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  iconWrap: {
+    width: 44,
+    height: 52,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   cardContent: { flex: 1 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { ...typographyStyles.calloutBold, flex: 1 },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100 },
-  badgeText: { fontFamily: 'Inter-Bold', fontSize: 9, letterSpacing: 0.3 },
-  message: { ...typographyStyles.subhead, lineHeight: 18, marginTop: 4 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  time: { ...typographyStyles.caption1 },
-  priorityDot: { width: 6, height: 6, borderRadius: 3 },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8, marginTop: 4 },
-  actionsRow: { flexDirection: 'row', gap: 8, marginTop: 12, marginLeft: 50 },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 4,
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  title: { fontSize: 16, fontWeight: '600', flex: 1 },
+  overdueBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 100,
   },
-  actionText: { ...typographyStyles.caption1, fontFamily: 'Inter-SemiBold' },
-  primaryActionBtn: {
+  overdueText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.3 },
+  unreadBadge: { width: 8, height: 8, borderRadius: 4 },
+  message: { fontSize: 16, fontWeight: '400', lineHeight: 18 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
+  time: { fontSize: 12, fontWeight: '400' },
+  priorityDot: { width: 6, height: 6, borderRadius: 3 },
+
+  actionsRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
+  primaryAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    borderRadius: 28,
     gap: 6,
   },
-  primaryActionText: {
-    color: '#FFFFFF',
-    ...typographyStyles.caption1,
-    fontFamily: 'Inter-SemiBold',
+  primaryActionText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
+  secondaryAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 28,
+    gap: 5,
   },
+  actionLabel: { fontSize: 12, fontWeight: '500' },
 });

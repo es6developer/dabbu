@@ -1,16 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, StatusBar, ImageSourcePropType } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, {
-  Circle,
-  Defs,
-  LinearGradient,
-  RadialGradient,
-  Stop,
-  Rect,
-  Path,
-  G,
-} from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Stop, Rect, Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,51 +15,20 @@ import { useTheme } from '../../theme';
 import { getLensLogo } from '../../utils/lensLogo';
 
 const { width: W, height: H } = Dimensions.get('window');
-const LOGO_SZ = 80;
-const LOGO_IMG = 52;
-
-function Particle({ size, left, top, color, delay }: { size: number; left: number; top: number; color: string; delay: number }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
-
-  useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(0.6, { duration: 1000 }));
-    translateY.value = withDelay(delay, withTiming(-20, { duration: 1000 }));
-  }, []);
-
-  const animStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          left,
-          top,
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-        },
-        animStyle,
-      ]}
-    />
-  );
-}
+const LOGO_SZ = 112;
+const LOGO_IMG = 64;
+const BRAND = 'dabbu';
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const { colors, isDark } = useTheme();
   const fadeOpacity = useSharedValue(1);
-  const contentOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(0.5);
+  const logoScale = useSharedValue(0.6);
   const logoOpacity = useSharedValue(0);
   const brandOpacity = useSharedValue(0);
-  const brandTranslate = useSharedValue(16);
+  const brandTranslate = useSharedValue(20);
   const taglineOpacity = useSharedValue(0);
-  const taglineTranslate = useSharedValue(10);
+  const taglineTranslate = useSharedValue(14);
+  const footerOpacity = useSharedValue(0);
   const [logoSrc, setLogoSrc] = useState<ImageSourcePropType>(getLensLogo(null));
 
   useEffect(() => {
@@ -86,91 +47,140 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
 
   useEffect(() => {
     const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
+    const spring = Easing.bezier(0.34, 1.56, 0.64, 1);
 
-    contentOpacity.value = withTiming(1, { duration: 600, easing: easeOut });
+    logoOpacity.value = withTiming(1, { duration: 400, easing: easeOut });
+    logoScale.value = withTiming(1, { duration: 900, easing: spring });
 
-    logoOpacity.value = withDelay(200, withTiming(1, { duration: 500, easing: easeOut }));
-    logoScale.value = withDelay(200, withTiming(1, { duration: 800, easing: Easing.bezier(0.34, 1.56, 0.64, 1) }));
+    brandOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: easeOut }));
+    brandTranslate.value = withDelay(400, withTiming(0, { duration: 600, easing: easeOut }));
 
-    brandOpacity.value = withDelay(600, withTiming(1, { duration: 600, easing: easeOut }));
-    brandTranslate.value = withDelay(600, withTiming(0, { duration: 700, easing: easeOut }));
+    taglineOpacity.value = withDelay(700, withTiming(1, { duration: 500, easing: easeOut }));
+    taglineTranslate.value = withDelay(700, withTiming(0, { duration: 500, easing: easeOut }));
 
-    taglineOpacity.value = withDelay(900, withTiming(1, { duration: 500, easing: easeOut }));
-    taglineTranslate.value = withDelay(900, withTiming(0, { duration: 500, easing: easeOut }));
+    footerOpacity.value = withDelay(1000, withTiming(1, { duration: 400, easing: easeOut }));
 
     setTimeout(() => {
-      fadeOpacity.value = withTiming(0, { duration: 400, easing: easeOut }, (finished) => {
+      fadeOpacity.value = withTiming(0, { duration: 350, easing: easeOut }, (finished) => {
         if (finished && onFinish) runOnJS(onFinish)();
       });
-    }, 3000);
+    }, 2800);
   }, []);
 
   const containerAnim = useAnimatedStyle(() => ({ opacity: fadeOpacity.value }));
   const logoAnim = useAnimatedStyle(() => ({ opacity: logoOpacity.value, transform: [{ scale: logoScale.value }] }));
   const brandAnim = useAnimatedStyle(() => ({ opacity: brandOpacity.value, transform: [{ translateY: brandTranslate.value }] }));
   const taglineAnim = useAnimatedStyle(() => ({ opacity: taglineOpacity.value, transform: [{ translateY: taglineTranslate.value }] }));
+  const footerAnim = useAnimatedStyle(() => ({ opacity: footerOpacity.value }));
 
-  const svgMain = colors.accent.primary;
-  const svgMid = colors.accent.secondary;
-  const svgLight = colors.accent.tertiary;
-  const svgOpacity = isDark ? 0.12 : 0.08;
+  const accentColor = colors.accent.primary;
 
   return (
     <Animated.View style={[s.container, { backgroundColor: colors.bg.primary }, containerAnim]}>
       <StatusBar hidden translucent />
 
-      <Animated.View style={[s.logoWrap, logoAnim]}>
-        <View style={[s.logoInner, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-          <Image source={logoSrc} style={s.logoImg} resizeMode="contain" />
-        </View>
-      </Animated.View>
-
-      {/* Decorative finance illustration */}
-      <View style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, opacity: svgOpacity }} pointerEvents="none">
-        <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-          <G opacity={0.5}>
-            <Circle cx={W * 0.2} cy={H * 0.7} r={60} fill={svgLight} opacity={0.3} />
-            <Circle cx={W * 0.25} cy={H * 0.65} r={50} fill={svgMain} opacity={0.2} />
-            <Circle cx={W * 0.8} cy={H * 0.75} r={70} fill={svgMid} opacity={0.25} />
-            <Circle cx={W * 0.85} cy={H * 0.68} r={45} fill={svgLight} opacity={0.15} />
-            <Path d={`M${W * 0.1} ${H * 0.85} Q${W * 0.3} ${H * 0.7} ${W * 0.5} ${H * 0.75} T${W * 0.9} ${H * 0.6}`} stroke={svgLight} strokeWidth={2} fill="none" strokeLinecap="round" />
-            <Path d={`M${W * 0.1} ${H * 0.88} Q${W * 0.35} ${H * 0.78} ${W * 0.5} ${H * 0.82} T${W * 0.9} ${H * 0.68}`} stroke={svgMain} strokeWidth={1.5} fill="none" strokeLinecap="round" />
-            <Circle cx={W * 0.5} cy={H * 0.73} r={3} fill={svgMain} />
-            <Circle cx={W * 0.75} cy={H * 0.65} r={2.5} fill={svgLight} />
-            <Circle cx={W * 0.35} cy={H * 0.76} r={2} fill={svgMid} />
-          </G>
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Svg width={W} height={H}>
+          <Defs>
+            <RadialGradient id="glow" cx="50%" cy="35%" r="60%">
+              <Stop offset="0%" stopColor={accentColor} stopOpacity={isDark ? 0.18 : 0.10} />
+              <Stop offset="60%" stopColor={accentColor} stopOpacity={isDark ? 0.06 : 0.03} />
+              <Stop offset="100%" stopColor={accentColor} stopOpacity={0} />
+            </RadialGradient>
+            <RadialGradient id="glow2" cx="50%" cy="50%" r="50%">
+              <Stop offset="0%" stopColor={accentColor} stopOpacity={isDark ? 0.12 : 0.06} />
+              <Stop offset="100%" stopColor={accentColor} stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect x={0} y={0} width={W} height={H * 0.5} fill="url(#glow)" />
+          <Circle cx={W / 2} cy={H * 0.38} r={W * 0.4} fill="url(#glow2)" />
         </Svg>
       </View>
 
-      <Particle size={4} left={W * 0.15} top={H * 0.2} color={svgMid} delay={100} />
-      <Particle size={3} left={W * 0.82} top={H * 0.15} color={svgLight} delay={300} />
-      <Particle size={5} left={W * 0.75} top={H * 0.7} color={svgMain} delay={500} />
-      <Particle size={3} left={W * 0.1} top={H * 0.78} color={svgLight} delay={200} />
-      <Particle size={4} left={W * 0.5} top={H * 0.08} color={svgMid} delay={400} />
-      <Particle size={3} left={W * 0.88} top={H * 0.5} color={svgLight} delay={600} />
+      <View style={s.center}>
+        <Animated.View style={[s.logoWrap, logoAnim]}>
+          <LinearGradient
+            colors={[colors.bg.secondary, colors.bg.card]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[s.logoInner, { borderColor: colors.border.subtle }]}
+          >
+            <Image source={logoSrc} style={s.logoImg} resizeMode="contain" />
+          </LinearGradient>
+        </Animated.View>
 
-      <Animated.View style={[s.taglineWrap, taglineAnim]}>
-        <Text style={[s.tagline, { color: colors.text.tertiary }]}>
-          Every Milestone. Every Rupee. Together.
-        </Text>
-      </Animated.View>
+        <Animated.View style={[s.brandWrap, brandAnim]}>
+          <Text style={[s.brandName, { color: colors.text.primary }]}>{BRAND}</Text>
+        </Animated.View>
 
-      <View style={s.footer}>
-        <Text style={[s.footerText, { color: colors.text.tertiary }]}>Collaborative Finance</Text>
+        <Animated.View style={[s.taglineWrap, taglineAnim]}>
+          <Text style={[s.tagline, { color: colors.text.tertiary }]}>
+            Every Milestone. Every Rupee. Together.
+          </Text>
+        </Animated.View>
       </View>
+
+      <Animated.View style={[s.footer, footerAnim]}>
+        <Text style={[s.footerText, { color: colors.text.tertiary }]}>Collaborative Finance</Text>
+      </Animated.View>
     </Animated.View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  logoWrap: { marginBottom: 24 },
-  logoInner: { width: LOGO_SZ, height: LOGO_SZ, borderRadius: LOGO_SZ / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  logoImg: { width: LOGO_IMG, height: LOGO_IMG },
-  brandWrap: { marginBottom: 8 },
-  brandName: { fontSize: 28, fontWeight: '700', letterSpacing: 1 },
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoWrap: {
+    marginBottom: 32,
+  },
+  logoInner: {
+    width: LOGO_SZ,
+    height: LOGO_SZ,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  logoImg: {
+    width: LOGO_IMG,
+    height: LOGO_IMG,
+  },
+  brandWrap: {
+    marginBottom: 12,
+  },
+  brandName: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: 2,
+  },
   taglineWrap: {},
-  tagline: { fontSize: 13, fontWeight: '400', letterSpacing: 0.3 },
-  footer: { position: 'absolute', bottom: 60 },
-  footerText: { fontSize: 11, fontWeight: '500', letterSpacing: 1, opacity: 0.5, textTransform: 'uppercase' },
+  tagline: {
+    fontSize: 16,
+    fontWeight: '400',
+    letterSpacing: 0.4,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 2,
+    opacity: 0.45,
+    textTransform: 'uppercase',
+  },
 });

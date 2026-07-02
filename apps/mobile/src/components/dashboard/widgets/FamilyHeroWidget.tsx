@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   subtitle: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   avatarStack: { flexDirection: 'row', alignItems: 'center' },
-  miniAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
+  miniAvatar: { width: 30, height: 30, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' },
   miniAvatarText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   since: { fontSize: 12, fontWeight: '500' },
   days: { fontSize: 13, fontWeight: '700' },

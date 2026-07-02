@@ -122,14 +122,14 @@ export function CoupleBudgetsScreen() {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            padding: 20,
+            padding: 24,
           }}
         >
           <View
             style={{
               paddingTop: insets.top + 12,
               paddingBottom: 28,
-              paddingHorizontal: 20,
+              paddingHorizontal: 24,
               position: 'absolute',
               top: 0,
               left: 0,
@@ -146,7 +146,7 @@ export function CoupleBudgetsScreen() {
             </View>
           </View>
           <AntDesign name="wallet" size={48} color={colors.accent.primary} />
-          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 14 }]}>
             No Budget Data
           </Text>
           <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>
@@ -161,7 +161,7 @@ export function CoupleBudgetsScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -177,7 +177,7 @@ export function CoupleBudgetsScreen() {
           style={{
             paddingTop: insets.top + 12,
             paddingBottom: 28,
-            paddingHorizontal: 20,
+            paddingHorizontal: 24,
             backgroundColor: colors.accent.primary,
           }}
         >
@@ -190,7 +190,7 @@ export function CoupleBudgetsScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
+        <View style={{ paddingHorizontal: 24, paddingTop: 14, gap: 14 }}>
           <View style={[styles.heroCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>{monthLabel()}</Text>
@@ -204,7 +204,7 @@ export function CoupleBudgetsScreen() {
             <View
               style={[
                 styles.progressBar,
-                { backgroundColor: 'rgba(93,56,181,0.12)', marginTop: 12 },
+                { backgroundColor: 'rgba(93,56,181,0.12)', marginTop: 14 },
               ]}
             >
               <View
@@ -356,19 +356,19 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 34,
     height: 34,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
-  aiCard: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1 },
+  headerTitle: { color: '#FFF', fontSize: 19, fontWeight: '700' },
+  aiCard: { borderRadius: 30, padding: 22, marginBottom: 14, borderWidth: 1.5 },
   aiCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  aiCardTitle: { fontSize: 14, fontWeight: '700' },
-  aiCardBody: { fontSize: 13, lineHeight: 20, marginBottom: 4 },
+  aiCardTitle: { fontSize: 16, fontWeight: '700' },
+  aiCardBody: { fontSize: 16, lineHeight: 24, marginBottom: 4 },
 
   heroCard: {
-    borderRadius: 24,
+    borderRadius: 32,
     padding: 22,
     marginTop: 0,
     shadowColor: '#000',
@@ -390,10 +390,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(93,56,181,0.12)',
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 20,
     gap: 4,
   },
-  heroBadgeText: { fontSize: 11, fontWeight: '700', color: '#F97316' },
+  heroBadgeText: { fontSize: 12, fontWeight: '700', color: '#F97316' },
   heroAmount: {
     fontSize: 32,
     fontWeight: '800',
@@ -401,8 +401,8 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     marginTop: 4,
   },
-  heroSub: { fontSize: 13, fontWeight: '500', color: '#F97316', opacity: 0.7, marginTop: 2 },
-  heroStats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
+  heroSub: { fontSize: 16, fontWeight: '500', color: '#F97316', opacity: 0.7, marginTop: 2 },
+  heroStats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
   heroStatItem: { alignItems: 'center' },
   heroStatLabel: {
     fontSize: 10,
@@ -411,16 +411,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     opacity: 0.6,
   },
-  heroStatValue: { fontSize: 15, fontWeight: '800', color: '#F97316', marginTop: 2 },
+  heroStatValue: { fontSize: 16, fontWeight: '800', color: '#F97316', marginTop: 2 },
 
   progressBar: { height: BAR_H, borderRadius: BAR_H / 2, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: BAR_H / 2 },
 
-  sectionLabel: { fontSize: 18, fontWeight: '800', marginTop: 8, marginBottom: -4 },
+  sectionLabel: { fontSize: 19, fontWeight: '800', marginTop: 8, marginBottom: -4 },
 
   catCard: {
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 28,
+    padding: 22,
     gap: 8,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -432,14 +432,14 @@ const styles = StyleSheet.create({
   catIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  catName: { fontSize: 14, fontWeight: '700' },
-  catBudgetText: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  catName: { fontSize: 16, fontWeight: '700' },
+  catBudgetText: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   catBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  catSpent: { fontSize: 11, fontWeight: '500' },
+  catSpent: { fontSize: 12, fontWeight: '500' },
   catPctText: { fontSize: 12, fontWeight: '700' },
 
   badge: {
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 12,
   },
   badgeText: { fontSize: 10, fontWeight: '700' },
 
@@ -457,8 +457,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 20,
+    borderRadius: 30,
     marginTop: 8,
     shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 4 },
@@ -466,11 +466,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  adjustBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  adjustBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 14 },
-  emptyCard: { borderRadius: 20, padding: 32, alignItems: 'center', gap: 8 },
-  emptyCardText: { fontSize: 15, fontWeight: '600' },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16 },
+  emptyCard: { borderRadius: 28, padding: 36, alignItems: 'center', gap: 8 },
+  emptyCardText: { fontSize: 16, fontWeight: '600' },
   emptyCardSub: { fontSize: 12, fontWeight: '500' },
 });

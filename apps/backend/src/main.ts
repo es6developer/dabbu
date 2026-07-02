@@ -6,7 +6,6 @@ import { json, urlencoded } from 'express';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
-import { SentryFilter } from './common/sentry/sentry.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { PerformanceInterceptor } from './common/interceptors/performance.interceptor';
@@ -16,6 +15,17 @@ import { SecurityConfig } from './common/security/security.config';
 import { initTelemetry } from './config/telemetry';
 
 initTelemetry(process.env.SERVICE_NAME || 'dabbu-api');
+
+process.on('unhandledRejection', (reason: unknown) => {
+  const logger = new Logger('UnhandledRejection');
+  logger.fatal('UNHANDLED PROMISE REJECTION', reason instanceof Error ? reason.stack : String(reason));
+});
+
+process.on('uncaughtException', (error: Error) => {
+  const logger = new Logger('UncaughtException');
+  logger.fatal('UNCAUGHT EXCEPTION', error.stack);
+  setTimeout(() => process.exit(1), 1000);
+});
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
@@ -121,7 +131,7 @@ async function bootstrap(): Promise<void> {
   );
 
   // ─── Global Filters ─────────────────────────────────
-  app.useGlobalFilters(new AllExceptionsFilter(), new SentryFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // ─── Global Interceptors ────────────────────────────
   app.useGlobalInterceptors(

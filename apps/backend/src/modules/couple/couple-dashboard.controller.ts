@@ -3,6 +3,12 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CoupleDashboardService } from './couple-dashboard.service';
+import { CreateCoupleGoalDto } from './dto/create-couple-goal.dto';
+import { UpdateCoupleGoalDto } from './dto/update-couple-goal.dto';
+import { AddTimelineEventDto } from './dto/add-timeline-event.dto';
+import { UpdateTimelineEventDto } from './dto/update-timeline-event.dto';
+import { UpdateCoupleProfileDto } from './dto/update-couple-profile.dto';
+import { UpdatePlannerDto } from './dto/update-planner.dto';
 
 @ApiTags('Couple Dashboard')
 @ApiBearerAuth()
@@ -79,14 +85,14 @@ export class CoupleDashboardController {
 
   @Post('goals')
   @ApiOperation({ summary: 'Create couple goal' })
-  async createGoal(@CurrentUser('id') userId: string, @Body() body: any) {
-    return this.service.createGoal(userId, body);
+  async createGoal(@CurrentUser('id') userId: string, @Body() dto: CreateCoupleGoalDto) {
+    return this.service.createGoal(userId, dto);
   }
 
   @Put('goals/:id')
   @ApiOperation({ summary: 'Update couple goal' })
-  async updateGoal(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: any) {
-    return this.service.updateGoal(userId, id, body);
+  async updateGoal(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() dto: UpdateCoupleGoalDto) {
+    return this.service.updateGoal(userId, id, dto);
   }
 
   @Delete('goals/:id')
@@ -97,16 +103,16 @@ export class CoupleDashboardController {
 
   @Post('timeline')
   @ApiOperation({ summary: 'Add timeline event' })
-  async addTimelineEvent(@CurrentUser('id') userId: string, @Body() body: any) {
-    return this.service.addTimelineEvent(userId, body);
+  async addTimelineEvent(@CurrentUser('id') userId: string, @Body() dto: AddTimelineEventDto) {
+    return this.service.addTimelineEvent(userId, dto);
   }
 
   @Put('timeline/:id')
   @ApiOperation({ summary: 'Update timeline event' })
   async updateTimelineEvent(
-    @CurrentUser('id') userId: string, @Param('id') eventId: string, @Body() body: any,
+    @CurrentUser('id') userId: string, @Param('id') eventId: string, @Body() dto: UpdateTimelineEventDto,
   ) {
-    return this.service.updateTimelineEvent(userId, eventId, body);
+    return this.service.updateTimelineEvent(userId, eventId, dto);
   }
 
   @Delete('timeline/:id')
@@ -123,14 +129,14 @@ export class CoupleDashboardController {
 
   @Put('profile')
   @ApiOperation({ summary: 'Update couple profile' })
-  async updateProfile(@CurrentUser('id') userId: string, @Body() body: any) {
-    return this.service.updateProfile(userId, body);
+  async updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateCoupleProfileDto) {
+    return this.service.updateProfile(userId, dto);
   }
 
   @Put('planners/:id')
   @ApiOperation({ summary: 'Update planner' })
-  async updatePlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: any) {
-    return this.service.updatePlanner(userId, id, body);
+  async updatePlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() dto: UpdatePlannerDto) {
+    return this.service.updatePlanner(userId, id, dto);
   }
 
   @Delete('planners/:id')

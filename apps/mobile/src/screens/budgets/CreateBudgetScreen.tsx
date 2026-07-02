@@ -5,7 +5,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { useToast } from '../../store/ToastContext';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
@@ -16,6 +15,8 @@ const PERIODS = [
   { label: 'Yearly', value: 'yearly' },
   { label: 'Custom', value: 'custom' },
 ];
+
+const PADDING = 20;
 
 export function CreateBudgetScreen() {
   const navigation = useNavigation<any>();
@@ -70,11 +71,14 @@ export function CreateBudgetScreen() {
         colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        locations={[0, 0.2]}
+        locations={[0, 0.15]}
         style={{ flex: 1 }}
       >
-        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+        <View style={[s.header, { paddingTop: insets.top + 6 }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,15,0.05)' }]}
+          >
             <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>Create Budget</Text>
@@ -82,8 +86,9 @@ export function CreateBudgetScreen() {
         </View>
 
         <ScrollView
-          contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, paddingBottom: 60 }}
+          contentContainerStyle={{ paddingHorizontal: PADDING, paddingTop: 14, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {error ? (
             <View style={[s.errorBox, { backgroundColor: colors.status.error + '10' }]}>
@@ -93,10 +98,10 @@ export function CreateBudgetScreen() {
           ) : null}
 
           {/* Name */}
-          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+          <View style={s.card}>
             <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Budget Name</Text>
             <TextInput
-              style={[s.input, { color: colors.text.primary }]}
+              style={[s.input, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.card }]}
               value={name}
               onChangeText={setName}
               placeholder="e.g. Monthly Groceries"
@@ -130,16 +135,14 @@ export function CreateBudgetScreen() {
                     style={[
                       s.periodChip,
                       {
-                        backgroundColor: period === p.value ? colors.accent.primary + '15' : colors.bg.card,
-                        borderColor: period === p.value ? colors.accent.primary : colors.border.subtle,
-                        borderWidth: 1,
+                        backgroundColor: period === p.value ? colors.accent.primary : colors.bg.tertiary,
                       },
                     ]}
                   >
                     <Text
                       style={[
                         s.periodChipText,
-                        { color: period === p.value ? colors.accent.primary : colors.text.secondary },
+                        { color: period === p.value ? '#FFF' : colors.text.secondary },
                       ]}
                     >
                       {p.label}
@@ -151,9 +154,9 @@ export function CreateBudgetScreen() {
           </View>
 
           {/* Category */}
-          <View>
-            <Text style={[s.fieldLabel, { color: colors.text.tertiary, marginBottom: 10 }]}>Category (optional)</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          <View style={s.card}>
+            <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Category (optional)</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {EXPENSE_CATEGORIES.map((cat) => {
                 const active = selectedCategory === cat.name;
                 return (
@@ -163,19 +166,17 @@ export function CreateBudgetScreen() {
                     style={[
                       s.chip,
                       {
-                        backgroundColor: active ? cat.color + '15' : colors.bg.card,
-                        borderColor: active ? cat.color : colors.border.subtle,
-                        borderWidth: 1,
+                        backgroundColor: active ? cat.color : colors.bg.tertiary,
                       },
                     ]}
                   >
                     <AntDesign
                       name={cat.icon as any}
-                      size={14}
-                      color={active ? cat.color : colors.text.tertiary}
+                      size={13}
+                      color={active ? '#FFF' : colors.text.tertiary}
                     />
                     <Text
-                      style={[s.chipText, { color: active ? cat.color : colors.text.secondary }]}
+                      style={[s.chipText, { color: active ? '#FFF' : colors.text.secondary }]}
                     >
                       {cat.name}
                     </Text>
@@ -186,10 +187,10 @@ export function CreateBudgetScreen() {
           </View>
 
           {/* Notes */}
-          <View style={[s.card, { backgroundColor: colors.bg.card, marginTop: spacing.md }]}>
+          <View style={s.card}>
             <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Notes (optional)</Text>
             <TextInput
-              style={[s.input, { color: colors.text.primary }]}
+              style={[s.input, s.textArea, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.card }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add notes..."
@@ -233,71 +234,72 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing['2xl'],
-    paddingBottom: spacing.sm,
+    paddingHorizontal: PADDING,
+    paddingBottom: 4,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: spacing.md,
+    padding: 14,
+    borderRadius: 28,
+    marginBottom: 16,
   },
-  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-  card: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.md },
+  errorText: { fontSize: 15, fontWeight: '600', flex: 1 },
+  card: { marginBottom: 16 },
   fieldLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
-  input: { fontSize: 15, fontWeight: '500', padding: 0 },
-  grid2: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  input: { fontSize: 16, fontWeight: '500', paddingVertical: 16, paddingHorizontal: 16, borderWidth: 1.5, borderRadius: 28 },
+  textArea: { minHeight: 100, paddingTop: 16, textAlignVertical: 'top' },
+  grid2: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   gridLeft: { flex: 1 },
   gridRight: { flex: 1 },
   amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
-  amountSign: { fontSize: 16, fontWeight: '700', marginRight: 4 },
-  amountInput: { flex: 1, fontSize: 15, fontWeight: '600', padding: 0 },
-  periodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  amountSign: { fontSize: 18, fontWeight: '700', marginRight: 6 },
+  amountInput: { flex: 1, fontSize: 16, fontWeight: '600', padding: 0 },
+  periodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   periodChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 28,
   },
-  periodChipText: { fontSize: 11, fontWeight: '600' },
+  periodChipText: { fontSize: 12, fontWeight: '600' },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 28,
   },
-  chipText: { fontSize: 11, fontWeight: '600' },
-  saveBtn: { borderRadius: borderRadius['2xl'], overflow: 'hidden', marginTop: spacing['2xl'] },
+  chipText: { fontSize: 12, fontWeight: '600' },
+  saveBtn: { borderRadius: 28, overflow: 'hidden', marginTop: 20 },
   saveGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
-  saveText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '800' },
 });

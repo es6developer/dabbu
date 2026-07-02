@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
   contribRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   contribName: { fontSize: 12, fontWeight: '600', width: 60 },
   barWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  barBg: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 4 },
+  barBg: { flex: 1, height: 8, borderRadius: 14, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 14 },
   contribAmt: { fontSize: 11, fontWeight: '600', width: 70, textAlign: 'right' },
   empty: { fontSize: 14, fontWeight: '500' },
 });

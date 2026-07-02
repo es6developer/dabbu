@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api, setAccessToken, setActiveSpaceId } from '../services/api';
+import { api, setActiveSpaceId } from '../services/api';
 
 export interface Space {
   id: string;
@@ -84,7 +84,6 @@ export const useSpaceStore = create<SpaceStore>()(
   spaceTasks: {},
 
   fetchSpaces: async (accessToken) => {
-    if (accessToken) setAccessToken(accessToken);
     set({ loading: true, error: null });
     try {
       const res = await api.get<any>('/spaces');
@@ -110,7 +109,6 @@ export const useSpaceStore = create<SpaceStore>()(
   fetchSpaceDetail: async (accessToken) => {
     const { activeSpaceId } = get();
     if (!activeSpaceId) return;
-    if (accessToken) setAccessToken(accessToken);
     set({ detailLoading: true });
     try {
       const res = await api.get<any>(`/spaces/${activeSpaceId}`);
@@ -123,7 +121,6 @@ export const useSpaceStore = create<SpaceStore>()(
   fetchDashboard: async (accessToken) => {
     const { activeSpaceId } = get();
     if (!activeSpaceId) return;
-    if (accessToken) setAccessToken(accessToken);
     set({ dashboardLoading: true });
     try {
       const res = await api.get<any>(`/spaces/${activeSpaceId}/dashboard`);
@@ -134,7 +131,6 @@ export const useSpaceStore = create<SpaceStore>()(
   },
 
   createSpace: async (accessToken, data) => {
-    if (accessToken) setAccessToken(accessToken);
     try {
       const res = await api.post<any>('/spaces', data);
       const space = res?.data ?? res;
@@ -150,13 +146,11 @@ export const useSpaceStore = create<SpaceStore>()(
   },
 
   addMember: async (accessToken, spaceId, userId, role) => {
-    if (accessToken) setAccessToken(accessToken);
     const res = await api.post<any>(`/spaces/${spaceId}/members`, { userId, role });
     return res?.data ?? res;
   },
 
   removeMember: async (accessToken, spaceId, memberId) => {
-    if (accessToken) setAccessToken(accessToken);
     await api.delete(`/spaces/${spaceId}/members/${memberId}`);
   },
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Modal, Animated, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import {
@@ -37,7 +37,6 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
     investment: { label: 'Investment', icon: 'caretup', color: '#10B981' },
     debt: { label: 'Debt Free', icon: 'wallet', color: '#F97316' },
   };
-  const { accessToken } = useAuth();
   const { showToast } = useToast();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -85,8 +84,9 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
     setError('');
     setCreating(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      const config = GOAL_CONFIGS[type];
       const payload: any = { name: name.trim(), targetAmount: targetNum, type };
+      if (config) { payload.icon = config.icon; payload.color = config.color; }
       if (deadline.trim()) payload.deadline = deadline.trim();
       if (monthly.trim()) payload.monthlyContribution = parseFloat(monthly);
       if (notes.trim()) payload.notes = notes.trim();
@@ -133,10 +133,10 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
 
               <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 28 }}
                 keyboardShouldPersistTaps="handled"
               >
-                <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text.primary, marginBottom: 24 }}>
+                <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary, marginBottom: 28 }}>
                   Create Goal
                 </Text>
 
@@ -148,7 +148,7 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
                   size="sm"
                 />
 
-                <View style={{ marginTop: 16, gap: 14 }}>
+                <View style={{ marginTop: 20, gap: 16 }}>
                   <FormField
                     label="Goal Name"
                     icon="star"
@@ -166,7 +166,7 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
                     error={error && (!targetStr || parseFloat(targetStr) <= 0) ? error : undefined}
                   />
 
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <View style={{ flexDirection: 'row', gap: 14 }}>
                     <View style={{ flex: 1 }}>
                       <FormDatePicker
                         label="Deadline"
@@ -196,7 +196,7 @@ export function CreateGoalModal({ visible, onClose, onCreated, prefill }: Create
                   />
                 </View>
 
-                <View style={{ marginTop: 24 }}>
+                <View style={{ marginTop: 28 }}>
                   <FormFooter
                     title="Create Goal"
                     icon="star"
@@ -233,6 +233,6 @@ const styles = StyleSheet.create({
   handleBar: {
     width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: 4,
   },
 });

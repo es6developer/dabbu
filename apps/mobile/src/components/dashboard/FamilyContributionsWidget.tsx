@@ -21,11 +21,11 @@ export function FamilyContributionsWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
-  totalContributed: { fontSize: 24, fontWeight: '700', color: '#F9FAFB', marginTop: 4, marginBottom: 16 },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
+  totalContributed: { fontSize: 24, fontWeight: '700', color: '#F9FAFB', marginTop: 4, marginBottom: 20 },
   contributionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#27272A' },
-  contributionDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#4ADE80' },
-  contributionAmount: { fontSize: 14, color: '#F9FAFB', fontWeight: '600', flex: 1 },
-  contributionStatus: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
+  contributionDot: { width: 6, height: 6, borderRadius: 12, backgroundColor: '#4ADE80' },
+  contributionAmount: { fontSize: 16, color: '#F9FAFB', fontWeight: '600', flex: 1 },
+  contributionStatus: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
 });

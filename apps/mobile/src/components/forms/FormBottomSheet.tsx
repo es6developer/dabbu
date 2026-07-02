@@ -143,21 +143,21 @@ const styles = StyleSheet.create({
   },
   handleRow: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   handleBar: {
     width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: 8,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    paddingHorizontal: 24,
-    marginBottom: 12,
+    paddingHorizontal: 28,
+    marginBottom: 14,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    paddingHorizontal: 28,
+    paddingBottom: 20,
   },
 });

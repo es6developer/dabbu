@@ -22,11 +22,11 @@ export function FamilyWealthWidget({ data }: { data: any }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
-  value: { fontSize: 32, fontWeight: '800', marginTop: 4, marginBottom: 16 },
-  memberList: { gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#27272A' },
+  card: { borderRadius: 32, padding: 24 },
+  label: { fontSize: 16, fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
+  value: { fontSize: 32, fontWeight: '800', marginTop: 4, marginBottom: 20 },
+  memberList: { gap: 8, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#27272A' },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  memberDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#A78BFA' },
-  memberValue: { fontSize: 14, color: '#F9FAFB', fontWeight: '600' },
+  memberDot: { width: 6, height: 6, borderRadius: 12, backgroundColor: '#A78BFA' },
+  memberValue: { fontSize: 16, color: '#F9FAFB', fontWeight: '600' },
 });

@@ -1,29 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platform, KeyboardAvoidingView, Animated, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius, shadows } from '../../theme/design';
+import { spacing } from '../../theme/design';
 import { CategoryPicker } from '../../components/ui/CategoryPicker';
 
-const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000', '2500', '5000', '10000'];
+const PADDING = 20;
 
-interface PrefillParams {
-  prefill?: {
-    groupId?: string;
-    groupName?: string;
-    returnTo?: string;
-    type?: 'wallet' | 'arrowdown';
-    amount?: number;
-    description?: string;
-    categoryName?: string;
-    date?: string;
-  };
-}
+const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000', '2500', '5000', '10000'];
 
 const SPLIT_OPTIONS = [
   { key: 'personal', icon: 'user', label: 'Personal' },
@@ -33,18 +22,27 @@ const SPLIT_OPTIONS = [
 
 export function CoupleTransactionFormScreen() {
   const navigation = useNavigation<any>();
-  const route = useRoute<RouteProp<{ CoupleTransactionForm: PrefillParams }, 'CoupleTransactionForm'>>();
-  const { accessToken, user } = useAuth();
+  const route = useRoute<any>();
+  const { user } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const prefill = route.params?.prefill;
   const { showToast } = useToast();
 
-  const [type, setType] = useState<'wallet' | 'arrowdown'>(prefill?.type || 'wallet');
-  const [amount, setAmount] = useState(prefill?.amount ? String(prefill.amount) : '');
-  const [description, setDescription] = useState(prefill?.description || '');
-  const [category, setCategory] = useState(prefill?.categoryName || '');
-  const [dateValue, setDateValue] = useState(prefill?.date || new Date().toISOString().split('T')[0]);
+  const p = route.params?.prefill ?? route.params;
+  const expenseId = p?.expenseId;
+  const rawType = p?.type || 'expense';
+  const groupId = p?.groupId;
+  const returnTo = p?.returnTo;
+  const prefilledAmount = p?.amount as string | undefined;
+  const prefilledDescription = p?.description as string | undefined;
+  const prefilledCategory = p?.category as string | undefined;
+  const prefilledDate = p?.date as string | undefined;
+
+  const [type, setType] = useState<'expense' | 'income'>(rawType === 'income' ? 'income' : 'expense');
+  const [amount, setAmount] = useState(prefilledAmount || '');
+  const [description, setDescription] = useState(prefilledDescription || '');
+  const [category, setCategory] = useState(prefilledCategory || '');
+  const [dateValue, setDateValue] = useState(prefilledDate || new Date().toISOString().split('T')[0]);
   const [splitType, setSplitType] = useState<'personal' | 'shared' | 'split'>('personal');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -52,13 +50,33 @@ export function CoupleTransactionFormScreen() {
   const [loadingGroup, setLoadingGroup] = useState(false);
 
   const inputRef = useRef<TextInput>(null);
-  const isExpense = type === 'wallet';
-  const resolvedGroupId = prefill?.groupId;
+  const isExpense = type === 'expense';
+  const [resolvedGroupId, setResolvedGroupId] = useState(groupId || '');
+  const [loadingEdit, setLoadingEdit] = useState(!!expenseId);
 
   useEffect(() => {
+    if (expenseId) {
+      (async () => {
+        try {
+          const res = await api.get<any>(`/shared-finance/expenses/${expenseId}`);
+          const e = res?.data ?? res;
+          if (e) {
+            setAmount(String(Number(e.amount)));
+            setType('expense');
+            setDescription(e.description || '');
+            setCategory(e.category || '');
+            setDateValue(e.date ? new Date(e.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+            setSplitType(e.splitType === 'split' ? 'split' : e.splitType === 'shared' ? 'shared' : 'personal');
+            if (e.expenseGroupId) setResolvedGroupId(e.expenseGroupId);
+            if (e.groupId) setResolvedGroupId(e.groupId);
+          }
+        } catch { /* silent */
+        } finally { setLoadingEdit(false); }
+      })();
+    }
     setTimeout(() => inputRef.current?.focus(), 400);
     loadCategories();
-    if (!prefill?.groupId) {
+    if (!groupId && !expenseId) {
       discoverGroupId();
     }
   }, []);
@@ -71,7 +89,7 @@ export function CoupleTransactionFormScreen() {
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
       if (coupleGroup?.id) {
-        (prefill as any).groupId = coupleGroup.id;
+        setResolvedGroupId(coupleGroup.id);
         setError('');
       } else {
         setError('No couple space found. Create one first.');
@@ -101,24 +119,31 @@ export function CoupleTransactionFormScreen() {
       setError('Enter a valid amount');
       return;
     }
-    const gId = prefill?.groupId || resolvedGroupId;
+    if (dateValue && new Date(dateValue) > new Date()) {
+      setError('Date cannot be in the future');
+      return;
+    }
+    const gId = groupId || resolvedGroupId;
     if (!gId) {
       setError('No couple group found');
       return;
     }
     setError('');
     setSaving(true);
-    if (accessToken) setAccessToken(accessToken);
     try {
-      if (isExpense) {
-        await api.post(`/shared-finance/groups/${gId}/expenses`, {
-          description: description.trim() || `${category || 'Shared'} expense`,
-          amount: Number(amount),
-          paidBy: user?.id || 'me',
-          category: category || undefined,
-          date: dateValue,
-          splitType: splitType === 'personal' ? undefined : splitType,
-        });
+      const expensePayload = {
+        description: description.trim() || `${category || 'Shared'} expense`,
+        amount: Number(amount),
+        paidBy: user?.id || '',
+        category: category || undefined,
+        date: dateValue,
+        splitType: splitType === 'personal' ? undefined : splitType,
+      };
+      if (expenseId) {
+        await api.patch(`/shared-finance/expenses/${expenseId}`, expensePayload);
+        showToast('Expense updated');
+      } else if (isExpense) {
+        await api.post(`/shared-finance/groups/${gId}/expenses`, expensePayload);
         showToast('Expense added');
       } else {
         await api.post(`/shared-finance/groups/${gId}/couple/incomes`, {
@@ -129,8 +154,8 @@ export function CoupleTransactionFormScreen() {
         });
         showToast('Income added');
       }
-      if (prefill?.returnTo) {
-        navigation.navigate(prefill.returnTo, { groupId: gId, groupName: prefill.groupName });
+      if (returnTo) {
+        navigation.navigate(returnTo, { groupId: gId });
       } else {
         navigation.goBack();
       }
@@ -144,30 +169,44 @@ export function CoupleTransactionFormScreen() {
   const accentColor = isExpense ? '#DC2626' : '#22C55E';
   const accentBg = isExpense ? `${accentColor}10` : `${accentColor}10`;
 
+  if (loadingEdit) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg.primary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <View style={[s.hero, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', paddingTop: insets.top + spacing.md }]}>
+          <View style={{ paddingTop: insets.top + 6, paddingHorizontal: PADDING }}>
             <View style={s.heroTop}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn} activeOpacity={0.7}>
-                <AntDesign name="close" size={24} color={colors.text.secondary}  />
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[s.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,15,0.05)' }]}
+                activeOpacity={0.7}
+              >
+                <AntDesign name="close" size={20} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[s.heroTitle, { color: colors.text.primary }]}>
                 {isExpense ? 'Add Expense' : 'Add Income'}
               </Text>
               <View style={{ width: 36 }} />
             </View>
+          </View>
 
+          <View style={{ paddingHorizontal: PADDING, paddingTop: 14 }}>
             <View style={[s.typeToggle, { backgroundColor: colors.bg.tertiary }]}>
-              {(['wallet', 'arrowdown'] as const).map((t) => {
+              {(['expense', 'income'] as const).map((t) => {
                 const active = type === t;
-                const tColor = t === 'wallet' ? '#DC2626' : '#22C55E';
+                const tColor = t === 'expense' ? colors.status.error : colors.status.success;
                 return (
                   <TouchableOpacity
                     key={t}
@@ -176,19 +215,19 @@ export function CoupleTransactionFormScreen() {
                     style={[s.typeBtn, active && { backgroundColor: tColor }]}
                   >
                     <AntDesign
-                      name={t === 'wallet' ? 'shoppingcart' : 'caretup'}
-                      size={16}
+                      name={t === 'expense' ? 'shoppingcart' : 'caretup'}
+                      size={14}
                       color={active ? '#FFF' : colors.text.secondary}
                     />
                     <Text style={[s.typeLabel, { color: active ? '#FFF' : colors.text.secondary }]}>
-                      {t === 'wallet' ? 'Expense' : 'Income'}
+                      {t === 'expense' ? 'Expense' : 'Income'}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            <View style={[s.amountCard, { backgroundColor: accentBg }]}>
+            <View style={[s.amountCard, { backgroundColor: accentBg, borderColor: colors.border.subtle }]}>
               <View style={s.amountRow}>
                 <Text style={[s.currency, { color: colors.text.primary }]}>₹</Text>
                 <TextInput
@@ -208,14 +247,14 @@ export function CoupleTransactionFormScreen() {
                 {isExpense ? 'How much did you spend?' : 'How much did you receive?'}
               </Text>
               {error ? (
-                <View style={s.errorBox}>
+                <View style={[s.errorBox, { backgroundColor: `${colors.status.error}10` }]}>
                   <AntDesign name="exclamationcircle" size={14} color={colors.status.error}  />
                   <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
                 </View>
               ) : null}
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingHorizontal: spacing['2xl'] }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
               {QUICK_AMOUNTS.map((val) => {
                 const selected = amount === val;
                 return (
@@ -223,7 +262,7 @@ export function CoupleTransactionFormScreen() {
                     key={val}
                     activeOpacity={0.7}
                     onPress={() => setAmount(val)}
-                    style={[s.quickChip, { backgroundColor: selected ? accentColor : colors.bg.card, borderColor: selected ? accentColor : colors.border.subtle }]}
+                    style={[s.quickChip, { backgroundColor: selected ? accentColor : colors.bg.tertiary }]}
                   >
                     <Text style={[s.quickText, { color: selected ? '#FFF' : colors.text.secondary }]}>
                       ₹{val}
@@ -234,10 +273,10 @@ export function CoupleTransactionFormScreen() {
             </ScrollView>
           </View>
 
-          <View style={{ paddingHorizontal: spacing['2xl'], paddingTop: spacing['2xl'], gap: spacing.xl }}>
+          <View style={{ paddingHorizontal: PADDING, paddingTop: 16, gap: 16 }}>
             <View style={s.fieldGroup}>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Description</Text>
-              <View style={[s.fieldInput, { backgroundColor: isDark ? '#1C1C1E' : '#F5F5F7', borderColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Description</Text>
+              <View style={[s.fieldInput, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                 <TextInput
                   style={[s.textInput, { color: colors.text.primary }]}
                   value={description}
@@ -249,13 +288,13 @@ export function CoupleTransactionFormScreen() {
             </View>
 
             <View style={s.fieldGroup}>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Category</Text>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
               <CategoryPicker value={category} onChange={setCategory} type={type} showLabel />
             </View>
 
             <View style={s.fieldGroup}>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Date</Text>
-              <View style={[s.fieldInput, { backgroundColor: isDark ? '#1C1C1E' : '#F5F5F7', borderColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
+              <View style={[s.fieldInput, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                 <TextInput
                   style={[s.textInput, { color: colors.text.primary }]}
                   value={dateValue}
@@ -267,8 +306,8 @@ export function CoupleTransactionFormScreen() {
             </View>
 
             <View style={s.fieldGroup}>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Split Type</Text>
-              <View style={[s.splitRow, { backgroundColor: isDark ? '#1C1C1E' : '#F5F5F7' }]}>
+              <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Split Type</Text>
+              <View style={[s.splitRow, { backgroundColor: colors.bg.tertiary }]}>
                 {SPLIT_OPTIONS.map((opt) => {
                   const active = splitType === opt.key;
                   return (
@@ -276,9 +315,9 @@ export function CoupleTransactionFormScreen() {
                       key={opt.key}
                       activeOpacity={0.8}
                       onPress={() => setSplitType(opt.key as typeof splitType)}
-                      style={[s.splitBtn, active && { backgroundColor: isExpense ? '#DC2626' : '#22C55E' }]}
+                      style={[s.splitBtn, active && { backgroundColor: accentColor }]}
                     >
-                      <AntDesign name={opt.icon as any} size={15} color={active ? '#FFF' : colors.text.tertiary} />
+                      <AntDesign name={opt.icon as any} size={14} color={active ? '#FFF' : colors.text.tertiary} />
                       <Text style={[s.splitLabel, { color: active ? '#FFF' : colors.text.secondary }]}>{opt.label}</Text>
                     </TouchableOpacity>
                   );
@@ -288,7 +327,7 @@ export function CoupleTransactionFormScreen() {
           </View>
         </ScrollView>
 
-        <View style={[s.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+        <View style={[s.footer, { paddingBottom: insets.bottom + 12, paddingHorizontal: PADDING }]}>
           <TouchableOpacity
             onPress={handleSave}
             disabled={saving}
@@ -296,7 +335,7 @@ export function CoupleTransactionFormScreen() {
             style={[s.saveBtn, { backgroundColor: accentColor, opacity: saving ? 0.6 : 1 }]}
           >
             {saving ? (
-              <Text style={s.saveText}>Saving...</Text>
+              <ActivityIndicator color="#FFF" />
             ) : (
               <>
                 <AntDesign name={isExpense ? 'shoppingcart' : 'caretup'} size={18} color="#FFF" />
@@ -312,38 +351,24 @@ export function CoupleTransactionFormScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  hero: {
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    paddingBottom: spacing.xl,
-  },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing['2xl'],
-    marginBottom: spacing.md,
   },
   closeBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(128,128,128,0.1)',
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroTitle: { fontSize: 17, fontWeight: '700' },
+  heroTitle: { flex: 1, fontSize: 18, fontWeight: '700', textAlign: 'center', marginRight: 36 },
   typeToggle: {
     flexDirection: 'row',
-    marginHorizontal: spacing['2xl'],
-    borderRadius: 14,
+    borderRadius: 28,
     padding: 3,
-    marginBottom: spacing.xl,
+    marginBottom: 16,
   },
   typeBtn: {
     flex: 1,
@@ -351,91 +376,84 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 26,
   },
-  typeLabel: { fontSize: 13, fontWeight: '700' },
+  typeLabel: { fontSize: 15, fontWeight: '700' },
   amountCard: {
-    marginHorizontal: spacing['2xl'],
-    borderRadius: 24,
-    padding: spacing.xl,
+    borderRadius: 28,
+    padding: 18,
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
+    gap: 6,
+    borderWidth: 1.5,
+    marginBottom: 10,
   },
-  amountRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 2 },
-  currency: { fontSize: 36, fontWeight: '800' },
+  amountRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 4 },
+  currency: { fontSize: 30, fontWeight: '800' },
   amountInput: {
-    fontSize: 48,
+    fontSize: 34,
     fontWeight: '800',
-    letterSpacing: -2,
+    letterSpacing: -1,
     textAlign: 'center',
-    minWidth: 120,
+    minWidth: 100,
     paddingVertical: 0,
-    height: 60,
-    lineHeight: 60,
+    height: 44,
+    lineHeight: 44,
   },
-  amountHint: { fontSize: 13, fontWeight: '500', marginTop: spacing.xs },
+  amountHint: { fontSize: 14, fontWeight: '500' },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 10,
-    backgroundColor: 'rgba(239,68,68,0.1)',
-    marginTop: spacing.sm,
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 28,
+    marginTop: 6,
     width: '100%',
   },
-  errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
+  errorText: { fontSize: 14, fontWeight: '600', flex: 1 },
   quickChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 28,
   },
-  quickText: { fontSize: 13, fontWeight: '700' },
-  fieldGroup: { gap: spacing.sm },
-  fieldLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 0.3, textTransform: 'uppercase' },
+  quickText: { fontSize: 14, fontWeight: '700' },
+  fieldGroup: { gap: 6 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
   fieldInput: {
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    height: 48,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    height: 50,
     justifyContent: 'center',
   },
   textInput: { fontSize: 16, fontWeight: '500', padding: 0 },
   splitRow: {
     flexDirection: 'row',
-    borderRadius: 14,
+    borderRadius: 28,
     padding: 3,
-    gap: 3,
+    gap: 4,
   },
   splitBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
-    paddingVertical: 11,
-    borderRadius: 12,
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 28,
   },
-  splitLabel: { fontSize: 12, fontWeight: '700' },
+  splitLabel: { fontSize: 15, fontWeight: '700' },
   footer: {
-    paddingHorizontal: spacing['2xl'],
-    paddingTop: spacing.md,
+    paddingTop: 12,
   },
   saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: 8,
     paddingVertical: 18,
-    borderRadius: 18,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 28,
   },
-  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '800' },
 });

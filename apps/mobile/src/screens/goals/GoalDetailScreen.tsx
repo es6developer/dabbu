@@ -243,7 +243,7 @@ function QuickContributeModal({
                   {
                     backgroundColor: colors.bg.tertiary,
                     borderColor: colors.border.subtle,
-                    marginTop: 20,
+                    marginTop: 24,
                   },
                 ]}
               >
@@ -281,7 +281,7 @@ function QuickContributeModal({
                 ))}
               </View>
               <TouchableOpacity
-                style={[s.primaryBtn, { backgroundColor: colors.accent.primary, borderRadius: 14 }]}
+                style={[s.primaryBtn, { backgroundColor: colors.accent.primary, borderRadius: 28 }]}
                 onPress={handleSubmit}
                 activeOpacity={0.8}
               >
@@ -291,7 +291,7 @@ function QuickContributeModal({
               <TouchableOpacity
                 style={[
                   s.secondaryBtn,
-                  { backgroundColor: colors.bg.tertiary, borderRadius: 14, marginTop: 10 },
+                  { backgroundColor: colors.bg.tertiary, borderRadius: 28, marginTop: 10 },
                 ]}
                 onPress={onClose}
                 activeOpacity={0.7}
@@ -310,10 +310,10 @@ function GoalDetailSkeleton() {
   const { colors } = useTheme();
   return (
     <BaseScreen noPadding>
-      <View style={{ paddingHorizontal: 16, gap: 16, paddingTop: 60 }}>
-        <Skeleton width={40} height={40} borderRadius={20} />
-        <Skeleton width="100%" height={260} borderRadius={24} />
-        <View style={{ alignItems: 'center', gap: 12, marginTop: 12 }}>
+      <View style={{ paddingHorizontal: 24, gap: 20, paddingTop: 60 }}>
+        <Skeleton width={40} height={40} borderRadius={28} />
+        <Skeleton width="100%" height={260} borderRadius={32} />
+        <View style={{ alignItems: 'center', gap: 14, marginTop: 14 }}>
           <Skeleton width={160} height={160} borderRadius={80} />
           <Skeleton width={120} height={16} />
           <Skeleton width={180} height={14} />
@@ -321,12 +321,12 @@ function GoalDetailSkeleton() {
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
           {[0, 1, 2].map((i) => (
             <View key={i} style={{ flex: 1, gap: 8 }}>
-              <Skeleton width="100%" height={80} borderRadius={16} />
+              <Skeleton width="100%" height={80} borderRadius={24} />
             </View>
           ))}
         </View>
-        <Skeleton width="100%" height={80} borderRadius={16} />
-        <Skeleton width="100%" height={140} borderRadius={16} />
+        <Skeleton width="100%" height={80} borderRadius={24} />
+        <Skeleton width="100%" height={140} borderRadius={24} />
       </View>
     </BaseScreen>
   );
@@ -374,6 +374,8 @@ export function GoalDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editTarget, setEditTarget] = useState('');
   const [editMonthly, setEditMonthly] = useState('');
+  const [editDeadline, setEditDeadline] = useState('');
+  const [editType, setEditType] = useState('custom');
   const [editNotes, setEditNotes] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
@@ -508,15 +510,15 @@ export function GoalDetailScreen() {
   if (!goal) {
     return (
       <BaseScreen noPadding>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
           <Text style={[typography.h2, { color: colors.text.secondary }]}>Goal not found</Text>
           <TouchableOpacity
             style={{
-              marginTop: 16,
-              paddingVertical: 12,
-              paddingHorizontal: 24,
+              marginTop: 20,
+              paddingVertical: 18,
+              paddingHorizontal: 28,
               backgroundColor: colors.accent.primary,
-              borderRadius: 12,
+              borderRadius: 28,
             }}
             onPress={() => navigation.goBack()}
           >
@@ -540,7 +542,7 @@ export function GoalDetailScreen() {
             {
               paddingTop: insets.top + sp.lg,
               backgroundColor: colors.accent.primary,
-              borderWidth: 1,
+              borderWidth: 1.5,
               borderColor: colors.border.default,
             },
           ]}
@@ -1040,7 +1042,7 @@ export function GoalDetailScreen() {
         ]}
       >
         <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: config.color, borderRadius: 14 }]}
+          style={[s.actionBtn, { backgroundColor: config.color, borderRadius: 28 }]}
           onPress={() => setShowContribute(true)}
           activeOpacity={0.8}
         >
@@ -1048,11 +1050,13 @@ export function GoalDetailScreen() {
           <Text style={[typography.button, { color: '#FFF' }]}>Add to Goal</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, borderRadius: 14 }]}
+          style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, borderRadius: 28 }]}
           onPress={() => {
             setEditName(goal.name || '');
             setEditTarget(String(Number(goal.targetAmount || goal.target || 0)));
             setEditMonthly(String(Number(goal.monthlyContribution || 0)));
+            setEditDeadline(goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : '');
+            setEditType(goal.type || 'custom');
             setEditNotes(goal.notes || '');
             setShowEdit(true);
           }}
@@ -1062,7 +1066,7 @@ export function GoalDetailScreen() {
           <Text style={[typography.button, { color: colors.text.primary }]}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.deleteBtn, { backgroundColor: colors.status.errorLight, borderRadius: 14 }]}
+          style={[s.deleteBtn, { backgroundColor: colors.status.errorLight, borderRadius: 28 }]}
           onPress={handleDelete}
           activeOpacity={0.7}
         >
@@ -1095,41 +1099,42 @@ export function GoalDetailScreen() {
           <View
             style={{
               backgroundColor: colors.bg.primary,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 20,
-              paddingBottom: insets.bottom + 20,
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              padding: 28,
+              paddingBottom: insets.bottom + 24,
             }}
           >
             <View
               style={{
                 width: 36,
                 height: 4,
-                borderRadius: 2,
-                backgroundColor: colors.border.subtle,
+                borderRadius: 4,
+                backgroundColor: colors.border.default,
                 alignSelf: 'center',
-                marginBottom: 16,
+                marginBottom: 24,
               }}
             />
             <Text
               style={{
-                fontSize: 18,
-                fontWeight: '700',
+                fontSize: 26,
+                fontWeight: '800',
                 color: colors.text.primary,
-                marginBottom: 16,
+                marginBottom: 24,
               }}
             >
               Edit Goal
             </Text>
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 16 }}>
               <View>
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: '700',
                     color: colors.text.secondary,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     textTransform: 'uppercase',
+                    letterSpacing: 0.8,
                   }}
                 >
                   Name
@@ -1137,13 +1142,13 @@ export function GoalDetailScreen() {
                 <TextInput
                   style={{
                     backgroundColor: colors.bg.card,
-                    borderRadius: 12,
-                    padding: 14,
-                    fontSize: 15,
+                    borderRadius: 28,
+                    padding: 18,
+                    fontSize: 16,
                     fontWeight: '500',
                     color: colors.text.primary,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
                   }}
                   value={editName}
                   onChangeText={setEditName}
@@ -1157,8 +1162,50 @@ export function GoalDetailScreen() {
                     fontSize: 12,
                     fontWeight: '700',
                     color: colors.text.secondary,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Category
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {Object.entries(GOAL_CONFIGS).map(([key, cfg]) => (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => setEditType(key)}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: 28,
+                        backgroundColor: editType === key ? cfg.color : colors.bg.card,
+                        borderWidth: 1.5,
+                        borderColor: editType === key ? cfg.color : colors.border.default,
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '700',
+                          color: editType === key ? '#FFF' : colors.text.secondary,
+                        }}
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 8,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
                   }}
                 >
                   Target Amount (₹)
@@ -1166,13 +1213,13 @@ export function GoalDetailScreen() {
                 <TextInput
                   style={{
                     backgroundColor: colors.bg.card,
-                    borderRadius: 12,
-                    padding: 14,
-                    fontSize: 15,
+                    borderRadius: 28,
+                    padding: 18,
+                    fontSize: 16,
                     fontWeight: '500',
                     color: colors.text.primary,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
                   }}
                   value={editTarget}
                   onChangeText={(t) => setEditTarget(t.replace(/[^0-9]/g, ''))}
@@ -1187,8 +1234,9 @@ export function GoalDetailScreen() {
                     fontSize: 12,
                     fontWeight: '700',
                     color: colors.text.secondary,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     textTransform: 'uppercase',
+                    letterSpacing: 0.8,
                   }}
                 >
                   Monthly Contribution (₹)
@@ -1196,13 +1244,13 @@ export function GoalDetailScreen() {
                 <TextInput
                   style={{
                     backgroundColor: colors.bg.card,
-                    borderRadius: 12,
-                    padding: 14,
-                    fontSize: 15,
+                    borderRadius: 28,
+                    padding: 18,
+                    fontSize: 16,
                     fontWeight: '500',
                     color: colors.text.primary,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
                   }}
                   value={editMonthly}
                   onChangeText={(t) => setEditMonthly(t.replace(/[^0-9]/g, ''))}
@@ -1217,8 +1265,39 @@ export function GoalDetailScreen() {
                     fontSize: 12,
                     fontWeight: '700',
                     color: colors.text.secondary,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
+                  Deadline (YYYY-MM-DD)
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.bg.card,
+                    borderRadius: 28,
+                    padding: 18,
+                    fontSize: 16,
+                    fontWeight: '500',
+                    color: colors.text.primary,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
+                  }}
+                  value={editDeadline}
+                  onChangeText={setEditDeadline}
+                  placeholder="2025-12-31"
+                  placeholderTextColor={colors.text.tertiary}
+                />
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: colors.text.secondary,
+                    marginBottom: 8,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
                   }}
                 >
                   Notes
@@ -1226,13 +1305,13 @@ export function GoalDetailScreen() {
                 <TextInput
                   style={{
                     backgroundColor: colors.bg.card,
-                    borderRadius: 12,
-                    padding: 14,
-                    fontSize: 15,
+                    borderRadius: 28,
+                    padding: 18,
+                    fontSize: 16,
                     fontWeight: '500',
                     color: colors.text.primary,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderWidth: 1.5,
+                    borderColor: colors.border.default,
                     minHeight: 60,
                   }}
                   value={editNotes}
@@ -1243,27 +1322,27 @@ export function GoalDetailScreen() {
                 />
               </View>
             </View>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 28 }}>
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  paddingVertical: 16,
-                  borderRadius: 14,
+                  paddingVertical: 18,
+                  borderRadius: 28,
                   backgroundColor: colors.bg.tertiary,
                   alignItems: 'center',
                 }}
                 onPress={() => setShowEdit(false)}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.secondary }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.secondary }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  paddingVertical: 16,
-                  borderRadius: 14,
+                  paddingVertical: 18,
+                  borderRadius: 28,
                   backgroundColor: config.color,
                   alignItems: 'center',
                   opacity: editSaving ? 0.6 : 1,
@@ -1283,6 +1362,8 @@ export function GoalDetailScreen() {
                       name: editName.trim(),
                       targetAmount: Number(editTarget),
                       monthlyContribution: Number(editMonthly) || undefined,
+                      deadline: editDeadline.trim() || undefined,
+                      type: editType,
                       notes: editNotes.trim() || undefined,
                     });
                     setShowEdit(false);
@@ -1295,7 +1376,7 @@ export function GoalDetailScreen() {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
                   {editSaving ? 'Saving...' : 'Save'}
                 </Text>
               </TouchableOpacity>
@@ -1309,8 +1390,8 @@ export function GoalDetailScreen() {
 
 const s = StyleSheet.create({
   headerGradient: {
-    paddingBottom: 32,
-    paddingHorizontal: 20,
+    paddingBottom: 36,
+    paddingHorizontal: 24,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
@@ -1322,13 +1403,13 @@ const s = StyleSheet.create({
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerContent: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
   },
   goalIconCircle: {
     width: 72,
@@ -1338,7 +1419,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   typeBadge: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 4,
     borderRadius: 999,
     marginTop: 8,
@@ -1347,19 +1428,19 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 6,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    marginTop: 12,
+    marginTop: 14,
   },
   progressSection: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginTop: -28,
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 32,
+    padding: 28,
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -1369,16 +1450,16 @@ const s = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginHorizontal: 16,
-    marginTop: 12,
+    marginHorizontal: 20,
+    marginTop: 14,
   },
   statCard: {
     flex: 1,
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: 30,
+    padding: 18,
     alignItems: 'center',
     gap: 4,
-    borderWidth: 1,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -1388,17 +1469,17 @@ const s = StyleSheet.create({
   statIconWrap: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
   },
   glassCard: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
+    marginHorizontal: 20,
+    marginTop: 14,
+    borderRadius: 28,
+    padding: 22,
+    borderWidth: 1.5,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1408,17 +1489,17 @@ const s = StyleSheet.create({
   },
   glassBg: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
+    borderRadius: 28,
   },
   completionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   completionIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1428,11 +1509,11 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   timelineCard: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
+    marginHorizontal: 20,
+    marginTop: 14,
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -1459,12 +1540,12 @@ const s = StyleSheet.create({
     borderRadius: 1,
   },
   timelineNodes: {
-    gap: 32,
+    gap: 36,
   },
   timelineNodeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
   },
   timelineNode: {
     width: 26,
@@ -1475,14 +1556,14 @@ const s = StyleSheet.create({
   nodeReached: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
   nodeEmpty: {
     width: 14,
     height: 14,
-    borderRadius: 7,
+    borderRadius: 20,
     borderWidth: 2,
   },
   timelineLabel: {
@@ -1491,8 +1572,8 @@ const s = StyleSheet.create({
   bottomBar: {
     flexDirection: 'row',
     gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: 24,
+    paddingTop: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
     position: 'absolute',
     left: 0,
@@ -1505,7 +1586,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 14,
+    paddingVertical: 18,
   },
   deleteBtn: {
     width: 50,
@@ -1520,55 +1601,57 @@ const s = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 40,
+    padding: 24,
+    paddingBottom: 44,
   },
   modalHandle: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   handleBar: {
     width: 36,
     height: 4,
-    borderRadius: 2,
+    borderRadius: 4,
   },
   amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 12,
-    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    gap: 10,
   },
   amountInput: {
     flex: 1,
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '700',
     paddingVertical: 4,
   },
   quickAmountRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-    marginBottom: 20,
+    gap: 10,
+    marginTop: 16,
+    marginBottom: 28,
   },
   quickChip: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingVertical: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
   primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 15,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
   secondaryBtn: {
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
 });

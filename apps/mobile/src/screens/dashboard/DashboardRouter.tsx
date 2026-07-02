@@ -18,15 +18,15 @@ const DASHBOARD_MAP: Record<string, React.LazyExoticComponent<React.ComponentTyp
 function DashboardSkeleton() {
   const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg.primary, padding: 16 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary, padding: 22 }}>
       {[0, 1, 2, 3].map((i) => (
         <View
           key={i}
           style={{
             height: 100,
-            marginBottom: 12,
+            marginBottom: 14,
             backgroundColor: colors.skeleton.base,
-            borderRadius: 16,
+            borderRadius: 30,
           }}
         />
       ))}

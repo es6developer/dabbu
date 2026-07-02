@@ -48,15 +48,15 @@
     .reveal-scale.visible { opacity: 1; transform: scale(1); }
     .feature-card { border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,250,243,0.98)); box-shadow: 0 22px 60px rgba(15,23,42,0.06); transition: all 0.35s ease; }
     .feature-card:hover { transform: translateY(-4px); box-shadow: 0 28px 70px rgba(15,23,42,0.1); }
-    .phone-mock { width: min(200px, 50vw); aspect-ratio: 9/19; border-radius: 30px; padding: 6px; background: linear-gradient(160deg, #3a3a44, #0a0a0f 40%, #8B5CF6); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3); position: relative; }
+    .phone-mock { width: min(200px, 50vw); aspect-ratio: 9/19; border-radius: 36px; padding: 6px; background: linear-gradient(160deg, #3a3a44, #0a0a0f 40%, #8B5CF6); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.3); position: relative; }
     .phone-mock::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 64px; height: 18px; border-radius: 0 0 14px 14px; background: #05070b; z-index: 5; }
-    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 24px; border: 1px solid rgba(42,42,46,0.6); background: #000000; color: white; }
-    .phone-app-surface { background: #121214; border: 1px solid #2A2A2E; border-radius: 16px; }
-    .phone-app-surface2 { background: #1A1A1E; border: 1px solid #2A2A2E; border-radius: 12px; }
+    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 32px; border: 1px solid rgba(42,42,46,0.6); background: #000000; color: white; }
+    .phone-app-surface { background: #121214; border: 1px solid #2A2A2E; border-radius: 24px; }
+    .phone-app-surface2 { background: #1A1A1E; border: 1px solid #2A2A2E; border-radius: 18px; }
     .feature-detail { border: 1px solid var(--line); border-radius: 1.5rem; background: rgba(255,255,255,0.98); box-shadow: 0 20px 48px rgba(15,23,42,0.06); }
     .marketing-input { border: 1px solid var(--line) !important; border-radius: 1rem; padding: 0.95rem 1rem; background: rgba(255,255,255,0.94); }
     .marketing-input:focus { outline: none; border-color: var(--brand) !important; box-shadow: 0 0 0 4px var(--brand-mist); }
-    @media (max-width: 767px) { .phone-mock { width: min(160px, 40vw); border-radius: 24px; } .phone-mock::before { width: 50px; height: 14px; } .phone-screen { border-radius: 18px; } }
+    @media (max-width: 767px) { .phone-mock { width: min(160px, 40vw); border-radius: 32px; } .phone-mock::before { width: 50px; height: 14px; } .phone-screen { border-radius: 26px; } }
   </style>
 </head>
 <body>
@@ -159,17 +159,17 @@
               <div class="mt-6 flex items-center justify-between px-1"><span class="text-xs font-bold uppercase tracking-wider text-[#94A3B8]">Today</span><span class="text-[10px] text-[#64748B]">Nov 15</span></div>
               <div class="mt-3 space-y-2">
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:8px;color:#8B5CF6;font-size:11px">☕</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:14px;color:#8B5CF6;font-size:11px">☕</span>
                   <div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Cafe &amp; Snacks</p><p class="text-[10px] text-[#64748B]">11:30 AM</p></div>
                   <p class="text-sm font-bold" style="color:#EF4444">-₹240</p>
                 </div>
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:8px;color:#10B981;font-size:11px">🚗</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:14px;color:#10B981;font-size:11px">🚗</span>
                   <div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Metro Card</p><p class="text-[10px] text-[#64748B]">8:15 AM</p></div>
                   <p class="text-sm font-bold" style="color:#EF4444">-₹60</p>
                 </div>
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:8px;color:#3B82F6;font-size:11px">🛒</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:14px;color:#3B82F6;font-size:11px">🛒</span>
                   <div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Groceries</p><p class="text-[10px] text-[#64748B]">Yesterday</p></div>
                   <p class="text-sm font-bold" style="color:#EF4444">-₹1,280</p>
                 </div>
@@ -301,15 +301,15 @@
               <p class="mt-6 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8] px-1">My Spaces</p>
               <div class="mt-3 space-y-2">
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:8px;color:#8B5CF6;font-size:11px">❤️</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:14px;color:#8B5CF6;font-size:11px">❤️</span>
                   <div><p class="text-sm font-bold text-white">Couple</p><p class="text-[10px] text-[#64748B]">Me &amp; Ananya</p></div>
                 </div>
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:8px;color:#10B981;font-size:11px">✈️</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:14px;color:#10B981;font-size:11px">✈️</span>
                   <div><p class="text-sm font-bold text-white">Goa Trip</p><p class="text-[10px] text-[#64748B]">4 members</p></div>
                 </div>
                 <div class="phone-app-surface2 flex items-center gap-3 p-3">
-                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:8px;color:#3B82F6;font-size:11px">🏠</span>
+                  <span class="flex h-8 w-8 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:14px;color:#3B82F6;font-size:11px">🏠</span>
                   <div><p class="text-sm font-bold text-white">Roommates</p><p class="text-[10px] text-[#64748B]">3 members</p></div>
                 </div>
               </div>
@@ -335,7 +335,7 @@
           <div class="phone-mock phone-float" style="animation-delay:-6s">
             <div class="phone-screen p-3">
               <div class="flex items-center justify-center gap-2 mt-6">
-                <div style="background:rgba(139,92,246,0.12);border-radius:12px;padding:8px 12px">
+                <div style="background:rgba(139,92,246,0.12);border-radius:18px;padding:8px 12px">
                   <span style="color:#8B5CF6" class="text-sm">❤️</span>
                 </div>
               </div>
@@ -349,12 +349,12 @@
                 <p class="text-[9px] text-[#64748B] mt-1">62% of ₹40,000 goal</p>
               </div>
               <div class="phone-app-surface2 mt-2 p-2.5 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:8px;color:#10B981;font-size:10px">🛒</span>
+                <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:14px;color:#10B981;font-size:10px">🛒</span>
                 <div class="flex-1 min-w-0"><p class="truncate text-xs font-bold text-white">Groceries</p><p class="text-[9px] text-[#64748B]">Shared</p></div>
                 <p class="text-xs font-bold" style="color:#EF4444">-₹1,280</p>
               </div>
               <div class="phone-app-surface2 mt-1.5 p-2.5 flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:8px;color:#3B82F6;font-size:10px">⚡</span>
+                <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:14px;color:#3B82F6;font-size:10px">⚡</span>
                 <div class="flex-1 min-w-0"><p class="truncate text-xs font-bold text-white">Electricity</p><p class="text-[9px] text-[#64748B]">Shared</p></div>
                 <p class="text-xs font-bold" style="color:#EF4444">-₹2,400</p>
               </div>
@@ -370,7 +370,7 @@
             <div class="phone-screen p-3">
               <div class="phone-app-surface mt-6 p-3">
                 <div class="flex items-center gap-3">
-                  <span class="flex h-9 w-9 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:10px;color:#8B5CF6"><i class="fa-solid fa-bell text-sm"></i></span>
+                  <span class="flex h-9 w-9 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:16px;color:#8B5CF6"><i class="fa-solid fa-bell text-sm"></i></span>
                   <div><p class="text-sm font-bold text-white">Upcoming</p><p class="text-[10px] text-[#64748B]">3 reminders today</p></div>
                 </div>
               </div>

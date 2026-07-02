@@ -66,6 +66,14 @@ export class PremiumController {
     return this.premiumService.subscribe(req.user.id, dto.planCode, dto.couponCode);
   }
 
+  @Post('create-order')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create Razorpay order for native payment' })
+  async createOrder(@Req() req: any, @Body('planCode') planCode: string) {
+    return this.premiumService.createOrderForPlan(req.user.id, planCode);
+  }
+
   @Post('change-plan')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
@@ -231,8 +239,13 @@ export class PremiumController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify subscription payment by checking Razorpay directly' })
-  async verifyPayment(@Req() req: any) {
+  async verifyPayment(@Req() req: any, @Body() body?: { razorpayOrderId?: string; razorpayPaymentId?: string; razorpaySignature?: string }) {
     const userId = req.user.id;
+
+    if (body?.razorpayOrderId && body?.razorpayPaymentId && body?.razorpaySignature) {
+      return this.premiumService.verifyOrderPayment(userId, body.razorpayOrderId, body.razorpayPaymentId, body.razorpaySignature);
+    }
+
     const sub = await this.premiumService.getCurrentSubscription(userId);
     if (!sub || !sub.razorpaySubscriptionId) {
       return { verified: false, message: 'No pending subscription' };

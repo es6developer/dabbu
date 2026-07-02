@@ -7,6 +7,7 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { LineChart, PieChart } from 'react-native-chart-kit';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CHART_W = SCREEN_W - 64;
@@ -147,7 +148,7 @@ export function FinancialCenterScreen() {
             <Text style={[styles.chartTitle, { color: colors.text.primary }]}>Income vs Expenses</Text>
             <LineChart
               data={{ labels: flowLabels, datasets: [{ data: flowIncome, color: () => '#22C55E', strokeWidth: 2 }, { data: flowExpense, color: () => '#EF4444', strokeWidth: 2 }] }}
-              width={CHART_W} height={200} chartConfig={chartConfig} bezier style={{ borderRadius: 16 }}
+              width={CHART_W} height={200} chartConfig={chartConfig} bezier style={{ borderRadius: 30 }}
             />
             <View style={styles.legendRow}>
               <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#22C55E' }]} /><Text style={[styles.legendText, { color: colors.text.tertiary }]}>Income</Text></View>
@@ -230,7 +231,7 @@ export function FinancialCenterScreen() {
           return (
             <View key={i} style={[styles.insightCard, { backgroundColor: colors.bg.card, borderLeftColor: color }]}>
               <View style={styles.insightHeader}>
-                <Text style={{ fontSize: 20 }}>{insight.icon || '\uD83D\uDCA1'}</Text>
+                <Text style={{ fontSize: 26 }}>{insight.icon || '\uD83D\uDCA1'}</Text>
                 <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{insight.title}</Text>
                 {insight.confidence && (
                   <View style={[styles.confidenceBadge, { backgroundColor: color + '20' }]}>
@@ -252,6 +253,7 @@ export function FinancialCenterScreen() {
   };
 
   return (
+    <PremiumGate featureKey="advanced_reports">
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -284,55 +286,56 @@ export function FinancialCenterScreen() {
         </View>
       ) : tab === 'overview' ? renderOverview() : tab === 'reports' ? renderReports() : renderAIInsights()}
     </View>
+    </PremiumGate>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  headerTitle: { fontSize: 17, fontWeight: '600' },
-  tabBar: { flexDirection: 'row', marginHorizontal: spacing.lg, borderRadius: 12, padding: 3 },
+  headerTitle: { fontSize: 19, fontWeight: '600' },
+  tabBar: { flexDirection: 'row', marginHorizontal: spacing.lg, borderRadius: 28, padding: 3 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10 },
   tabLabel: { fontSize: 12 },
   periodRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  periodPill: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 999 },
+  periodPill: { paddingHorizontal: 24, paddingVertical: 6, borderRadius: 999 },
   periodText: { fontSize: 12, fontWeight: '600' },
   tabContent: { padding: spacing.lg, paddingBottom: 100 },
   summaryRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  summaryCard: { flex: 1, borderRadius: 20, padding: spacing.md, alignItems: 'center', gap: 4 },
+  summaryCard: { flex: 1, borderRadius: 28, padding: spacing.md, alignItems: 'center', gap: 4 },
   summaryValue: { fontSize: 16, fontWeight: '800' },
-  summaryLabel: { fontSize: 11, fontWeight: '500' },
-  rateCard: { borderRadius: 20, padding: spacing.lg, marginBottom: spacing.md },
+  summaryLabel: { fontSize: 12, fontWeight: '500' },
+  rateCard: { borderRadius: 28, padding: spacing.lg, marginBottom: spacing.md },
   rateTitle: { fontSize: 12, fontWeight: '600' },
   rateValue: { fontSize: 28, fontWeight: '800', marginVertical: spacing.xs },
-  rateBar: { height: 6, borderRadius: 3 },
-  rateFill: { height: '100%', borderRadius: 3 },
-  chartCard: { borderRadius: 20, padding: spacing.lg, marginBottom: spacing.md, alignItems: 'center' },
-  chartTitle: { fontSize: 15, fontWeight: '600', marginBottom: spacing.md, alignSelf: 'flex-start' },
+  rateBar: { height: 6, borderRadius: 6 },
+  rateFill: { height: '100%', borderRadius: 6 },
+  chartCard: { borderRadius: 28, padding: spacing.lg, marginBottom: spacing.md, alignItems: 'center' },
+  chartTitle: { fontSize: 16, fontWeight: '600', marginBottom: spacing.md, alignSelf: 'flex-start' },
   legendRow: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { fontSize: 11, fontWeight: '500' },
-  reportCard: { borderRadius: 20, padding: spacing.lg, marginBottom: spacing.md },
-  reportSectionTitle: { fontSize: 13, fontWeight: '600', marginBottom: spacing.xs },
+  legendDot: { width: 8, height: 8, borderRadius: 8 },
+  legendText: { fontSize: 12, fontWeight: '500' },
+  reportCard: { borderRadius: 28, padding: spacing.lg, marginBottom: spacing.md },
+  reportSectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: spacing.xs },
   reportAmount: { fontSize: 28, fontWeight: '800' },
   reportMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
-  reportMeta: { fontSize: 11 },
+  reportMeta: { fontSize: 12 },
   categoryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(128,128,128,0.15)' },
-  categoryName: { fontSize: 14, fontWeight: '500', flex: 1 },
+  categoryName: { fontSize: 16, fontWeight: '500', flex: 1 },
   categoryRight: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-  categoryAmount: { fontSize: 14, fontWeight: '600' },
+  categoryAmount: { fontSize: 16, fontWeight: '600' },
   categoryPct: { fontSize: 12, fontWeight: '500', width: 36, textAlign: 'right' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  insightCard: { borderRadius: 16, padding: spacing.lg, marginBottom: spacing.md, borderLeftWidth: 3 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', lineHeight: 24 },
+  insightCard: { borderRadius: 30, padding: spacing.lg, marginBottom: spacing.md, borderLeftWidth: 3 },
   insightHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  insightTitle: { flex: 1, fontSize: 15, fontWeight: '600' },
-  confidenceBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  insightTitle: { flex: 1, fontSize: 16, fontWeight: '600' },
+  confidenceBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
   confidenceText: { fontSize: 10, fontWeight: '700' },
-  insightDesc: { fontSize: 13, lineHeight: 18, marginTop: spacing.xs },
-  insightAction: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: 8, alignSelf: 'flex-start', marginTop: spacing.sm },
+  insightDesc: { fontSize: 16, lineHeight: 18, marginTop: spacing.xs },
+  insightAction: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: 20, alignSelf: 'flex-start', marginTop: spacing.sm },
   insightActionText: { fontSize: 12, fontWeight: '700' },
 });

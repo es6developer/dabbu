@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 14, fontWeight: '700' },
   eventRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, minHeight: 28 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 4 },
+  dot: { width: 8, height: 8, borderRadius: 14, marginTop: 4 },
   line: { width: 1, position: 'absolute', left: 3.5, top: 14, bottom: 0 },
   eventContent: { flex: 1, gap: 1 },
   eventText: { fontSize: 12, fontWeight: '500' },

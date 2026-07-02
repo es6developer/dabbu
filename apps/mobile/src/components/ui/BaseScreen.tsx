@@ -39,7 +39,7 @@ export function BaseScreen({
     paddingBottom: insets.bottom,
   };
 
-  const containerPadding = !noPadding ? { paddingHorizontal: spacing.xl } : undefined;
+  const containerPadding = !noPadding ? { paddingHorizontal: spacing['2xl'] } : undefined;
 
   const renderContent = () => {
     if (flatList) {
@@ -87,7 +87,7 @@ export function BaseScreen({
       );
     }
 
-    return !noPadding ? <View style={{ paddingHorizontal: spacing.xl }}>{children}</View> : children;
+    return !noPadding ? <View style={{ paddingHorizontal: spacing['2xl'] }}>{children}</View> : children;
   };
 
   if (gradient) {

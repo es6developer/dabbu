@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
 import { getPlanTier, PlanTier } from '../config/entitlements';
+import { purchases, Product, PurchaseResult } from '../services/purchases';
 
 export interface EntitlementResult {
   allowed: boolean;
@@ -40,6 +41,11 @@ interface PremiumContextValue extends PremiumState {
   restorePurchases: () => Promise<any>;
   isPremium: boolean;
   daysRemaining: number;
+  adapter: {
+    initialize: () => Promise<void>;
+    getProducts: (identifiers: string[]) => Promise<Product[]>;
+    purchase: (productId: string) => Promise<PurchaseResult>;
+  };
 }
 
 const PremiumContext = createContext<PremiumContextValue | undefined>(undefined);
@@ -121,7 +127,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
 
   const subscribe = useCallback(async (planCode: string) => {
     try {
-      const result = await api.post<any>('/premium/subscribe', { planCode });
+      const result = await purchases.purchase(planCode);
       await refresh();
       return result;
     } catch (e: any) {
@@ -216,7 +222,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
 
   const restorePurchases = useCallback(async () => {
     try {
-      const result = await api.post<any>('/premium/restore');
+      const result = await purchases.restorePurchases();
       await refresh();
       return result;
     } catch (e: any) {
@@ -250,6 +256,11 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     restorePurchases,
     isPremium,
     daysRemaining,
+    adapter: {
+      initialize: () => purchases.initialize(),
+      getProducts: (identifiers: string[]) => purchases.getProducts(identifiers),
+      purchase: (productId: string) => purchases.purchase(productId),
+    },
   };
 
   return (

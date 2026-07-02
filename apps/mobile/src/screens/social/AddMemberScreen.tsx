@@ -167,13 +167,13 @@ export function AddMemberScreen() {
     setAddingId(userId);
     try {
       if (groupType === 'space') {
-        await api.post(`/spaces/${targetId}/members`, { userId });
+        await api.post(`/spaces/${targetId}/members`, { userId }, undefined, 30000);
         navigation.goBack();
       } else if (groupType === 'expense-group') {
-        await api.post(`/expense-groups/${targetId}/members/add-by-user-id`, { userId });
+        await api.post(`/expense-groups/${targetId}/members/add-by-user-id`, { userId }, undefined, 30000);
         alertService.alert('Added', `${userName} added to group`);
       } else {
-        await api.post(`/shared-finance/groups/${targetId}/members`, { userId });
+        await api.post(`/shared-finance/groups/${targetId}/members`, { userId }, undefined, 30000);
         alertService.alert('Added', `${userName} added to group`);
       }
     } catch (e: any) {
@@ -589,86 +589,86 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     height: 52,
   },
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
 
-  searchOuter: { paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
+  searchOuter: { paddingHorizontal: 24, marginTop: 8, marginBottom: 4 },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 44,
-    borderWidth: 1,
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    height: 52,
+    borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 16, paddingVertical: 0 },
 
   favSection: { marginTop: 4, marginBottom: 4 },
   favSectionLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginLeft: 24,
+    marginLeft: 28,
     marginBottom: 8,
   },
-  favList: { paddingHorizontal: 20, gap: 16 },
+  favList: { paddingHorizontal: 24, gap: 20 },
   favItem: { alignItems: 'center', gap: 6, width: 60 },
   favAvatar: {
     width: 50,
-    height: 50,
+    height: 54,
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   favAvatarSelected: { borderWidth: 2, borderColor: '#14B8A6' },
-  favAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
-  favName: { fontSize: 11, fontWeight: '500', textAlign: 'center' },
+  favAvatarText: { fontSize: 19, fontWeight: '700', color: '#FFF' },
+  favName: { fontSize: 12, fontWeight: '500', textAlign: 'center' },
 
-  listContainer: { paddingTop: 4, paddingBottom: 40 },
+  listContainer: { paddingTop: 4, paddingBottom: 44 },
 
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 14,
   },
   avatar: {
     width: 44,
-    height: 44,
-    borderRadius: 22,
+    height: 52,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   contactAvatarPlaceholder: {
     width: 44,
-    height: 44,
-    borderRadius: 22,
+    height: 52,
+    borderRadius: 30,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   contactAvatarInitial: { fontSize: 16, fontWeight: '700' },
   contactInfo: { flex: 1, justifyContent: 'center' },
-  contactName: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
+  contactName: { fontSize: 16, fontWeight: '600', marginBottom: 2 },
   contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   contactSub: { fontSize: 12, fontWeight: '500' },
   statusBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 8,
     backgroundColor: 'rgba(52,199,89,0.12)',
   },
   statusText: { fontSize: 10, fontWeight: '600', color: '#34C759' },
@@ -676,14 +676,14 @@ const styles = StyleSheet.create({
   actionBtn: {
     minWidth: 64,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
   },
-  actionBtnText: { fontSize: 13, fontWeight: '700' },
+  actionBtnText: { fontSize: 16, fontWeight: '700' },
   inviteActionBtn: {
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   inviteActionText: { fontSize: 12, fontWeight: '600' },
 
@@ -691,8 +691,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 32,
+    gap: 14,
+    paddingHorizontal: 36,
   },
   emptyIconWrap: {
     width: 56,
@@ -703,43 +703,43 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptyDesc: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 18,
   },
-  syncingText: { fontSize: 14, fontWeight: '500', marginTop: 4 },
+  syncingText: { fontSize: 16, fontWeight: '500', marginTop: 4 },
 
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    borderWidth: 1.5,
     marginTop: 8,
   },
-  inviteBtnText: { fontSize: 14, fontWeight: '700' },
+  inviteBtnText: { fontSize: 16, fontWeight: '700' },
 
   syncBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 4,
   },
-  syncBannerText: { fontSize: 13, fontWeight: '600', flex: 1 },
+  syncBannerText: { fontSize: 16, fontWeight: '600', flex: 1 },
   resyncBtn: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -77,7 +77,7 @@ export function InviteMemberScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post('/family/join', { inviteCode: joinCode.trim() });
+      await api.post(`/family/join/${encodeURIComponent(joinCode.trim())}`);
       alertService.alert('Success', 'You have joined the family!');
       setJoinCode('');
       loadFamily();
@@ -106,14 +106,14 @@ export function InviteMemberScreen() {
         <View
           style={[
             styles.loading,
-            { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 },
+            { backgroundColor: colors.bg.primary, paddingHorizontal: 28, gap: 20 },
           ]}
         >
           <Skeleton width={180} height={16} />
-          <Skeleton width="100%" height={60} borderRadius={16} />
-          <Skeleton width="100%" height={50} borderRadius={16} />
-          <Skeleton width="100%" height={50} borderRadius={16} />
-          <Skeleton width="75%" height={50} borderRadius={16} />
+          <Skeleton width="100%" height={60} borderRadius={24} />
+          <Skeleton width="100%" height={50} borderRadius={24} />
+          <Skeleton width="100%" height={50} borderRadius={24} />
+          <Skeleton width="75%" height={50} borderRadius={24} />
         </View>
       </PageContainer>
     );
@@ -289,67 +289,68 @@ export function InviteMemberScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 120 },
+  content: { padding: 24, paddingBottom: 120 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
-  card: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 28 },
+  card: { borderRadius: 30, padding: 24, borderWidth: 1.5, marginBottom: 24 },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
-  subtitle: { fontSize: 13, marginBottom: 16 },
+  subtitle: { fontSize: 16, marginBottom: 20 },
   codeCard: {
-    padding: 24,
-    borderRadius: 16,
+    padding: 28,
+    borderRadius: 30,
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderStyle: 'dashed',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   codeText: { fontSize: 32, fontWeight: '700', letterSpacing: 4, marginBottom: 8 },
   copyHint: { fontSize: 12 },
-  shareRow: { flexDirection: 'row', gap: 12 },
-  shareBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  shareBtnText: { fontSize: 15, fontWeight: '600' },
-  copyBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
-  copyBtnText: { fontSize: 15, fontWeight: '600' },
+  shareRow: { flexDirection: 'row', gap: 14 },
+  shareBtn: { flex: 1, paddingVertical: 18, borderRadius: 28, alignItems: 'center' },
+  shareBtnText: { fontSize: 16, fontWeight: '600' },
+  copyBtn: { flex: 1, paddingVertical: 18, borderRadius: 28, alignItems: 'center', borderWidth: 1.5 },
+  copyBtnText: { fontSize: 16, fontWeight: '600' },
   noFamilyCard: {
-    padding: 24,
-    borderRadius: 16,
+    padding: 28,
+    borderRadius: 30,
     alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
+    marginBottom: 24,
+    borderWidth: 1.5,
     borderStyle: 'dashed',
   },
   noFamilyTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
-  noFamilyDesc: { fontSize: 13, textAlign: 'center' },
+  noFamilyDesc: { fontSize: 16, textAlign: 'center' },
   input: {
     fontSize: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 12,
+    fontWeight: '500',
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    marginBottom: 16,
   },
-  joinBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  joinBtnText: { fontSize: 17, fontWeight: '600' },
+  joinBtn: { paddingVertical: 18, borderRadius: 30, alignItems: 'center' },
+  joinBtnText: { fontSize: 19, fontWeight: '600' },
   inviteRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 28,
     marginBottom: 8,
   },
   inviteInfo: { flex: 1 },
-  inviteEmail: { fontSize: 14, fontWeight: '500', marginBottom: 2 },
-  inviteStatus: { fontSize: 11 },
-  cancelInviteBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  inviteEmail: { fontSize: 16, fontWeight: '500', marginBottom: 2 },
+  inviteStatus: { fontSize: 12 },
+  cancelInviteBtn: { paddingHorizontal: 18, paddingVertical: 6, borderRadius: 20 },
   cancelInviteText: { fontSize: 12, fontWeight: '600' },
   errorBox: {
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 12,
+    padding: 18,
+    borderRadius: 28,
+    marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  errorText: { fontSize: 13, fontWeight: '600' },
+  errorText: { fontSize: 16, fontWeight: '600' },
 });

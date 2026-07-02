@@ -145,7 +145,7 @@ export function GlobalSearchScreen() {
       return null;
     }
     return (
-      <View style={{ marginTop: 20 }}>
+      <View style={{ marginTop: 24 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
           <AntDesign name={icon as any} size={16} color={colors.text.tertiary} />
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{title}</Text>
@@ -195,11 +195,11 @@ export function GlobalSearchScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 44 }}
         showsVerticalScrollIndicator={false}
       >
         {searching && (
-          <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+          <View style={{ paddingVertical: 44, alignItems: 'center' }}>
             <ActivityIndicator size="large" color={colors.accent.primary} />
           </View>
         )}
@@ -401,13 +401,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 8,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -415,39 +415,39 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    height: 44,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    paddingHorizontal: 18,
+    height: 52,
     gap: 8,
   },
-  searchInput: { flex: 1, fontSize: 15, fontWeight: '500' },
-  sectionTitle: { fontSize: 15, fontWeight: '700' },
-  sectionCount: { fontSize: 13, fontWeight: '500' },
-  moreText: { fontSize: 13, fontWeight: '600', marginTop: 6 },
+  searchInput: { flex: 1, fontSize: 16, fontWeight: '500' },
+  sectionTitle: { fontSize: 16, fontWeight: '700' },
+  sectionCount: { fontSize: 16, fontWeight: '500' },
+  moreText: { fontSize: 16, fontWeight: '600', marginTop: 6 },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
     marginBottom: 6,
     gap: 10,
   },
   resultIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  resultTitle: { fontSize: 14, fontWeight: '600' },
-  resultSub: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  resultAmount: { fontSize: 14, fontWeight: '700' },
+  resultTitle: { fontSize: 16, fontWeight: '600' },
+  resultSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  resultAmount: { fontSize: 16, fontWeight: '700' },
   goalDot: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -457,9 +457,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 60,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
   emptyTitle: { fontSize: 16, fontWeight: '600' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: 36, lineHeight: 18 },
 });

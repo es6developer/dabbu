@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api, setAccessToken } from '../services/api';
+import { api } from '../services/api';
 
 type LensMode = 'PERSONAL' | 'PARTNERED' | 'FAMILY' | 'FULL';
 
@@ -27,10 +27,9 @@ export const useUserStore = create<UserStore>((set) => ({
   loading: false,
 
   fetchProfile: async (accessToken) => {
-    if (accessToken) setAccessToken(accessToken);
     set({ loading: true });
     try {
-      const res = await api.get<any>('/users/profile');
+      const res = await api.get<any>('/auth/profile');
       set({ profile: res?.data ?? res, loading: false });
     } catch {
       set({ loading: false });
@@ -38,7 +37,6 @@ export const useUserStore = create<UserStore>((set) => ({
   },
 
   updateLens: async (accessToken, lens) => {
-    if (accessToken) setAccessToken(accessToken);
     try {
       const res = await api.patch<any>('/users/lens', { lens });
       const updated = res?.data ?? res;

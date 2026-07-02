@@ -105,7 +105,7 @@ export function PartneredLensDashboard() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
-          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
+          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 24 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TouchableOpacity
@@ -118,17 +118,17 @@ export function PartneredLensDashboard() {
               />
             </TouchableOpacity>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                 {greeting}
               </Text>
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                 {userName}
               </Text>
             </View>
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator size="large" color={colors.accent.primary} />
-            <Text style={{ marginTop: 12, fontSize: 14, color: colors.text.tertiary }}>
+            <Text style={{ marginTop: 14, fontSize: 16, color: colors.text.tertiary }}>
               Loading your shared finances...
             </Text>
           </View>
@@ -147,7 +147,7 @@ export function PartneredLensDashboard() {
           locations={[0, 0.3]}
           style={{ flex: 1 }}
         >
-          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -160,11 +160,11 @@ export function PartneredLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -200,8 +200,8 @@ export function PartneredLensDashboard() {
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              paddingHorizontal: 32,
-              gap: 12,
+              paddingHorizontal: 36,
+              gap: 14,
             }}
           >
             <View style={[styles.emptyIcon, { backgroundColor: colors.accent.primary + '15' }]}>
@@ -209,7 +209,7 @@ export function PartneredLensDashboard() {
             </View>
             <Text
               style={{
-                fontSize: 20,
+                fontSize: 26,
                 fontWeight: '800',
                 color: colors.text.primary,
                 textAlign: 'center',
@@ -219,10 +219,10 @@ export function PartneredLensDashboard() {
             </Text>
             <Text
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 color: colors.text.tertiary,
                 textAlign: 'center',
-                lineHeight: 20,
+                lineHeight: 24,
               }}
             >
               Link with your partner to track shared finances, combined goals, and spending
@@ -262,7 +262,7 @@ export function PartneredLensDashboard() {
             />
           }
         >
-          <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
             <View style={styles.headerRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
@@ -275,11 +275,11 @@ export function PartneredLensDashboard() {
                   />
                 </TouchableOpacity>
                 <View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {greeting}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text.primary }}>
                       {userName}
                     </Text>
                     <View
@@ -311,15 +311,15 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={[styles.heroCard, { backgroundColor: colors.accent.primary }]}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.8)' }}>
                 Combined Income
               </Text>
               <Text style={{ fontSize: 32, fontWeight: '800', color: '#FFF', marginTop: 2 }}>
                 {fmt(d.incomeCombined || 0)}
               </Text>
-              <View style={{ flexDirection: 'row', marginTop: 16, gap: 12 }}>
+              <View style={{ flexDirection: 'row', marginTop: 20, gap: 14 }}>
                 <View style={styles.heroStat}>
                   <Text style={styles.heroStatLabel}>Combined Expenses</Text>
                   <Text style={styles.heroStatValue}>{fmt(d.expenseCombined || 0)}</Text>
@@ -332,9 +332,9 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Joint Budget
               </Text>
             </View>
@@ -344,7 +344,7 @@ export function PartneredLensDashboard() {
                 .map((b: any, i: number) => (
                   <View key={b.id || i} style={[styles.card, { backgroundColor: colors.bg.card }]}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.category}
                       </Text>
                       <Text
@@ -357,7 +357,7 @@ export function PartneredLensDashboard() {
                       style={{
                         height: 4,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         marginTop: 6,
                       }}
                     >
@@ -366,7 +366,7 @@ export function PartneredLensDashboard() {
                           width: `${Math.min(b.limit > 0 ? (b.spent / b.limit) * 100 : 0, 100)}%`,
                           height: 4,
                           backgroundColor: colors.accent.primary,
-                          borderRadius: 2,
+                          borderRadius: 4,
                         }}
                       />
                     </View>
@@ -375,9 +375,9 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Couple Savings Goal
               </Text>
               <TouchableOpacity
@@ -394,7 +394,7 @@ export function PartneredLensDashboard() {
                 .map((g: any, i: number) => (
                   <View key={g.id || i} style={[styles.card, { backgroundColor: colors.bg.card }]}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {g.name}
                       </Text>
                       <Text
@@ -407,7 +407,7 @@ export function PartneredLensDashboard() {
                       style={{
                         height: 4,
                         backgroundColor: colors.border.subtle,
-                        borderRadius: 2,
+                        borderRadius: 4,
                         marginTop: 6,
                       }}
                     >
@@ -416,7 +416,7 @@ export function PartneredLensDashboard() {
                           width: `${Math.min(g.progress || 0, 100)}%`,
                           height: 4,
                           backgroundColor: colors.accent.primary,
-                          borderRadius: 2,
+                          borderRadius: 4,
                         }}
                       />
                     </View>
@@ -428,9 +428,9 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Upcoming Shared Bills
               </Text>
             </View>
@@ -444,10 +444,10 @@ export function PartneredLensDashboard() {
                   >
                     <View style={[styles.dot, { backgroundColor: colors.accent.primary }]} />
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {b.title}
                       </Text>
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                         Due{' '}
                         {b.dueDate
                           ? new Date(b.dueDate).toLocaleDateString('en-IN', {
@@ -457,7 +457,7 @@ export function PartneredLensDashboard() {
                           : 'Soon'}
                       </Text>
                     </View>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                       {fmt(b.amount)}
                     </Text>
                   </View>
@@ -465,26 +465,26 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Spending Comparison
               </Text>
             </View>
             <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }}
               >
                 <View
                   style={{
                     flex: 1,
                     alignItems: 'center',
-                    padding: 12,
+                    padding: 18,
                     backgroundColor: colors.accent.primary + '10',
-                    borderRadius: 12,
+                    borderRadius: 28,
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.primary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.accent.primary }}>
                     You
                   </Text>
                   <Text
@@ -503,12 +503,12 @@ export function PartneredLensDashboard() {
                   style={{
                     flex: 1,
                     alignItems: 'center',
-                    padding: 12,
+                    padding: 18,
                     backgroundColor: colors.accent.secondary + '10',
-                    borderRadius: 12,
+                    borderRadius: 28,
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.secondary }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.accent.secondary }}>
                     Partner
                   </Text>
                   <Text
@@ -523,15 +523,15 @@ export function PartneredLensDashboard() {
                   </Text>
                 </View>
               </View>
-              <Text style={{ fontSize: 11, color: colors.text.tertiary, textAlign: 'center' }}>
+              <Text style={{ fontSize: 12, color: colors.text.tertiary, textAlign: 'center' }}>
                 Balanced spending this month
               </Text>
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Shared-finance spaces
               </Text>
               <TouchableOpacity
@@ -547,36 +547,36 @@ export function PartneredLensDashboard() {
                 <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
                   <View
                     style={{
-                      borderRadius: 16,
-                      padding: 16,
+                      borderRadius: 30,
+                      padding: 22,
                       alignItems: 'center',
                       backgroundColor: colors.bg.card,
                       flex: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: colors.accent.primary }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: colors.accent.primary }}>
                       {sharedGroups.length}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Total
                     </Text>
                   </View>
                   <View
                     style={{
-                      borderRadius: 16,
-                      padding: 16,
+                      borderRadius: 30,
+                      padding: 22,
                       alignItems: 'center',
                       backgroundColor: colors.bg.card,
                       flex: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 24, fontWeight: '800', color: '#22C55E' }}>
+                    <Text style={{ fontSize: 26, fontWeight: '800', color: '#22C55E' }}>
                       {
                         sharedGroups.filter((g: any) => g.type === 'couple' || g.type === 'family')
                           .length
                       }
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                       Shared
                     </Text>
                   </View>
@@ -594,8 +594,8 @@ export function PartneredLensDashboard() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 14,
-                    padding: 14,
+                    borderRadius: 28,
+                    padding: 18,
                     gap: 10,
                     backgroundColor: colors.bg.card,
                   }}
@@ -604,7 +604,7 @@ export function PartneredLensDashboard() {
                     style={{
                       width: 8,
                       height: 8,
-                      borderRadius: 4,
+                      borderRadius: 8,
                       backgroundColor:
                         s.type === 'couple'
                           ? '#F43F5E'
@@ -614,10 +614,10 @@ export function PartneredLensDashboard() {
                     }}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                       {s.name}
                     </Text>
-                    <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                    <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                       {s.memberCount || 0} members · {s.type}
                     </Text>
                   </View>
@@ -629,16 +629,16 @@ export function PartneredLensDashboard() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    borderRadius: 14,
-                    paddingVertical: 24,
-                    paddingHorizontal: 14,
+                    borderRadius: 28,
+                    paddingVertical: 28,
+                    paddingHorizontal: 24,
                     gap: 10,
                     backgroundColor: colors.bg.card,
                     justifyContent: 'center',
                   }}
                 >
                   <AntDesign name="team" size={24} color={colors.text.tertiary} />
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                     No shared spaces yet
                   </Text>
                   <TouchableOpacity
@@ -648,8 +648,8 @@ export function PartneredLensDashboard() {
                     style={{
                       marginTop: 10,
                       paddingVertical: 8,
-                      paddingHorizontal: 16,
-                      borderRadius: 10,
+                      paddingHorizontal: 24,
+                      borderRadius: 24,
                       backgroundColor: colors.accent.primary,
                     }}
                   >
@@ -660,10 +660,10 @@ export function PartneredLensDashboard() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16, gap: 8 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20, gap: 8 }}>
             <Text
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '700',
                 color: colors.text.primary,
                 marginBottom: 4,
@@ -676,7 +676,7 @@ export function PartneredLensDashboard() {
                 onPress={() =>
                   navigation.navigate('WalletTab', {
                     screen: 'AddExpense',
-                    params: { type: 'shared' },
+                    params: { type: 'expense' },
                   })
                 }
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
@@ -691,7 +691,7 @@ export function PartneredLensDashboard() {
                 onPress={() =>
                   navigation.navigate('WalletTab', {
                     screen: 'AddExpense',
-                    params: { type: 'shared_income' },
+                    params: { type: 'income' },
                   })
                 }
                 style={[styles.qaCard, { backgroundColor: colors.bg.card }]}
@@ -735,21 +735,21 @@ export function PartneredLensDashboard() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   iconBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroCard: { borderRadius: 24, padding: 20 },
-  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 12 },
-  heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)' },
-  heroStatValue: { fontSize: 18, fontWeight: '700', color: '#FFF', marginTop: 2 },
-  card: { borderRadius: 12, padding: 14 },
-  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, gap: 10 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  heroCard: { borderRadius: 32, padding: 24 },
+  heroStat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 28, padding: 18 },
+  heroStatLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+  heroStatValue: { fontSize: 19, fontWeight: '700', color: '#FFF', marginTop: 2 },
+  card: { borderRadius: 28, padding: 18 },
+  billRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 10 },
+  dot: { width: 8, height: 8, borderRadius: 8 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -767,18 +767,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: 28,
-    borderRadius: 16,
+    borderRadius: 30,
     marginTop: 8,
   },
-  ctaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  ctaText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   qaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  qaCard: { width: '48%', borderRadius: 18, padding: 16, alignItems: 'center', gap: 8 },
+  qaCard: { width: '48%', borderRadius: 26, padding: 22, alignItems: 'center', gap: 8 },
   qaIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

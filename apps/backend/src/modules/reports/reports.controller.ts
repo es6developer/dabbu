@@ -16,7 +16,8 @@ import { Queue } from 'bullmq';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PremiumGuard } from '../premium/guards/premium.guard';
+import { FeatureGuard } from '../premium/guards/feature.guard';
+import { RequiresPremium } from '../premium/guards/requires-premium.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ExportReportDto } from './dto/export-report.dto';
 
@@ -100,7 +101,8 @@ export class ReportsController {
   }
 
   @Get('custom')
-  @UseGuards(PremiumGuard)
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @ApiOperation({ summary: 'Generate a custom report with specific filters (premium)' })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
@@ -126,6 +128,8 @@ export class ReportsController {
   }
 
   @Post('export')
+  @UseGuards(FeatureGuard)
+  @RequiresPremium('advanced_reports')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Export report as PDF/Excel/CSV (optionally scoped to a lens)' })
   async exportReport(

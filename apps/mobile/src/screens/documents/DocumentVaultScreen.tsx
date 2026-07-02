@@ -10,6 +10,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 import { alertService } from "../../components/ui";
+import { PremiumGate } from '../../components/ui/PremiumGate';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CATEGORIES = [
   { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
@@ -159,11 +160,11 @@ export function DocumentVaultScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-        <View style={{ padding: 24, gap: 16 }}>
+        <View style={{ padding: 28, gap: 20 }}>
           <Skeleton width={140} height={14} />
-          <Skeleton width="100%" height={100} borderRadius={16} />
-          <Skeleton width="100%" height={80} borderRadius={12} />
-          <Skeleton width="100%" height={80} borderRadius={12} />
+          <Skeleton width="100%" height={100} borderRadius={24} />
+          <Skeleton width="100%" height={80} borderRadius={20} />
+          <Skeleton width="100%" height={80} borderRadius={20} />
         </View>
       </View>
     );
@@ -178,6 +179,7 @@ export function DocumentVaultScreen() {
   });
 
   return (
+    <PremiumGate featureKey="document_vault">
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={filtered}
@@ -192,7 +194,7 @@ export function DocumentVaultScreen() {
         }
         ListHeaderComponent={
           <>
-            <View style={{ paddingHorizontal: 20 }}>
+            <View style={{ paddingHorizontal: 24 }}>
               <Text style={[s.pageTitle, { color: colors.text.primary }]}>Document Vault</Text>
               <Text style={[s.pageSub, { color: colors.text.tertiary }]}>
                 {documents.length} document{documents.length !== 1 ? 's' : ''} stored securely
@@ -257,7 +259,7 @@ export function DocumentVaultScreen() {
             </View>
 
             {selectedCategory && (
-              <View style={{ paddingHorizontal: 20, marginTop: 4 }}>
+              <View style={{ paddingHorizontal: 24, marginTop: 4 }}>
                 <TouchableOpacity
                   onPress={() => setSelectedCategory(null)}
                   style={{ alignSelf: 'flex-start' }}
@@ -352,43 +354,44 @@ export function DocumentVaultScreen() {
         maxToRenderPerBatch={10}
       />
     </View>
+    </PremiumGate>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
   pageTitle: { fontSize: 26, fontWeight: '800', marginBottom: 4 },
-  pageSub: { fontSize: 13, marginBottom: 16 },
+  pageSub: { fontSize: 16, marginBottom: 20 },
   expiryBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    padding: 12,
-    borderRadius: 12,
+    marginHorizontal: 24,
+    padding: 18,
+    borderRadius: 28,
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  expiryText: { flex: 1, fontSize: 13, fontWeight: '600' },
+  expiryText: { flex: 1, fontSize: 16, fontWeight: '600' },
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   categoryCard: {
     width: (SCREEN_WIDTH - 56) / 4,
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 18,
     paddingHorizontal: 4,
-    borderRadius: 14,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderColor: 'transparent',
   },
   categoryIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -400,7 +403,7 @@ const s = StyleSheet.create({
     right: -4,
     minWidth: 18,
     height: 18,
-    borderRadius: 9,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
@@ -412,38 +415,38 @@ const s = StyleSheet.create({
     right: 4,
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 8,
   },
   clearFilter: { fontSize: 12, fontWeight: '600', marginBottom: 8 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 8,
   },
-  sectionTitle: { fontSize: 17, fontWeight: '700' },
-  sectionCount: { fontSize: 13, fontWeight: '600' },
+  sectionTitle: { fontSize: 19, fontWeight: '700' },
+  sectionCount: { fontSize: 16, fontWeight: '600' },
   docCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    padding: 14,
-    borderRadius: 16,
+    marginHorizontal: 24,
+    padding: 18,
+    borderRadius: 30,
     marginBottom: 8,
-    gap: 12,
+    gap: 14,
   },
   docIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  docName: { fontSize: 14, fontWeight: '600' },
-  docMeta: { fontSize: 11, marginTop: 2 },
-  docExpiry: { fontSize: 11, marginTop: 1, fontWeight: '500' },
-  emptyState: { alignItems: 'center', paddingTop: 60, gap: 12, paddingHorizontal: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  docName: { fontSize: 16, fontWeight: '600' },
+  docMeta: { fontSize: 12, marginTop: 2 },
+  docExpiry: { fontSize: 12, marginTop: 1, fontWeight: '500' },
+  emptyState: { alignItems: 'center', paddingTop: 60, gap: 14, paddingHorizontal: 44 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', lineHeight: 18 },
 });

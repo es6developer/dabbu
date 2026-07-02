@@ -642,6 +642,11 @@ async function executeRequest<T>(
       throw new Error(msg || `HTTP ${res.status}`);
     }
 
+    if (res.status === 204) {
+      if (!isGet) invalidateCacheForMutation(path);
+      return undefined as T;
+    }
+
     const body = await res.json();
     const data = body?.data ?? body;
 

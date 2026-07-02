@@ -108,7 +108,7 @@ export function TransactionDetailScreen() {
     );
   }
 
-  const isCredit = txn.type === 'arrowdown';
+  const isCredit = txn.type === 'income';
   const sign = isCredit ? '+' : '-';
   const fmtVal = (val: number) => '₹' + val.toLocaleString('en-IN');
   const cat = txn.category?.name || txn.category || 'Other';
@@ -150,7 +150,7 @@ export function TransactionDetailScreen() {
 
       <ScrollView
         style={s.body}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={[s.section, { backgroundColor: colors.bg.card }]}>
@@ -217,7 +217,7 @@ export function TransactionDetailScreen() {
         <View style={s.actionRow}>
           <TouchableOpacity
             style={[s.actionBtn, { backgroundColor: colors.bg.card }]}
-            onPress={() => navigation.push('AddExpense', { transaction: txn })}
+            onPress={() => navigation.navigate('AddExpense', { transactionId: txn.id, type: txn.type })}
             activeOpacity={0.7}
           >
             <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
@@ -229,13 +229,12 @@ export function TransactionDetailScreen() {
             style={[s.actionBtn, { backgroundColor: colors.bg.card }]}
             onPress={() =>
               navigation.navigate('AddExpense', {
-                prefill: {
-                  amount: Number(txn.amount),
-                  description: txn.description,
-                  categoryName: cat,
-                  date: new Date(txn.date || txn.createdAt).toISOString().split('T')[0],
-                  groupId: txn.expenseGroupId,
-                },
+                type: txn.type,
+                amount: String(Number(txn.amount)),
+                description: txn.description || '',
+                category: cat,
+                date: new Date(txn.date || txn.createdAt).toISOString().split('T')[0],
+                expenseGroupId: txn.expenseGroupId,
               })
             }
             activeOpacity={0.7}
@@ -296,27 +295,27 @@ const s = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   hero: {
-    paddingBottom: 32,
+    paddingBottom: 36,
     alignItems: 'center',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',
   },
-  heroTopRow: { width: '100%', marginBottom: 16 },
+  heroTopRow: { width: '100%', marginBottom: 20 },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroIcon: {
     width: 64,
     height: 64,
-    borderRadius: 22,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -324,7 +323,7 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   heroLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -336,22 +335,22 @@ const s = StyleSheet.create({
     letterSpacing: -1,
     marginBottom: 4,
   },
-  heroDesc: { fontSize: 16, fontWeight: '500', marginBottom: 12 },
+  heroDesc: { fontSize: 16, fontWeight: '500', marginBottom: 14 },
   heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 28,
   },
-  badgeDot: { width: 8, height: 8, borderRadius: 4 },
+  badgeDot: { width: 8, height: 8, borderRadius: 8 },
   badgeText: { fontSize: 12, fontWeight: '600' },
-  body: { flex: 1, paddingHorizontal: 16, marginTop: 20 },
+  body: { flex: 1, paddingHorizontal: 24, marginTop: 24 },
   section: {
-    borderRadius: 20,
+    borderRadius: 28,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -362,19 +361,19 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  rowLabel: { fontSize: 14, fontWeight: '500' },
-  rowValue: { fontSize: 14, fontWeight: '600', textAlign: 'right' },
+  rowLabel: { fontSize: 16, fontWeight: '500' },
+  rowValue: { fontSize: 16, fontWeight: '600', textAlign: 'right' },
   actionRow: { flexDirection: 'row', gap: 10 },
   actionBtn: {
     flex: 1,
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 20,
+    padding: 22,
+    borderRadius: 28,
     gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -384,10 +383,10 @@ const s = StyleSheet.create({
   },
   actionIcon: {
     width: 44,
-    height: 44,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: { fontSize: 13, fontWeight: '600' },
+  actionLabel: { fontSize: 16, fontWeight: '600' },
 });

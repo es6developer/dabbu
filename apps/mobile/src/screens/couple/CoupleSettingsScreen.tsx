@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
 
   hero: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 48,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
@@ -352,11 +352,11 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   heroTitle: {
     fontSize: 32,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   heroSub: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.75)',
     marginTop: 4,
@@ -381,13 +381,13 @@ const styles = StyleSheet.create({
   },
 
   profileSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginTop: -24,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   profileCard: {
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 28,
+    padding: 24,
     alignItems: 'center',
     shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 6 },
@@ -398,13 +398,13 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    gap: 14,
+    marginBottom: 14,
   },
   profileAvatar: {
     width: 56,
     height: 56,
-    borderRadius: 18,
+    borderRadius: 26,
     backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
@@ -417,20 +417,20 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: '#FFF',
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
   },
   heartWrap: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     backgroundColor: '#FF4D4F12',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   coupleName: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '800',
     textAlign: 'center',
   },
@@ -442,8 +442,8 @@ const styles = StyleSheet.create({
   },
 
   section: {
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginBottom: 24,
+    paddingHorizontal: 24,
   },
   sectionTitle: {
     fontSize: 12,
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   sectionCard: {
-    borderRadius: 20,
+    borderRadius: 28,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -467,19 +467,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
   },
   settingRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   settingIconWrap: {
-    marginRight: 14,
+    marginRight: 16,
   },
   settingIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   settingValue: {
@@ -496,13 +496,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   editBtn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 7,
-    borderRadius: 10,
+    borderRadius: 24,
     backgroundColor: '#F9731610',
   },
   editBtnText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
     color: '#F97316',
   },
@@ -510,9 +510,9 @@ const styles = StyleSheet.create({
   notifRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    gap: 14,
   },
   notifRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -521,20 +521,20 @@ const styles = StyleSheet.create({
   notifIcon: {
     width: 30,
     height: 30,
-    borderRadius: 9,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   notifLabel: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 
   inviteBtn: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 20,
+    marginHorizontal: 24,
+    marginBottom: 20,
+    borderRadius: 28,
     overflow: 'hidden',
   },
   inviteGradient: {
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   inviteText: {
     fontSize: 16,
@@ -553,9 +553,9 @@ const styles = StyleSheet.create({
   leaveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    padding: 16,
-    borderRadius: 20,
+    marginHorizontal: 24,
+    padding: 22,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,77,79,0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -566,15 +566,15 @@ const styles = StyleSheet.create({
   leaveIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     backgroundColor: '#FF4D4F12',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   leaveText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FF4D4F',
   },
@@ -583,20 +583,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '500',
-    marginTop: 24,
+    marginTop: 28,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: '#FF4D4F12',
-    marginHorizontal: 20,
-    marginTop: 12,
-    padding: 14,
-    borderRadius: 14,
+    marginHorizontal: 24,
+    marginTop: 14,
+    padding: 18,
+    borderRadius: 28,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     color: '#FF4D4F',
     flex: 1,

@@ -39,7 +39,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     scrollContent: {
       paddingBottom: PADDING + 16,
-      paddingTop: 16,
+      paddingTop: 20,
     },
     tabBarFixed: {
       position: 'absolute',
@@ -51,18 +51,18 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     tabBar: {
       flexDirection: 'row',
       backgroundColor: colors.bg.glass,
-      borderRadius: borderRadius.lg,
+      borderRadius: 16,
       padding: 4,
       position: 'relative',
     },
     tab: {
       flex: 1,
-      paddingVertical: 12,
+      paddingVertical: 16,
       alignItems: 'center',
       zIndex: 2,
     },
     tabText: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
@@ -73,7 +73,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       top: 0,
       left: 4,
       backgroundColor: colors.brand.primary,
-      borderRadius: borderRadius.md,
+      borderRadius: 12,
       zIndex: 1,
       ...shadows.sm,
     },
@@ -82,14 +82,13 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       color: colors.text.primary,
     },
     subtitle: {
-      fontSize: 15,
+      fontSize: 16,
       color: colors.text.secondary,
       marginTop: 6,
       fontFamily: 'Inter-Regular',
-      lineHeight: 22,
+      lineHeight: 24,
       marginBottom: PADDING,
     },
-    form: {},
     nameRow: {
       flexDirection: 'row',
       gap: 10,
@@ -99,24 +98,24 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     inputContainer: {
       height: 54,
-      backgroundColor: colors.bg.secondary,
-      borderRadius: borderRadius.lg,
-      borderWidth: 1,
+      backgroundColor: colors.bg.tertiary,
+      borderRadius: 16,
+      borderWidth: 1.5,
       borderColor: colors.border.default,
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 14,
     },
     input: {
       flex: 1,
       color: colors.text.primary,
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: 'Inter-Regular',
       paddingVertical: 0,
     },
     inputIcon: {
-      marginRight: 12,
+      marginRight: 14,
     },
     iconBtn: {
       marginLeft: 8,
@@ -126,14 +125,14 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.status.errorLight,
-      padding: 14,
-      borderRadius: borderRadius.lg,
-      marginBottom: 12,
+      padding: 16,
+      borderRadius: 16,
+      marginBottom: 14,
       gap: 10,
     },
     errorText: {
       color: colors.status.error,
-      fontSize: 13,
+      fontSize: 14,
       fontFamily: 'Inter-Medium',
       flex: 1,
     },
@@ -151,7 +150,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     checkbox: {
       width: 22,
       height: 22,
-      borderRadius: 6,
+      borderRadius: 8,
       borderWidth: 1.5,
       borderColor: colors.border.default,
       justifyContent: 'center',
@@ -164,18 +163,18 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     checkboxLabel: {
       color: colors.text.secondary,
-      fontSize: 13,
+      fontSize: 15,
       fontFamily: 'Inter-Medium',
     },
     forgotLink: {
       color: colors.text.link,
-      fontSize: 13,
+      fontSize: 15,
       fontFamily: 'Inter-Semibold',
     },
     primaryButton: {
-      height: 56,
+      height: 54,
       backgroundColor: colors.brand.primary,
-      borderRadius: borderRadius.xl,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 8,
@@ -190,17 +189,17 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     switchRow: {
       flexDirection: 'row',
       justifyContent: 'center',
-      marginTop: 12,
+      marginTop: 14,
       marginBottom: 4,
     },
     switchText: {
       color: colors.text.secondary,
-      fontSize: 13,
+      fontSize: 15,
       fontFamily: 'Inter-Regular',
     },
     switchLink: {
       color: colors.text.link,
-      fontSize: 13,
+      fontSize: 15,
       fontFamily: 'Inter-SemiBold',
     },
     divider: {
@@ -215,16 +214,16 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     dividerText: {
       color: colors.text.tertiary,
-      fontSize: 12,
+      fontSize: 14,
       fontFamily: 'Inter-Medium',
-      marginHorizontal: 12,
+      marginHorizontal: 14,
     },
     googleButton: {
       height: 54,
       backgroundColor: colors.bg.secondary,
-      borderRadius: borderRadius.xl,
-      borderWidth: 1,
-      borderColor: colors.border.subtle,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderColor: colors.border.default,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
@@ -233,14 +232,14 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     googleButtonText: {
       color: colors.text.primary,
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: 'Inter-SemiBold',
     },
     demoButton: {
       height: 54,
       backgroundColor: colors.brand.light,
-      borderRadius: borderRadius.xl,
-      borderWidth: 1,
+      borderRadius: 16,
+      borderWidth: 1.5,
       borderColor: colors.border.active,
       flexDirection: 'row',
       justifyContent: 'center',
@@ -250,7 +249,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     demoButtonText: {
       color: colors.brand.primary,
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: 'Inter-SemiBold',
     },
     privacyRow: {
@@ -259,7 +258,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     privacyText: {
       color: colors.text.tertiary,
-      fontSize: 12,
+      fontSize: 13,
       fontFamily: 'Inter-Medium',
     },
   });
@@ -300,7 +299,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = secureTextEntry !== undefined;
 
-    const borderColor = focused ? colors.border.default : colors.border.default;
+    const borderColor = focused ? colors.accent.primary : colors.border.default;
 
     return (
       <View style={[styles.inputContainer, { borderColor }]}>
@@ -308,7 +307,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
           <AntDesign
             name={icon as any}
             size={18}
-            color={focused ? colors.brand.primary : colors.text.tertiary}
+            color={focused ? colors.accent.primary : colors.text.tertiary}
             style={styles.inputIcon}
           />
         )}
@@ -361,9 +360,9 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.status.errorLight,
-        padding: 14,
-        borderRadius: borderRadius.lg,
-        marginBottom: 12,
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 14,
         gap: 10,
       }}
     >
@@ -371,7 +370,7 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
       <Text
         style={{
           color: colors.status.error,
-          fontSize: 13,
+          fontSize: 14,
           fontFamily: 'Inter-Medium',
           flex: 1,
         }}
@@ -399,9 +398,9 @@ function PrimaryButton({
       <TouchableOpacity
         style={
           {
-            height: 56,
+            height: 54,
             backgroundColor: colors.brand.primary,
-            borderRadius: borderRadius.xl,
+            borderRadius: 16,
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 8,
@@ -632,7 +631,7 @@ export function PremiumAuthScreen() {
     );
   }
 
-  const TAB_BAR_HEIGHT = 52;
+  const TAB_BAR_HEIGHT = 48;
 
   return (
     <PremiumAuthLayout>

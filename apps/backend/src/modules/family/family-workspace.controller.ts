@@ -5,6 +5,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/interfaces';
 import { FamilyWorkspaceService } from './family-workspace.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 
 @ApiTags('Family Workspace')
 @ApiBearerAuth()
@@ -27,7 +28,7 @@ export class FamilyWorkspaceController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update workspace' })
-  update(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() data: any) {
-    return this.service.update(id, user.id, data);
+  update(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateWorkspaceDto) {
+    return this.service.update(id, user.id, dto);
   }
 }

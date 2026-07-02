@@ -25,6 +25,7 @@ import { ToastProvider } from './src/store/ToastContext';
 import { AlertProvider } from './src/components/ui/CustomAlert';
 import { loadFeatures } from './src/config/features';
 import { useNotifications } from './src/hooks/useNotifications';
+import { InAppNotificationBanner } from './src/components/ui/InAppNotificationBanner';
 import { warmupBackend } from './src/services/api';
 import { startDynamicAppIconCleanupListener } from './src/services/dynamicAppIcon';
 
@@ -36,8 +37,13 @@ SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
 
 function NotificationInitializer() {
-  useNotifications();
-  return null;
+  const { inAppNotification, clearInAppNotification } = useNotifications();
+  return inAppNotification ? (
+    <InAppNotificationBanner
+      notification={inAppNotification}
+      onDismiss={clearInAppNotification}
+    />
+  ) : null;
 }
 
 function ThemedStatusBar() {

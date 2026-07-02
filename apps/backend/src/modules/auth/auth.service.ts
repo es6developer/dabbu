@@ -459,7 +459,7 @@ export class AuthService {
     platform?: string,
   ): Promise<{ user: any; tokens: TokenPair }> {
     const DEMO_EMAIL = 'demo@dabbu.app';
-    const DEMO_PASSWORD = 'Demo123!';
+    const DEMO_PASSWORD = 'TestPass123!';
 
     let user = await this.prisma.user.findUnique({
       where: { email: DEMO_EMAIL },
@@ -1392,7 +1392,19 @@ export class AuthService {
     if (!preset) {
       throw new BadRequestException('Invalid preset seed');
     }
-    const avatarUrl = this.generateAvatarUrl(preset.seed);
+    return this.applyAvatar(userId, preset.seed);
+  }
+
+  async selectPresetAvatarByIndex(userId: string, index: number): Promise<{ avatarUrl: string }> {
+    const preset = this.AVATAR_PRESETS[index];
+    if (!preset) {
+      throw new BadRequestException('Invalid avatar index');
+    }
+    return this.applyAvatar(userId, preset.seed);
+  }
+
+  private async applyAvatar(userId: string, seed: string): Promise<{ avatarUrl: string }> {
+    const avatarUrl = this.generateAvatarUrl(seed);
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },

@@ -122,7 +122,7 @@ export function PhoneScreen() {
                   fontSize: 12,
                   color: colors.status.error,
                   marginTop: -12,
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
                 {fieldError}
@@ -154,23 +154,23 @@ export function PhoneScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  inner: { flex: 1, paddingHorizontal: 24 },
-  center: { alignItems: 'center', marginBottom: 24, marginTop: 40 },
-  logo: { width: 72, height: 72, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
+  inner: { flex: 1, paddingHorizontal: 28 },
+  center: { alignItems: 'center', marginBottom: 28, marginTop: 44 },
+  logo: { width: 72, height: 72, marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: 24 },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
+    padding: 18,
+    borderRadius: 28,
+    marginBottom: 20,
     gap: 8,
   },
-  errorText: { fontSize: 13, flex: 1 },
-  card: { borderRadius: 24, borderWidth: 1, padding: 20, marginBottom: 24 },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
-  input: { fontSize: 16, padding: 16, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
-  saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  errorText: { fontSize: 16, flex: 1 },
+  card: { borderRadius: 32, borderWidth: 1.5, padding: 24, marginBottom: 28 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
+  input: { fontSize: 16, padding: 22, borderRadius: 28, marginBottom: 20, borderWidth: 1.5 },
+  saveBtn: { paddingVertical: 20, borderRadius: 28, alignItems: 'center' },
   saveBtnText: { fontSize: 16, fontWeight: '600' },
 });

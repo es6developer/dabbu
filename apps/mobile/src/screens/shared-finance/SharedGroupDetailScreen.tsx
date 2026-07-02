@@ -678,13 +678,11 @@ export function SharedGroupDetailScreen() {
                 onPress={() => setActiveTab(tab.key)}
                 style={[
                   s.tabChip,
-                  activeTab === tab.key
-                    ? { backgroundColor: colors.accent.primary }
-                    : {
-                        backgroundColor: colors.bg.card,
-                        borderColor: colors.border.subtle,
-                        borderWidth: 1,
-                      },
+                  {
+                    backgroundColor: activeTab === tab.key
+                      ? colors.accent.primary
+                      : colors.bg.tertiary,
+                  },
                 ]}
               >
                 <AntDesign
@@ -768,7 +766,7 @@ export function SharedGroupDetailScreen() {
                 ]}
               >
                 <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}
                 >
                   <View
                     style={[s.settlementIcon, { backgroundColor: colors.accent.primary + '12' }]}
@@ -955,7 +953,7 @@ export function SharedGroupDetailScreen() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: '700',
                             color:
                               analyticsData.fairnessScore >= 0.5
@@ -977,7 +975,7 @@ export function SharedGroupDetailScreen() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: '700',
                             color:
                               analyticsData.settlementScore >= 70
@@ -1001,7 +999,7 @@ export function SharedGroupDetailScreen() {
                     style={{
                       width: 4,
                       height: 14,
-                      borderRadius: 2,
+                      borderRadius: 4,
                       backgroundColor: colors.accent.primary,
                     }}
                   />
@@ -1086,7 +1084,7 @@ export function SharedGroupDetailScreen() {
                     style={{
                       width: 4,
                       height: 14,
-                      borderRadius: 2,
+                      borderRadius: 4,
                       backgroundColor: colors.accent.primary,
                     }}
                   />
@@ -1117,15 +1115,15 @@ export function SharedGroupDetailScreen() {
                           style={{
                             width: 10,
                             height: 10,
-                            borderRadius: 5,
+                            borderRadius: 10,
                             backgroundColor: m.color,
                           }}
                         />
-                        <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
+                        <Text style={{ flex: 1, fontSize: 16, color: colors.text.primary }}>
                           {m.name}
                         </Text>
                         <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}
+                          style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary }}
                         >
                           {fmt(m.amount)}
                         </Text>
@@ -1208,7 +1206,7 @@ export function SharedGroupDetailScreen() {
                     style={{
                       width: 4,
                       height: 14,
-                      borderRadius: 2,
+                      borderRadius: 4,
                       backgroundColor: colors.accent.primary,
                     }}
                   />
@@ -1223,13 +1221,13 @@ export function SharedGroupDetailScreen() {
                       {
                         backgroundColor: colors.accent.primary + '08',
                         borderColor: colors.accent.primary + '20',
-                        marginBottom: 12,
+                        marginBottom: 14,
                       },
                     ]}
                   >
                     <Text
                       style={{
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: '600',
                         color: colors.text.primary,
                         marginBottom: 4,
@@ -1245,7 +1243,7 @@ export function SharedGroupDetailScreen() {
                         {aiNarrative.highlights.slice(0, 3).map((h: any, i: number) => (
                           <Text
                             key={i}
-                            style={{ fontSize: 11, color: colors.status.success, marginBottom: 2 }}
+                            style={{ fontSize: 12, color: colors.status.success, marginBottom: 2 }}
                           >
                             • {typeof h === 'string' ? h : h?.text || ''}
                           </Text>
@@ -1257,7 +1255,7 @@ export function SharedGroupDetailScreen() {
                         {aiNarrative.recommendations.slice(0, 2).map((r: any, i: number) => (
                           <Text
                             key={i}
-                            style={{ fontSize: 11, color: colors.accent.primary, marginBottom: 2 }}
+                            style={{ fontSize: 12, color: colors.accent.primary, marginBottom: 2 }}
                           >
                             💡 {typeof r === 'string' ? r : r?.text || ''}
                           </Text>
@@ -1320,7 +1318,7 @@ export function SharedGroupDetailScreen() {
                 style={{
                   width: 4,
                   height: 14,
-                  borderRadius: 2,
+                  borderRadius: 4,
                   backgroundColor: colors.accent.primary,
                 }}
               />
@@ -1405,12 +1403,12 @@ export function SharedGroupDetailScreen() {
                         >
                           {ms.name}
                         </Text>
-                        <Text style={{ fontSize: 11, color: colors.text.tertiary }}>
+                        <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
                           Paid {fmt(ms.totalPaid)}
                         </Text>
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: '700',
                             color: msColor,
                             minWidth: 50,
@@ -1437,7 +1435,7 @@ export function SharedGroupDetailScreen() {
                 style={{
                   width: 4,
                   height: 14,
-                  borderRadius: 2,
+                  borderRadius: 4,
                   backgroundColor: colors.accent.primary,
                 }}
               />
@@ -1598,7 +1596,7 @@ export function SharedGroupDetailScreen() {
                 placeholderTextColor={colors.text.tertiary}
                 autoFocus
               />
-              <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>
+              <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 20 }]}>
                 Description
               </Text>
               <TextInput
@@ -1667,7 +1665,7 @@ const s = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1677,9 +1675,9 @@ const s = StyleSheet.create({
     gap: 10,
     paddingHorizontal: spacing.xl,
   },
-  heroName: { fontSize: 17, fontWeight: '800' },
-  heroMeta: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  heroName: { fontSize: 19, fontWeight: '800' },
+  heroMeta: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  typeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8 },
   typeBadgeText: { fontSize: 9, fontWeight: '700', textTransform: 'capitalize' },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   actionBtn: {
@@ -1690,49 +1688,49 @@ const s = StyleSheet.create({
     gap: 6,
     paddingVertical: spacing.md,
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   actionIconBg: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionLabel: { fontSize: 12, fontWeight: '700' },
-  summaryCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.lg, gap: 4 },
+  summaryCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing.lg, gap: 4 },
   summaryIcon: {
     width: 28,
     height: 28,
-    borderRadius: 9,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   summaryLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
-  summaryValue: { fontSize: 15, fontWeight: '700' },
+  summaryValue: { fontSize: 16, fontWeight: '700' },
   tabChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 26,
   },
   tabChipText: { fontSize: 12, fontWeight: '700' },
   settlementCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
   settlementIcon: {
     width: 30,
     height: 30,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  settlementTitle: { fontSize: 14, fontWeight: '700' },
+  settlementTitle: { fontSize: 16, fontWeight: '700' },
   viewAllText: { fontSize: 12, fontWeight: '600' },
   settleRow: {
     flexDirection: 'row',
@@ -1741,33 +1739,33 @@ const s = StyleSheet.create({
     paddingVertical: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  settleLabel: { fontSize: 13, fontWeight: '600' },
-  settleAmount: { fontSize: 11, marginTop: 1 },
+  settleLabel: { fontSize: 16, fontWeight: '600' },
+  settleAmount: { fontSize: 12, marginTop: 1 },
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 7,
-    borderRadius: 10,
+    borderRadius: 24,
   },
-  payBtnText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  payBtnText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   monthCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
   monthIcon: {
     width: 30,
     height: 30,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   monthLabel: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
   monthValue: { fontSize: 16, fontWeight: '700' },
-  countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
   countText: { fontSize: 10, fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row',
@@ -1776,29 +1774,29 @@ const s = StyleSheet.create({
     marginBottom: spacing.sm,
     marginTop: spacing.xs,
   },
-  sectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+  sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
   membersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   memberChip: { alignItems: 'center', gap: 3, width: 56 },
   memberAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberInitial: { fontSize: 13, fontWeight: '700' },
+  memberInitial: { fontSize: 16, fontWeight: '700' },
   memberChipName: { fontSize: 9, fontWeight: '600', textAlign: 'center' },
   emptyBox: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing['2xl'],
     alignItems: 'center',
     gap: spacing.sm,
   },
-  emptyText: { fontSize: 13, fontWeight: '500', textAlign: 'center' },
+  emptyText: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
   txnCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.xs,
   },
@@ -1806,17 +1804,17 @@ const s = StyleSheet.create({
   txnIconBg: {
     width: 34,
     height: 34,
-    borderRadius: 11,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  txnDesc: { fontSize: 13, fontWeight: '600' },
+  txnDesc: { fontSize: 16, fontWeight: '600' },
   txnSub: { fontSize: 10, fontWeight: '500' },
-  catBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
+  catBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 8 },
   catBadgeText: { fontSize: 8, fontWeight: '700' },
   txnDate: { fontSize: 9, fontWeight: '500' },
   shareText: { fontSize: 9, fontWeight: '600' },
-  txnAmount: { fontSize: 14, fontWeight: '700' },
+  txnAmount: { fontSize: 16, fontWeight: '700' },
   fab: {
     position: 'absolute',
     right: 20,
@@ -1832,18 +1830,18 @@ const s = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  errText: { fontSize: 16, textAlign: 'center', paddingHorizontal: 24 },
-  retry: { marginTop: 18, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
+  errText: { fontSize: 16, textAlign: 'center', paddingHorizontal: 28 },
+  retry: { marginTop: 22, paddingHorizontal: 28, paddingVertical: 18, borderRadius: 28 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 28,
   },
-  modalContent: { width: '100%', borderRadius: 24, padding: 24, gap: 16 },
-  modalTitle: { fontSize: 20, fontWeight: '700' },
-  modalDesc: { fontSize: 14, lineHeight: 20 },
+  modalContent: { width: '100%', borderRadius: 32, padding: 28, gap: 20 },
+  modalTitle: { fontSize: 26, fontWeight: '700' },
+  modalDesc: { fontSize: 16, lineHeight: 24 },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   modalBtn: {
     flex: 1,
@@ -1851,37 +1849,37 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
-  modalBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  fieldLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  modalBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  fieldLabel: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   textInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    fontSize: 16,
   },
   catCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
   catDivider: { height: 1, marginVertical: spacing.sm },
-  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catDot: { width: 8, height: 8, borderRadius: 8 },
   catName: { fontSize: 12, fontWeight: '600' },
   catAmount: { fontSize: 12, fontWeight: '600' },
-  catBarBg: { height: 4, borderRadius: 2, backgroundColor: 'rgba(128,128,128,0.12)' },
-  catBarFill: { height: 4, borderRadius: 2 },
-  catPercent: { fontSize: 11, fontWeight: '600', minWidth: 32, textAlign: 'right' },
+  catBarBg: { height: 4, borderRadius: 4, backgroundColor: 'rgba(128,128,128,0.12)' },
+  catBarFill: { height: 4, borderRadius: 4 },
+  catPercent: { fontSize: 12, fontWeight: '600', minWidth: 32, textAlign: 'right' },
   insightCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  insightTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  insightTitle: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   insightLine: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });

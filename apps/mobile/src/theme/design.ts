@@ -1,19 +1,19 @@
 import { ViewStyle, TextStyle, StyleSheet } from 'react-native';
 
-// ─── SPACING (8pt Grid) ─────────────────────────────────────
+// ─── SPACING (One UI 8.5 — generous padding) ───────────────
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 32,
-  '4xl': 40,
-  '5xl': 48,
-  '6xl': 56,
-  '7xl': 64,
-  '8xl': 80,
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 22,
+  '2xl': 28,
+  '3xl': 36,
+  '4xl': 44,
+  '5xl': 52,
+  '6xl': 60,
+  '7xl': 68,
+  '8xl': 84,
 } as const;
 
 // ─── CORNER RADIUS (One UI 8.5 — larger, more rounded) ────
@@ -32,11 +32,11 @@ export const borderRadius = {
   full: 9999,
 } as const;
 
-// ─── BUTTON HEIGHT ──────────────────────────────────────────
+// ─── BUTTON HEIGHT (One UI 8.5 — pill buttons, large touch targets) ──
 export const buttonHeight = {
-  sm: 44,
-  md: 50,
-  lg: 56,
+  sm: 48,
+  md: 54,
+  lg: 60,
 } as const;
 
 // ─── SHADOWS (One UI 8.5 — softer, more elevated) ───────
@@ -120,8 +120,8 @@ export const fabShadow = {
   elevation: 6,
 } as ViewStyle;
 
-// ─── LAYOUT CONSTANTS ───────────────────────────────────────
-export const PADDING = spacing.xl;
+// ─── LAYOUT CONSTANTS (One UI 8.5 — generous content padding) ──
+export const PADDING = spacing['2xl'];
 
 // ─── ICON SIZES ─────────────────────────────────────────────
 export const iconSizes = {
@@ -194,37 +194,38 @@ export function cardPreset(colors: Colors, level: 'default' | 'compact' | 'eleva
   return presets[level];
 }
 
-/** Apple-style list row */
+/** One UI 8.5 — tall list row with generous spacing */
 export function listRow(colors: Colors): ViewStyle {
   return {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing['2xl'],
     backgroundColor: colors.bg.card,
-    gap: spacing.md,
+    gap: spacing.lg,
+    minHeight: 56,
   } as ViewStyle;
 }
 
-/** Section header style - pass colors.text.tertiary for color */
+/** One UI 8.5 — bold section header with extra spacing */
 export function sectionHeader(textColor?: string): TextStyle {
   return {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing['2xl'],
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
     color: textColor || undefined,
   } as TextStyle;
 }
 
-/** Apple-style hairline separator */
+/** One UI 8.5 — subtle separator */
 export function separator(colors: Colors, inset = false): ViewStyle {
   return {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border.subtle,
-    marginLeft: inset ? spacing.xl : 0,
+    marginLeft: inset ? spacing['2xl'] : 0,
   };
 }

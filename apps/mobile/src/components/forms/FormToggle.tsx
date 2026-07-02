@@ -41,11 +41,11 @@ const styles = StyleSheet.create({
   },
   textCol: {
     flex: 1,
-    marginRight: 12,
+    marginRight: 14,
     gap: 2,
   },
   label: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   description: {

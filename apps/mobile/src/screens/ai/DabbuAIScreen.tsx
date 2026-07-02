@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -140,6 +141,7 @@ export function DabbuAIScreen() {
   const level = healthScore?.financialLevel || '';
 
   return (
+    <PremiumGate featureKey="ai_coach">
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Text style={[styles.greeting, { color: colors.text.tertiary }]}>AI Intelligence</Text>
@@ -298,7 +300,7 @@ export function DabbuAIScreen() {
               ))}
 
             {anomalies.length > 0 && (
-              <View style={{ marginTop: 16 }}>
+              <View style={{ marginTop: 20 }}>
                 <Text
                   style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}
                 >
@@ -321,7 +323,7 @@ export function DabbuAIScreen() {
             )}
 
             {milestones.length > 0 && (
-              <View style={{ marginTop: 16 }}>
+              <View style={{ marginTop: 20 }}>
                 <Text
                   style={[styles.insightTitle, { color: colors.text.primary, marginBottom: 8 }]}
                 >
@@ -543,13 +545,14 @@ export function DabbuAIScreen() {
         )}
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
-  greeting: { fontSize: 13, fontWeight: '500', letterSpacing: 0.3 },
+  greeting: { fontSize: 16, fontWeight: '500', letterSpacing: 0.3 },
   title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5, marginTop: 2 },
   tabBar: {
     flexDirection: 'row',
@@ -559,7 +562,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm },
-  tabText: { fontSize: 13, letterSpacing: 0.2 },
+  tabText: { fontSize: 16, letterSpacing: 0.2 },
   content: { flex: 1 },
   contentInner: { padding: spacing.xl, paddingBottom: 100 },
   healthCard: {
@@ -571,8 +574,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   healthLabel: { fontSize: 12, fontWeight: '500' },
-  healthScore: { fontSize: 24, fontWeight: '700', marginTop: 2 },
-  healthLevel: { fontSize: 13, marginTop: 1, textTransform: 'capitalize' },
+  healthScore: { fontSize: 26, fontWeight: '700', marginTop: 2 },
+  healthLevel: { fontSize: 16, marginTop: 1, textTransform: 'capitalize' },
   healthRing: {
     width: 56,
     height: 56,
@@ -581,7 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  healthRingText: { fontSize: 18, fontWeight: '800' },
+  healthRingText: { fontSize: 19, fontWeight: '800' },
   insightCard: {
     flexDirection: 'row',
     borderRadius: borderRadius['2xl'],
@@ -589,10 +592,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     gap: spacing.md,
   },
-  insightDot: { width: 4, borderRadius: 2, marginTop: 4 },
+  insightDot: { width: 4, borderRadius: 4, marginTop: 4 },
   insightContent: { flex: 1 },
-  insightTitle: { fontSize: 14, fontWeight: '600' },
-  insightDesc: { fontSize: 13, marginTop: 2, lineHeight: 18 },
+  insightTitle: { fontSize: 16, fontWeight: '600' },
+  insightDesc: { fontSize: 16, marginTop: 2, lineHeight: 18 },
   predictCard: {
     flexDirection: 'row',
     borderRadius: borderRadius['2xl'],
@@ -603,7 +606,7 @@ const styles = StyleSheet.create({
   },
   predictInfo: { flex: 1 },
   predictLabel: { fontSize: 12 },
-  predictValue: { fontSize: 20, fontWeight: '700', marginTop: 1 },
+  predictValue: { fontSize: 26, fontWeight: '700', marginTop: 1 },
   savingCard: {
     flexDirection: 'row',
     borderRadius: borderRadius['2xl'],
@@ -613,19 +616,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   savingInfo: { flex: 1 },
-  savingTitle: { fontSize: 14, fontWeight: '600' },
+  savingTitle: { fontSize: 16, fontWeight: '600' },
   savingDesc: { fontSize: 12, marginTop: 1 },
-  emptyState: { alignItems: 'center', paddingVertical: 40, gap: spacing.md },
-  emptyText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyState: { alignItems: 'center', paddingVertical: 44, gap: spacing.md },
+  emptyText: { fontSize: 16, textAlign: 'center', lineHeight: 24 },
   chatContainer: { flex: 1, minHeight: 400 },
   chatScroll: { flex: 1 },
   chatScrollInner: { paddingBottom: spacing.md },
-  chatEmpty: { alignItems: 'center', paddingVertical: 40, gap: spacing.md },
-  chatEmptyTitle: { fontSize: 18, fontWeight: '600' },
-  chatEmptyDesc: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  chatEmpty: { alignItems: 'center', paddingVertical: 44, gap: spacing.md },
+  chatEmptyTitle: { fontSize: 19, fontWeight: '600' },
+  chatEmptyDesc: { fontSize: 16, textAlign: 'center', lineHeight: 18 },
   chatMsg: { marginBottom: spacing.sm, maxWidth: '80%' },
   chatBubble: { borderRadius: borderRadius['2xl'], padding: spacing.md },
-  chatText: { fontSize: 14, lineHeight: 20 },
+  chatText: { fontSize: 16, lineHeight: 24 },
   chatInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -638,6 +641,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius['2xl'],
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    fontSize: 14,
+    fontSize: 16,
   },
 });

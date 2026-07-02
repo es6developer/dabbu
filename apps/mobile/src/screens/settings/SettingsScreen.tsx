@@ -289,7 +289,7 @@ export function SettingsScreen() {
         <Animated.View style={{ opacity: fadeAnim }}>
           {/* ── Pending Couple Requests ── */}
           {pendingRequests.length > 0 && (
-            <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
+            <View style={{ paddingHorizontal: PADDING, marginBottom: 24 }}>
               <View
                 style={[
                   s.coupleCard,
@@ -414,7 +414,7 @@ export function SettingsScreen() {
           </View>
 
           {/* ── Settings Sections ── */}
-          <View style={{ paddingHorizontal: PADDING, marginTop: 24, gap: 24 }}>
+          <View style={{ paddingHorizontal: PADDING, marginTop: 28, gap: 28 }}>
             {SECTIONS.map((section, i) => (
               <View key={i}>
                 <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
@@ -466,17 +466,17 @@ const s = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 22,
     borderRadius: borderRadius['2xl'],
-    gap: 14,
+    gap: 16,
   },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
-  profileEmail: { fontSize: 13, fontWeight: '500', marginTop: 2 },
+  profileName: { fontSize: 19, fontWeight: '700', letterSpacing: -0.3 },
+  profileEmail: { fontSize: 16, fontWeight: '500', marginTop: 2 },
   profileChevron: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -486,44 +486,44 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 5,
-    borderRadius: 20,
+    borderRadius: 28,
   },
   pillText: { fontSize: 12, fontWeight: '700' },
 
-  coupleCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, overflow: 'hidden' },
+  coupleCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, overflow: 'hidden' },
   coupleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 11,
     borderBottomWidth: 1,
   },
-  coupleTitle: { fontSize: 14, fontWeight: '800', flex: 1 },
+  coupleTitle: { fontSize: 16, fontWeight: '800', flex: 1 },
   coupleCount: { fontSize: 12, fontWeight: '700' },
   coupleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
+    gap: 14,
+    paddingHorizontal: 24,
     paddingVertical: 11,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   coupleAvatar: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  coupleName: { fontSize: 13, fontWeight: '700' },
-  coupleDetail: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  coupleName: { fontSize: 16, fontWeight: '700' },
+  coupleDetail: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   approveBtn: {
     width: 30,
     height: 30,
-    borderRadius: 9,
+    borderRadius: 22,
     backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
@@ -531,42 +531,42 @@ const s = StyleSheet.create({
   rejectBtn: {
     width: 30,
     height: 30,
-    borderRadius: 9,
+    borderRadius: 22,
     backgroundColor: '#FF475720',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FF475740',
   },
 
   upgradeCard: {
     marginHorizontal: PADDING,
-    marginBottom: 20,
+    marginBottom: 24,
     borderRadius: borderRadius['2xl'],
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   upgradeAccent: { height: 3, backgroundColor: '#FFD700' },
   upgradeContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    gap: 14,
+    padding: 22,
+    gap: 16,
   },
   upgradeIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: '#FFD700',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  upgradeTitle: { fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
+  upgradeTitle: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
   upgradeDesc: { fontSize: 12, fontWeight: '500', marginTop: 1 },
   upgradeBtn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 28,
     backgroundColor: '#FFD700',
   },
   upgradeBtnText: { fontSize: 12, fontWeight: '800', color: '#0A0A0A' },
@@ -583,22 +583,22 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 13,
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 14,
   },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth },
   rowIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
+  rowLabel: { flex: 1, fontSize: 16, fontWeight: '600' },
   badge: {
     paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: 5,
+    borderRadius: 10,
     marginRight: 4,
   },
   badgeText: { fontSize: 9, fontWeight: '800' },
@@ -606,26 +606,26 @@ const s = StyleSheet.create({
   logoutCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     marginHorizontal: PADDING,
-    marginTop: 24,
-    padding: 16,
+    marginTop: 28,
+    padding: 22,
     borderRadius: borderRadius['2xl'],
   },
   logoutIcon: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoutText: { fontSize: 15, fontWeight: '700' },
+  logoutText: { fontSize: 16, fontWeight: '700' },
 
   version: {
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '500',
-    marginTop: 24,
+    marginTop: 28,
     marginBottom: 8,
   },
 });

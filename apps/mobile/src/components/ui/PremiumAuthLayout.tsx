@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   glowBadge: {
     width: 88,
     height: 88,
-    borderRadius: 44,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   glowInner: {
     width: 72,
     height: 72,
-    borderRadius: 36,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   tagline: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     letterSpacing: 0.2,
     textAlign: 'center',

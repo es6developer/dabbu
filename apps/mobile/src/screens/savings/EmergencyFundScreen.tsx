@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
+import { PremiumGate } from '../../components/ui/PremiumGate';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -54,6 +55,7 @@ export function EmergencyFundScreen() {
   };
 
   return (
+    <PremiumGate featureKey="emergency_fund_tracker">
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -133,6 +135,7 @@ export function EmergencyFundScreen() {
         )}
       </ScrollView>
     </View>
+    </PremiumGate>
   );
 }
 
@@ -145,14 +148,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
   },
-  headerTitle: { fontSize: 17, fontWeight: '600' },
+  headerTitle: { fontSize: 19, fontWeight: '600' },
   scrollContent: { padding: spacing.xl, paddingBottom: 100 },
   coverageCard: { borderRadius: borderRadius['3xl'], padding: spacing['2xl'], alignItems: 'center', marginBottom: spacing.lg },
-  coverageLabel: { fontSize: 13, fontWeight: '500' },
+  coverageLabel: { fontSize: 16, fontWeight: '500' },
   coverageValue: { fontSize: 40, fontWeight: '800', letterSpacing: -1, marginTop: spacing.xs },
-  targetLabel: { fontSize: 13, marginTop: spacing.xs },
-  progressBar: { width: '100%', height: 8, borderRadius: 4 },
-  progressFill: { height: '100%', borderRadius: 4 },
+  targetLabel: { fontSize: 16, marginTop: spacing.xs },
+  progressBar: { width: '100%', height: 8, borderRadius: 8 },
+  progressFill: { height: '100%', borderRadius: 8 },
   progressText: { fontSize: 12, marginTop: spacing.sm },
   detailCard: { borderRadius: borderRadius['2xl'], padding: spacing.lg, marginBottom: spacing.lg },
   detailRow: {
@@ -162,14 +165,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  detailLabel: { fontSize: 14 },
-  detailValue: { fontSize: 15, fontWeight: '700' },
-  editInput: { fontSize: 15, fontWeight: '600', paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.sm, textAlign: 'right', minWidth: 100 },
+  detailLabel: { fontSize: 16 },
+  detailValue: { fontSize: 16, fontWeight: '700' },
+  editInput: { fontSize: 16, fontWeight: '600', paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.sm, textAlign: 'right', minWidth: 100 },
   actions: { marginBottom: spacing.lg },
   actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: spacing.md, borderRadius: borderRadius.xl, gap: spacing.sm },
-  actionBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+  actionBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
   suggestionCard: { flexDirection: 'row', borderRadius: borderRadius['2xl'], padding: spacing.lg, gap: spacing.md, alignItems: 'flex-start' },
   suggestionContent: { flex: 1 },
-  suggestionTitle: { fontSize: 14, fontWeight: '600' },
-  suggestionText: { fontSize: 13, marginTop: 2, lineHeight: 18 },
+  suggestionTitle: { fontSize: 16, fontWeight: '600' },
+  suggestionText: { fontSize: 16, marginTop: 2, lineHeight: 18 },
 });

@@ -35,7 +35,7 @@ export function SubscriptionScreen() {
       }
       const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
-        const res = await api.get<any>('/accounts/subscriptions');
+        const res = await api.get<any>('/premium/billing');
         setData(res);
       } catch {
         /* noop */
@@ -57,11 +57,11 @@ export function SubscriptionScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-        <View style={{ padding: 24, gap: 16 }}>
+        <View style={{ padding: 28, gap: 20 }}>
           <Skeleton width={160} height={14} />
-          <Skeleton width="100%" height={120} borderRadius={20} />
-          <Skeleton width="100%" height={80} borderRadius={16} />
-          <Skeleton width="100%" height={80} borderRadius={16} />
+          <Skeleton width="100%" height={120} borderRadius={28} />
+          <Skeleton width="100%" height={80} borderRadius={24} />
+          <Skeleton width="100%" height={80} borderRadius={24} />
         </View>
       </View>
     );
@@ -77,7 +77,7 @@ export function SubscriptionScreen() {
   return (
     <ScrollView
       style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 44 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -225,7 +225,7 @@ export function SubscriptionScreen() {
               key={item.name}
               style={[
                 s.templateChip,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                { backgroundColor: colors.bg.tertiary },
               ]}
               activeOpacity={0.7}
             >
@@ -254,7 +254,7 @@ export function SubscriptionScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   heroSection: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     paddingBottom: 28,
     alignItems: 'center',
   },
@@ -267,61 +267,61 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF', textAlign: 'center' },
-  heroSub: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4, marginBottom: 20 },
+  heroSub: { fontSize: 16, color: 'rgba(255,255,255,0.6)', marginTop: 4, marginBottom: 24 },
   heroStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 26,
+    padding: 24,
     width: '100%',
   },
   heroStat: { flex: 1, alignItems: 'center' },
-  heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
-  heroStatValue: { fontSize: 24, fontWeight: '800', color: '#FFF' },
+  heroStatLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
+  heroStatValue: { fontSize: 26, fontWeight: '800', color: '#FFF' },
   heroDivider: {
     width: 1,
     height: 40,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    marginHorizontal: 16,
+    marginHorizontal: 20,
   },
-  section: { paddingHorizontal: 20, marginTop: 24 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 12 },
+  section: { paddingHorizontal: 24, marginTop: 28 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', marginBottom: 14 },
   subCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 30,
     marginBottom: spacing.lg,
-    gap: 12,
+    gap: 14,
   },
   subIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  subName: { fontSize: 14, fontWeight: '600' },
-  subMeta: { fontSize: 11, marginTop: 2 },
-  subAmount: { fontSize: 15, fontWeight: '700' },
+  subName: { fontSize: 16, fontWeight: '600' },
+  subMeta: { fontSize: 12, marginTop: 2 },
+  subAmount: { fontSize: 16, fontWeight: '700' },
   breakdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 18,
     borderBottomWidth: 1,
   },
-  breakdownName: { flex: 1, fontSize: 13, fontWeight: '500' },
-  breakdownFreq: { fontSize: 12, marginRight: 12 },
-  breakdownAnnual: { fontSize: 14, fontWeight: '700' },
-  emptyState: { alignItems: 'center', paddingTop: 80, gap: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40 },
+  breakdownName: { flex: 1, fontSize: 16, fontWeight: '500' },
+  breakdownFreq: { fontSize: 12, marginRight: 14 },
+  breakdownAnnual: { fontSize: 16, fontWeight: '700' },
+  emptyState: { alignItems: 'center', paddingTop: 80, gap: 14 },
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyDesc: { fontSize: 16, textAlign: 'center', paddingHorizontal: 44 },
   savingsCard: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    borderRadius: 20,
-    padding: 20,
+    marginHorizontal: 24,
+    marginTop: 28,
+    borderRadius: 28,
+    padding: 24,
   },
   savingsHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   savingsTitle: { fontSize: 16, fontWeight: '700', color: '#FFF' },
@@ -332,12 +332,12 @@ const s = StyleSheet.create({
     letterSpacing: -1,
     marginBottom: 6,
   },
-  savingsDesc: { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 16, marginBottom: 16 },
+  savingsDesc: { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 16, marginBottom: 20 },
   savingsRow: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 28,
+    padding: 18,
   },
   savingsStat: { flex: 1, alignItems: 'center' },
   savingsStatLabel: {
@@ -346,15 +346,14 @@ const s = StyleSheet.create({
     color: 'rgba(255,255,255,0.5)',
     marginBottom: 2,
   },
-  savingsStatValue: { fontSize: 18, fontWeight: '800' },
+  savingsStatValue: { fontSize: 19, fontWeight: '800' },
   templateChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 28,
   },
   templateChipText: { fontSize: 12, fontWeight: '600' },
 });

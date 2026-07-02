@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
   insightBox: {
     flexDirection: 'row',
     gap: 8,
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 28,
     borderWidth: 1,
     alignItems: 'flex-start',
   },

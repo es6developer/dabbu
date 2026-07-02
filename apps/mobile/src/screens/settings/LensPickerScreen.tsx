@@ -104,7 +104,7 @@ export function LensPickerScreen() {
         locations={[0, 0.3]}
         style={{ flex: 1 }}
       >
-        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
+        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
           <View style={s.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
               <AntDesign name="close" size={22} color={colors.text.primary} />
@@ -119,7 +119,7 @@ export function LensPickerScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }}
+          contentContainerStyle={{ padding: 24, gap: 20, paddingBottom: 44 }}
         >
           {LENS_OPTIONS.map((option) => {
             const isActive = activeLens === option.key;
@@ -224,7 +224,7 @@ export function LensPickerScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   cardWrapper: {
-    borderRadius: 20,
+    borderRadius: 28,
   },
   header: {
     flexDirection: 'row',
@@ -235,31 +235,31 @@ const s = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
     lineHeight: 18,
   },
   card: {
-    borderRadius: 20,
+    borderRadius: 28,
     overflow: 'hidden',
   },
   cardGradient: {
-    borderRadius: 20,
+    borderRadius: 28,
   },
   cardContent: {
-    padding: 20,
+    padding: 24,
     gap: 6,
   },
   cardTop: {
@@ -271,24 +271,24 @@ const s = StyleSheet.create({
   iconBox: {
     width: 52,
     height: 52,
-    borderRadius: 16,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   activeBadge: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
   cardDesc: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     lineHeight: 18,
   },
@@ -300,25 +300,25 @@ const s = StyleSheet.create({
   colorDot: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 28,
   },
   paletteStrip: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
+    marginTop: 14,
     alignItems: 'center',
   },
   paletteDot: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 28,
     borderWidth: 2,
   },
   activeLabel: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 20,
     marginTop: 4,
   },
   activeLabelText: {
@@ -332,11 +332,11 @@ const s = StyleSheet.create({
     zIndex: 999,
   },
   loaderCard: {
-    borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 40,
+    borderRadius: 28,
+    paddingVertical: 36,
+    paddingHorizontal: 44,
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -344,12 +344,12 @@ const s = StyleSheet.create({
     elevation: 8,
   },
   loaderText: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '700',
     marginTop: 4,
   },
   loaderSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
 });

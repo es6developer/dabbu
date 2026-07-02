@@ -5,9 +5,10 @@ import { BillScannerService } from './services/bill-scanner.service';
 import { RecurringSchedulerService } from './services/recurring-scheduler.service';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { NotificationModule } from '../notification/notification.module';
+import { PremiumModule } from '../premium/premium.module';
 
 @Module({
-  imports: [PrismaModule, NotificationModule],
+  imports: [PrismaModule, NotificationModule, PremiumModule],
   controllers: [TransactionsController],
   providers: [TransactionsService, BillScannerService, RecurringSchedulerService],
   exports: [TransactionsService, BillScannerService],

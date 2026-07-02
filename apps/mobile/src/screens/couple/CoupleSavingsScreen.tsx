@@ -123,7 +123,7 @@ export function CoupleSavingsScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -139,7 +139,7 @@ export function CoupleSavingsScreen() {
           style={{
             paddingTop: insets.top + 12,
             paddingBottom: 28,
-            paddingHorizontal: 20,
+            paddingHorizontal: 24,
             backgroundColor: colors.accent.primary,
           }}
         >
@@ -156,7 +156,7 @@ export function CoupleSavingsScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
+        <View style={{ paddingHorizontal: 24, marginTop: -16, gap: 20 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
               <AntDesign name="Trophy" size={22} color={colors.accent.primary}  />
@@ -413,12 +413,12 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 34,
     height: 34,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  headerTitle: { color: '#FFF', fontSize: 19, fontWeight: '700' },
   headerSub: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -426,10 +426,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
   },
-  headerSubText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500' },
+  headerSubText: { color: 'rgba(255,255,255,0.6)', fontSize: 16, fontWeight: '500' },
 
   goalCard: {
-    borderRadius: 24,
+    borderRadius: 32,
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
@@ -437,28 +437,28 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 4,
   },
-  goalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  goalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   goalTitle: { fontSize: 16, fontWeight: '800', color: '#F97316' },
-  goalRow: { flexDirection: 'row', gap: 24, marginBottom: 14 },
+  goalRow: { flexDirection: 'row', gap: 28, marginBottom: 16 },
   goalCol: { flex: 1 },
-  goalLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(93,56,181,0.6)', marginBottom: 2 },
-  goalValue: { fontSize: 24, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
+  goalLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(93,56,181,0.6)', marginBottom: 2 },
+  goalValue: { fontSize: 26, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
   progressWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  progressBar: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#F97316', borderRadius: 4 },
+  progressBar: { flex: 1, height: 8, borderRadius: 8, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#F97316', borderRadius: 8 },
   progressText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '800',
     color: '#F97316',
     minWidth: 36,
     textAlign: 'right',
   },
-  goalDate: { fontSize: 11, fontWeight: '500', color: 'rgba(93,56,181,0.5)' },
+  goalDate: { fontSize: 12, fontWeight: '500', color: 'rgba(93,56,181,0.5)' },
 
   statsRow: {
     flexDirection: 'row',
-    borderRadius: 20,
-    paddingVertical: 16,
+    borderRadius: 28,
+    paddingVertical: 20,
     paddingHorizontal: 8,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -466,14 +466,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statItem: { flex: 1, alignItems: 'center', gap: 2 },
-  statValue: { fontSize: 18, fontWeight: '800' },
+  statValue: { fontSize: 19, fontWeight: '800' },
   statLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
   statDivider: { width: 1, alignSelf: 'stretch', marginVertical: 4 },
 
   card: {
-    borderRadius: 20,
-    padding: 18,
-    gap: 12,
+    borderRadius: 28,
+    padding: 22,
+    gap: 14,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -481,33 +481,33 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 16, fontWeight: '800' },
 
-  contribRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  contribRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   contribAvatar: {
     width: LEDGE_ICON,
     height: LEDGE_ICON,
-    borderRadius: 12,
+    borderRadius: 28,
     backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
   },
   contribAvatarText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   contribInfo: { flex: 1 },
-  contribName: { fontSize: 14, fontWeight: '600' },
-  contribAmount: { fontSize: 13, fontWeight: '600', marginTop: 2 },
+  contribName: { fontSize: 16, fontWeight: '600' },
+  contribAmount: { fontSize: 16, fontWeight: '600', marginTop: 2 },
   contribTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: 4,
   },
   contribTotalLabel: { fontSize: 12, fontWeight: '600' },
-  contribTotalAmount: { fontSize: 18, fontWeight: '800' },
+  contribTotalAmount: { fontSize: 19, fontWeight: '800' },
 
   addBtn: {
     overflow: 'hidden',
-    borderRadius: 18,
+    borderRadius: 26,
     elevation: 4,
     shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 4 },
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
@@ -527,67 +527,67 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 18,
   },
-  ledgerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  ledgerLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
   ledgerAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ledgerAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  ledgerAvatarText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   ledgerInfo: { flex: 1 },
-  ledgerName: { fontSize: 13, fontWeight: '600' },
-  ledgerDate: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  ledgerNote: { fontSize: 11, fontWeight: '400', marginTop: 1 },
-  ledgerAmount: { fontSize: 15, fontWeight: '800' },
-  emptyLedger: { fontSize: 13, textAlign: 'center', paddingVertical: 16 },
+  ledgerName: { fontSize: 16, fontWeight: '600' },
+  ledgerDate: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  ledgerNote: { fontSize: 12, fontWeight: '400', marginTop: 1 },
+  ledgerAmount: { fontSize: 16, fontWeight: '800' },
+  emptyLedger: { fontSize: 16, textAlign: 'center', paddingVertical: 20 },
 
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalSheet: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    padding: 24,
-    paddingBottom: 40,
-    gap: 16,
+    padding: 28,
+    paddingBottom: 44,
+    gap: 20,
   },
-  modalHandle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 4 },
-  modalTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
+  modalHandle: { width: 36, height: 4, borderRadius: 4, alignSelf: 'center', marginBottom: 4 },
+  modalTitle: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
 
   inputLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 },
   amountInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 16,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    paddingHorizontal: 24,
     height: 52,
   },
-  currencySign: { fontSize: 20, fontWeight: '700', marginRight: 8 },
-  amountInput: { flex: 1, fontSize: 22, fontWeight: '700' },
+  currencySign: { fontSize: 26, fontWeight: '700', marginRight: 8 },
+  amountInput: { flex: 1, fontSize: 26, fontWeight: '700' },
   noteInput: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    fontSize: 15,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    padding: 18,
+    fontSize: 16,
     minHeight: 80,
     textAlignVertical: 'top',
   },
 
-  modalActions: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  modalActions: { flexDirection: 'row', gap: 14, marginTop: 4 },
   modalCancel: {
     flex: 1,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 14,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalCancelText: { fontSize: 15, fontWeight: '600' },
-  modalSubmit: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  modalSubmitGradient: { paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  modalSubmitText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  modalCancelText: { fontSize: 16, fontWeight: '600' },
+  modalSubmit: { flex: 1, borderRadius: 30, overflow: 'hidden' },
+  modalSubmitGradient: { paddingVertical: 18, alignItems: 'center', justifyContent: 'center' },
+  modalSubmitText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

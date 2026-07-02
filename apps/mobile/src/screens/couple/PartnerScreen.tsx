@@ -133,9 +133,9 @@ export function PartnerScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           locations={[0, 0.3]}
-          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 20 }}
+          style={{ flex: 1, paddingTop: insets.top + 12, paddingHorizontal: 24 }}
         >
-          <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+          <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
             Partner
           </Text>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -159,8 +159,8 @@ export function PartnerScreen() {
           locations={[0, 0.3]}
           style={{ flex: 1 }}
         >
-          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+          <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
               Partner
             </Text>
           </View>
@@ -169,8 +169,8 @@ export function PartnerScreen() {
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              paddingHorizontal: 32,
-              gap: 12,
+              paddingHorizontal: 36,
+              gap: 14,
             }}
           >
             <View style={[styles.emptyIcon, { backgroundColor: colors.accent.primary + '15' }]}>
@@ -178,7 +178,7 @@ export function PartnerScreen() {
             </View>
             <Text
               style={{
-                fontSize: 20,
+                fontSize: 26,
                 fontWeight: '800',
                 color: colors.text.primary,
                 textAlign: 'center',
@@ -188,10 +188,10 @@ export function PartnerScreen() {
             </Text>
             <Text
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 color: colors.text.tertiary,
                 textAlign: 'center',
-                lineHeight: 20,
+                lineHeight: 24,
               }}
             >
               Connect with your partner to manage shared finances, goals, and timeline together.
@@ -200,13 +200,13 @@ export function PartnerScreen() {
               onPress={() => navigation.navigate('ProfileTab', { screen: 'AddPartner' })}
               style={{
                 marginTop: 8,
-                paddingVertical: 14,
-                paddingHorizontal: 32,
-                borderRadius: 16,
+                paddingVertical: 18,
+                paddingHorizontal: 36,
+                borderRadius: 30,
                 backgroundColor: colors.accent.primary,
               }}
             >
-              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
                 Connect Partner
               </Text>
             </TouchableOpacity>
@@ -259,9 +259,9 @@ export function PartnerScreen() {
             />
           }
         >
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.headerRow}>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                 Partner
               </Text>
               <View style={[styles.lensBadge, { backgroundColor: colors.accent.primary + '20' }]}>
@@ -272,7 +272,7 @@ export function PartnerScreen() {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <LinearGradient
               colors={[colors.accent.primary, colors.accent.hover]}
               start={{ x: 0, y: 0 }}
@@ -282,7 +282,7 @@ export function PartnerScreen() {
               <View style={styles.partnerAvatar}>
                 <AntDesign name="user" size={32} color="#FFF" />
               </View>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF', marginTop: 8 }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', color: '#FFF', marginTop: 8 }}>
                 {partner?.name || 'Partner'}
               </Text>
               {partner?.email && (
@@ -311,9 +311,9 @@ export function PartnerScreen() {
             </LinearGradient>
           </View>
 
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Timeline
               </Text>
               <TouchableOpacity
@@ -327,7 +327,7 @@ export function PartnerScreen() {
             {timeline.length === 0 ? (
               <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
                 <AntDesign name="clockcircleo" size={24} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 13, color: colors.text.tertiary, marginTop: 6 }}>
+                <Text style={{ fontSize: 16, color: colors.text.tertiary, marginTop: 6 }}>
                   No timeline events yet
                 </Text>
               </View>
@@ -348,11 +348,11 @@ export function PartnerScreen() {
                       />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>
                         {event.title}
                       </Text>
                       {event.description ? (
-                        <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+                        <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
                           {event.description}
                         </Text>
                       ) : null}
@@ -385,7 +385,7 @@ export function PartnerScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.bg.primary }]}>
             <View style={styles.modalHeader}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
+              <Text style={{ fontSize: 19, fontWeight: '700', color: colors.text.primary }}>
                 Add Timeline Event
               </Text>
               <TouchableOpacity onPress={() => setShowAddEvent(false)}>
@@ -394,11 +394,11 @@ export function PartnerScreen() {
             </View>
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: '600',
                 color: colors.text.secondary,
                 marginBottom: 6,
-                marginTop: 16,
+                marginTop: 20,
               }}
             >
               Title
@@ -419,11 +419,11 @@ export function PartnerScreen() {
             />
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: '600',
                 color: colors.text.secondary,
                 marginBottom: 6,
-                marginTop: 12,
+                marginTop: 14,
               }}
             >
               Description (optional)
@@ -446,11 +446,11 @@ export function PartnerScreen() {
             />
             <Text
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: '600',
                 color: colors.text.secondary,
                 marginBottom: 6,
-                marginTop: 12,
+                marginTop: 14,
               }}
             >
               Type
@@ -458,7 +458,7 @@ export function PartnerScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 20 }}
+              style={{ marginBottom: 24 }}
             >
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {[
@@ -512,7 +512,7 @@ export function PartnerScreen() {
               {submitting ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>Add Event</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Add Event</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -525,8 +525,8 @@ export function PartnerScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  profileCard: { borderRadius: 24, padding: 24, alignItems: 'center' },
+  lensBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  profileCard: { borderRadius: 32, padding: 28, alignItems: 'center' },
   partnerAvatar: {
     width: 72,
     height: 72,
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsRow: { flexDirection: 'row', marginTop: 20, gap: 0 },
+  statsRow: { flexDirection: 'row', marginTop: 24, gap: 0 },
   statItem: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 16, fontWeight: '800', color: '#FFF' },
   statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
@@ -551,15 +551,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
   },
-  emptyCard: { borderRadius: 14, padding: 24, alignItems: 'center' },
-  eventCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, gap: 12 },
+  emptyCard: { borderRadius: 28, padding: 28, alignItems: 'center' },
+  eventCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 28, padding: 18, gap: 14 },
   eventIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -575,22 +575,22 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
+    padding: 28,
     maxHeight: '80%',
   },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  input: { borderRadius: 12, padding: 14, fontSize: 14, borderWidth: 1 },
+  input: { borderRadius: 30, padding: 18, fontSize: 16, borderWidth: 1.5, fontWeight: '500' },
   typeChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
   },
   submitBtn: {
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,

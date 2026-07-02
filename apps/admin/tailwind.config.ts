@@ -28,11 +28,14 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
+        DEFAULT: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-        '2xl': '20px',
-        '3xl': '24px',
+        md: 'calc(var(--radius) - 2px)',
+        lg: 'var(--radius)',
+        xl: '20px',
+        '2xl': '28px',
+        '3xl': '36px',
+        '4xl': '40px',
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },

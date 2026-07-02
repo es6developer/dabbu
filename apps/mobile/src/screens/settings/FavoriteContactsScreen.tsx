@@ -455,7 +455,7 @@ export function FavoriteContactsScreen() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 44 }}
       >
         {renderHeader()}
         {renderSearchBar()}
@@ -474,38 +474,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     height: 56,
   },
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 19, fontWeight: '700' },
 
-  searchWrap: { paddingHorizontal: 20, marginTop: 12, marginBottom: 8 },
+  searchWrap: { paddingHorizontal: 24, marginTop: 14, marginBottom: 8 },
   searchInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 44,
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    height: 52,
     gap: 8,
   },
   searchIcon: { marginRight: 2 },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
     paddingVertical: 0,
   },
 
-  section: { marginTop: 24, paddingHorizontal: 20 },
+  section: { marginTop: 28, paddingHorizontal: 24 },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -513,57 +513,57 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   listCard: {
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     overflow: 'hidden',
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 18,
+    gap: 14,
   },
   avatarGradient: {
     width: 44,
-    height: 44,
-    borderRadius: 22,
+    height: 52,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 17, fontWeight: '700' },
+  avatarText: { fontSize: 19, fontWeight: '700' },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: '600', marginBottom: 1 },
+  rowName: { fontSize: 16, fontWeight: '600', marginBottom: 1 },
   rowPhone: { fontSize: 12, fontWeight: '500' },
 
   actionBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addBtn: {},
   removeBtn: {},
 
-  divider: { height: 1, marginHorizontal: 14 },
-  moreBtn: { alignItems: 'center', paddingVertical: 12 },
-  moreBtnText: { fontSize: 13, fontWeight: '600' },
+  divider: { height: 1, marginHorizontal: 16 },
+  moreBtn: { alignItems: 'center', paddingVertical: 18 },
+  moreBtnText: { fontSize: 16, fontWeight: '600' },
 
-  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60 },
+  emptyWrap: { alignItems: 'center', paddingHorizontal: 36, paddingTop: 60 },
   emptyIconBox: {
     width: 80,
     height: 80,
-    borderRadius: 24,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
+  emptyTitle: { fontSize: 26, fontWeight: '700', marginBottom: 8 },
   emptyDesc: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 24,
   },
 });

@@ -3,6 +3,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { ComplianceService } from './compliance.service';
+import { DeleteAccountDto } from './dto/delete-account.dto';
+import { CookieConsentDto } from './dto/cookie-consent.dto';
+import { RestoreDataDto } from './dto/restore-data.dto';
 
 @ApiTags('Compliance')
 @ApiBearerAuth()
@@ -41,9 +44,9 @@ export class ComplianceController {
   @UseGuards(JwtAuthGuard)
   async setCookieConsent(
     @CurrentUser('id') userId: string,
-    @Body() body: { consent: 'accepted' | 'rejected'; categories?: string[] },
+    @Body() dto: CookieConsentDto,
   ) {
-    return this.complianceService.setCookieConsent(userId, body.consent, body.categories);
+    return this.complianceService.setCookieConsent(userId, dto.consent, dto.categories);
   }
 
   @Get('compliance/gdpr-data')
@@ -61,8 +64,8 @@ export class ComplianceController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Full account deletion (GDPR Article 17 - right to erasure)' })
-  async deleteAccount(@CurrentUser('id') userId: string, @Body('password') password?: string) {
-    return this.complianceService.deleteAccount(userId, password);
+  async deleteAccount(@CurrentUser('id') userId: string, @Body() dto: DeleteAccountDto) {
+    return this.complianceService.deleteAccount(userId, dto.password);
   }
 
   @Post('compliance/export')
@@ -97,8 +100,8 @@ export class ComplianceController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirm and execute account deletion' })
-  async confirmDeletion(@CurrentUser('id') userId: string, @Body('password') password?: string) {
-    return this.complianceService.deleteAccount(userId, password);
+  async confirmDeletion(@CurrentUser('id') userId: string, @Body() dto: DeleteAccountDto) {
+    return this.complianceService.deleteAccount(userId, dto.password);
   }
 
   @Post('compliance/delete-account/cancel')
@@ -115,9 +118,9 @@ export class ComplianceController {
   @ApiOperation({ summary: 'Restore data from a previous export' })
   async restoreData(
     @CurrentUser('id') userId: string,
-    @Body() body: { data: any },
+    @Body() dto: RestoreDataDto,
   ) {
-    const result = await this.complianceService.restoreFromExport(userId, body.data);
+    const result = await this.complianceService.restoreFromExport(userId, dto.data);
     return { data: result };
   }
 

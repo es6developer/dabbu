@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
@@ -15,7 +15,7 @@ export function PrivacyScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { accessToken, logout } = useAuth();
+  const { logout } = useAuth();
   const { showToast } = useToast();
   const [deleting, setDeleting] = useState(false);
 
@@ -35,8 +35,7 @@ export function PrivacyScreen() {
                 onPress: async () => {
                   setDeleting(true);
                   try {
-                    if (accessToken) setAccessToken(accessToken);
-                    await api.delete('/auth/profile');
+                    await api.post('/compliance/delete-account');
                     showToast('Profile deleted');
                     await logout();
                   } catch (e: any) {
@@ -81,13 +80,13 @@ export function PrivacyScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 32, paddingTop: insets.top + 12 }}>
-          <View style={{ paddingHorizontal: spacing['2xl'], marginBottom: 24 }}>
+          <View style={{ paddingHorizontal: spacing['2xl'], marginBottom: 28 }}>
             <Text style={[s.pageTitle, { color: colors.text.primary }]}>Privacy & Security</Text>
             <Text style={[s.pageSubtitle, { color: colors.text.tertiary }]}>Manage your data, permissions, and account</Text>
           </View>
 
           {sections.map((section, si) => (
-            <View key={si} style={{ marginHorizontal: spacing['2xl'], marginBottom: 20 }}>
+            <View key={si} style={{ marginHorizontal: spacing['2xl'], marginBottom: 24 }}>
               <View style={[s.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                 <LinearGradient
                   colors={isDark ? [colors.accent.primary + '06', 'transparent'] : [colors.accent.primary + '04', 'transparent']}
@@ -124,7 +123,7 @@ export function PrivacyScreen() {
           ))}
 
           {/* Account Deletion */}
-          <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 40 }}>
+          <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 44 }}>
             <View style={[s.dangerCard, { backgroundColor: colors.bg.card, borderColor: `${colors.status.error}20` }]}>
               <LinearGradient
                 colors={['transparent', colors.status.error + '06']}
@@ -164,20 +163,20 @@ export function PrivacyScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   pageTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 6 },
-  pageSubtitle: { fontSize: 15, fontWeight: '500', lineHeight: 20 },
-  sectionCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
-  sectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm, paddingLeft: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
-  rowIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rowLabel: { fontSize: 14, fontWeight: '600' },
-  rowSub: { fontSize: 11, fontWeight: '500', marginTop: 1, lineHeight: 15 },
-  toggle: { width: 44, height: 26, borderRadius: 13, padding: 3, justifyContent: 'center' },
-  toggleDot: { width: 20, height: 20, borderRadius: 10 },
-  dangerCard: { borderRadius: borderRadius['2xl'], borderWidth: 1, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
+  pageSubtitle: { fontSize: 16, fontWeight: '500', lineHeight: 24 },
+  sectionCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
+  sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.sm, paddingLeft: 2 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 18 },
+  rowIcon: { width: 36, height: 36, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  rowLabel: { fontSize: 16, fontWeight: '600' },
+  rowSub: { fontSize: 12, fontWeight: '500', marginTop: 1, lineHeight: 15 },
+  toggle: { width: 44, height: 26, borderRadius: 28, padding: 3, justifyContent: 'center' },
+  toggleDot: { width: 20, height: 20, borderRadius: 24 },
+  dangerCard: { borderRadius: borderRadius['2xl'], borderWidth: 1.5, padding: spacing.xl, ...shadows.sm, overflow: 'hidden' },
   dangerHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  dangerIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  dangerIcon: { width: 36, height: 36, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   dangerTitle: { fontSize: 16, fontWeight: '700' },
-  dangerDesc: { fontSize: 13, fontWeight: '500', lineHeight: 19, marginBottom: 16 },
-  deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: borderRadius.md, borderWidth: 1 },
-  deleteBtnText: { fontSize: 14, fontWeight: '700' },
+  dangerDesc: { fontSize: 16, fontWeight: '500', lineHeight: 19, marginBottom: 20 },
+  deleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 18, borderRadius: borderRadius.md, borderWidth: 1.5 },
+  deleteBtnText: { fontSize: 16, fontWeight: '700' },
 });

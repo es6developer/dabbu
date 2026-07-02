@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   addBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -111,16 +111,16 @@ const styles = StyleSheet.create({
   amountItem: { flex: 1, gap: 2 },
   amountLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
   amountValue: { fontSize: 16, fontWeight: '700' },
-  progressBg: { height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 4 },
-  progressFill: { height: '100%', borderRadius: 4 },
+  progressBg: { height: 8, borderRadius: 14, overflow: 'hidden', marginBottom: 4 },
+  progressFill: { height: '100%', borderRadius: 14 },
   progressText: { fontSize: 10, fontWeight: '500', textAlign: 'right', marginBottom: spacing.sm },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 28,
   },
   ctaText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 });

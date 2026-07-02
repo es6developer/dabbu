@@ -140,7 +140,7 @@ export function WalletHomeScreen() {
               style={{
                 width: 4,
                 height: 24,
-                borderRadius: 2,
+                borderRadius: 4,
                 backgroundColor: colors.accent.primary,
               }}
             />
@@ -211,7 +211,7 @@ export function WalletHomeScreen() {
                 s.actionBtn,
                 {
                   backgroundColor: colors.status.error + '12',
-                  borderWidth: 1,
+                  borderWidth: 1.5,
                   borderColor: colors.status.error + '25',
                 },
               ]}
@@ -227,7 +227,7 @@ export function WalletHomeScreen() {
                 s.actionBtn,
                 {
                   backgroundColor: colors.status.success + '12',
-                  borderWidth: 1,
+                  borderWidth: 1.5,
                   borderColor: colors.status.success + '25',
                 },
               ]}
@@ -243,7 +243,7 @@ export function WalletHomeScreen() {
                 s.actionBtn,
                 {
                   backgroundColor: colors.accent.primary + '12',
-                  borderWidth: 1,
+                  borderWidth: 1.5,
                   borderColor: colors.accent.primary + '25',
                 },
               ]}
@@ -270,7 +270,7 @@ export function WalletHomeScreen() {
               style={{
                 width: 4,
                 height: 14,
-                borderRadius: 2,
+                borderRadius: 4,
                 backgroundColor: colors.accent.primary,
               }}
             />
@@ -409,7 +409,7 @@ export function WalletHomeScreen() {
               style={{
                 width: 4,
                 height: 14,
-                borderRadius: 2,
+                borderRadius: 4,
                 backgroundColor: colors.accent.primary,
               }}
             />
@@ -514,10 +514,10 @@ const s = StyleSheet.create({
     padding: spacing.xl,
     marginBottom: spacing['2xl'],
   },
-  balanceLabel: { fontSize: 13, fontWeight: '500', marginBottom: spacing.md },
+  balanceLabel: { fontSize: 16, fontWeight: '500', marginBottom: spacing.md },
   monthlyRow: { flexDirection: 'row', gap: spacing.lg },
   monthlyItem: { flex: 1 },
-  monthlyLabel: { fontSize: 11, fontWeight: '700' },
+  monthlyLabel: { fontSize: 12, fontWeight: '700' },
   monthlyValue: { fontSize: 16, fontWeight: '700', marginTop: 2 },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing['2xl'] },
   actionBtn: {
@@ -532,16 +532,16 @@ const s = StyleSheet.create({
   actionIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: { fontSize: 13, fontWeight: '700' },
-  sectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+  actionLabel: { fontSize: 16, fontWeight: '700' },
+  sectionTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
   skeletonCard: { height: 60, borderRadius: borderRadius.xl, marginBottom: spacing.sm },
   emptyCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing['2xl'],
     alignItems: 'center',
     gap: spacing.sm,
@@ -553,9 +553,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyTitle: { fontSize: 17, fontWeight: '700', marginTop: spacing.xs },
+  emptyTitle: { fontSize: 19, fontWeight: '700', marginTop: spacing.xs },
   emptyDesc: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 18,
@@ -565,15 +565,15 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
     marginTop: spacing.sm,
   },
-  createBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  createBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   groupCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.lg,
     marginBottom: spacing.sm,
     overflow: 'hidden',
@@ -582,22 +582,22 @@ const s = StyleSheet.create({
   groupIcon: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  groupName: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  memberCount: { fontSize: 11, fontWeight: '500' },
+  groupName: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  memberCount: { fontSize: 12, fontWeight: '500' },
   divider: { height: 1, marginVertical: spacing.sm },
   groupStats: { flexDirection: 'row', gap: spacing.xs },
   statItem: { flex: 1, gap: 2 },
   statLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
-  statValue: { fontSize: 14, fontWeight: '700' },
+  statValue: { fontSize: 16, fontWeight: '700' },
   groupMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
   metaText: { fontSize: 10, fontWeight: '500' },
   txnCard: {
     borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
+    borderWidth: 1.5,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.xs,
@@ -606,14 +606,14 @@ const s = StyleSheet.create({
   txnIcon: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   txnInfo: { flex: 1 },
-  txnDesc: { fontSize: 14, fontWeight: '600' },
-  catBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  txnDesc: { fontSize: 16, fontWeight: '600' },
+  catBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8 },
   catBadgeText: { fontSize: 9, fontWeight: '700' },
-  txnDate: { fontSize: 11, fontWeight: '500' },
-  txnAmount: { fontSize: 15, fontWeight: '700' },
+  txnDate: { fontSize: 12, fontWeight: '500' },
+  txnAmount: { fontSize: 16, fontWeight: '700' },
 });

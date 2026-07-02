@@ -91,7 +91,7 @@ export function OtpVerificationScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={{ marginTop: spacing.xl }}>
-            <Text style={{ textAlign: 'center', fontSize: 14, fontWeight: '500', color: colors.accent.primary }}>Resend code</Text>
+            <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: '500', color: colors.accent.primary }}>Resend code</Text>
           </TouchableOpacity>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -103,11 +103,11 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   back: { width: 40, height: 40, borderRadius: borderRadius['2xl'], alignItems: 'center', justifyContent: 'center', marginBottom: spacing['3xl'], backgroundColor: 'transparent' },
   title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.3, marginBottom: spacing.sm },
-  subtitle: { fontSize: 15, fontWeight: '400', lineHeight: 22, marginBottom: spacing['4xl'] },
+  subtitle: { fontSize: 16, fontWeight: '400', lineHeight: 24, marginBottom: spacing['4xl'] },
   errorBox: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, borderRadius: borderRadius['2xl'], marginBottom: spacing.lg, gap: spacing.sm },
-  errorText: { fontSize: 13, flex: 1 },
+  errorText: { fontSize: 16, flex: 1 },
   otpRow: { flexDirection: 'row', justifyContent: 'center', gap: spacing.md, marginBottom: spacing['4xl'] },
-  otpInput: { width: 48, height: 56, borderRadius: borderRadius['2xl'], borderWidth: 1.5, textAlign: 'center', fontSize: 22, fontWeight: '700' },
+  otpInput: { width: 48, height: 56, borderRadius: borderRadius['2xl'], borderWidth: 1.5, textAlign: 'center', fontSize: 26, fontWeight: '700' },
   button: { height: 54, borderRadius: borderRadius['2xl'], alignItems: 'center', justifyContent: 'center', marginTop: spacing.sm, ...shadows.md },
-  buttonText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
+  buttonText: { color: '#FFF', fontSize: 19, fontWeight: '600' },
 });

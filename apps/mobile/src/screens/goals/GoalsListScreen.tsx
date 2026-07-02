@@ -13,7 +13,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -279,7 +279,7 @@ function MilestoneDot({
                 position: 'absolute',
                 width: 28,
                 height: 28,
-                borderRadius: 14,
+                borderRadius: 28,
                 backgroundColor: color + '30',
                 transform: [
                   {
@@ -295,7 +295,7 @@ function MilestoneDot({
               style={{
                 width: 22,
                 height: 22,
-                borderRadius: 11,
+                borderRadius: 24,
                 backgroundColor: color,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -310,7 +310,7 @@ function MilestoneDot({
             style={{
               width: 8,
               height: 8,
-              borderRadius: 4,
+              borderRadius: 8,
               backgroundColor: colors.border.default,
             }}
           />
@@ -406,12 +406,12 @@ function GoalCard({
         ]}
       >
         <View style={StyleSheet.absoluteFill}>
-          <View style={{ flex: 1, borderRadius: 20 }} />
+          <View style={{ flex: 1, borderRadius: 28 }} />
         </View>
 
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
-            <View style={[s.cardIcon, { borderRadius: 12 }]}>
+            <View style={[s.cardIcon, { borderRadius: 28 }]}>
               <AntDesign name={config.icon as any} size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
@@ -579,7 +579,7 @@ function OverallProgressHeader({
     <View
       style={[
         s.overallCard,
-        { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default },
+        { backgroundColor: colors.bg.card, borderWidth: 1.5, borderColor: colors.border.default },
       ]}
     >
       <View style={s.overallInner}>
@@ -603,7 +603,7 @@ function OverallProgressHeader({
             of {fmt(totalTarget)}
           </Text>
           <View
-            style={[s.overallTrackBar, { backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 12 }]}
+            style={[s.overallTrackBar, { backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 14 }]}
           >
             <View style={[s.overallTrackFill, { width: `${pct}%`, backgroundColor: '#FFF' }]} />
           </View>
@@ -617,7 +617,7 @@ function OverallProgressHeader({
             color="#FFF"
             trackColor="rgba(255,255,255,0.2)"
           >
-            <Text style={[typography.dashboardMetric, { color: '#FFF', fontSize: 22 }]}>
+            <Text style={[typography.dashboardMetric, { color: '#FFF', fontSize: 26 }]}>
               {Math.round(pct)}%
             </Text>
           </ProgressRing>
@@ -649,37 +649,37 @@ function GoalsSkeleton() {
 
   const Block = ({ style }: any) => (
     <Animated.View
-      style={[{ opacity: pulse, backgroundColor: colors.skeleton.base, borderRadius: 8 }, style]}
+      style={[{ opacity: pulse, backgroundColor: colors.skeleton.base, borderRadius: 20 }, style]}
     />
   );
 
   return (
     <BaseScreen noPadding>
-      <View style={{ paddingHorizontal: 16, gap: 16, paddingTop: 12 }}>
-        <Block style={{ width: 100, height: 14, borderRadius: 6 }} />
-        <Block style={{ width: '100%', height: 160, borderRadius: 20 }} />
+      <View style={{ paddingHorizontal: 24, gap: 20, paddingTop: 14 }}>
+        <Block style={{ width: 100, height: 14, borderRadius: 12 }} />
+        <Block style={{ width: '100%', height: 160, borderRadius: 28 }} />
         {[0, 1, 2].map((i) => (
           <View
             key={i}
             style={{
               width: '100%',
-              borderRadius: 20,
+              borderRadius: 28,
               backgroundColor: colors.bg.secondary,
-              padding: 16,
-              gap: 14,
-              borderWidth: 1,
+              padding: 22,
+              gap: 16,
+              borderWidth: 1.5,
               borderColor: colors.border.subtle,
             }}
           >
-            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-              <Block style={{ width: 44, height: 44, borderRadius: 12 }} />
+            <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+              <Block style={{ width: 44, height: 52, borderRadius: 28 }} />
               <View style={{ flex: 1, gap: 6 }}>
                 <Block style={{ width: '60%', height: 14 }} />
                 <Block style={{ width: '35%', height: 10 }} />
               </View>
               <Block style={{ width: 64, height: 64, borderRadius: 32 }} />
             </View>
-            <Block style={{ width: '100%', height: 6, borderRadius: 3 }} />
+            <Block style={{ width: '100%', height: 6, borderRadius: 6 }} />
             <View
               style={{
                 flexDirection: 'row',
@@ -689,7 +689,7 @@ function GoalsSkeleton() {
             >
               {[0, 1, 2, 3].map((j) => (
                 <View key={j} style={{ alignItems: 'center', gap: 3 }}>
-                  <Block style={{ width: 24, height: 24, borderRadius: 12 }} />
+                  <Block style={{ width: 24, height: 24, borderRadius: 28 }} />
                   <Block style={{ width: 28, height: 8 }} />
                 </View>
               ))}
@@ -698,7 +698,7 @@ function GoalsSkeleton() {
               <Block style={{ flex: 1, height: 52 }} />
               <Block style={{ flex: 1, height: 52 }} />
             </View>
-            <Block style={{ width: '75%', height: 30, borderRadius: 10, alignSelf: 'center' }} />
+            <Block style={{ width: '75%', height: 30, borderRadius: 24, alignSelf: 'center' }} />
           </View>
         ))}
       </View>
@@ -724,7 +724,7 @@ function GoalsEmptyState({
         actionLabel="Create Goal"
         onAction={onCreatePress}
       />
-      <View style={{ marginTop: 12, gap: 10 }}>
+      <View style={{ marginTop: 14, gap: 10 }}>
         <Text
           style={[
             typography.footnote,
@@ -753,7 +753,7 @@ function GoalsEmptyState({
               activeOpacity={0.7}
               onPress={() => onSuggestionPress(sg)}
             >
-              <View style={[s.suggestionIcon, { borderRadius: 10 }]}>
+              <View style={[s.suggestionIcon, { borderRadius: 24 }]}>
                 <AntDesign name={cfg.icon as any} size={20} color={cfg.color} />
               </View>
               <View style={{ flex: 1 }}>
@@ -776,6 +776,7 @@ export function GoalsListScreen() {
   const { accessToken } = useAuth();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [goals, setGoals] = useState<any[]>([]);
   const [predictions, setPredictions] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -785,6 +786,13 @@ export function GoalsListScreen() {
     null,
   );
   const [rebalanceData, setRebalanceData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (route.params?.openCreate) {
+      setShowCreate(true);
+      navigation.setParams({ openCreate: false });
+    }
+  }, [route.params?.openCreate]);
 
   const loadGoals = useCallback(async () => {
     try {
@@ -823,7 +831,6 @@ export function GoalsListScreen() {
 
   useEffect(() => {
     if (accessToken) {
-      setAccessToken(accessToken);
       loadGoals();
     }
   }, [accessToken, loadGoals]);
@@ -880,7 +887,7 @@ export function GoalsListScreen() {
           contentContainerStyle={
             goals.length === 0
               ? { flexGrow: 1, paddingBottom: insets.bottom + 100 }
-              : { paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }
+              : { paddingBottom: insets.bottom + 100, paddingHorizontal: 24 }
           }
           ListHeaderComponent={
             <Animated.View>
@@ -921,7 +928,7 @@ export function GoalsListScreen() {
                       }}
                     >
                       <AntDesign name="swap" size={16} color={colors.accent.primary} />
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                         AI Rebalance Suggestions
                       </Text>
                     </View>
@@ -941,7 +948,7 @@ export function GoalsListScreen() {
                           style={{
                             width: 24,
                             height: 24,
-                            borderRadius: 6,
+                            borderRadius: 12,
                             backgroundColor: (s.goalColor || colors.accent.primary) + '20',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -966,7 +973,7 @@ export function GoalsListScreen() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: '700',
                             color: s.action === 'increase' ? '#16A34A' : '#DC2626',
                           }}
@@ -1018,10 +1025,10 @@ export function GoalsListScreen() {
 
 const s = StyleSheet.create({
   card: {
-    marginBottom: 12,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
+    marginBottom: 14,
+    borderRadius: 28,
+    padding: 22,
+    borderWidth: 1.5,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -1032,7 +1039,7 @@ const s = StyleSheet.create({
   cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   cardLeftCol: {
     flexDirection: 'row',
@@ -1042,15 +1049,15 @@ const s = StyleSheet.create({
   },
   cardIcon: {
     width: 44,
-    height: 44,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
+    borderRadius: 28,
   },
   rebalCard: {
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderLeftWidth: 3,
     borderLeftColor: '#7C3AED',
   },
@@ -1058,7 +1065,7 @@ const s = StyleSheet.create({
     height: 5,
     borderRadius: 999,
     overflow: 'hidden',
-    marginTop: 12,
+    marginTop: 14,
   },
   progressFill: {
     height: '100%',
@@ -1068,14 +1075,14 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginTop: 12,
+    marginTop: 14,
   },
   cardFooter: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 12,
-    marginTop: 12,
-    gap: 12,
+    paddingTop: 14,
+    marginTop: 14,
+    gap: 14,
   },
   footerRow: {
     flexDirection: 'row',
@@ -1095,25 +1102,25 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     marginTop: 10,
   },
   celebrationFlash: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 20,
+    borderRadius: 28,
   },
   overallCard: {
-    marginBottom: 16,
-    borderRadius: 20,
-    padding: 18,
+    marginBottom: 20,
+    borderRadius: 28,
+    padding: 22,
   },
   overallInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
   },
   overallTrackBar: {
     height: 6,
@@ -1133,21 +1140,21 @@ const s = StyleSheet.create({
   addBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyWrap: {
     flexGrow: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
   },
   suggestionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
+    gap: 14,
+    padding: 18,
+    borderRadius: 30,
+    borderWidth: 1.5,
   },
   suggestionIcon: {
     width: 42,

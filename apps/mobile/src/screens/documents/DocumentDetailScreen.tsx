@@ -226,7 +226,7 @@ export function DocumentDetailScreen() {
 
           <Text style={[s.label, { color: colors.text.secondary }]}>Name *</Text>
           <TextInput
-            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
             value={name}
             onChangeText={setName}
             placeholder="e.g. My Aadhaar Card"
@@ -266,7 +266,7 @@ export function DocumentDetailScreen() {
 
           <Text style={[s.label, { color: colors.text.secondary }]}>Document Number</Text>
           <TextInput
-            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
             value={documentNumber}
             onChangeText={setDocumentNumber}
             placeholder="e.g. XXXX-XXXX-XXXX"
@@ -279,7 +279,7 @@ export function DocumentDetailScreen() {
               <TextInput
                 style={[
                   s.input,
-                  { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+                  { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default },
                 ]}
                 value={issuedDate}
                 onChangeText={setIssuedDate}
@@ -293,7 +293,7 @@ export function DocumentDetailScreen() {
               <TextInput
                 style={[
                   s.input,
-                  { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+                  { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default },
                 ]}
                 value={expiryDate}
                 onChangeText={setExpiryDate}
@@ -305,7 +305,7 @@ export function DocumentDetailScreen() {
 
           <Text style={[s.label, { color: colors.text.secondary }]}>Issuing Authority</Text>
           <TextInput
-            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
             value={issuer}
             onChangeText={setIssuer}
             placeholder="e.g. Government of India"
@@ -317,7 +317,7 @@ export function DocumentDetailScreen() {
             style={[
               s.input,
               s.textArea,
-              { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+              { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default },
             ]}
             value={notes}
             onChangeText={setNotes}
@@ -329,7 +329,7 @@ export function DocumentDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
+      <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 24, paddingTop: 14 }}>
         <TouchableOpacity
           style={[s.button, { backgroundColor: colors.accent.primary }]}
           onPress={handleSave}
@@ -381,40 +381,41 @@ export function DocumentDetailScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  form: { paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
-  label: { fontSize: 12, fontWeight: '600', marginBottom: 6, marginTop: 16 },
+  form: { paddingHorizontal: 28 },
+  sectionTitle: { fontSize: 26, fontWeight: '800', marginBottom: 28 },
+  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8, marginTop: 24 },
   input: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 12,
-    fontSize: 14,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
+    fontSize: 16,
     fontWeight: '500',
+    borderWidth: 1.5,
   },
-  textArea: { minHeight: 80, textAlignVertical: 'top' },
-  row: { flexDirection: 'row' },
+  textArea: { minHeight: 100, textAlignVertical: 'top' },
+  row: { flexDirection: 'row', gap: 12 },
   categoryRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
     marginTop: 4,
   },
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 28,
+    gap: 8,
   },
-  categoryChipLabel: { fontSize: 12, fontWeight: '600' },
+  categoryChipLabel: { fontSize: 16, fontWeight: '600' },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 28,
     gap: 8,
   },
-  buttonText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  buttonText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
 });

@@ -15,8 +15,8 @@ import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
+import { triggerDataRefresh } from '../../services/dataRefresh';
 
 const EXPENSE_CATEGORIES = [
   { name: 'Food & Dining', icon: 'rest' as const, color: '#F97316' },
@@ -63,26 +63,10 @@ const RECURRING_FREQUENCIES = [
 
 const QUICK_AMOUNTS = ['100', '200', '500', '1000', '2000', '5000'];
 
+const PADDING = 20;
+
 function fmtDate(date: Date): string {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function SectionLabel({ label, color }: { label: string; color?: string }) {
-  const { colors } = useTheme();
-  return (
-    <Text
-      style={{
-        fontSize: 11,
-        fontWeight: '800',
-        letterSpacing: 0.6,
-        textTransform: 'uppercase',
-        color: color || colors.text.tertiary,
-        marginBottom: 10,
-      }}
-    >
-      {label}
-    </Text>
-  );
 }
 
 export function AddExpenseScreen() {
@@ -95,22 +79,17 @@ export function AddExpenseScreen() {
   const initialType = rawType === 'income' ? 'income' : 'expense';
   const expenseGroupId = route.params?.expenseGroupId;
   const returnTo = route.params?.returnTo as string | undefined;
-  const [amount, setAmount] = useState('');
+  const transactionId = route.params?.transactionId as string | undefined;
+  const prefillAmount = route.params?.amount as string | undefined;
+  const prefillDescription = route.params?.description as string | undefined;
+  const prefillCategory = route.params?.category as string | undefined;
+  const prefillDate = route.params?.date as string | undefined;
+  const [amount, setAmount] = useState(prefillAmount || '');
   const [error, setError] = useState('');
   const keyRef = useRef(0);
   const [type, setType] = useState<'expense' | 'income'>(initialType);
-
-  useEffect(() => {
-    keyRef.current += 1;
-    setAmount('');
-    setError('');
-    setType(initialType);
-    setCategory(initialType === 'expense' ? 'Food & Dining' : 'Salary');
-    setDescription('');
-    setDate(new Date());
-    setDateStr(fmtDate(new Date()));
-  }, [route.params?.type]);
-  const [category, setCategory] = useState(initialType === 'expense' ? 'Food & Dining' : 'Salary');
+  const initialCategory = initialType === 'expense' ? 'Food & Dining' : 'Salary';
+  const [category, setCategory] = useState(prefillCategory || initialCategory);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
   const [dateStr, setDateStr] = useState(fmtDate(new Date()));
@@ -119,6 +98,43 @@ export function AddExpenseScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState('monthly');
   const [saving, setSaving] = useState(false);
+
+  const [loadingEdit, setLoadingEdit] = useState(!!transactionId);
+
+  useEffect(() => {
+    if (transactionId) {
+      (async () => {
+        try {
+          const res = await api.get<any>(`/transactions/${transactionId}`);
+          const txn = res?.data ?? res;
+          if (txn) {
+            setAmount(String(Number(txn.amount)));
+            setType(txn.type === 'income' ? 'income' : 'expense');
+            setCategory(txn.category || initialCategory);
+            setDescription(txn.description || '');
+            const d = new Date(txn.date || txn.createdAt || new Date());
+            setDate(d);
+            setDateStr(fmtDate(d));
+            setPaymentMethod(txn.paymentMethod || 'upi');
+            setIsRecurring(!!txn.isRecurring);
+            if (txn.recurringFrequency) setFrequency(txn.recurringFrequency);
+          }
+        } catch {
+          // silent
+        } finally {
+          setLoadingEdit(false);
+        }
+      })();
+    } else if (prefillAmount) {
+      setAmount(prefillAmount);
+      if (prefillDescription) setDescription(prefillDescription);
+      if (prefillCategory) setCategory(prefillCategory);
+      if (prefillDate) {
+        const d = new Date(prefillDate);
+        if (!isNaN(d.getTime())) { setDate(d); setDateStr(fmtDate(d)); }
+      }
+    }
+  }, [transactionId]);
 
   const categories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
   const accentColor = type === 'expense' ? colors.status.error : colors.status.success;
@@ -171,8 +187,13 @@ export function AddExpenseScreen() {
         payload.isRecurring = true;
         payload.recurringFrequency = frequency;
       }
-      await api.post('/transactions', payload);
+      if (transactionId) {
+        await api.patch(`/transactions/${transactionId}`, payload);
+      } else {
+        await api.post('/transactions', payload);
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      triggerDataRefresh('add-expense');
       if (returnTo) {
         navigation.navigate(returnTo as any);
       } else {
@@ -195,7 +216,18 @@ export function AddExpenseScreen() {
     isRecurring,
     frequency,
     navigation,
+    transactionId,
+    expenseGroupId,
+    returnTo,
   ]);
+
+  if (loadingEdit) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg.primary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
@@ -203,102 +235,96 @@ export function AddExpenseScreen() {
         colors={isDark ? ['#1A0A2E', colors.bg.primary] : ['#F0E6FF', colors.bg.primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        locations={[0, 0.2]}
+        locations={[0, 0.15]}
         style={{ flex: 1 }}
       >
         <View
           style={{
-            paddingTop: insets.top + 8,
-            paddingHorizontal: 24,
-            paddingBottom: 8,
+            paddingTop: insets.top + 6,
+            paddingHorizontal: PADDING,
+            paddingBottom: 4,
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
           }}
         >
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 38,
+              height: 38,
+              borderRadius: 28,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,15,0.05)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 18,
+              fontWeight: '700',
+              color: colors.text.primary,
+              textAlign: 'center',
+              marginRight: 38,
+            }}
+          >
             {type === 'expense' ? 'Add Expense' : 'Add Income'}
           </Text>
-          <View style={{ width: 40 }} />
-        </View>
-
-        <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, marginBottom: 20 }}>
-          <TouchableOpacity
-            onPress={() => handleTypeChange('expense')}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 20,
-              borderWidth: 1.5,
-              backgroundColor: type === 'expense' ? colors.status.error + '15' : colors.bg.card,
-              borderColor: type === 'expense' ? colors.status.error : colors.border.subtle,
-            }}
-          >
-            <AntDesign
-              name="arrowdown"
-              size={14}
-              color={type === 'expense' ? colors.status.error : colors.text.tertiary}
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                color: type === 'expense' ? colors.status.error : colors.text.secondary,
-              }}
-            >
-              Expense
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleTypeChange('income')}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 20,
-              borderWidth: 1.5,
-              backgroundColor: type === 'income' ? colors.status.success + '15' : colors.bg.card,
-              borderColor: type === 'income' ? colors.status.success : colors.border.subtle,
-            }}
-          >
-            <AntDesign
-              name="arrowup"
-              size={14}
-              color={type === 'income' ? colors.status.success : colors.text.tertiary}
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                color: type === 'income' ? colors.status.success : colors.text.secondary,
-              }}
-            >
-              Income
-            </Text>
-          </TouchableOpacity>
         </View>
 
         <ScrollView
-          contentContainerStyle={{ padding: 24, paddingTop: 0, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: PADDING, paddingTop: 14, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: colors.bg.tertiary,
+              borderRadius: 28,
+              padding: 3,
+              marginBottom: 16,
+            }}
+          >
+            {(['expense', 'income'] as const).map((t) => {
+              const active = type === t;
+              const tColor = t === 'expense' ? colors.status.error : colors.status.success;
+              return (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => handleTypeChange(t)}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    paddingVertical: 12,
+                    borderRadius: 26,
+                    backgroundColor: active ? tColor : 'transparent',
+                  }}
+                >
+                  <AntDesign
+                    name={t === 'expense' ? 'arrowdown' : 'arrowup'}
+                    size={14}
+                    color={active ? '#FFF' : colors.text.tertiary}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: active ? '#FFF' : colors.text.secondary,
+                    }}
+                  >
+                    {t === 'expense' ? 'Expense' : 'Income'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {error ? (
             <View
               style={{
@@ -306,14 +332,14 @@ export function AddExpenseScreen() {
                 alignItems: 'center',
                 gap: 8,
                 padding: 14,
-                borderRadius: 12,
+                borderRadius: 28,
                 backgroundColor: colors.status.error + '10',
                 marginBottom: 16,
               }}
             >
               <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
               <Text
-                style={{ fontSize: 13, fontWeight: '600', color: colors.status.error, flex: 1 }}
+                style={{ fontSize: 15, fontWeight: '600', color: colors.status.error, flex: 1 }}
               >
                 {error}
               </Text>
@@ -322,29 +348,34 @@ export function AddExpenseScreen() {
 
           <View
             style={{
-              borderRadius: 20,
-              padding: 20,
+              borderRadius: 28,
+              borderWidth: 1.5,
+              borderColor: colors.border.subtle,
+              padding: 18,
               backgroundColor: colors.bg.card,
-              marginBottom: 20,
-              ...shadows.md,
+              marginBottom: 16,
             }}
           >
-            <SectionLabel label="Amount" />
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+                color: colors.text.tertiary,
+                marginBottom: 8,
+              }}
+            >
+              Amount
+            </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 30,
-                  fontWeight: '700',
-                  color: colors.text.primary,
-                  marginRight: 8,
-                }}
-              >
+              <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text.primary, marginRight: 6 }}>
                 ₹
               </Text>
               <TextInput
                 style={{
                   flex: 1,
-                  fontSize: 30,
+                  fontSize: 28,
                   fontWeight: '700',
                   color: colors.text.primary,
                   padding: 0,
@@ -360,21 +391,32 @@ export function AddExpenseScreen() {
                 autoFocus
               />
             </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+            {amount.length > 0 && (
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                ₹{parseFloat(amount || '0').toLocaleString('en-IN')}
+              </Text>
+            )}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
               {QUICK_AMOUNTS.map((q) => (
                 <TouchableOpacity
                   key={q}
-                  onPress={() => setAmount(q)}
+                  onPress={() => { setAmount(q); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); }}
                   style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    backgroundColor: colors.bg.secondary,
-                    borderColor: colors.border.subtle,
+                    paddingHorizontal: 20,
+                    paddingVertical: 7,
+                    borderRadius: 24,
+                    borderWidth: 1.5,
+                    backgroundColor: amount === q ? `${accentColor}15` : colors.bg.secondary,
+                    borderColor: amount === q ? accentColor : colors.border.subtle,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: amount === q ? accentColor : colors.text.secondary,
+                    }}
+                  >
                     ₹{q}
                   </Text>
                 </TouchableOpacity>
@@ -382,30 +424,39 @@ export function AddExpenseScreen() {
             </View>
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
             <View style={{ flex: 1 }}>
-              <SectionLabel label="Date" />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: colors.text.tertiary,
+                  marginBottom: 6,
+                }}
+              >
+                Date
+              </Text>
               <TouchableOpacity
                 onPress={() => setShowPicker(true)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 8,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderWidth: 1,
+                  gap: 6,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  borderRadius: 28,
+                  borderWidth: 1.5,
                   backgroundColor: colors.bg.card,
                   borderColor: colors.border.subtle,
                 }}
               >
                 <AntDesign name="calendar" size={16} color={colors.accent.primary} />
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary, flex: 1 }}
-                >
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary, flex: 1 }}>
                   {dateStr}
                 </Text>
-                <AntDesign name="down" size={11} color={colors.text.tertiary} />
+                <AntDesign name="down" size={10} color={colors.text.tertiary} />
               </TouchableOpacity>
               {showPicker && (
                 <DateTimePicker
@@ -418,18 +469,29 @@ export function AddExpenseScreen() {
               )}
             </View>
             <View style={{ flex: 1 }}>
-              <SectionLabel label="Recurring" />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: colors.text.tertiary,
+                  marginBottom: 6,
+                }}
+              >
+                Recurring
+              </Text>
               <TouchableOpacity
                 onPress={() => setIsRecurring(!isRecurring)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 8,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  backgroundColor: isRecurring ? accentColor + '12' : colors.bg.card,
+                  gap: 6,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  borderRadius: 28,
+                  borderWidth: 1.5,
+                  backgroundColor: isRecurring ? `${accentColor}12` : colors.bg.card,
                   borderColor: isRecurring ? accentColor : colors.border.subtle,
                 }}
               >
@@ -440,7 +502,7 @@ export function AddExpenseScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: '600',
                     color: isRecurring ? accentColor : colors.text.secondary,
                   }}
@@ -451,9 +513,20 @@ export function AddExpenseScreen() {
             </View>
           </View>
 
-          <View style={{ marginBottom: 20 }}>
-            <SectionLabel label="Payment Method" />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <View style={{ marginBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+                color: colors.text.tertiary,
+                marginBottom: 6,
+              }}
+            >
+              Payment Method
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
               {PAYMENT_METHODS.map((pm) => {
                 const active = paymentMethod === pm.value;
                 return (
@@ -466,20 +539,16 @@ export function AddExpenseScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 6,
-                      paddingHorizontal: 14,
+                      gap: 5,
+                      paddingHorizontal: 16,
                       paddingVertical: 10,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      backgroundColor: active ? pm.color + '15' : colors.bg.card,
+                      borderRadius: 28,
+                      borderWidth: 1.5,
+                      backgroundColor: active ? `${pm.color}15` : colors.bg.card,
                       borderColor: active ? pm.color : colors.border.subtle,
                     }}
                   >
-                    <AntDesign
-                      name={pm.icon}
-                      size={14}
-                      color={active ? pm.color : colors.text.tertiary}
-                    />
+                    <AntDesign name={pm.icon} size={13} color={active ? pm.color : colors.text.tertiary} />
                     <Text
                       style={{
                         fontSize: 12,
@@ -495,64 +564,78 @@ export function AddExpenseScreen() {
             </View>
           </View>
 
-          <View style={{ marginBottom: 20 }}>
-            <SectionLabel label="Category" />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {categories.map((cat) => {
-                  const active = category === cat.name;
-                  return (
-                    <TouchableOpacity
-                      key={cat.name}
-                      onPress={() => {
-                        setCategory(cat.name);
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                      }}
+          <View style={{ marginBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+                color: colors.text.tertiary,
+                marginBottom: 6,
+              }}
+            >
+              Category
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+              {categories.map((cat) => {
+                const active = category === cat.name;
+                return (
+                  <TouchableOpacity
+                    key={cat.name}
+                    onPress={() => {
+                      setCategory(cat.name);
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderRadius: 28,
+                      borderWidth: 1.5,
+                      backgroundColor: active ? `${cat.color}18` : colors.bg.card,
+                      borderColor: active ? cat.color : colors.border.subtle,
+                    }}
+                  >
+                    <AntDesign name={cat.icon} size={13} color={active ? cat.color : colors.text.tertiary} />
+                    <Text
                       style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 6,
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        backgroundColor: active ? cat.color + '18' : colors.bg.card,
-                        borderColor: active ? cat.color : colors.border.subtle,
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: active ? cat.color : colors.text.secondary,
                       }}
                     >
-                      <AntDesign
-                        name={cat.icon}
-                        size={13}
-                        color={active ? cat.color : colors.text.tertiary}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: '600',
-                          color: active ? cat.color : colors.text.secondary,
-                        }}
-                      >
-                        {cat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
 
-          <View style={{ marginBottom: 20 }}>
-            <SectionLabel
-              label={type === 'expense' ? 'Description (optional)' : 'Source (optional)'}
-            />
+          <View style={{ marginBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: 0.6,
+                color: colors.text.tertiary,
+                marginBottom: 6,
+              }}
+            >
+              {type === 'expense' ? 'Description (optional)' : 'Source (optional)'}
+            </Text>
             <TextInput
               style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: '500',
-                paddingHorizontal: 18,
-                paddingVertical: 14,
-                borderRadius: 16,
-                borderWidth: 1,
+                paddingHorizontal: 16,
+                paddingVertical: 16,
+                borderRadius: 28,
+                borderWidth: 1.5,
                 backgroundColor: colors.bg.card,
                 borderColor: colors.border.subtle,
                 color: colors.text.primary,
@@ -567,9 +650,20 @@ export function AddExpenseScreen() {
           </View>
 
           {isRecurring && (
-            <View style={{ marginBottom: 20 }}>
-              <SectionLabel label="Frequency" />
-              <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: colors.text.tertiary,
+                  marginBottom: 6,
+                }}
+              >
+                Frequency
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
                 {RECURRING_FREQUENCIES.map((f) => {
                   const active = frequency === f.value;
                   return (
@@ -579,17 +673,17 @@ export function AddExpenseScreen() {
                       style={{
                         flex: 1,
                         alignItems: 'center',
-                        paddingVertical: 10,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        backgroundColor: active ? accentColor + '15' : colors.bg.card,
+                        paddingVertical: 12,
+                        borderRadius: 28,
+                        borderWidth: 1.5,
+                        backgroundColor: active ? `${accentColor}15` : colors.bg.card,
                         borderColor: active ? accentColor : colors.border.subtle,
                       }}
                     >
                       <Text
                         style={{
                           fontSize: 12,
-                          fontWeight: '600',
+                          fontWeight: '700',
                           color: active ? accentColor : colors.text.secondary,
                         }}
                       >
@@ -607,9 +701,9 @@ export function AddExpenseScreen() {
             disabled={saving || !amount}
             activeOpacity={0.85}
             style={{
-              borderRadius: 16,
+              borderRadius: 28,
               overflow: 'hidden',
-              marginTop: 24,
+              marginTop: 8,
               opacity: saving || !amount ? 0.6 : 1,
             }}
           >
@@ -622,7 +716,7 @@ export function AddExpenseScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
-                paddingVertical: 16,
+                paddingVertical: 18,
               }}
             >
               {saving ? (
@@ -634,7 +728,7 @@ export function AddExpenseScreen() {
                     size={18}
                     color="#FFF"
                   />
-                  <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+                  <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '800' }}>
                     {type === 'expense' ? 'Save Expense' : 'Save Income'}
                   </Text>
                 </>

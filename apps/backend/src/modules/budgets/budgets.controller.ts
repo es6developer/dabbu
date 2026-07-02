@@ -14,6 +14,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { BudgetsService } from './budgets.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { PremiumService } from '../premium/premium.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 
@@ -22,13 +23,17 @@ import { UpdateBudgetDto } from './dto/update-budget.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('budgets')
 export class BudgetsController {
-  constructor(private readonly budgetsService: BudgetsService) {}
+  constructor(
+    private readonly budgetsService: BudgetsService,
+    private readonly premiumService: PremiumService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new budget' })
   async create(@CurrentUser('id') userId: string, @Body() dto: CreateBudgetDto) {
     const budget = await this.budgetsService.create(userId, dto);
+    await this.premiumService.incrementUsage(userId, 'budgets');
     return { data: budget };
   }
 

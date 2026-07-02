@@ -679,7 +679,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
@@ -701,7 +701,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
                 <View
                   style={[
                     styles.modalInput,
-                    { borderColor: colors.border.subtle, marginBottom: 12 },
+                    { borderColor: colors.border.subtle, marginBottom: 14 },
                   ]}
                 >
                   <AntDesign name="search1" size={16} color={colors.text.tertiary} />
@@ -722,16 +722,16 @@ export default function FamilyMembersScreen({ navigation }: any) {
                     onPress={syncDeviceContacts}
                   >
                     <AntDesign name="team" size={16} color={colors.accent.primary} />
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: colors.accent.primary }}>
                       Sync Contacts
                     </Text>
                   </TouchableOpacity>
                 )}
 
                 {syncing && (
-                  <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <View style={{ alignItems: 'center', paddingVertical: 24 }}>
                     <ActivityIndicator size="small" color={colors.accent.primary} />
-                    <Text style={{ marginTop: 8, fontSize: 13, color: colors.text.tertiary }}>
+                    <Text style={{ marginTop: 8, fontSize: 16, color: colors.text.tertiary }}>
                       Syncing contacts...
                     </Text>
                   </View>
@@ -741,7 +741,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
                   <>
                     <Text
                       style={{
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: '600',
                         color: colors.text.tertiary,
                         marginBottom: 6,
@@ -790,7 +790,7 @@ export default function FamilyMembersScreen({ navigation }: any) {
                             <View style={{ flex: 1, marginLeft: 10 }}>
                               <Text
                                 style={{
-                                  fontSize: 14,
+                                  fontSize: 16,
                                   fontWeight: '600',
                                   color: colors.text.primary,
                                 }}
@@ -834,11 +834,11 @@ export default function FamilyMembersScreen({ navigation }: any) {
 
             {addStep === 'relationship' && selectedContact && (
               <>
-                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View style={{ alignItems: 'center', marginBottom: 20 }}>
                   <Avatar name={selectedContact.name} size={56} />
                   <Text
                     style={{
-                      fontSize: 17,
+                      fontSize: 19,
                       fontWeight: '700',
                       color: colors.text.primary,
                       marginTop: 8,
@@ -846,13 +846,13 @@ export default function FamilyMembersScreen({ navigation }: any) {
                   >
                     {selectedContact.name}
                   </Text>
-                  <Text style={{ fontSize: 13, color: colors.text.tertiary }}>
+                  <Text style={{ fontSize: 16, color: colors.text.tertiary }}>
                     {selectedContact.phone}
                   </Text>
                 </View>
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: '600',
                     color: colors.text.secondary,
                     marginBottom: 8,
@@ -936,7 +936,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 8,
-    paddingBottom: 12,
+    paddingBottom: 14,
   },
   largeTitle: {
     fontSize: 34,
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -954,12 +954,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: CARD_HORIZONTAL,
     marginBottom: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 28,
   },
   countText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   scrollContent: {
@@ -969,43 +969,43 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 40,
+    gap: 14,
+    paddingHorizontal: 44,
   },
   stateText: {
     fontSize: 16,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 28,
   },
   retryText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   stateSubtext: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 24,
   },
 
   // Skeleton
   skeletonCard: {
     marginBottom: CARD_MARGIN,
-    borderRadius: 20,
+    borderRadius: 28,
     overflow: 'hidden',
-    padding: 16,
+    padding: 22,
   },
   skeletonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   skeletonAvatar: {
     width: 52,
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   },
   skeletonLine: {
     height: 12,
-    borderRadius: 6,
+    borderRadius: 12,
   },
 
   // Card
@@ -1022,10 +1022,10 @@ const styles = StyleSheet.create({
     marginBottom: CARD_MARGIN,
   },
   card: {
-    borderRadius: 20,
+    borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    padding: 16,
+    padding: 22,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -1037,10 +1037,10 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '700',
   },
   cardHeaderInfo: {
@@ -1053,15 +1053,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   memberName: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '600',
     flexShrink: 1,
   },
   joinedDate: {
-    fontSize: 13,
+    fontSize: 16,
   },
   contributionAmount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1081,10 +1081,10 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 12,
   },
   roleBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
   },
 
@@ -1094,10 +1094,10 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginVertical: 12,
+    marginVertical: 14,
   },
   expandedSection: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 12,
@@ -1108,25 +1108,25 @@ const styles = StyleSheet.create({
   },
   activityRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
   },
   activityItem: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 28,
     padding: 10,
     alignItems: 'center',
     gap: 4,
   },
   activityLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
   },
   activityValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   responsibilityCount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   historyRow: {
@@ -1135,10 +1135,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   historyPeriod: {
-    fontSize: 14,
+    fontSize: 16,
   },
   historyAmount: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -1151,12 +1151,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 24,
   },
   actionBtnText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -1166,23 +1166,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 28,
     zIndex: 1000,
   },
   modalCard: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 28,
+    padding: 28,
     gap: 6,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 4,
@@ -1191,43 +1191,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    height: 52,
   },
   modalInputField: {
     flex: 1,
-    fontSize: 15,
-    height: 48,
+    fontSize: 16,
+    height: 52,
   },
   syncBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 14,
-    marginVertical: 12,
+    borderWidth: 1.5,
+    borderRadius: 28,
+    paddingVertical: 18,
+    marginVertical: 14,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   contactAvatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 12,
   },
   relationGrid: {
     flexDirection: 'row',
@@ -1235,28 +1235,28 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   relationChip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
   },
   relationChipText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   modalActions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
+    gap: 14,
+    marginTop: 24,
   },
   modalBtn: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 28,
     alignItems: 'center',
   },
   modalBtnText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
 });

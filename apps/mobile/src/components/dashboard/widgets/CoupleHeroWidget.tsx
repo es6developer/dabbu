@@ -107,7 +107,7 @@ export function CoupleHeroWidget({ data, onPress }: { data: any; onPress?: () =>
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, alignItems: 'center', gap: 10 },
-  avatarsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatarsRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatarRing: {
     width: 52,
     height: 52,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   heartCircle: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 5,
-    borderRadius: 20,
+    borderRadius: 28,
   },
   days: { fontSize: 12, fontWeight: '700' },
 });
